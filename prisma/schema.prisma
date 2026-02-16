@@ -1,14 +1,158 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
   output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+ 
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  firstName String   @map("first_name")
+  lastName  String   @map("last_name")
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  contentArticles ContentArticle[]
+
+  @@map("users")
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  categoryName String @map("category_name")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  contentArticles ContentArticle[]
+  rawArticles     RawArticle[]
+
+  @@map("categories")
+}
+
+model ContentArticle {
+  id         Int      @id @default(autoincrement())
+  usersId    Int      @map("users_id")
+  categoryId Int      @map("category_id")
+
+  title       String
+  publishDate DateTime? @map("publish_date")
+  imageUrl    String?   @map("image_url")
+  content     String
+  status      String
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user       User     @relation(fields: [usersId], references: [id])
+  category   Category @relation(fields: [categoryId], references: [id])
+  rawArticles RawArticle[]
+  transformations ContentTransformation[]
+
+  @@map("content_articles")
+}
+
+model RawArticle {
+  id              Int      @id @default(autoincrement())
+  contentArticleId Int      @map("content_article_id")
+  crawledUrlId    Int      @map("crawled_url_id")
+  categoryId      Int      @map("category_id")
+  sourceCitesId   Int      @map("source_cites_id")
+
+  title       String
+  author      String?
+  publishDate DateTime? @map("publish_date")
+  imageUrl    String?   @map("image_url")
+  content     String?   @map("content")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  contentArticle ContentArticle @relation(fields: [contentArticleId], references: [id])
+  crawledUrl     CrawledUrl     @relation(fields: [crawledUrlId], references: [id])
+  category       Category       @relation(fields: [categoryId], references: [id])
+  sourceCite     SourceCite     @relation(fields: [sourceCitesId], references: [id])
+
+  @@map("raw_articles")
+}
+
+model CrawledUrl {
+  id        Int      @id @default(autoincrement())
+  url       String   @unique
+  status    String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  rawArticles RawArticle[]
+
+  @@map("crawled_url")
+}
+
+model SourceCite {
+  id        Int      @id @default(autoincrement())
+  url       String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  rawArticles RawArticle[]
+
+  @@map("source_cites")
+}
+
+model ContentTransformation {
+  id               Int      @id @default(autoincrement())
+  contentArticleId Int      @map("content_article_id")
+  socialChannelsId Int      @map("social_channels_id")
+
+  tone             String?
+  formatType       String?  @map("format_type")
+  transformedTitle String?  @map("transformed_title")
+  transformedContent String? @map("transformed_content")
+  status           String
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  contentArticle ContentArticle @relation(fields: [contentArticleId], references: [id])
+  socialChannel  SocialChannel  @relation(fields: [socialChannelsId], references: [id])
+  socialMediaPosts SocialMediaPost[]
+
+  @@map("content_transformations")
+}
+
+model SocialChannel {
+  id              Int      @id @default(autoincrement())
+  socialMediaName String   @map("social_media_name")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  transformations ContentTransformation[]
+
+  @@map("social_channels")
+}
+
+model SocialMediaPost {
+  id                     Int      @id @default(autoincrement())
+  contentTransformationId Int      @map("content_transformation_id")
+
+  postUrl      String?   @map("post_url")
+  mediaUrl     Json?     @map("media_url")
+  postedAt     DateTime? @map("posted_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  transformation ContentTransformation @relation(fields: [contentTransformationId], references: [id])
+
+  @@map("social_media_posts")
 }
