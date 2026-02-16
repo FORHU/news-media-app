@@ -1,17 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Search, Menu, Mail, User } from "lucide-react";
 
 export function Header() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Search bar is display-only; no search logic yet
+  useEffect(() => {
+    const q = searchParams.get("search") ?? "";
+    setQuery(q);
+  }, [searchParams]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setMobileOpen(false);
+    const params = new URLSearchParams(searchParams.toString());
+    if (query.trim()) {
+      params.set("search", query.trim());
+    } else {
+      params.delete("search");
+    }
+    const qs = params.toString();
+    router.push(qs ? `/?${qs}` : "/");
   };
 
   return (
