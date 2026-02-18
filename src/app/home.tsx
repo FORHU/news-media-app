@@ -11,6 +11,7 @@ import { LatestStoriesSection } from "@/components/home/latest-stories-section";
 import { TrendingSidebar } from "@/components/home/trending-sidebar";
 import { FeaturedArticlesSection } from "@/components/home/featured-articles-section";
 import { TrendingProductsSection } from "@/components/home/trending-products-section";
+import { Footer } from "@/components/Footer";
 import { articlesApi, adminApi } from "@/lib/api";
 import type { Article } from "@/lib/types";
 
@@ -24,7 +25,7 @@ export default function Home() {
 
   useEffect(() => {
     loadArticles();
-    adminApi.initialize().catch(() => {});
+    adminApi.initialize().catch(() => { });
   }, []);
 
   const loadArticles = async () => {
@@ -44,13 +45,13 @@ export default function Home() {
   // Filter articles based on search query
   const filteredArticles = searchQuery
     ? articles.filter((article) => {
-        const query = searchQuery.toLowerCase();
-        return (
-          article.title.toLowerCase().includes(query) ||
-          article.description.toLowerCase().includes(query) ||
-          article.category.toLowerCase().includes(query)
-        );
-      })
+      const query = searchQuery.toLowerCase();
+      return (
+        article.title.toLowerCase().includes(query) ||
+        article.description.toLowerCase().includes(query) ||
+        article.category.toLowerCase().includes(query)
+      );
+    })
     : articles;
 
   if (loading) {
@@ -110,6 +111,7 @@ export default function Home() {
           />
         )}
       </main>
+      <Footer />
     </div>
   );
 }

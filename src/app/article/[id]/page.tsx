@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { ArrowLeft } from "lucide-react";
 import { prisma } from "@/lib/db";
 
@@ -65,6 +66,7 @@ export default async function ArticlePage({ params }: Props) {
           </div>
         </article>
       </main>
+      <Footer />
     </div>
   );
 }
