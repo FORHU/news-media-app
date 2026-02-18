@@ -10,8 +10,9 @@ interface HeroSectionProps {
   articles: Article[];
 }
 
-function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString("en-US", {
+function formatDate(date: Date | string) {
+  const d = typeof date === "string" ? new Date(date) : date;
+  return d.toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
     year: "numeric",
@@ -34,6 +35,11 @@ const variants = {
     opacity: 0
   })
 };
+function truncateContent(content: string | null, maxLength = 160): string {
+  if (!content) return "";
+  const plain = content.replace(/<[^>]*>/g, "").trim();
+  return plain.length <= maxLength ? plain : plain.slice(0, maxLength) + "…";
+}
 
 export function HeroSection({ articles }: HeroSectionProps) {
   const [[page, direction], setPage] = useState([0, 0]);
@@ -47,7 +53,7 @@ export function HeroSection({ articles }: HeroSectionProps) {
     setPage([page + newDirection, newDirection]);
   };
 
-  const categoryLabel = article.category.toUpperCase().replace(/\s+/g, " ");
+  const categoryLabel = article.category.categoryName.toUpperCase().replace(/\s+/g, " ");
 
   return (
     <section className="bg-white border-b border-gray-200">
@@ -96,6 +102,23 @@ export function HeroSection({ articles }: HeroSectionProps) {
                         {categoryLabel}
                       </span>
                     </div>
+          {/* Card */}
+          <Link
+            href={`/article/${article.id}`}
+            className="block bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 min-h-[280px]">
+              {/* Image side */}
+              <div className="relative aspect-video md:aspect-auto md:min-h-[280px] bg-gray-900">
+                <img
+                  src={article.imageUrl ?? `https://placehold.co/800x400/e5e7eb/9ca3af?text=${encodeURIComponent(article.title.slice(0, 30))}`}
+                  alt={article.title}
+                  className="w-full h-full object-cover"
+                />
+                <span className="absolute top-3 left-3 px-2 py-1 bg-[#ff4500] text-white text-xs font-bold uppercase rounded">
+                  {categoryLabel}
+                </span>
+              </div>
 
                     {/* Content side */}
                     <div className="p-6 md:p-8 flex flex-col justify-center">
@@ -129,6 +152,29 @@ export function HeroSection({ articles }: HeroSectionProps) {
               </motion.div>
             </AnimatePresence>
           </div>
+                  <span className="text-sm text-gray-700">AI Content Writer</span>
+                  <span className="flex items-center gap-1 text-xs text-gray-500">
+                    <Calendar className="w-3.5 h-3.5" />
+                    {formatDate(article.createdAt)}
+                  </span>
+                  <span className="flex items-center gap-1 text-xs text-gray-500">
+                    <Clock className="w-3.5 h-3.5" />
+                    5 min read
+                  </span>
+                </div>
+                <h1 className="text-xl md:text-2xl font-bold text-black mb-3 line-clamp-2 group-hover:text-[#ff4500] transition-colors">
+                  {article.title}
+                </h1>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                  {truncateContent(article.content)}
+                </p>
+                <span className="inline-flex items-center gap-1 text-[#ff4500] font-medium text-sm">
+                  Read Full Article
+                  <ArrowRight className="w-4 h-4" />
+                </span>
+              </div>
+            </div>
+          </Link>
 
           {/* Next arrow */}
           <button

@@ -1,9 +1,6 @@
-export interface Article {
-  id: number;
-  title: string;
-  description: string;
-  image: string;
-  category: string;
-  type: string;
-  createdAt: string;
-}
+import type { Prisma } from "@/generated/prisma/client";
+
+// Infer Article type directly from Prisma ContentArticle with category include
+export type Article = Prisma.ContentArticleGetPayload<{
+  include: { category: true };
+}>;

@@ -12,12 +12,19 @@ interface LatestStoriesSectionProps {
   searchQuery: string | null;
 }
 
-function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString("en-US", {
+function formatDate(date: Date | string) {
+  const d = typeof date === "string" ? new Date(date) : date;
+  return d.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
+}
+
+function truncateContent(content: string | null, maxLength = 120): string {
+  if (!content) return "";
+  const plain = content.replace(/<[^>]*>/g, "").trim();
+  return plain.length <= maxLength ? plain : plain.slice(0, maxLength) + "…";
 }
 
 export function LatestStoriesSection({
@@ -74,7 +81,7 @@ export function LatestStoriesSection({
             >
               <div className="relative w-40 h-28 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                 <img
-                  src={article.image}
+                  src={article.imageUrl ?? `https://placehold.co/400x200/e5e7eb/9ca3af?text=${encodeURIComponent(article.title.slice(0, 20))}`}
                   alt={article.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
@@ -82,14 +89,14 @@ export function LatestStoriesSection({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="inline-block bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-xs font-semibold uppercase">
-                    {article.category}
+                    {article.category.categoryName}
                   </span>
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-[#ff4500] transition-colors line-clamp-2">
                   {article.title}
                 </h3>
                 <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                  {article.description}
+                  {truncateContent(article.content)}
                 </p>
                 <div className="flex items-center gap-4 text-xs text-gray-500">
                   <span className="flex items-center gap-1">

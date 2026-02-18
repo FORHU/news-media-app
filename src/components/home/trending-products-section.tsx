@@ -8,6 +8,12 @@ interface TrendingProductsSectionProps {
   articles: Article[];
 }
 
+function truncateContent(content: string | null, maxLength = 100): string {
+  if (!content) return "";
+  const plain = content.replace(/<[^>]*>/g, "").trim();
+  return plain.length <= maxLength ? plain : plain.slice(0, maxLength) + "…";
+}
+
 export function TrendingProductsSection({
   articles,
 }: TrendingProductsSectionProps) {
@@ -34,7 +40,7 @@ export function TrendingProductsSection({
           >
             <div className="relative h-48 bg-gray-200 overflow-hidden">
               <img
-                src={product.image}
+                src={product.imageUrl ?? `https://placehold.co/400x300/e5e7eb/9ca3af?text=${encodeURIComponent(product.title.slice(0, 20))}`}
                 alt={product.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
@@ -44,7 +50,7 @@ export function TrendingProductsSection({
                 {product.title}
               </h3>
               <p className="text-sm text-gray-600 line-clamp-2">
-                {product.description}
+                {truncateContent(product.content)}
               </p>
             </div>
           </Link>

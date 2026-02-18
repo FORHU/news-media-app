@@ -56,14 +56,14 @@ CREATE TABLE "raw_articles" (
 );
 
 -- CreateTable
-CREATE TABLE "crawled_url" (
+CREATE TABLE "crawled_urls" (
     "id" SERIAL NOT NULL,
     "url" TEXT NOT NULL,
     "status" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "crawled_url_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "crawled_urls_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -119,7 +119,7 @@ CREATE TABLE "social_media_posts" (
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "crawled_url_url_key" ON "crawled_url"("url");
+CREATE UNIQUE INDEX "crawled_urls_url_key" ON "crawled_urls"("url");
 
 -- AddForeignKey
 ALTER TABLE "content_articles" ADD CONSTRAINT "content_articles_users_id_fkey" FOREIGN KEY ("users_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -131,7 +131,7 @@ ALTER TABLE "content_articles" ADD CONSTRAINT "content_articles_category_id_fkey
 ALTER TABLE "raw_articles" ADD CONSTRAINT "raw_articles_content_article_id_fkey" FOREIGN KEY ("content_article_id") REFERENCES "content_articles"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "raw_articles" ADD CONSTRAINT "raw_articles_crawled_url_id_fkey" FOREIGN KEY ("crawled_url_id") REFERENCES "crawled_url"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "raw_articles" ADD CONSTRAINT "raw_articles_crawled_url_id_fkey" FOREIGN KEY ("crawled_url_id") REFERENCES "crawled_urls"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "raw_articles" ADD CONSTRAINT "raw_articles_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

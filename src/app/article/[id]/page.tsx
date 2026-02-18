@@ -1,37 +1,54 @@
+"use client";
+
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { useParams, notFound } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ArrowLeft } from "lucide-react";
 import { prisma } from "@/lib/db";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { articlesApi } from "@/lib/api";
 
-interface Props {
-  params: Promise<{ id: string }>;
-}
+export default function ArticlePage() {
+  const params = useParams();
+  const idParam = params?.id as string | undefined;
+  const numId = idParam ? parseInt(idParam, 10) : NaN;
 
-export default async function ArticlePage({ params }: Props) {
-  const { id } = await params;
-  const numId = parseInt(id, 10);
-  if (Number.isNaN(numId)) notFound();
-
-  if (!prisma) notFound();
-
-  const row = await prisma.contentArticle.findUnique({
-    where: { id: numId },
-    include: { category: true },
+  const { data: article, isLoading, error, isError } = useQuery({
+    queryKey: ["article", numId],
+    queryFn: () => articlesApi.getArticle(numId),
+    enabled: !Number.isNaN(numId),
   });
 
-  if (!row) notFound();
+  if (Number.isNaN(numId) || (isError && !isLoading)) {
+    notFound();
+  }
 
-  const formattedDate = new Date(row.createdAt).toLocaleDateString("en-US", {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-[#ff4500] animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading article...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!article) {
+    notFound();
+  }
+
+  const createdAt =
+    article.createdAt instanceof Date
+      ? article.createdAt
+      : new Date(article.createdAt as string);
+  const formattedDate = createdAt.toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
     year: "numeric",
   });
-
-  const imageUrl =
-    row.imageUrl ??
-    `https://placehold.co/800x400/e5e7eb/9ca3af?text=${encodeURIComponent(row.title.slice(0, 30))}`;
 
   return (
     <div className="min-h-screen bg-white">
@@ -47,22 +64,24 @@ export default async function ArticlePage({ params }: Props) {
         <article>
           <header>
             <span className="inline-block px-2 py-0.5 bg-[#ff4500] text-white rounded text-xs font-semibold uppercase mb-4">
-              {row.category.categoryName}
+              {article.category.categoryName}
             </span>
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              {row.title}
+              {article.title}
             </h1>
             <p className="text-gray-500">{formattedDate}</p>
-            <div className="mt-6 rounded-xl overflow-hidden bg-gray-200">
-              <img
-                src={imageUrl}
-                alt={row.title}
-                className="w-full h-auto object-cover"
-              />
-            </div>
+            {article.imageUrl && (
+              <div className="mt-6 rounded-xl overflow-hidden bg-gray-200">
+                <img
+                  src={article.imageUrl}
+                  alt={article.title}
+                  className="w-full h-auto object-cover"
+                />
+              </div>
+            )}
           </header>
           <div className="mt-8 text-gray-700 leading-relaxed whitespace-pre-wrap">
-            {row.content}
+            {article.content}
           </div>
         </article>
       </main>
