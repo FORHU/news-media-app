@@ -7,12 +7,19 @@ interface FeaturedArticlesSectionProps {
   articles: Article[];
 }
 
-function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString("en-US", {
+function formatDate(date: Date | string) {
+  const d = typeof date === "string" ? new Date(date) : date;
+  return d.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
+}
+
+function truncateContent(content: string | null, maxLength = 100): string {
+  if (!content) return "";
+  const plain = content.replace(/<[^>]*>/g, "").trim();
+  return plain.length <= maxLength ? plain : plain.slice(0, maxLength) + "…";
 }
 
 export function FeaturedArticlesSection({
@@ -30,25 +37,25 @@ export function FeaturedArticlesSection({
         >
           <div className="relative h-32 bg-gray-200 overflow-hidden">
             <img
-              src={article.image}
+              src={article.imageUrl ?? `https://placehold.co/600x400/e5e7eb/9ca3af?text=${encodeURIComponent(article.title.slice(0, 20))}`}
               alt={article.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
             <div className="absolute top-2 right-2">
               <span className="inline-block bg-[#ff4500] text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase">
-                {article.type}
+                {article.status ?? "article"}
               </span>
             </div>
           </div>
           <div className="p-3">
             <div className="text-xs text-[#ff4500] font-semibold mb-1 uppercase">
-              {article.category}
+              {article.category.categoryName}
             </div>
             <h3 className="text-sm font-bold text-gray-900 mb-2 group-hover:text-[#ff4500] transition-colors line-clamp-2">
               {article.title}
             </h3>
             <p className="text-xs text-gray-600 line-clamp-2 mb-2">
-              {article.description}
+              {truncateContent(article.content)}
             </p>
             <div className="text-xs text-gray-500">
               {formatDate(article.createdAt)}

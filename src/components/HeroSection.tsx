@@ -9,12 +9,19 @@ interface HeroSectionProps {
   articles: Article[];
 }
 
-function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString("en-US", {
+function formatDate(date: Date | string) {
+  const d = typeof date === "string" ? new Date(date) : date;
+  return d.toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
     year: "numeric",
   });
+}
+
+function truncateContent(content: string | null, maxLength = 160): string {
+  if (!content) return "";
+  const plain = content.replace(/<[^>]*>/g, "").trim();
+  return plain.length <= maxLength ? plain : plain.slice(0, maxLength) + "…";
 }
 
 export function HeroSection({ articles }: HeroSectionProps) {
@@ -27,7 +34,7 @@ export function HeroSection({ articles }: HeroSectionProps) {
   const goPrev = () => setIndex((i) => (i === 0 ? total - 1 : i - 1));
   const goNext = () => setIndex((i) => (i === total - 1 ? 0 : i + 1));
 
-  const categoryLabel = article.category.toUpperCase().replace(/\s+/g, " ");
+  const categoryLabel = article.category.categoryName.toUpperCase().replace(/\s+/g, " ");
 
   return (
     <section className="bg-white border-b border-gray-200">
@@ -54,7 +61,7 @@ export function HeroSection({ articles }: HeroSectionProps) {
               {/* Image side */}
               <div className="relative aspect-video md:aspect-auto md:min-h-[280px] bg-gray-900">
                 <img
-                  src={article.image}
+                  src={article.imageUrl ?? `https://placehold.co/800x400/e5e7eb/9ca3af?text=${encodeURIComponent(article.title.slice(0, 30))}`}
                   alt={article.title}
                   className="w-full h-full object-cover"
                 />
@@ -83,7 +90,7 @@ export function HeroSection({ articles }: HeroSectionProps) {
                   {article.title}
                 </h1>
                 <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                  {article.description}
+                  {truncateContent(article.content)}
                 </p>
                 <span className="inline-flex items-center gap-1 text-[#ff4500] font-medium text-sm">
                   Read Full Article

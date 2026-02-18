@@ -93,7 +93,7 @@ model CrawledUrl {
 
   rawArticles RawArticle[]
 
-  @@map("crawled_url")
+  @@map("crawled_urls")
 }
 
 model SourceCite {

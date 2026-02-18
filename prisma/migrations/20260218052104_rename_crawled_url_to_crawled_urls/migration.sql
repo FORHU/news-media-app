@@ -1,0 +1,1 @@
+-- No-op: table is now created as "crawled_urls" in init migration.

@@ -7,14 +7,10 @@ export const articlesApi = {
     if (!res.ok) throw new Error("Failed to fetch articles");
     return res.json();
   },
-};
 
-export const adminApi = {
-  async initialize(): Promise<void> {
-    try {
-      await fetch("/api/admin/initialize", { method: "POST" });
-    } catch {
-      // Ignore - optional init
-    }
+  async getArticle(id: number): Promise<Article> {
+    const res = await fetch(`/api/articles/${id}`);
+    if (!res.ok) throw new Error("Failed to fetch article");
+    return res.json();
   },
 };

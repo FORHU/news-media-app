@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { Header } from "@/components/Header";
@@ -11,44 +11,33 @@ import { LatestStoriesSection } from "@/components/home/latest-stories-section";
 import { TrendingSidebar } from "@/components/home/trending-sidebar";
 import { FeaturedArticlesSection } from "@/components/home/featured-articles-section";
 import { TrendingProductsSection } from "@/components/home/trending-products-section";
-import { articlesApi, adminApi } from "@/lib/api";
+import { articlesApi } from "@/lib/api";
 import type { Article } from "@/lib/types";
 
 export default function Home() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("search");
 
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const {
+    data: articles = [],
+    isLoading: loading,
+    error: queryError,
+  } = useQuery({
+    queryKey: ["articles"],
+    queryFn: () => articlesApi.getArticles({ limit: 50 }),
+  });
 
-  useEffect(() => {
-    loadArticles();
-    adminApi.initialize().catch(() => {});
-  }, []);
-
-  const loadArticles = async () => {
-    try {
-      setLoading(true);
-      setError("");
-      const data = await articlesApi.getArticles({ limit: 50 });
-      setArticles(data);
-    } catch {
-      setError("Failed to load articles");
-      setArticles([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const error = queryError ? "Failed to load articles" : "";
 
   // Filter articles based on search query
   const filteredArticles = searchQuery
     ? articles.filter((article) => {
         const query = searchQuery.toLowerCase();
+        const content = article.content?.toLowerCase() ?? "";
         return (
           article.title.toLowerCase().includes(query) ||
-          article.description.toLowerCase().includes(query) ||
-          article.category.toLowerCase().includes(query)
+          content.includes(query) ||
+          article.category.categoryName.toLowerCase().includes(query)
         );
       })
     : articles;
@@ -105,7 +94,7 @@ export default function Home() {
         {!searchQuery && (
           <TrendingProductsSection
             articles={filteredArticles
-              .filter((a) => a.type === "blog")
+              .filter((a) => a.status === "blog")
               .slice(0, 4)}
           />
         )}

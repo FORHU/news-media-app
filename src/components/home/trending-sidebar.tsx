@@ -7,8 +7,9 @@ interface TrendingSidebarProps {
   articles: Article[];
 }
 
-function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString("en-US", {
+function formatDate(date: Date | string) {
+  const d = typeof date === "string" ? new Date(date) : date;
+  return d.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -37,7 +38,7 @@ export function TrendingSidebar({ articles }: TrendingSidebarProps) {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-xs text-[#ff4500] font-semibold mb-1 uppercase">
-                  {article.category}
+                  {article.category.categoryName}
                 </div>
                 <h3 className="text-sm font-bold text-gray-900 group-hover:text-[#ff4500] transition-colors line-clamp-2 mb-1">
                   {article.title}
