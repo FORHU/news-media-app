@@ -12,7 +12,6 @@ import { TrendingSidebar } from "@/components/home/trending-sidebar";
 import { FeaturedArticlesSection } from "@/components/home/featured-articles-section";
 import { TrendingProductsSection } from "@/components/home/trending-products-section";
 import { Footer } from "@/components/Footer";
-import { articlesApi, adminApi } from "@/lib/api";
 import { articlesApi } from "@/lib/api";
 import type { Article } from "@/lib/types";
 

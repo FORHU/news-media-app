@@ -35,6 +35,7 @@ const variants = {
     opacity: 0
   })
 };
+
 function truncateContent(content: string | null, maxLength = 160): string {
   if (!content) return "";
   const plain = content.replace(/<[^>]*>/g, "").trim();
@@ -94,7 +95,7 @@ export function HeroSection({ articles }: HeroSectionProps) {
                     {/* Image side */}
                     <div className="relative aspect-video md:aspect-auto md:min-h-[280px] bg-gray-900">
                       <img
-                        src={article.image}
+                        src={article.imageUrl ?? `https://placehold.co/800x400/e5e7eb/9ca3af?text=${encodeURIComponent(article.title.slice(0, 30))}`}
                         alt={article.title}
                         className="w-full h-full object-cover"
                       />
@@ -102,23 +103,6 @@ export function HeroSection({ articles }: HeroSectionProps) {
                         {categoryLabel}
                       </span>
                     </div>
-          {/* Card */}
-          <Link
-            href={`/article/${article.id}`}
-            className="block bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 min-h-[280px]">
-              {/* Image side */}
-              <div className="relative aspect-video md:aspect-auto md:min-h-[280px] bg-gray-900">
-                <img
-                  src={article.imageUrl ?? `https://placehold.co/800x400/e5e7eb/9ca3af?text=${encodeURIComponent(article.title.slice(0, 30))}`}
-                  alt={article.title}
-                  className="w-full h-full object-cover"
-                />
-                <span className="absolute top-3 left-3 px-2 py-1 bg-[#ff4500] text-white text-xs font-bold uppercase rounded">
-                  {categoryLabel}
-                </span>
-              </div>
 
                     {/* Content side */}
                     <div className="p-6 md:p-8 flex flex-col justify-center">
@@ -140,7 +124,7 @@ export function HeroSection({ articles }: HeroSectionProps) {
                         {article.title}
                       </h1>
                       <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                        {article.description}
+                        {truncateContent(article.content)}
                       </p>
                       <span className="inline-flex items-center gap-1 text-[#ff4500] font-medium text-sm">
                         Read Full Article
@@ -152,29 +136,6 @@ export function HeroSection({ articles }: HeroSectionProps) {
               </motion.div>
             </AnimatePresence>
           </div>
-                  <span className="text-sm text-gray-700">AI Content Writer</span>
-                  <span className="flex items-center gap-1 text-xs text-gray-500">
-                    <Calendar className="w-3.5 h-3.5" />
-                    {formatDate(article.createdAt)}
-                  </span>
-                  <span className="flex items-center gap-1 text-xs text-gray-500">
-                    <Clock className="w-3.5 h-3.5" />
-                    5 min read
-                  </span>
-                </div>
-                <h1 className="text-xl md:text-2xl font-bold text-black mb-3 line-clamp-2 group-hover:text-[#ff4500] transition-colors">
-                  {article.title}
-                </h1>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                  {truncateContent(article.content)}
-                </p>
-                <span className="inline-flex items-center gap-1 text-[#ff4500] font-medium text-sm">
-                  Read Full Article
-                  <ArrowRight className="w-4 h-4" />
-                </span>
-              </div>
-            </div>
-          </Link>
 
           {/* Next arrow */}
           <button
@@ -197,8 +158,9 @@ export function HeroSection({ articles }: HeroSectionProps) {
                 const newDirection = i > index ? 1 : -1;
                 setPage([i, newDirection]);
               }}
-              className={`w-2.5 h-2.5 rounded-full transition-colors ${i === index ? "bg-[#ff4500]" : "bg-gray-300 hover:bg-gray-400"
-                }`}
+              className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                i === index ? "bg-[#ff4500]" : "bg-gray-300 hover:bg-gray-400"
+              }`}
               aria-label={`Go to slide ${i + 1}`}
             />
           ))}
