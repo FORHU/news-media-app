@@ -72,12 +72,12 @@ export function LatestStoriesSection({
           )}
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-3">
           {(searchQuery ? articles : latestStories).map((article) => (
             <Link
               key={article.id}
               href={`/article/${article.id}`}
-              className="group cursor-pointer flex gap-4 pb-6 border-b border-gray-200 hover:bg-gray-50 transition-colors rounded-lg p-3 -m-3 block"
+              className="group cursor-pointer flex gap-4 pb-6 border-b border-gray-200 hover:bg-gray-50 transition-colors rounded-lg p-3 block"
             >
               <div className="relative w-40 h-28 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                 <img
@@ -114,7 +114,7 @@ export function LatestStoriesSection({
 
           {/* Pagination Controls */}
           {!searchQuery && articles.length > 0 && (
-            <div className="mt-8 pt-6 border-t border-gray-200">
+            <div className="mt-8 pt-6 ">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="text-sm text-gray-500">
                   {startIndex + 1}–{Math.min(endIndex, articles.length)} of{" "}

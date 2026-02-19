@@ -61,7 +61,7 @@ export function HeroSection({ articles }: HeroSectionProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h2 className="text-2xl font-bold text-black mb-6">Latest News</h2>
 
-        <div className="relative min-h-[350px] md:min-h-[280px]">
+        <div className="relative h-[380px] sm:h-[400px] md:h-[360px] lg:h-[380px]">
           {/* Prev arrow */}
           <button
             type="button"
@@ -73,7 +73,7 @@ export function HeroSection({ articles }: HeroSectionProps) {
           </button>
 
           {/* Card with Animation */}
-          <div className="relative overflow-hidden rounded-xl border border-gray-200 shadow-sm transition-shadow hover:shadow-lg">
+          <div className="relative h-full overflow-hidden rounded-xl border border-gray-200 shadow-sm transition-shadow hover:shadow-lg">
             <AnimatePresence initial={false} custom={direction} mode="wait">
               <motion.div
                 key={page}
@@ -82,6 +82,7 @@ export function HeroSection({ articles }: HeroSectionProps) {
                 initial="enter"
                 animate="center"
                 exit="exit"
+                className="h-full"
                 transition={{
                   x: { type: "spring", stiffness: 300, damping: 30 },
                   opacity: { duration: 0.2 }
@@ -89,11 +90,11 @@ export function HeroSection({ articles }: HeroSectionProps) {
               >
                 <Link
                   href={`/article/${article.id}`}
-                  className="block bg-white"
+                  className="block h-full bg-white"
                 >
-                  <div className="grid grid-cols-1 md:grid-cols-2 min-h-[280px]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 h-full min-h-0">
                     {/* Image side */}
-                    <div className="relative aspect-video md:aspect-auto md:min-h-[280px] bg-gray-900">
+                    <div className="relative aspect-video md:aspect-auto md:h-full min-h-0 bg-gray-900">
                       <img
                         src={article.imageUrl ?? `https://placehold.co/800x400/e5e7eb/9ca3af?text=${encodeURIComponent(article.title.slice(0, 30))}`}
                         alt={article.title}
@@ -105,7 +106,7 @@ export function HeroSection({ articles }: HeroSectionProps) {
                     </div>
 
                     {/* Content side */}
-                    <div className="p-6 md:p-8 flex flex-col justify-center">
+                    <div className="p-6 md:p-8 flex flex-col justify-center min-h-0 min-w-0 overflow-hidden">
                       <div className="flex items-center gap-3 mb-3 shrink-0 flex-wrap">
                         <div className="w-8 h-8 rounded-full bg-[#ff4500] text-white flex items-center justify-center text-xs font-bold shrink-0">
                           AI

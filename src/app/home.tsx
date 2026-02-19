@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { NavBar } from "@/components/NavBar";
+import { NewsletterModal } from "@/components/NewsletterModal";
 import { HeroSection } from "@/components/HeroSection";
 import { FilterStatusBar } from "@/components/home/filter-status-bar";
 import { LatestStoriesSection } from "@/components/home/latest-stories-section";
@@ -18,6 +20,7 @@ import type { Article } from "@/lib/types";
 export default function Home() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("search");
+  const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
 
   const {
     data: articles = [],
@@ -56,7 +59,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
+      <Header onOpenNewsletter={() => setIsNewsletterOpen(true)} />
       <NavBar />
 
       {/* Hero Section - Carousel */}
@@ -100,7 +103,11 @@ export default function Home() {
           />
         )}
       </main>
-      <Footer />
+      <Footer onOpenNewsletter={() => setIsNewsletterOpen(true)} />
+      <NewsletterModal
+        isOpen={isNewsletterOpen}
+        onClose={() => setIsNewsletterOpen(false)}
+      />
     </div>
   );
 }
