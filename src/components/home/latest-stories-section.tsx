@@ -72,12 +72,12 @@ export function LatestStoriesSection({
           )}
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-3">
           {(searchQuery ? articles : latestStories).map((article) => (
             <Link
               key={article.id}
               href={`/article/${article.id}`}
-              className="group cursor-pointer flex gap-4 pb-6 border-b border-gray-200 hover:bg-gray-50 transition-colors rounded-lg p-3 -m-3 block"
+              className="group cursor-pointer flex gap-4 pb-6 border-b border-gray-200 hover:bg-gray-50 transition-colors rounded-lg p-3 block"
             >
               <div className="relative w-40 h-28 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                 <img
@@ -114,7 +114,7 @@ export function LatestStoriesSection({
 
           {/* Pagination Controls */}
           {!searchQuery && articles.length > 0 && (
-            <div className="mt-8 pt-6 border-t border-gray-200">
+            <div className="mt-8 pt-6 ">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="text-sm text-gray-500">
                   {startIndex + 1}–{Math.min(endIndex, articles.length)} of{" "}
@@ -128,11 +128,10 @@ export function LatestStoriesSection({
                       setCurrentPage((prev) => Math.max(1, prev - 1))
                     }
                     disabled={currentPage === 1}
-                    className={`p-2 rounded-md transition-colors ${
-                      currentPage === 1
+                    className={`p-2 rounded-md transition-colors ${currentPage === 1
                         ? "text-gray-300 cursor-not-allowed"
                         : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                    }`}
+                      }`}
                     aria-label="Previous page"
                   >
                     <ChevronLeft className="w-4 h-4" />
@@ -148,11 +147,10 @@ export function LatestStoriesSection({
                       setCurrentPage((prev) => Math.min(totalPages, prev + 1))
                     }
                     disabled={currentPage === totalPages}
-                    className={`p-2 rounded-md transition-colors ${
-                      currentPage === totalPages
+                    className={`p-2 rounded-md transition-colors ${currentPage === totalPages
                         ? "text-gray-300 cursor-not-allowed"
                         : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                    }`}
+                      }`}
                     aria-label="Next page"
                   >
                     <ChevronRight className="w-4 h-4" />
@@ -160,23 +158,28 @@ export function LatestStoriesSection({
                 </div>
 
                 <div className="flex items-center gap-1">
-                  {[5, 10, 15].map((count) => (
-                    <button
-                      key={count}
-                      type="button"
-                      onClick={() => {
-                        setItemsPerPage(count);
-                        setCurrentPage(1);
-                      }}
-                      className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
-                        itemsPerPage === count
-                          ? "bg-[#ff4500] text-white"
-                          : "text-gray-600 hover:bg-gray-100"
-                      }`}
-                    >
-                      {count}
-                    </button>
-                  ))}
+                  {[5, 10, 15]
+                    .filter((count) => {
+                      if (count === 15) return articles.length > 10;
+                      if (count === 10) return articles.length > 5;
+                      return true;
+                    })
+                    .map((count) => (
+                      <button
+                        key={count}
+                        type="button"
+                        onClick={() => {
+                          setItemsPerPage(count);
+                          setCurrentPage(1);
+                        }}
+                        className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${itemsPerPage === count
+                            ? "bg-[#ff4500] text-white"
+                            : "text-gray-600 hover:bg-gray-100"
+                          }`}
+                      >
+                        {count}
+                      </button>
+                    ))}
                 </div>
               </div>
             </div>

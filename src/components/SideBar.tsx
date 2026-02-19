@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 interface SideBarProps {
     isOpen: boolean;
     onClose: () => void;
+    onOpenNewsletter?: () => void;
 }
 
 const CATEGORY_STRUCTURE = [
@@ -59,7 +60,7 @@ const CATEGORY_STRUCTURE = [
     },
 ];
 
-export function SideBar({ isOpen, onClose }: SideBarProps) {
+export function SideBar({ isOpen, onClose, onOpenNewsletter }: SideBarProps) {
     const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
 
     // Lock body scroll when sidebar is open
@@ -178,8 +179,12 @@ export function SideBar({ isOpen, onClose }: SideBarProps) {
                         {/* Sticky Footer - Newsletter & Social Links */}
                         <div className="flex-shrink-0 bg-white border-t border-gray-100 p-6">
                             <button
-                                onClick={(e) => e.preventDefault()}
-                                className="w-full flex flex-col items-center justify-center gap-2 py-5 rounded-2xl bg-black transition-transform active:scale-95 cursor-default mb-6 group"
+                                type="button"
+                                onClick={() => {
+                                    onClose();
+                                    onOpenNewsletter?.();
+                                }}
+                                className="w-full flex flex-col items-center justify-center gap-2 py-5 rounded-2xl bg-black transition-transform active:scale-95 hover:bg-gray-800 mb-6 group cursor-pointer"
                             >
                                 <motion.div
                                     animate={{ y: [0, -2, 0] }}
