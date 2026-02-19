@@ -159,9 +159,8 @@ export function HeroSection({ articles }: HeroSectionProps) {
                 const newDirection = i > index ? 1 : -1;
                 setPage([i, newDirection]);
               }}
-              className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                i === index ? "bg-[#ff4500]" : "bg-gray-300 hover:bg-gray-400"
-              }`}
+              className={`h-2 rounded-full transition-all duration-300 ${i === index ? "w-8 bg-[#ff4500]" : "w-2 bg-gray-300 hover:bg-gray-400"
+                }`}
               aria-label={`Go to slide ${i + 1}`}
             />
           ))}
