@@ -77,9 +77,9 @@ export function LatestStoriesSection({
             <Link
               key={article.id}
               href={`/article/${article.id}`}
-              className="group cursor-pointer flex gap-4 pb-6 border-b border-gray-200 hover:bg-gray-50 transition-colors rounded-lg p-3 block"
+              className="group cursor-pointer flex flex-row gap-4 pb-6 border-b border-gray-200 hover:bg-gray-50 transition-colors rounded-lg p-2 sm:p-3"
             >
-              <div className="relative w-40 h-28 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+              <div className="relative w-28 sm:w-40 h-20 sm:h-28 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                 <img
                   src={article.imageUrl ?? `https://placehold.co/400x200/e5e7eb/9ca3af?text=${encodeURIComponent(article.title.slice(0, 20))}`}
                   alt={article.title}
@@ -129,8 +129,8 @@ export function LatestStoriesSection({
                     }
                     disabled={currentPage === 1}
                     className={`p-2 rounded-md transition-colors ${currentPage === 1
-                        ? "text-gray-300 cursor-not-allowed"
-                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                      ? "text-gray-300 cursor-not-allowed"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                       }`}
                     aria-label="Previous page"
                   >
@@ -148,8 +148,8 @@ export function LatestStoriesSection({
                     }
                     disabled={currentPage === totalPages}
                     className={`p-2 rounded-md transition-colors ${currentPage === totalPages
-                        ? "text-gray-300 cursor-not-allowed"
-                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                      ? "text-gray-300 cursor-not-allowed"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                       }`}
                     aria-label="Next page"
                   >
@@ -173,8 +173,8 @@ export function LatestStoriesSection({
                           setCurrentPage(1);
                         }}
                         className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${itemsPerPage === count
-                            ? "bg-[#ff4500] text-white"
-                            : "text-gray-600 hover:bg-gray-100"
+                          ? "bg-[#ff4500] text-white"
+                          : "text-gray-600 hover:bg-gray-100"
                           }`}
                       >
                         {count}
