@@ -20,7 +20,11 @@ const COMPANY_LINKS = [
     { label: "Privacy Policy", href: "#" },
 ];
 
-export function Footer() {
+interface FooterProps {
+    onOpenNewsletter?: () => void;
+}
+
+export function Footer({ onOpenNewsletter }: FooterProps) {
     return (
         <footer className="bg-[#1a1a1a] text-white border-t border-gray-800">
             <div className="max-w-7xl mx-auto px-6 py-12">
@@ -100,7 +104,11 @@ export function Footer() {
                             Subscribe to our newsletter for the latest AI-driven insights and news updates.
                         </p>
                         <div className="flex flex-col gap-2">
-                            <button className="bg-[#ff4500] text-white px-4 py-2 rounded font-bold text-sm hover:bg-[#e03d00] transition-colors">
+                            <button
+                                type="button"
+                                onClick={() => onOpenNewsletter?.()}
+                                className="bg-[#ff4500] text-white px-4 py-2 rounded font-bold text-sm hover:bg-[#e03d00] transition-colors"
+                            >
                                 NEWSLETTER
                             </button>
                         </div>

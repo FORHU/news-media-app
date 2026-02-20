@@ -1,11 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useParams, notFound } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { prisma } from "@/lib/db";
+import { NewsletterModal } from "@/components/NewsletterModal";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { articlesApi } from "@/lib/api";
 
@@ -13,6 +14,7 @@ export default function ArticlePage() {
   const params = useParams();
   const idParam = params?.id as string | undefined;
   const numId = idParam ? parseInt(idParam, 10) : NaN;
+  const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
 
   const { data: article, isLoading, error, isError } = useQuery({
     queryKey: ["article", numId],
@@ -51,8 +53,14 @@ export default function ArticlePage() {
   });
 
   return (
-    <div className="min-h-screen bg-white">
-      <Header />
+    <div
+      className={
+        isNewsletterOpen
+          ? "overflow-hidden h-screen bg-white"
+          : "min-h-screen bg-white"
+      }
+    >
+      <Header onOpenNewsletter={() => setIsNewsletterOpen(true)} />
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Link
           href="/"
@@ -85,7 +93,11 @@ export default function ArticlePage() {
           </div>
         </article>
       </main>
-      <Footer />
+      <Footer onOpenNewsletter={() => setIsNewsletterOpen(true)} />
+      <NewsletterModal
+        isOpen={isNewsletterOpen}
+        onClose={() => setIsNewsletterOpen(false)}
+      />
     </div>
   );
 }

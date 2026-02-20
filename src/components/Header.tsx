@@ -6,7 +6,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Search, Menu, Mail, User } from "lucide-react";
 import { SideBar } from "./SideBar";
 
-export function Header() {
+interface HeaderProps {
+  onOpenNewsletter?: () => void;
+}
+
+export function Header({ onOpenNewsletter }: HeaderProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
@@ -55,7 +59,7 @@ export function Header() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search articles..."
-                  className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-gray-200 focus:border-gray-400 outline-none"
+                  className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#ff4500] focus:ring-2 focus:ring-[#ff4500]/20 outline-none"
                 />
               </div>
             </form>
@@ -75,7 +79,7 @@ export function Header() {
           <div className="flex-none flex justify-center px-2">
             <Link
               href="/"
-              className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight shrink-0 whitespace-nowrap"
+              className="text-xl sm:text-2xl font-bold text-[#FF4500] tracking-tight shrink-0 whitespace-nowrap"
             >
               FORHU
             </Link>
@@ -85,7 +89,8 @@ export function Header() {
           <div className="flex items-center gap-1 sm:gap-3 flex-1 justify-end min-w-0">
             <button
               type="button"
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm font-medium text-white bg-black hover:bg-gray-800 transition-colors shrink-0"
+              onClick={() => onOpenNewsletter?.()}
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm font-medium text-white bg-black hover:bg-[#ff4500] transition-colors shrink-0"
             >
               <Mail className="w-4 h-4" />
               <span className="hidden sm:inline">NEWSLETTER</span>
@@ -111,7 +116,7 @@ export function Header() {
                   autoFocus
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search articles..."
-                  className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-gray-200 outline-none"
+                  className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#ff4500] focus:ring-2 focus:ring-[#ff4500]/20 outline-none"
                 />
               </div>
               <button
@@ -124,7 +129,11 @@ export function Header() {
           </div>
         )}
 
-        <SideBar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+        <SideBar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          onOpenNewsletter={onOpenNewsletter}
+        />
       </div>
     </header>
   );
