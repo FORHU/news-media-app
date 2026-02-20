@@ -157,13 +157,13 @@ export function Header({ onOpenNewsletter }: HeaderProps) {
             </button>
           </div>
 
-          {/* Center Column: FORHU logo */}
+          {/* Center Column: NewsIcon logo */}
           <div className="flex-none flex justify-center px-2">
             <Link
               href="/"
               className="text-xl sm:text-2xl font-bold text-[#FF4500] tracking-tight shrink-0 whitespace-nowrap"
             >
-              FORHU
+              NEWSICON
             </Link>
           </div>
 

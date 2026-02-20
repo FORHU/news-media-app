@@ -121,11 +121,11 @@ export function Footer({ onOpenNewsletter }: FooterProps) {
                         {/* Logo & Copyright */}
                         <div className="text-center md:text-left">
                             <div className="flex items-center gap-2 mb-2 justify-center md:justify-start">
-                                <span className="font-bold text-2xl tracking-tighter text-[#ff4500]">FORHU</span>
+                                <span className="font-bold text-2xl tracking-tighter text-[#ff4500]">NEWSICON</span>
                                 <span className="font-medium text-lg border-l border-gray-700 pl-3">Media & Content Hub</span>
                             </div>
                             <p className="text-gray-500 text-sm">
-                                © {new Date().getFullYear()} FORHU. All rights reserved.
+                                © {new Date().getFullYear()} NEWSICON. All rights reserved.
                             </p>
                             <p className="text-gray-500 text-xs mt-1">
                                 Delivering high-quality news and AI-powered storytelling.
