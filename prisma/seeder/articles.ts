@@ -2,293 +2,367 @@ import type { PrismaClient } from "../../src/generated/prisma/client";
 
 const articles = [
   {
-    title: "Urban Greenery: The Rise of \"Bio-Luminescent\" Smart Parks",
-    description: "City planners are ditching traditional streetlights in favor of a glowing alternative. This week, the Department of Urban Development unveiled \"Project Aurora,\" the first public park integrated with bio-engineered flora.",
+    title: 'Urban Greenery: The Rise of "Bio-Luminescent" Smart Parks',
+    description:
+      'City planners are ditching traditional streetlights in favor of a glowing alternative. This week, the Department of Urban Development unveiled "Project Aurora," the first public park integrated with bio-engineered flora.',
     content: `SEATTLE — City planners are ditching traditional streetlights in favor of a glowing alternative. This week, the Department of Urban Development unveiled "Project Aurora," the first public park integrated with bio-engineered flora designed to emit a soft, ambient glow after sundown.\n\nThe initiative uses a specialized, non-invasive protein treatment applied to common ferns and oak trees. During the day, the plants photosynthesize as usual; at night, they provide enough illumination for pedestrian walkways without the need for electricity or copper wiring. This biological breakthrough could potentially reduce city carbon footprints by up to 15% in the first three years of implementation.\n\n"We aren't just planting trees; we're installing a self-sustaining infrastructure," says Lead Architect Sarah Chen. "It's where biology meets the smart city. By 2030, we hope to have 40% of our public pathways lit by the canopy itself." While critics raise questions about the long-term impact on soil microbes, the initial trial has seen a 40% increase in evening foot traffic, proving that the public is ready to embrace a greener—and brighter—future.`,
     categoryName: "Environment",
-    imageUrl: "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=1000&auto=format&fit=crop",
+    imageUrl:
+      "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=1000&auto=format&fit=crop",
     status: "article",
   },
   {
     title: "The 'Ghost Kitchen' Collapse: Why Virtual Dining is Cooling Off",
-    description: "After a meteoric rise during the pandemic, the virtual restaurant industry is facing a harsh reality check as consumers return to physical dining rooms.",
+    description:
+      "After a meteoric rise during the pandemic, the virtual restaurant industry is facing a harsh reality check as consumers return to physical dining rooms.",
     content: `CHICAGO — The era of the digital-only restaurant is hitting a major speed bump. Data shows a 25% decline in virtual brand openings this quarter as operational costs and 'delivery fatigue' set in. During the height of 2020, ghost kitchens were seen as the future of food, allowing creators to launch brands with zero storefront overhead. However, the lack of a physical "third space" has made brand loyalty difficult to maintain.\n\nIndustry experts suggest that without a physical storefront, brands struggle to survive rising third-party delivery fees, which can swallow up to 30% of a single order's margin. "A brand is more than a logo on an app," says hospitality consultant Mark Vance. "People crave the smells, the sounds, and the social validation of a physical restaurant."\n\nWhat's Next:\n- Consolidation: Larger chains are buying out smaller virtual kitchens to use them as overflow prep spaces.\n- Hybrid Models: Successful digital brands are now seeking small-footprint physical pop-ups to ground their identity in the real world.`,
     categoryName: "Business",
-    imageUrl: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=1000&auto=format&fit=crop",
+    imageUrl:
+      "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=1000&auto=format&fit=crop",
     status: "article",
   },
   {
     title: "Quantum Leap: First Desktop Quantum Computer Hits the Market",
-    description: "A startup in Zurich has just released 'Q-Bit 1,' the world's first commercially available quantum processor designed for high-end consumer hardware.",
+    description:
+      "A startup in Zurich has just released 'Q-Bit 1,' the world's first commercially available quantum processor designed for high-end consumer hardware.",
     content: `ZURICH — The impossible just became a retail reality. For the price of a luxury car, high-end researchers and tech enthusiasts can now own a localized quantum computing unit. This marks the first time quantum processing has been shrunk from a room-sized lab to a form factor that fits under a standard desk.\n\nWhile traditional silicon chips use binary bits, the Q-Bit 1 utilizes stable trapped-ion technology. It promises to revolutionize local data encryption and complex molecular modeling for home-based labs. "This is the ENIAC moment of the 21st century," says CEO Hans Mueller. "We are putting the power of a supercomputer into the hands of the individual creator."\n\nThe device operates at near-room temperature thanks to a proprietary solid-state cooling system, removing the need for the liquid nitrogen tanks usually associated with quantum rigs. Early adopters include pharmaceutical startups and independent cybersecurity firms looking to stay ahead of AI-driven threats.`,
     categoryName: "Technology",
-    imageUrl: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=1000&auto=format&fit=crop",
+    imageUrl:
+      "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=1000&auto=format&fit=crop",
     status: "article",
   },
   {
     title: "The Renaissance of Vinyl: Analog Sales Outpace Digital Downloads",
-    description: "For the first time in decades, physical record sales have surpassed digital track purchases, driven by a Gen Z obsession with tactile media.",
+    description:
+      "For the first time in decades, physical record sales have surpassed digital track purchases, driven by a Gen Z obsession with tactile media.",
     content: `NASHVILLE — In an increasingly cloud-based world, the needle is dropping back on physical media. New reports indicate that vinyl LP sales grew by 18% last year, officially overtaking the revenue generated by individual digital downloads. This shift isn't just driven by older collectors, but by a younger generation looking for a "slow" alternative to the infinite scroll of streaming services.\n\nCollectors cite 'ownership' and 'intentional listening' as the primary drivers. "You can't hold a stream," says local shop owner Dave Grogan. "A record is an artifact. It has a smell, a weight, and a ritual." This has led to a boom in high-end turntable manufacturing and a revitalized market for "album art" designers. \n\nMajor labels are responding by releasing limited-edition colored vinyl and 180g pressings, which often sell out within minutes of a pre-order launch. Even as digital streaming remains the primary way people consume music, the physical record has become the ultimate badge of fandom.`,
     categoryName: "Lifestyle",
-    imageUrl: "https://images.unsplash.com/photo-1603048588665-791ca8aea617?q=80&w=1000&auto=format&fit=crop",
+    imageUrl:
+      "https://images.unsplash.com/photo-1603048588665-791ca8aea617?q=80&w=1000&auto=format&fit=crop",
     status: "article",
   },
   {
     title: "Mars Colony Simulation Reaches 500-Day Milestone",
-    description: "Six volunteers in the Utah desert have completed a record-breaking isolation study, providing critical data for the upcoming 2030 manned Mars mission.",
+    description:
+      "Six volunteers in the Utah desert have completed a record-breaking isolation study, providing critical data for the upcoming 2030 manned Mars mission.",
     content: `HANKSVILLE — Emerging from a pressurized dome for the first time in over a year, the crew of the 'Red Horizon' simulation celebrated a major victory for space psychology. For 500 days, the team lived in total isolation, restricted to a 1,200-square-foot habitat and forced to deal with 20-minute communication delays with "Earth."\n\nThe study focused on the mental toll of delayed communication and closed-loop resource management. Findings suggest that 'interpersonal friction' is a bigger threat to a Mars mission than mechanical failure. "The mission succeeded because of the social protocols we established, not just the technology," says Commander Julia Aris.\n\nKey Findings:\n- Hydroponic Success: The crew grew 80% of their own leafy greens using recycled water.\n- Tech Reliability: The 3D-printed habitat structure maintained a perfect seal despite extreme temperature swings.\n- Mental Health: Regular "analog" hobbies like painting and music were found to be essential for maintaining cognitive function during long-term isolation.`,
     categoryName: "Science",
-    imageUrl: "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?q=80&w=1000&auto=format&fit=crop",
+    imageUrl:
+      "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?q=80&w=1000&auto=format&fit=crop",
     status: "article",
   },
   {
     title: "The Rise of 'Deep-Work' Retreats in Northern Europe",
-    description: "Companies are ditching traditional offices for week-long focused retreats in secluded forests to combat digital burnout and boost productivity.",
+    description:
+      "Companies are ditching traditional offices for week-long focused retreats in secluded forests to combat digital burnout and boost productivity.",
     content: `OSLO — As the 'always-on' culture leads to record burnout, a new trend is emerging: the Silence Sabbatical. Companies are now booking remote cabins in the Norwegian fjords for their developers and creative leads. The goal is simple: total disconnection from the noise of the modern office to allow for deep, uninterrupted thought.\n\nThese retreats ban smartphones and Slack for 6 hours a day, allowing for 'deep work'—a state of distraction-free concentration. Initial results show a 30% faster project completion rate compared to the standard office environment. "We realized that an eight-hour day of meetings is less productive than two hours of pure focus," says CEO Ingrid Blom.\n\nCore Pillars:\n- Digital Detox: Hardware is checked in at the door.\n- Nature Integration: Meetings take place during forest hikes rather than in boardrooms.\n- Monotasking: One goal per day, zero interruptions. The movement is now spreading to New York and London as firms look for ways to retain top talent in an era of digital exhaustion.`,
     categoryName: "Health",
-    imageUrl: "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?q=80&w=1000&auto=format&fit=crop",
+    imageUrl:
+      "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?q=80&w=1000&auto=format&fit=crop",
     status: "article",
   },
   {
     title: "Global Treaty Signed for 'Sovereign AI' Data Borders",
-    description: "A coalition of 40 nations has finalized the Brussels Accord, establishing new rules for how AI models can be trained on citizen data.",
+    description:
+      "A coalition of 40 nations has finalized the Brussels Accord, establishing new rules for how AI models can be trained on citizen data.",
     content: `BRUSSELS — In a historic move to protect digital sovereignty, forty nations have signed the 'Brussels Accord.' This landmark treaty establishes that a nation's data is a natural resource, akin to oil or minerals, and cannot be extracted by foreign AI companies without explicit bilateral agreements. \n\nThe treaty mandates that AI companies must host and process the personal data of a country's citizens within that nation's physical borders. "We are moving from an open-web era to a sovereign-cloud era," says Lead Negotiator Sofia Rossi. This shift is expected to trigger a massive investment in local data centers across the Global South and Europe. \n\nTech giants have expressed concern that the "splinternet" will slow down innovation, but proponents argue it is the only way to ensure that the economic benefits of AI-driven insights remain local rather than being siphoned off to a few global tech hubs. Connectivity tariffs for non-compliant companies will begin in January.`,
     categoryName: "World News",
-    imageUrl: "https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "Arctic Trade Route Opens as Record Ice Melt Reshapes Shipping",
-    description: "For the first time in history, commercial cargo ships are completing the 'Blue Passage' through the North Pole in under 12 days.",
+    description:
+      "For the first time in history, commercial cargo ships are completing the 'Blue Passage' through the North Pole in under 12 days.",
     content: `REYKJAVIK — The landscape of global trade changed forever this week as the third cargo vessel of the month docked after crossing the North Pole. Known as the "Blue Passage," this route cuts shipping times between East Asia and Europe by nearly 40% compared to the Suez Canal. \n\nWhile the economic efficiency is undeniable, the opening of the route is bittersweet. Environmentalists warn that the 'Blue Passage' is a stark reminder of the accelerating climate crisis. "The fact that we can sail a container ship through the pole is a ecological disaster masquerading as a logistical miracle," says climatologist Dr. Soren Hall.\n\nNations are now scrambling to establish maritime law in the newly accessible waters. Territorial disputes over the seabed are intensifying, as the region is thought to hold vast untapped reserves of rare-earth minerals necessary for the green energy transition.`,
     categoryName: "World News",
-    imageUrl: "https://images.unsplash.com/photo-1473081556163-2a17de81fc97?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1473081556163-2a17de81fc97?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "Downtown 'Green-Zone' Expansion Approved for Spring",
-    description: "City Council has voted to double the size of the pedestrian-only Green-Zone, replacing four major parking lots with community gardens.",
+    description:
+      "City Council has voted to double the size of the pedestrian-only Green-Zone, replacing four major parking lots with community gardens.",
     content: `CITY CENTER — Following a successful pilot program that saw local air quality improve by 12%, the City Council voted 7-2 last night to expand the 'Downtown Green-Zone.' Starting this March, three blocks of Main Street will be permanently closed to private vehicles, transforming into a linear park and outdoor community hub.\n\nThe project involves tearing up asphalt to make room for 15 new community garden plots and four "Micro-Hubs" for electric scooters and autonomous shuttles. Local residents have praised the move, citing a quieter atmosphere and safer streets for children. \n\nHowever, the decision hasn't been without controversy. Several local shop owners have expressed concerns regarding delivery access and the potential loss of suburban customers who rely on car travel. The city has countered by promising a "shuttle-to-door" service for heavy deliveries and tax incentives for businesses within the zone.`,
     categoryName: "Local Updates",
-    imageUrl: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "Local High School Wins National 'Robo-Soccer' Title",
-    description: "The Westside Tigers beat out 50 other teams to take home the trophy in the first-ever AI-integrated sports tournament.",
+    description:
+      "The Westside Tigers beat out 50 other teams to take home the trophy in the first-ever AI-integrated sports tournament.",
     content: `WESTSIDE — Our very own Westside High has made history. In a tense final against a magnet school from Silicon Valley, the "Westside Tigers" robotics team took home the gold in the National Robo-Soccer Invitational. Unlike traditional robotics, this tournament required students to build neural networks that could adapt to the opponent's strategy in real-time.\n\nThe winning play came in the final thirty seconds, when the Tigers' striker bot executed a "lateral fake" that its AI had learned just minutes earlier. The team was awarded a $50,000 grant for their STEM department, which they plan to use to build a community coding lab.\n\n"It wasn't about the hardware; it was about the data training," said team captain Marcus Thorne. "We spent months teaching our bots how to 'feel' the field. Seeing it pay off like this is incredible."`,
     categoryName: "Local Updates",
-    imageUrl: "https://images.unsplash.com/photo-1561557944-6e7860d1a7eb?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1561557944-6e7860d1a7eb?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "Sodium-Battery Stocks Surge as Lithium Alternatives Scale",
-    description: "The energy market saw a massive shift today as three major manufacturers announced they are pivoting to sodium-ion technology.",
+    description:
+      "The energy market saw a massive shift today as three major manufacturers announced they are pivoting to sodium-ion technology.",
     content: `NEW YORK — Wall Street is seeing green—literally and figuratively. The 'Big Three' energy storage firms saw their stock prices climb by an average of 14% following the announcement of a breakthrough in sodium-ion energy density. For years, lithium-ion has been the gold standard, but supply chain bottlenecks and mining costs have hampered growth.\n\nSodium, which can be extracted from common salt, is abundant and significantly cheaper. While previously too heavy for portable electronics, the new "Giga-S" cell is light enough for short-range EVs and massive grid-scale storage. "This is the death knell for expensive grid storage," says Analyst Peter Loft. "We're looking at a 40% reduction in the cost of renewable energy infrastructure over the next decade." \n\nMajor automakers are already rumored to be testing sodium-based "commuter cars" that could retail for under $15,000, bringing electric mobility to a much broader demographic.`,
     categoryName: "Markets",
-    imageUrl: "https://images.unsplash.com/photo-1611095773164-12ca3a5ddcc0?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1611095773164-12ca3a5ddcc0?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "Real Estate Tokenization Hits All-Time High",
-    description: "Fractional ownership of commercial properties via blockchain has grown by 300% this fiscal year.",
+    description:
+      "Fractional ownership of commercial properties via blockchain has grown by 300% this fiscal year.",
     content: `LONDON — The barrier to entry for real estate investment is crumbling. New financial data shows that property tokenization—where a building's equity is split into thousands of digital tokens—has reached a record valuation of $12B globally. This allows small-scale investors to buy as little as 0.1% of a commercial skyscraper and receive a proportional share of the rent.\n\nExperts suggest this is the 'democratization of the skyline.' "For the first time, a teacher in Manchester can own a piece of a logistics center in Dubai," says fintech CEO Sarah Voss. The liquidity provided by blockchain means these "shares" can be traded instantly, unlike traditional property sales which take months to close.\n\nRegulatory hurdles remain, however. Several nations are currently debating how to tax these micro-dividends and how to protect investors if a property management firm goes under. Despite this, the market shows no signs of slowing down.`,
     categoryName: "Markets",
-    imageUrl: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "Startup 'Hydra' Aims to Decouple the Grid with Personal Fusion",
-    description: "A Silicon Valley newcomer has emerged from stealth with $400M to build house-sized fusion reactors.",
+    description:
+      "A Silicon Valley newcomer has emerged from stealth with $400M to build house-sized fusion reactors.",
     content: `PALO ALTO — Hydra Energy is promising a future where you never pay a utility bill again. Emerging from three years in stealth mode, the startup has unveiled the "Nexus-1," a self-contained fusion reactor the size of a standard shipping container. The device aims to provide safe, carbon-free power for residential estates and remote hospitals.\n\nTheir proprietary 'Compact Magnetic Mirror' technology aims to deliver localized fusion power without the massive scale (and cost) of international projects like ITER. While the first units are priced for luxury developers, the company claims mass production will bring costs down to the level of a high-end HVAC system within five years.\n\n"We want to decouple the individual from the aging central grid," says CEO Elena Wu. "Energy should be a local right, not a central service." The company is currently seeking regulatory approval for its first pilot village in Nevada.`,
     categoryName: "Startups",
-    imageUrl: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?q=80&w=1000&auto=format&fit=crop",
+    imageUrl:
+      "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?q=80&w=1000&auto=format&fit=crop",
     status: "article",
   },
   {
     title: "The 'Agro-Bot' Subscription: Revolutionizing Small Farms",
-    description: "A French startup is leasing autonomous weeding robots to small-scale organic farmers on a pay-as-you-go basis.",
+    description:
+      "A French startup is leasing autonomous weeding robots to small-scale organic farmers on a pay-as-you-go basis.",
     content: `MONTPELLIER — Meet 'Luma,' the solar-powered robot that identifies and pulls weeds without the use of a single drop of chemical pesticide. The startup behind the bot, 'Terra-Pulse,' is disrupting the agricultural market by moving away from expensive equipment sales to a subscription-based model.\n\nFor a monthly fee, small-scale organic farmers receive a fleet of Luma bots that patrol their fields 24/7. The bots use multispectral cameras to distinguish between crops and invasive species. "This makes high-tech organic farming accessible to family farms that could never afford a $200k tractor," says founder Jean Luc. \n\nThe data collected by the bots is also sent back to the farmer's dashboard, providing real-time soil health alerts and pest migration patterns. Early trials show a 15% increase in yield and a 90% reduction in manual labor costs.`,
     categoryName: "Startups",
-    imageUrl: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "AI Agents Begin Managing 30% of White-Collar Admin Tasks",
-    description: "New data suggests that 'Agentic AI'—systems that act autonomously—are now standard in 1 in 3 Fortune 500 companies.",
+    description:
+      "New data suggests that 'Agentic AI'—systems that act autonomously—are now standard in 1 in 3 Fortune 500 companies.",
     content: `SAN FRANCISCO — We have officially passed the era of the 'Chatbot' and entered the era of the 'Agent.' According to a new industry report, "Agentic AI" systems—those capable of making decisions and executing workflows without human oversight—now handle 30% of all administrative tasks in major corporations.\n\nThese systems are now doing more than just answering emails; they are negotiating vendor contracts based on budget parameters, managing complex supply chains, and even handling internal HR scheduling. The shift is raising urgent questions about the future of entry-level management roles. \n\n"The role of the human is shifting from the 'doer' to the 'editor,'" says Dr. Aris Thorne. "We aren't seeing total job loss yet, but we are seeing a total redefinition of what 'work' looks like." Companies that have fully integrated AI agents report a 45% increase in operational speed.`,
     categoryName: "AI & Innovation",
-    imageUrl: "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "Neural-Link Earbuds Promise Real-Time Language Fluency",
-    description: "A new wearable uses non-invasive brain-sensing technology to translate foreign languages directly into your inner monologue.",
+    description:
+      "A new wearable uses non-invasive brain-sensing technology to translate foreign languages directly into your inner monologue.",
     content: `TOKYO — The barrier of language is dissolving. The 'Vox-1' earbuds, released this week by a Tokyo-based neurotech firm, don't just speak a translation into your ear; they use bone conduction and non-invasive neural-syncing to make the user 'understand' the intent and meaning of the speaker in real-time.\n\nUnlike previous translation apps that had a 2-3 second lag, the Vox-1 operates at the speed of thought. "We aren't just translating words; we are translating the neural patterns associated with concepts," says Lead Engineer Dr. Kenji Sato. \n\nWhile the technology is currently limited to ten major languages, the company plans to expand to over fifty by next year. Early users report a strange sensation of "native-like" comprehension, though some linguists warn that the nuances of cultural idiom may be lost in the purely conceptual translation.`,
     categoryName: "AI & Innovation",
-    imageUrl: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "The 'Circadian Diet': Timing is More Important Than Calories",
-    description: "A new study reveals that aligning eating habits with your biological clock reduces inflammation by 25%.",
+    description:
+      "A new study reveals that aligning eating habits with your biological clock reduces inflammation by 25%.",
     content: `LONDON — It’s not just what you eat, but when. The 'Circadian Diet' is gaining massive traction in the medical community after a three-year longitudinal study showed that eating only during daylight hours significantly improved metabolic health and sleep quality. \n\nThe study, which followed 5,000 participants, found that those who restricted their food intake to a 10-hour window (e.g., 8am to 6pm) saw a 25% reduction in markers for chronic inflammation. "Our bodies are hardwired to process nutrients differently depending on the sun's position," says Lead Researcher Dr. Maya Rivers. \n\nThis "sunlight-synced" approach to nutrition is being hailed as a zero-cost way to combat rising rates of Type 2 diabetes and heart disease. Experts suggest that even a small shift—such as moving dinner two hours earlier—can have profound effects on the body's ability to repair itself overnight.`,
     categoryName: "Health & Wellness",
-    imageUrl: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "Forest Bathing: Why 20 Minutes in Nature is a Medical Necessity",
-    description: "New clinical guidelines suggest doctors should prescribe 'Green-Time' as a primary treatment for mild anxiety.",
+    description:
+      "New clinical guidelines suggest doctors should prescribe 'Green-Time' as a primary treatment for mild anxiety.",
     content: `VANCOUVER — The data is in: nature is medicine. A new set of clinical guidelines released by the Global Health Institute suggests that a 20-minute walk in a forest environment has been shown to lower cortisol levels more effectively than several leading pharmaceutical options for stress management.\n\nKnown as "Shinrin-yoku" or Forest Bathing, the practice involves more than just a walk; it requires a sensory engagement with the environment. "The phytoncides released by trees have a direct, measurable effect on our immune system," says wellness consultant Dr. Ingrid Blom. \n\nCities are now responding by building "Nature Prescription Trails" that are integrated with local health apps. Patients can "check-in" to a park to fulfill their doctor's orders. Early results from the Vancouver pilot show a marked decrease in patient-reported anxiety and improved blood pressure levels across all demographics.`,
     categoryName: "Health & Wellness",
-    imageUrl: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "Quiet Travel: The Rise of 'Signal-Free' Destinations",
-    description: "Boutique hotels in the Swiss Alps are seeing record bookings by offering a unique luxury: zero Wi-Fi.",
+    description:
+      "Boutique hotels in the Swiss Alps are seeing record bookings by offering a unique luxury: zero Wi-Fi.",
     content: `ZERMATT — In 2026, the ultimate luxury isn't a gold-plated bathroom or a private jet; it's being unreachable. 'Quiet Travel' hubs are popping up globally, with some of the most exclusive resorts in the Swiss Alps now marketing themselves as "Signal-Free Zones."\n\nUpon arrival, guests are required to check their devices into a Faraday cage at the front desk. The resorts use specialized architecture to block cellular signals, ensuring that not a single notification can interrupt the peace. "Our guests aren't looking to post their vacation; they are looking to live it," says hotel manager Leo Grant. \n\nActivities focus on "sensory re-engagement"—hand-making bread, long-form reading, and communal dining without the distraction of a screen. Despite the high price tag and lack of modern amenities, these resorts are booked out six months in advance, signaling a massive cultural shift toward "digital sobriety."`,
     categoryName: "Travel",
-    imageUrl: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "Underwater Eco-Resorts: The New Frontier of Tourism",
-    description: "The world's first fully carbon-neutral underwater hotel has opened in the Maldives, doubling as a coral nursery.",
+    description:
+      "The world's first fully carbon-neutral underwater hotel has opened in the Maldives, doubling as a coral nursery.",
     content: `MALE — Guests can now sleep beneath the waves while contributing to the environment. The 'Aquos' resort, which opened last month, is the world's first fully carbon-neutral underwater hotel. Located 15 feet below the surface of a protected lagoon, the hotel doubles as a massive coral nursery.\n\nThe resort uses the ambient heat generated by its guests and kitchen systems to power coral growth incubators that surround the guest suites. "We wanted to prove that luxury travel can be regenerative," says lead architect Sarah Chen. \n\nWindows are made of a new, ultra-strong bio-glass that resists algae buildup, providing crystal-clear views of the rehabilitating reef. A portion of every night's stay goes directly toward reef restoration projects, making it a popular choice for the eco-conscious elite.`,
     categoryName: "Travel",
-    imageUrl: "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "Streaming Fatigue Leads to the 'Local Theater' Revival",
-    description: "Cinema revenue is up 15% as 'Event Movies' and community-led film festivals outperform digital releases.",
+    description:
+      "Cinema revenue is up 15% as 'Event Movies' and community-led film festivals outperform digital releases.",
     content: `LOS ANGELES — After years of endless scrolling and "content fatigue," audiences are returning to the big screen in droves. New industry data shows a 15% year-over-year increase in cinema revenue, but with a twist: it's not the blockbusters leading the charge, but community-led "Event Cinema."\n\nIndependent theaters are pivoting away from just showing films to providing high-end dining and interactive screenings. "People are tired of watching movies on their phones," says culture critic Chloe Sims. "They want the ritual. They want to hear a stranger laugh at the same joke."\n\nInnovative theaters are now using localized apps to allow audiences to vote on plot twists in real-time or participate in post-film discussions with directors via hologram. The theater is once again becoming a "third space" for cultural connection, rather than just a place to see a movie.`,
     categoryName: "Entertainment & Culture",
-    imageUrl: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "The Return of Hand-Drawn Animation in a Digital Age",
-    description: "A major studio has announced it is moving away from 3D-rendering for its next three blockbuster films.",
+    description:
+      "A major studio has announced it is moving away from 3D-rendering for its next three blockbuster films.",
     content: `PARIS — In a world of AI-generated visuals and hyper-realistic 3D rendering, the 'human touch' is becoming the ultimate premium feature. Studio Glimmer, known for its digital hits, stunned the industry today by announcing that its next three feature films will be 100% hand-drawn.\n\n"We've reached a point of 'visual uncanny valley' with digital animation," says Creative Director Elena Rodriguez. "The audience is craving the subtle imperfections of a pencil stroke." The studio is employing over 500 traditional artists from around the world to create the thousands of individual paintings required for the project. \n\nThis move has triggered a "Renaissance of the Sketchbook" among younger artists, who are increasingly moving away from purely digital tools to master traditional oil and watercolor techniques. Analysts suggest that "human-made" art will soon hold the same status as "organic" food.`,
     categoryName: "Entertainment & Culture",
-    imageUrl: "https://images.unsplash.com/photo-1541512416146-3cf58d6b27cc?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1541512416146-3cf58d6b27cc?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "Bio-Wearables are the New Coaches in Pro Sports",
-    description: "The League has officially sanctioned real-time sweat-analysis patches for players during games.",
+    description:
+      "The League has officially sanctioned real-time sweat-analysis patches for players during games.",
     content: `CHICAGO — Professional coaching is becoming a data-science game. The League has officially sanctioned the use of 'HydraPatch,' a real-time sweat-analysis wearable that players wear during high-stakes games. The patch provides a live dashboard of an athlete's physiological state, including hydration, electrolyte levels, and muscle fatigue.\n\nIf a player’s potassium levels dip below a certain threshold, the coaching staff receives an automated alert suggesting a substitution before an injury can occur. "This isn't about replacing the coach's gut feeling; it's about backing it up with hard data," says Jordan Reed. \n\nThe technology is also being used to personalize mid-game recovery, with trainers providing custom-blended drinks to players based on their specific mineral loss. While some fans worry it takes the "spirit" out of the game, players are praising the tech for extending their career longevity.`,
     categoryName: "Sports & Fitness",
-    imageUrl: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "Virtual Reality Marathons: Running the Great Wall from Home",
-    description: "The first global 'VR-Race' saw 10,000 participants running on treadmills synchronized to a hyper-real simulation.",
+    description:
+      "The first global 'VR-Race' saw 10,000 participants running on treadmills synchronized to a hyper-real simulation.",
     content: `BEIJING — Geography is no longer a barrier to the world's most scenic marathons. Yesterday, the first-ever "Global VR-Race" saw 10,000 participants competing in a hyper-real simulation of the Great Wall of China. Using synchronized treadmills and high-fidelity headsets, runners experienced every incline, wind gust, and pebble of the historic route from their own homes.\n\n"I was in my basement in London, but I could feel the humidity and hear the cheers of a virtual crowd in Beijing," said one participant. The event utilized 5G haptic technology to simulate wind resistance based on the user's running speed. \n\nThe race also featured a "ghost mode," where users could run alongside the avatars of legendary marathoners from history. The success of the event has prompted major athletic brands to invest in "VR-ready" footwear that tracks footstrike patterns with millimeter precision.`,
     categoryName: "Sports & Fitness",
-    imageUrl: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "The Return of the Sedan? EV Market Shifts Toward Efficiency",
-    description: "As consumers prioritize range over size, aerodynamic sedans are making a surprise comeback.",
+    description:
+      "As consumers prioritize range over size, aerodynamic sedans are making a surprise comeback.",
     content: `DETROIT — The SUV era, which has dominated the automotive world for over two decades, may finally be peaking. As the world shifts to electric vehicles, the primary consumer concerns are charging speed and range. This is leading to a surprise comeback for the sedan—a form factor that is inherently more aerodynamic and efficient than its taller counterparts.\n\n"A sleek sedan can get 20% more range out of the same battery pack compared to a bulky SUV," says Lead Engineer Victor Vance. Manufacturers are responding by releasing "super-sedans" with drag coefficients as low as 0.19. \n\nBeyond efficiency, the new generation of sedans features "flexible interiors," where the absence of a transmission tunnel allows for a flat floor and lounge-like seating. For the urban commuter of 2026, the sedan is becoming the ultimate symbol of smart, efficient design.`,
     categoryName: "Automotive",
-    imageUrl: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "Hydrogen Long-Haul Trucks Pass the 1,000-Mile Test",
-    description: "A prototype semi-truck has crossed the country using only green hydrogen, refueling in under 10 minutes.",
+    description:
+      "A prototype semi-truck has crossed the country using only green hydrogen, refueling in under 10 minutes.",
     content: `LONG BEACH — While electric batteries are winning the passenger car market, green hydrogen is emerging as the clear winner for long-haul logistics. This week, a prototype semi-truck from 'H-Logistics' successfully completed a 1,000-mile cross-country run using only compressed hydrogen, maintaining full power even during steep mountain climbs.\n\nThe primary advantage is the refueling speed. Unlike large electric trucks that require hours of charging, the H-Series truck refueled in under 10 minutes at a standard station. "For the logistics industry, time is money," says fleet manager Tom Hayes. \n\nThe only byproduct of the trip was pure water vapor. The company is now working with governments to build a "Hydrogen Highway" of refueling stations along major shipping corridors, aiming to replace 30% of diesel trucks by 2030.`,
     categoryName: "Automotive",
-    imageUrl: "https://images.unsplash.com/photo-1586191582056-a15cd123479f?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1586191582056-a15cd123479f?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "VR-Classrooms: Distance Learning Gets a Physical Upgrade",
-    description: "Universities are launching 'Holographic Lecture Series' allowing remote students to feel front-row presence.",
+    description:
+      "Universities are launching 'Holographic Lecture Series' allowing remote students to feel front-row presence.",
     content: `BOSTON — Zoom fatigue is a thing of the past. Major universities are officially launching 'VR-Classroom 4.0,' a platform that uses spatial audio and high-fidelity avatars to simulate the physical presence of a campus. Remote students no longer stare at a grid of faces; they sit in a virtual lecture hall where they can turn their head to whisper to a classmate or look up at a 3D model of a molecule.\n\n"The level of engagement is 50% higher than traditional video calls," says Dr. Linda Park. "Students feel 'present' in the room, which is the missing ingredient in online education." \n\nThe system also allows for "impossible field trips"—history students can walk through a digital recreation of Ancient Rome, while biology students can shrink down to enter a virtual human cell. The platform is being hailed as the great equalizer, providing a world-class campus experience to students who cannot afford to move to expensive university cities.`,
     categoryName: "Education & Learning",
-    imageUrl: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "The 'Micro-Credential' Revolution: Skills Over Degrees",
-    description: "Major tech companies have announced they will no longer require 4-year degrees for specialized coding roles.",
+    description:
+      "Major tech companies have announced they will no longer require 4-year degrees for specialized coding roles.",
     content: `SILICON VALLEY — The shift toward skills-based hiring has reached a tipping point. This week, a coalition of ten major tech firms announced they will no longer require a four-year university degree for specialized roles in software engineering and data analysis. Instead, they are looking at 'micro-credentials'—short, intensive certifications that prove a candidate's current ability to perform a specific task.\n\n"The technology moves too fast for a four-year curriculum," says an HR lead at a major search firm. "We need people who have mastered the latest AI frameworks today, not someone who learned the theory three years ago." \n\nThis revolution is breathing new life into vocational training and bootcamps, which are now partnering directly with employers to create "guaranteed-hire" pipelines. For the students of 2026, the focus is on building a "living portfolio" rather than collecting a static diploma.`,
     categoryName: "Education & Learning",
-    imageUrl: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "The 'Deep Work' Habit: How to Reclaim Your Attention Span",
-    description: "In an age of AI noise, the ability to focus for three hours is becoming the most valuable skill.",
+    description:
+      "In an age of AI noise, the ability to focus for three hours is becoming the most valuable skill.",
     content: `Attention is the new oil. In a world flooded with AI-generated content and infinite notifications, the ability to concentrate on a single task for a prolonged period is becoming the rarest and most valuable skill in the modern economy. This week, we explore the 'Three-Hour Block' method—a psychological framework for entering a flow state without digital interruption.\n\n"The notification itch is a physiological response," says performance coach Ingrid Blom. "To break it, you have to treat focus like a muscle." The method involves a total digital blackout—no emails, no pings, and no 'quick checks' of the news—for 180 minutes. \n\nInitial studies on workers who adopted this habit showed a 40% increase in output quality and a significant reduction in evening exhaustion. Learn how to train your brain to resist the dopamine loops of the modern web and produce work that an AI—limited by its lack of deep, human context—simply cannot replicate.`,
     categoryName: "Personal Development",
-    imageUrl: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
-    title: "The Power of Negative Visualization: Stoicism for the Modern Professional",
-    description: "Why imagining worst-case scenarios might actually be the key to your career resilience.",
+    title:
+      "The Power of Negative Visualization: Stoicism for the Modern Professional",
+    description:
+      "Why imagining worst-case scenarios might actually be the key to your career resilience.",
     content: `Modern stoicism is making a massive comeback in corporate circles, but not in the way you might think. Executives are now being taught 'premeditatio malorum'—the ancient practice of negative visualization. Instead of "thinking positive," professionals are being encouraged to spend five minutes every morning vividly imagining their biggest projects failing.\n\n"It sounds counter-intuitive, but it removes the power of fear," says Dr. Aris Thorne. "When you've already mentally rehearsed the worst-case scenario, you can act with total clarity when minor setbacks occur." \n\nThis practice is building a new generation of "resilient leaders" who are less prone to panic and more capable of handling the high-stakes pressure of the 24/7 global market. By accepting the possibility of failure, they are paradoxically becoming more likely to succeed.`,
     categoryName: "Personal Development",
-    imageUrl: "https://images.unsplash.com/photo-1507537297325-5bcc71892100?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1507537297325-5bcc71892100?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "Opinion: Why 'Human-Made' Labels Will Be the Next Organic Food",
-    description: "As AI content floods the web, we will soon pay a premium for art certified 100% human-created.",
+    description:
+      "As AI content floods the web, we will soon pay a premium for art certified 100% human-created.",
     content: `In ten years, we won't ask if a photo is 'real'—we'll ask if it's 'Human.' As generative AI becomes indistinguishable from human creativity, we are entering a phase where the imperfection of the human hand is becoming the ultimate status symbol. Much like the organic food movement of the early 2000s, I predict a massive surge in 'Human-Certified' labels for everything from journalism to furniture.\n\nWe crave the soul, the struggle, and the context behind an object. An AI can generate a perfect sonnet, but it cannot tell you why it wrote it. It didn't suffer through a breakup; it didn't lose a friend; it didn't feel the sun on its face. \n\nAs consumers, we will soon reach "digital saturation." When content is infinite and free, we will choose to pay a premium for the limited and the local. The future belongs to the artisans, the storytellers, and the creators who refuse to hide their fingerprints.`,
     categoryName: "Editorials/Opinions",
-    imageUrl: "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
-    title: "Opinion: The Death of the 'Standard Office' is a Win for Innovation",
-    description: "Why the decentralization of the workplace is finally allowing for the diversity of thought we've been promised.",
+    title:
+      "Opinion: The Death of the 'Standard Office' is a Win for Innovation",
+    description:
+      "Why the decentralization of the workplace is finally allowing for the diversity of thought we've been promised.",
     content: `The office was a relic of the industrial age—a way to supervise physical labor that no longer exists for the majority of the modern workforce. By finally letting go of the "standard office," we aren't just saving on commute times; we are finally allowing for the diversity of thought that the four-wall cubicle never could have fostered.\n\nInnovation happens when people inhabit their own optimal environments. For some, that’s a quiet forest; for others, it’s a bustling café at midnight. Forcing everyone into a grey box between 9am and 5pm was a tax on creativity. \n\nThe companies that are winning in 2026 are those that have embraced total decentralization. They don't hire based on who lives within 30 miles of a specific zip code; they hire the best minds in the world and give them the autonomy to work in the way they were meant to. The "Death of the Office" is actually the "Birth of the Individual."`,
     categoryName: "Editorials/Opinions",
-    imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "The Last Lighthouse on Europa",
-    description: "A short story about a lonely technician maintaining a beacon on a frozen moon.",
+    description:
+      "A short story about a lonely technician maintaining a beacon on a frozen moon.",
     content: `The ice beneath the station groaned, a rhythmic, metallic shriek that Elias had come to treat as music. On Europa, the ice was always talking; he was the only one left to listen. He checked the monitor: the sapphire beacon was still pulsing, a steady heartbeat cutting through the methane haze of the Jovian moon. \n\nHe hadn't seen a supply ship in forty years. The Great War on Earth had long ago silenced the radios, leaving him as the lonely custodian of a light that no one would ever follow. He didn't mind. He had his books, his hydroponic tomatoes, and the silence. \n\nTonight, however, the silence was broken. A faint, crackling signal emerged from the static—not a human voice, but a mathematical sequence. Elias stood, his old joints popping. Someone, or something, was finally looking for the light.`,
     categoryName: "Creative Writing",
-    imageUrl: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "Midnight at the Memory Café",
-    description: "A tale of a restaurant where you can trade a secret for a taste of your favorite childhood meal.",
+    description:
+      "A tale of a restaurant where you can trade a secret for a taste of your favorite childhood meal.",
     content: `The door to the Memory Café didn't have a handle; it only opened if you were thinking of something you'd truly lost. Inside, the air smelled like rain on hot pavement and freshly toasted bread. There was no menu. You simply sat down and whispered a secret into a small, silver cup.\n\nClara sat at the corner table. "I once stole a blue ribbon from my sister and let her believe the wind took it," she whispered. The cup glowed. Moments later, the waiter brought a plate of shepherd's pie—exactly as her grandmother had made it in 1994, with the slightly burnt edges and the extra sprinkle of paprika.\n\nAs she took the first bite, the guilt of the ribbon faded, replaced by the warmth of a summer long gone. In this café, the price of a meal was the weight you carried. By the time Clara left, she was lighter than she had been in decades.`,
     categoryName: "Creative Writing",
-    imageUrl: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
     title: "How to Build a 'Living' Air Purifier Using Vertical Moss",
-    description: "Ditch the plastic filters. This weekend project shows you how to build a self-watering moss wall.",
+    description:
+      "Ditch the plastic filters. This weekend project shows you how to build a self-watering moss wall.",
     content: `Why buy a plastic machine when you can build a biological one? This weekend project walks you through creating a "Living Wall" that naturally filters dust and VOCs from your home office. \n\nStep 1: Construct a cedar frame (24x36 inches). Cedar is naturally rot-resistant, which is essential for a moist environment. \nStep 2: Install a moisture-wicking felt backing. This will act as the "soil" for your moss. \nStep 3: Source live sheet moss. Unlike dried moss, live moss actively processes the air. \nStep 4: Setup a gravity-fed drip system. A small reservoir at the top will slowly hydrate the felt over a week. \n\nIn just three hours, you'll have a self-sustaining air filter that removes up to 90% of household pollutants while acting as a stunning piece of wall art. Maintenance is as simple as refilling the water tank once a month.`,
     categoryName: "DIY and How to",
-    imageUrl: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&q=80&w=1000",
+    imageUrl:
+      "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&q=80&w=1000",
     status: "article",
   },
   {
-    title: "Repair, Don't Replace: Fixing Modern Electronics with Modular Kits",
-    description: "A beginner's guide to using universal repair kits to extend the life of your smart devices.",
-    content: `The era of "planned obsolescence" is coming to an end. Most 'dead' laptops or smartphones are actually just one failed fuse or a loose connection away from working perfectly. This tutorial shows you how to safely open a modern chassis using a standard modular repair kit.\n\nFirst, we'll cover the "Safety Discharge"—ensuring your device won't shock you during the process. Then, we walk through the "Visual Diagnostic," showing you how to identify burnt-out components using a simple magnifying lens. \n\nFinally, we demonstrate how to use a modular soldering iron to swap out universal components. By spending $20 on a repair kit, you can save $1,000 on a new device and keep electronic waste out of the landfill. It's a skill that pays for itself in a single afternoon.`,
-    categoryName: "DIY and How to",
-    imageUrl: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=1000",
+    title: "SCL Paradigm Introduced to Prevent LLM Hallucinations",
+    description:
+      "Professor Myung-ho Kim of Jae-neung University explains SCL technology at a technical presentation.",
+    content: `Professor Myung-ho Kim of Jae-neung University explains SCL technology at a technical presentation.\n\n"Until now, Large Language Models (LLMs) have focused on creating larger and more complex models, yet reliability issues persist. Future progress depends not on simple scaling, but on securing reliability through structural design.”\n\nThese are the words of Professor Myung-ho Kim of Jae-neung University. During a technical presentation held on the 25th at the Press Center in Jung-gu, Seoul, he proposed Structured Cognitive Loop (SCL) technology as a solution to the reliability problems of LLMs.\n\nProfessor Kim identified three primary limitations of current LLMs:\n- **Hallucinations:** Models presenting non-existent information as fact.\n- **Memory Loss:** Repeating tasks because they fail to retain previous data.\n- **Goal Drift:** Losing sight of initial objectives to produce irrelevant results.\n\nHe illustrated this with a stark analogy: “It’s like a self-driving car hitting the accelerator when it should brake, circling the same spot, or stopping at the wrong destination. If this happened, who could trust and use an autonomous vehicle?”\n\nIn a real-world test, Professor Kim prompted ChatGPT-5: “Given a reference temperature T, check the weather in Incheon, Daejeon, and Jeju, and create a travel plan. If all three regions are above the reference temperature, I want to go to the coolest one.” Despite the clear logic, ChatGPT suggested an incorrect location, failing the basic conditional reasoning.\n\nThe SCL Solution: Thinking Inside the Box\n\nAccording to Professor Kim, SCL is an approach designed to solve these issues fundamentally. Instead of the conventional method of making the AI model larger to handle everything, SCL narrows the AI’s role strictly to 'judgment.' \n\nFunctions such as memory, execution, control, and norm management are separated into independent systems. The core of this structure is a loop where these five modules interact, ensuring that an AI's faulty judgment does not immediately result in action, while keeping the entire process transparent and traceable.\n\n“We approached this with the philosophy that while you cannot entirely eliminate hallucinations, you can avoid them,” he explained. “It’s about keeping the LLM ‘inside a box’ so that its errors do not translate into dangerous behaviors.”\n\nIntroducing 'Chat Wonder'\n\nThe event also saw the unveiling of ‘Chat Wonder,’ a system that implements SCL. Professor Kim described it as a “no-code/low-code platform that allows anyone to develop customized AI agents without complex programming knowledge.” According to his findings, the SCL-applied system outperformed existing AI services in accuracy, transparency, and reproducibility.\n\n“While ChatGPT and Gemini showed logical errors or goal drift during the same tasks, Chat Wonder consistently provided accurate results,” he stated. He concluded by emphasizing that “SCL is a significant step toward making AI more trustworthy. It will be meaningful in building an AI that is accurate, transparent, and reproducible.”`,
+    categoryName: "AI & Innovation",
+    imageUrl:
+      "https://scontent.fcrk1-5.fna.fbcdn.net/v/t1.15752-9/638369045_895676096654470_6695893807859927184_n.jpg?stp=dst-jpg_s2048x2048_tt6&_nc_cat=104&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeERK8KT1hYxUlilxcczajCYdgtKxjb28gN2C0rGNvbyAzeiIsE1lIbftgz-kRGCaeAz6ijQGo9D858q0WJtMw0V&_nc_ohc=ZMz-lSeW188Q7kNvwG-YQaY&_nc_oc=Adl5xHehrFGMhR189mntoX5p3gcwe7eBIxrqglzmiCJ8C-UXx7znyNyDLwEtaSPfIvI&_nc_zt=23&_nc_ht=scontent.fcrk1-5.fna&oh=03_Q7cD4gEsWHbTMyouNQtL_GG8gt5dKBQpuWqj90PNonHgEZNUTQ&oe=69BF8C0B",
     status: "article",
-  }
+  },
 ];
 
 export { articles };
@@ -296,7 +370,7 @@ export { articles };
 export async function seedArticles(
   prisma: PrismaClient,
   userId: number,
-  categoryMap: Record<string, number>
+  categoryMap: Record<string, number>,
 ): Promise<number[]> {
   const contentArticleIds: number[] = [];
   for (const a of articles) {
