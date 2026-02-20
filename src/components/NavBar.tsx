@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown } from "lucide-react";
@@ -70,10 +70,25 @@ export function NavBar() {
   const isHome = pathname === "/";
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest("nav")) setActiveDropdown(null);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const toggleDropdown = (label: string, hasSub: boolean) => {
+    if (!hasSub) return;
+    setActiveDropdown((prev) => (prev === label ? null : label));
+  };
+
   return (
     <nav className="hidden md:block bg-black relative z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <ul className="flex items-center justify-start lg:justify-center gap-1 py-0 px-2 lg:px-0 overflow-x-auto scrollbar-hide">
+        <ul className="flex items-center justify-start lg:justify-center gap-1 py-0 px-2 lg:px-0">
           {NAV_LINKS.map(({ href, label, subcategories }) => {
             const isLatestNews = label === "Latest News" && isHome;
             const hasSub = subcategories && subcategories.length > 0;
@@ -85,18 +100,29 @@ export function NavBar() {
                 onMouseEnter={() => hasSub && setActiveDropdown(label)}
                 onMouseLeave={() => setActiveDropdown(null)}
               >
-                <Link
-                  href={href}
-                  className={`flex items-center gap-1 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${isLatestNews
-                    ? "text-[#ff4500] border-[#ff4500]"
-                    : "text-white border-transparent hover:text-[#ff4500]"
-                    }`}
-                >
-                  {label}
-                  {hasSub && (
+                {hasSub ? (
+                  <button
+                    type="button"
+                    onClick={() => toggleDropdown(label, hasSub)}
+                    className={`flex items-center gap-1 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors w-full text-left ${isLatestNews
+                      ? "text-[#ff4500] border-[#ff4500]"
+                      : "text-white border-transparent hover:text-[#ff4500]"
+                      }`}
+                  >
+                    {label}
                     <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${activeDropdown === label ? "rotate-180" : ""}`} />
-                  )}
-                </Link>
+                  </button>
+                ) : (
+                  <Link
+                    href={href}
+                    className={`flex items-center gap-1 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${isLatestNews
+                      ? "text-[#ff4500] border-[#ff4500]"
+                      : "text-white border-transparent hover:text-[#ff4500]"
+                      }`}
+                  >
+                    {label}
+                  </Link>
+                )}
 
                 {/* Desktop Dropdown */}
                 {hasSub && (
