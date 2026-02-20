@@ -20,6 +20,7 @@ import type { Article } from "@/lib/types";
 export default function Home() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("search");
+  const categoryParam = searchParams.get("category");
   const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
 
   const {
@@ -33,9 +34,15 @@ export default function Home() {
 
   const error = queryError ? "Failed to load articles" : "";
 
-  // Filter articles based on search query
-  const filteredArticles = searchQuery
-    ? articles.filter((article) => {
+  // Filter articles by category and/or search
+  let filteredArticles = articles;
+  if (categoryParam) {
+    filteredArticles = filteredArticles.filter(
+      (article) => article.category.categoryName === categoryParam
+    );
+  }
+  if (searchQuery) {
+    filteredArticles = filteredArticles.filter((article) => {
       const query = searchQuery.toLowerCase();
       const content = article.content?.toLowerCase() ?? "";
       return (
@@ -43,8 +50,8 @@ export default function Home() {
         content.includes(query) ||
         article.category.categoryName.toLowerCase().includes(query)
       );
-    })
-    : articles;
+    });
+  }
 
   if (loading) {
     return (
@@ -62,17 +69,21 @@ export default function Home() {
       <Header onOpenNewsletter={() => setIsNewsletterOpen(true)} />
       <NavBar />
 
-      {/* Hero Section - Carousel */}
-      {!searchQuery && filteredArticles.length > 0 && (
-        <HeroSection articles={filteredArticles.slice(0, 5)} />
+      {/* Hero Section - Carousel with trending sidebar & recommendations */}
+      {!searchQuery && !categoryParam && filteredArticles.length > 0 && (
+        <HeroSection
+          articles={filteredArticles.slice(0, 5)}
+          allArticles={filteredArticles}
+        />
       )}
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Filter Status Bar */}
-        {searchQuery && (
+        {(searchQuery || categoryParam) && (
           <FilterStatusBar
             searchQuery={searchQuery}
+            categoryName={categoryParam}
             resultCount={filteredArticles.length}
           />
         )}
@@ -88,14 +99,14 @@ export default function Home() {
         </div>
 
         {/* Featured Articles Grid */}
-        {!searchQuery && (
+        {!searchQuery && !categoryParam && (
           <FeaturedArticlesSection
             articles={filteredArticles.slice(0, 4)}
           />
         )}
 
         {/* Trending Products Section */}
-        {!searchQuery && (
+        {!searchQuery && !categoryParam && (
           <TrendingProductsSection
             articles={filteredArticles
               .filter((a) => a.status === "blog")

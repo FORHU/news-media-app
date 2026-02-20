@@ -49,6 +49,276 @@ const articles = [
     imageUrl: "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?q=80&w=1000&auto=format&fit=crop",
     status: "article",
   },
+
+  // --- WORLD NEWS ---
+  {
+    title: "Global Treaty Signed for 'Sovereign AI' Data Borders",
+    description: "A coalition of 40 nations has finalized the Brussels Accord, establishing new rules for how AI models can be trained on citizen data.",
+    content: "BRUSSELS — In a historic move to protect digital sovereignty, forty nations have signed the 'Brussels Accord.' The treaty mandates that AI companies must host and process the personal data of a country's citizens within that nation's physical borders. 'We are moving from an open-web era to a sovereign-cloud era,' says Lead Negotiator Sofia Rossi.",
+    categoryName: "World News",
+    imageUrl: "https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+  {
+    title: "Arctic Trade Route Opens as Record Ice Melt Reshapes Shipping",
+    description: "For the first time in history, commercial cargo ships are completing the 'Blue Passage' through the North Pole in under 12 days.",
+    content: "REYKJAVIK — The landscape of global trade changed forever this week as the third cargo vessel of the month docked after crossing the North Pole. While economically efficient, environmentalists warn that the 'Blue Passage' is a stark reminder of the accelerating climate crisis.",
+    categoryName: "World News",
+    imageUrl: "https://images.unsplash.com/photo-1473081556163-2a17de81fc97?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+
+  // --- LOCAL UPDATES ---
+  {
+    title: "Downtown 'Green-Zone' Expansion Approved for Spring",
+    description: "City Council has voted to double the size of the pedestrian-only Green-Zone, replacing four major parking lots with community gardens.",
+    content: "Following a successful pilot program, the City Council voted 7-2 last night to expand the 'Downtown Green-Zone.' Starting this March, three blocks of Main Street will be permanently closed to private vehicles.",
+    categoryName: "Local Updates",
+    imageUrl: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+  {
+    title: "Local High School Wins National 'Robo-Soccer' Title",
+    description: "The Westside Tigers beat out 50 other teams to take home the trophy in the first-ever AI-integrated sports tournament.",
+    content: "Our very own Westside High has made history. Using a custom-built neural network, the student-led robotics team dominated the national finals in San Jose. The team was awarded a $50,000 grant for their STEM department.",
+    categoryName: "Local Updates",
+    imageUrl: "https://images.unsplash.com/photo-1561557944-6e7860d1a7eb?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+
+  // --- MARKETS ---
+  {
+    title: "Sodium-Battery Stocks Surge as Lithium Alternatives Scale",
+    description: "The energy market saw a massive shift today as three major manufacturers announced they are pivoting to sodium-ion technology.",
+    content: "Wall Street is seeing green. The 'Big Three' energy storage firms saw their stock prices climb following the announcement of a breakthrough in sodium-ion energy density. Analysts predict a 40% reduction in battery costs by 2027.",
+    categoryName: "Markets",
+    imageUrl: "https://images.unsplash.com/photo-1611095773164-12ca3a5ddcc0?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+  {
+    title: "Real Estate Tokenization Hits All-Time High",
+    description: "Fractional ownership of commercial properties via blockchain has grown by 300% this fiscal year.",
+    content: "The barrier to entry for real estate investment is crumbling. New platforms allow investors to buy as little as 0.1% of a skyscraper. Experts suggest this is the 'democratization of the skyline,' though regulatory hurdles remain.",
+    categoryName: "Markets",
+    imageUrl: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+
+  // --- STARTUPS ---
+  {
+    title: "Startup 'Hydra' Aims to Decouple the Grid with Personal Fusion",
+    description: "A Silicon Valley newcomer has emerged from stealth with $400M to build house-sized fusion reactors.",
+    content: "Hydra Energy is promising a future where you never pay a utility bill again. Their proprietary 'Compact Magnetic Mirror' technology aims to deliver safe, localized fusion power for residential estates.",
+    categoryName: "Startups",
+    imageUrl: "https://images.unsplash.com/photo-1558494949-ef010cbdcc51?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+  {
+    title: "The 'Agro-Bot' Subscription: Revolutionizing Small Farms",
+    description: "A French startup is leasing autonomous weeding robots to small-scale organic farmers on a pay-as-you-go basis.",
+    content: "Meet 'Luma,' the solar-powered robot that identifies and pulls weeds without chemicals. The startup 'Terra-Pulse' is offering these robots on a subscription model, making high-tech agriculture accessible to family farms.",
+    categoryName: "Startups",
+    imageUrl: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+
+  // --- AI & INNOVATION ---
+  {
+    title: "AI Agents Begin Managing 30% of White-Collar Admin Tasks",
+    description: "New data suggests that 'Agentic AI'—systems that act autonomously—are now standard in 1 in 3 Fortune 500 companies.",
+    content: "We have officially passed the era of the 'Chatbot' and entered the era of the 'Agent.' These systems are now negotiating vendor contracts and managing supply chains without human intervention.",
+    categoryName: "AI & Innovation",
+    imageUrl: "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+  {
+    title: "Neural-Link Earbuds Promise Real-Time Language Fluency",
+    description: "A new wearable uses non-invasive brain-sensing technology to translate foreign languages directly into your inner monologue.",
+    content: "The barrier of language is dissolving. The 'Vox-1' earbuds don't just speak a translation; they use bone conduction and neural-syncing to make the user 'understand' the intent of the speaker in real-time.",
+    categoryName: "AI & Innovation",
+    imageUrl: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+
+  // --- HEALTH & WELLNESS ---
+  {
+    title: "The 'Circadian Diet': Timing is More Important Than Calories",
+    description: "A new study reveals that aligning eating habits with your biological clock reduces inflammation by 25%.",
+    content: "It's not just what you eat, but when. The 'Circadian Diet' is gaining traction after a three-year study showed that eating only during daylight hours significantly improved metabolic health.",
+    categoryName: "Health & Wellness",
+    imageUrl: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+  {
+    title: "Forest Bathing: Why 20 Minutes in Nature is a Medical Necessity",
+    description: "New clinical guidelines suggest doctors should prescribe 'Green-Time' as a primary treatment for mild anxiety.",
+    content: "The data is in: nature is medicine. A 20-minute walk in a forest environment has been shown to lower cortisol levels more effectively than several leading pharmaceutical options for stress management.",
+    categoryName: "Health & Wellness",
+    imageUrl: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+
+  // --- TRAVEL ---
+  {
+    title: "Quiet Travel: The Rise of 'Signal-Free' Destinations",
+    description: "Boutique hotels in the Swiss Alps are seeing record bookings by offering a unique luxury: zero Wi-Fi.",
+    content: "In 2026, the ultimate luxury is being unreachable. 'Quiet Travel' hubs are popping up globally, requiring guests to check their devices at the door and focus on sensory re-engagement.",
+    categoryName: "Travel",
+    imageUrl: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+  {
+    title: "Underwater Eco-Resorts: The New Frontier of Tourism",
+    description: "The world's first fully carbon-neutral underwater hotel has opened in the Maldives, doubling as a coral nursery.",
+    content: "Guests can now sleep beneath the waves while contributing to the environment. The 'Aquos' resort uses the heat generated by its guests to power coral growth incubators surrounding the structure.",
+    categoryName: "Travel",
+    imageUrl: "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+
+  // --- ENTERTAINMENT & CULTURE ---
+  {
+    title: "Streaming Fatigue Leads to the 'Local Theater' Revival",
+    description: "Cinema revenue is up 15% as 'Event Movies' and community-led film festivals outperform digital releases.",
+    content: "After years of endless scrolling, audiences are returning to the big screen. Independent theaters are pivoting to high-end dining and interactive screenings to bring the community back together.",
+    categoryName: "Entertainment & Culture",
+    imageUrl: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+  {
+    title: "The Return of Hand-Drawn Animation in a Digital Age",
+    description: "A major studio has announced it is moving away from 3D-rendering for its next three blockbuster films.",
+    content: "In a world of AI-generated visuals, the 'human touch' is becoming a premium feature. Studio Glimmer announced that their next feature will be 100% hand-painted, employing over 500 traditional artists.",
+    categoryName: "Entertainment & Culture",
+    imageUrl: "https://images.unsplash.com/photo-1541512416146-3cf58d6b27cc?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+
+  // --- SPORTS & FITNESS ---
+  {
+    title: "Bio-Wearables are the New Coaches in Pro Sports",
+    description: "The League has officially sanctioned real-time sweat-analysis patches for players during games.",
+    content: "Coaching is becoming a data-science game. The new 'HydraPatch' provides a live dashboard of an athlete's physiological state, recommending substitutions before an injury even occurs.",
+    categoryName: "Sports & Fitness",
+    imageUrl: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+  {
+    title: "Virtual Reality Marathons: Running the Great Wall from Home",
+    description: "The first global 'VR-Race' saw 10,000 participants running on treadmills synchronized to a hyper-real simulation.",
+    content: "Geography is no longer a barrier to the marathon. Runners from 50 countries competed yesterday on a virtual Great Wall of China, complete with simulated wind resistance and altitude incline.",
+    categoryName: "Sports & Fitness",
+    imageUrl: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+
+  // --- AUTOMOTIVE ---
+  {
+    title: "The Return of the Sedan? EV Market Shifts Toward Efficiency",
+    description: "As consumers prioritize range over size, aerodynamic sedans are making a surprise comeback.",
+    content: "The SUV era may be peaking. With charging speed being the primary concern, manufacturers are returning to the sedan form factor to achieve lower drag and longer battery life.",
+    categoryName: "Automotive",
+    imageUrl: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+  {
+    title: "Hydrogen Long-Haul Trucks Pass the 1,000-Mile Test",
+    description: "A prototype semi-truck has crossed the country using only green hydrogen, refueling in under 10 minutes.",
+    content: "Electric isn't the only future for transport. The 'H-Series' truck proved this week that hydrogen is the superior choice for long-distance hauling, maintaining power without the weight of massive batteries.",
+    categoryName: "Automotive",
+    imageUrl: "https://images.unsplash.com/photo-1586191582056-a15cd123479f?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+
+  // --- EDUCATION & LEARNING ---
+  {
+    title: "VR-Classrooms: Distance Learning Gets a Physical Upgrade",
+    description: "Universities are launching 'Holographic Lecture Series' allowing remote students to feel front-row presence.",
+    content: "Zoom fatigue is over. The new VR-Classroom 4.0 uses spatial audio and high-fidelity avatars to simulate the physical presence of a campus, leading to a 50% increase in student engagement.",
+    categoryName: "Education & Learning",
+    imageUrl: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+  {
+    title: "The 'Micro-Credential' Revolution: Skills Over Degrees",
+    description: "Major tech companies have announced they will no longer require 4-year degrees for specialized coding roles.",
+    content: "The shift toward skills-based hiring is accelerating. Companies are now looking at 'micro-credentials'—short, intensive certifications—as a more accurate measure of a candidate's current ability.",
+    categoryName: "Education & Learning",
+    imageUrl: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+
+  // --- PERSONAL DEVELOPMENT ---
+  {
+    title: "The 'Deep Work' Habit: How to Reclaim Your Attention Span",
+    description: "In an age of AI noise, the ability to focus for three hours is becoming the most valuable skill.",
+    content: "Attention is the new oil. This week, we explore the 'Three-Hour Block' method—a framework for entering a flow state without digital interruption.",
+    categoryName: "Personal Development",
+    imageUrl: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+  {
+    title: "The Power of Negative Visualization: Stoicism for the Modern Professional",
+    description: "Why imagining worst-case scenarios might actually be the key to your career resilience.",
+    content: "Modern stoicism is making a comeback in corporate circles. By practicing 'premeditatio malorum,' executives are finding they can handle high-stakes pressure with far more calm and clarity.",
+    categoryName: "Personal Development",
+    imageUrl: "https://images.unsplash.com/photo-1507537297325-5bcc71892100?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+
+  // --- EDITORIALS/OPINIONS ---
+  {
+    title: "Opinion: Why 'Human-Made' Labels Will Be the Next Organic Food",
+    description: "As AI content floods the web, we will soon pay a premium for art certified 100% human-created.",
+    content: "In ten years, we won't ask if a photo is 'real'—we'll ask if it's 'Human.' We are entering a phase where the imperfection of the human hand is the ultimate status symbol.",
+    categoryName: "Editorials/Opinions",
+    imageUrl: "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+  {
+    title: "Opinion: The Death of the 'Standard Office' is a Win for Innovation",
+    description: "Why the decentralization of the workplace is finally allowing for the diversity of thought we've been promised.",
+    content: "The office was a relic of the industrial age. By allowing workers to inhabit their own environments, we are seeing a creative explosion that the four-wall cubicle never could have fostered.",
+    categoryName: "Editorials/Opinions",
+    imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+
+  // --- CREATIVE WRITING ---
+  {
+    title: "The Last Lighthouse on Europa",
+    description: "A short story about a lonely technician maintaining a beacon on a frozen moon.",
+    content: "The ice beneath the station groaned, a rhythmic shriek that Elias had come to treat as music. He was the only one left to listen. The beacon pulsed—a steady, sapphire light cutting through the methane haze.",
+    categoryName: "Creative Writing",
+    imageUrl: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+  {
+    title: "Midnight at the Memory Café",
+    description: "A tale of a restaurant where you can trade a secret for a taste of your favorite childhood meal.",
+    content: "The door didn't have a handle; it only opened if you were thinking of something you'd lost. Inside, the air smelled like rain and toasted bread. 'One memory of a 1994 summer,' the waiter whispered, 'for the shepherd's pie.'",
+    categoryName: "Creative Writing",
+    imageUrl: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+
+  // --- DIY AND HOW TO ---
+  {
+    title: "How to Build a 'Living' Air Purifier Using Vertical Moss",
+    description: "Ditch the plastic filters. This weekend project shows you how to build a self-watering moss wall.",
+    content: "Step 1: Construct a cedar frame. Step 2: Install a moisture-wicking felt backing. Step 3: Source live sheet moss. This guide shows you how to create a biological air filter that acts as living art.",
+    categoryName: "DIY and How to",
+    imageUrl: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
+  {
+    title: "Repair, Don't Replace: Fixing Modern Electronics with Modular Kits",
+    description: "A beginner's guide to using universal repair kits to extend the life of your smart devices.",
+    content: "Most 'dead' laptops are just one fuse away from working. In this tutorial, we show you how to safely open a modern chassis, identify burnt-out components, and swap them using modular soldering kits.",
+    categoryName: "DIY and How to",
+    imageUrl: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=1000",
+    status: "article",
+  },
 ];
 
 export { articles };

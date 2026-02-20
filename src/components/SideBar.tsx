@@ -12,51 +12,55 @@ interface SideBarProps {
     onOpenNewsletter?: () => void;
 }
 
+function categoryHref(categoryName: string) {
+    return `/?category=${encodeURIComponent(categoryName)}`;
+}
+
 const CATEGORY_STRUCTURE = [
     { name: "Latest News", link: "/", subcategories: [] },
     {
         name: "News & Current Events",
         subcategories: [
-            { name: "World News", link: "#" },
-            { name: "Local Updates", link: "#" },
+            { name: "World News", link: categoryHref("World News") },
+            { name: "Local Updates", link: categoryHref("Local Updates") },
         ],
     },
     {
         name: "Business & Technology",
         subcategories: [
-            { name: "Markets", link: "#" },
-            { name: "Startups", link: "#" },
-            { name: "AI & Innovation", link: "#" },
+            { name: "Markets", link: categoryHref("Markets") },
+            { name: "Startups", link: categoryHref("Startups") },
+            { name: "AI & Innovation", link: categoryHref("AI & Innovation") },
         ],
     },
     {
         name: "Lifestyle",
         subcategories: [
-            { name: "Health & Wellness", link: "#" },
-            { name: "Travel", link: "#" },
+            { name: "Health & Wellness", link: categoryHref("Health & Wellness") },
+            { name: "Travel", link: categoryHref("Travel") },
         ],
     },
     {
         name: "Entertainment & Sports",
         subcategories: [
-            { name: "Entertainment & Culture", link: "#" },
-            { name: "Sports Fitness", link: "#" },
-            { name: "Automotive", link: "#" },
+            { name: "Entertainment & Culture", link: categoryHref("Entertainment & Culture") },
+            { name: "Sports & Fitness", link: categoryHref("Sports & Fitness") },
+            { name: "Automotive", link: categoryHref("Automotive") },
         ],
     },
     {
         name: "Personal Growth",
         subcategories: [
-            { name: "Education & Learning", link: "#" },
-            { name: "Personal Development", link: "#" },
+            { name: "Education & Learning", link: categoryHref("Education & Learning") },
+            { name: "Personal Development", link: categoryHref("Personal Development") },
         ],
     },
     {
         name: "Opinion & Creative",
         subcategories: [
-            { name: "Editorials/ Opinions", link: "#" },
-            { name: "Creative Writing", link: "#" },
-            { name: "DIY and How to", link: "#" },
+            { name: "Editorials/Opinions", link: categoryHref("Editorials/Opinions") },
+            { name: "Creative Writing", link: categoryHref("Creative Writing") },
+            { name: "DIY and How to", link: categoryHref("DIY and How to") },
         ],
     },
 ];
@@ -109,16 +113,24 @@ export function SideBar({ isOpen, onClose, onOpenNewsletter }: SideBarProps) {
                                 <div className="w-10"></div>
                             </div>
 
-                            {/* Navigation Links - Scrollable */}
-                            <div className="flex-1 overflow-y-auto scrollbar-hide">
-                                <nav className="pt-4 pb-8 sm:pb-12">
-                                    {CATEGORY_STRUCTURE.map((category, index) => (
-                                        <div key={index}>
-                                            {category.subcategories.length === 0 ? (
-                                                <Link
-                                                    href={category.link!}
-                                                    onClick={category.link === "#" ? handlePlaceholderClick : onClose}
-                                                    className="block px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg text-gray-900 hover:bg-[#ff4500]/5 hover:text-[#ff4500] transition-all font-semibold"
+                        {/* Navigation Links - Scrollable */}
+                        <div className="flex-1 overflow-y-auto scrollbar-hide pt-4">
+                            <nav className="pb-12">
+                                {CATEGORY_STRUCTURE.map((category, index) => (
+                                    <div key={index}>
+                                        {category.subcategories.length === 0 ? (
+                                            <Link
+                                                href={category.link!}
+                                                onClick={onClose}
+                                                className="block px-8 py-4 text-lg text-gray-900 hover:bg-[#ff4500]/5 hover:text-[#ff4500] transition-all font-semibold"
+                                            >
+                                                {category.name}
+                                            </Link>
+                                        ) : (
+                                            <>
+                                                <button
+                                                    onClick={() => toggleCategory(category.name)}
+                                                    className="w-full flex items-center justify-between px-8 py-4 text-lg text-gray-900 hover:bg-[#ff4500]/5 hover:text-[#ff4500] transition-all font-bold text-left"
                                                 >
                                                     {category.name}
                                                 </Link>
@@ -133,7 +145,16 @@ export function SideBar({ isOpen, onClose, onOpenNewsletter }: SideBarProps) {
                                                             animate={{ rotate: expandedCategories.includes(category.name) ? 90 : 0 }}
                                                             transition={{ duration: 0.2 }}
                                                         >
-                                                            <ChevronRight className="w-5 h-5 text-gray-400" />
+                                                            {category.subcategories.map((sub, subIndex) => (
+                                                                <Link
+                                                                    key={subIndex}
+                                                                    href={sub.link}
+                                                                    onClick={onClose}
+                                                                    className="block px-8 py-3 pl-14 text-base text-gray-700 hover:bg-[#ff4500]/10 hover:text-[#ff4500] transition-all"
+                                                                >
+                                                                    {sub.name}
+                                                                </Link>
+                                                            ))}
                                                         </motion.div>
                                                     </button>
 
