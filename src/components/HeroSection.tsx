@@ -4,12 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Calendar, Clock, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { TrendingSidebar } from "@/components/home/trending-sidebar";
 import type { Article } from "@/lib/types";
 
 interface HeroSectionProps {
   articles: Article[];
-  allArticles?: Article[];
 }
 
 function formatDate(date: Date | string) {
@@ -44,11 +42,10 @@ function truncateContent(content: string | null, maxLength = 160): string {
   return plain.length <= maxLength ? plain : plain.slice(0, maxLength) + "…";
 }
 
-export function HeroSection({ articles, allArticles }: HeroSectionProps) {
+export function HeroSection({ articles }: HeroSectionProps) {
   const [[page, direction], setPage] = useState([0, 0]);
   const index = Math.abs(page % articles.length);
   const article = articles[index];
-  const pool = allArticles ?? articles;
 
   if (!article) return null;
 
@@ -56,7 +53,6 @@ export function HeroSection({ articles, allArticles }: HeroSectionProps) {
     setPage([page + newDirection, newDirection]);
   };
 
-  const trendingArticles = pool.filter((a) => a.id !== article.id).slice(0, 5);
   const categoryLabel = article.category.categoryName.toUpperCase().replace(/\s+/g, " ");
 
   return (
@@ -64,9 +60,9 @@ export function HeroSection({ articles, allArticles }: HeroSectionProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h2 className="text-2xl font-bold text-black mb-6">Latest News</h2>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div>
           {/* Main article carousel */}
-          <div className="lg:col-span-2">
+          <div>
             <div className="relative h-[380px] sm:h-[400px] md:h-[360px] lg:h-[380px]">
           {/* Prev arrow */}
           <button
@@ -171,11 +167,6 @@ export function HeroSection({ articles, allArticles }: HeroSectionProps) {
                 />
               ))}
             </div>
-          </div>
-
-          {/* Trending sidebar */}
-          <div className="lg:col-span-1">
-            <TrendingSidebar articles={trendingArticles} />
           </div>
         </div>
       </div>

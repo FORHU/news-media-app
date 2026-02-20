@@ -71,10 +71,7 @@ export default function Home() {
 
       {/* Hero Section - Carousel with trending sidebar & recommendations */}
       {!searchQuery && !categoryParam && filteredArticles.length > 0 && (
-        <HeroSection
-          articles={filteredArticles.slice(0, 5)}
-          allArticles={filteredArticles}
-        />
+        <HeroSection articles={filteredArticles.slice(0, 5)} />
       )}
 
       {/* Main Content */}

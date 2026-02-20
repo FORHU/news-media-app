@@ -110,7 +110,7 @@ const articles = [
     description: "A Silicon Valley newcomer has emerged from stealth with $400M to build house-sized fusion reactors.",
     content: "Hydra Energy is promising a future where you never pay a utility bill again. Their proprietary 'Compact Magnetic Mirror' technology aims to deliver safe, localized fusion power for residential estates.",
     categoryName: "Startups",
-    imageUrl: "https://images.unsplash.com/photo-1558494949-ef010cbdcc51?auto=format&fit=crop&q=80&w=1000",
+    imageUrl: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?q=80&w=1000&auto=format&fit=crop",
     status: "article",
   },
   {
