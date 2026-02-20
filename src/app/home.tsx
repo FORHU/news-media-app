@@ -36,14 +36,14 @@ export default function Home() {
   // Filter articles based on search query
   const filteredArticles = searchQuery
     ? articles.filter((article) => {
-        const query = searchQuery.toLowerCase();
-        const content = article.content?.toLowerCase() ?? "";
-        return (
-          article.title.toLowerCase().includes(query) ||
-          content.includes(query) ||
-          article.category.categoryName.toLowerCase().includes(query)
-        );
-      })
+      const query = searchQuery.toLowerCase();
+      const content = article.content?.toLowerCase() ?? "";
+      return (
+        article.title.toLowerCase().includes(query) ||
+        content.includes(query) ||
+        article.category.categoryName.toLowerCase().includes(query)
+      );
+    })
     : articles;
 
   if (loading) {
@@ -58,13 +58,7 @@ export default function Home() {
   }
 
   return (
-    <div
-      className={
-        isNewsletterOpen
-          ? "overflow-hidden h-screen bg-white"
-          : "min-h-screen bg-white"
-      }
-    >
+    <div className="min-h-screen bg-white">
       <Header onOpenNewsletter={() => setIsNewsletterOpen(true)} />
       <NavBar />
 

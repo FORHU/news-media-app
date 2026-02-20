@@ -9,9 +9,17 @@ export async function GET(request: NextRequest) {
       parseInt(searchParams.get("limit") ?? "50", 10) || 50,
       100
     );
+    const search = searchParams.get("search");
 
     const articles: Article[] = await prisma!.contentArticle.findMany({
       take: limit,
+      where: search ? {
+        OR: [
+          { title: { contains: search, mode: 'insensitive' } },
+          { content: { contains: search, mode: 'insensitive' } },
+          { category: { categoryName: { contains: search, mode: 'insensitive' } } }
+        ]
+      } : undefined,
       orderBy: { createdAt: "desc" },
       include: { category: true },
     });
