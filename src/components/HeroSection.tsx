@@ -112,30 +112,30 @@ export function HeroSection({ articles, allArticles }: HeroSectionProps) {
                     </div>
 
                     {/* Content side */}
-                    <div className="p-6 md:p-8 flex flex-col justify-center min-h-0 min-w-0 overflow-hidden">
-                      <div className="flex items-center gap-3 mb-3 shrink-0 flex-wrap">
-                        <div className="w-8 h-8 rounded-full bg-[#ff4500] text-white flex items-center justify-center text-xs font-bold shrink-0">
+                    <div className="p-4 sm:p-6 md:p-8 flex flex-col justify-center min-h-0 min-w-0 overflow-hidden">
+                      <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3 shrink-0 flex-wrap">
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-[#ff4500] text-white flex items-center justify-center text-[10px] sm:text-xs font-bold shrink-0">
                           AI
                         </div>
-                        <span className="text-sm text-gray-700 whitespace-nowrap">AI Content Writer</span>
-                        <span className="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap">
-                          <Calendar className="w-3.5 h-3.5" />
+                        <span className="text-xs sm:text-sm text-gray-700 whitespace-nowrap">AI Content Writer</span>
+                        <span className="flex items-center gap-1 text-[10px] sm:text-xs text-gray-500 whitespace-nowrap">
+                          <Calendar className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
                           {formatDate(article.createdAt)}
                         </span>
-                        <span className="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap">
-                          <Clock className="w-3.5 h-3.5" />
+                        <span className="flex items-center gap-1 text-[10px] sm:text-xs text-gray-500 whitespace-nowrap">
+                          <Clock className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
                           5 min read
                         </span>
                       </div>
-                      <h1 className="text-xl md:text-2xl font-bold text-black mb-3 line-clamp-2 group-hover:text-[#ff4500] transition-colors">
+                      <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-black mb-2 sm:mb-3 line-clamp-2 md:line-clamp-3 group-hover:text-[#ff4500] transition-colors">
                         {article.title}
                       </h1>
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                      <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3">
                         {truncateContent(article.content)}
                       </p>
-                      <span className="inline-flex items-center gap-1 text-[#ff4500] font-medium text-sm">
+                      <span className="inline-flex items-center gap-1 text-[#ff4500] font-medium text-xs sm:text-sm">
                         Read Full Article
-                        <ArrowRight className="w-4 h-4" />
+                        <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                       </span>
                     </div>
                   </div>

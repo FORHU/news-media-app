@@ -3,8 +3,11 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, Menu, Mail, User } from "lucide-react";
+import { Search, Menu, Mail, User, Loader2 } from "lucide-react";
 import { SideBar } from "./SideBar";
+import { articlesApi } from "@/lib/api";
+import type { Article } from "@/lib/types";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface HeaderProps {
   onOpenNewsletter?: () => void;
@@ -16,11 +19,50 @@ export function Header({ onOpenNewsletter }: HeaderProps) {
   const [query, setQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState<Article[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
     const q = searchParams.get("search") ?? "";
     setQuery(q);
   }, [searchParams]);
+
+  // Handle live suggestions
+  useEffect(() => {
+    if (!query.trim()) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      setShowSuggestions(true);
+      try {
+        const results = await articlesApi.getArticles({ limit: 5, search: query });
+        setSuggestions(results);
+      } catch (err) {
+        console.error("Suggestions error:", err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  // Click outside listener
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest(".search-container")) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +80,7 @@ export function Header({ onOpenNewsletter }: HeaderProps) {
   return (
     <header className="sticky top-0 z-[60] bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center h-14 gap-2 sm:gap-4">
+        <div className="flex items-center h-14 md:h-16 gap-2 sm:gap-4">
           {/* Left: Hamburger + Search Icon (Mobile) / Search Form (Desktop) */}
           <div className="flex items-center gap-1 sm:gap-3 flex-1 min-w-0">
             <button
@@ -50,19 +92,59 @@ export function Header({ onOpenNewsletter }: HeaderProps) {
               <Menu className="w-5 h-5" />
             </button>
 
-            {/* Desktop Search (Flexible but capped) */}
-            <form onSubmit={handleSearch} className="hidden md:block flex-1 max-w-[280px]">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="search"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search articles..."
-                  className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#ff4500] focus:ring-2 focus:ring-[#ff4500]/20 outline-none"
-                />
-              </div>
-            </form>
+            {/* Desktop Search */}
+            <div className="hidden md:block flex-1 max-w-[280px] relative search-container">
+              <form onSubmit={handleSearch}>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="search"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onFocus={() => query.trim() && setShowSuggestions(true)}
+                    placeholder="Search articles..."
+                    className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#ff4500] focus:ring-2 focus:ring-[#ff4500]/20 outline-none"
+                  />
+                </div>
+              </form>
+
+              {/* Desktop Suggestions */}
+              <AnimatePresence>
+                {showSuggestions && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute left-0 right-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-2xl overflow-hidden z-50"
+                  >
+                    {isSearching ? (
+                      <div className="p-4 flex justify-center">
+                        <Loader2 className="w-5 h-5 text-[#ff4500] animate-spin" />
+                      </div>
+                    ) : suggestions.length > 0 ? (
+                      <div className="max-h-[300px] overflow-y-auto py-2">
+                        {suggestions.map((article) => (
+                          <Link
+                            key={article.id}
+                            href={`/?search=${article.title}`} // Directing to the article search result for now, or you could navigate to a dedicated article page if it exists
+                            onClick={() => {
+                              setQuery(article.title);
+                              setShowSuggestions(false);
+                            }}
+                            className="flex flex-col px-4 py-2 hover:bg-gray-50 transition-colors border-b last:border-0 border-gray-50"
+                          >
+                            <span className="text-sm font-semibold text-gray-900 line-clamp-1">{article.title}</span>
+                            <span className="text-xs text-[#ff4500] uppercase font-bold tracking-wider">{article.category.categoryName}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-4 text-sm text-gray-500 text-center italic">No articles found</div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             {/* Mobile Search Icon */}
             <button
@@ -106,7 +188,7 @@ export function Header({ onOpenNewsletter }: HeaderProps) {
         </div>
 
         {isSearchOpen && (
-          <div className="md:hidden py-4 border-t border-gray-200 bg-white animate-in slide-in-from-top duration-200">
+          <div className="md:hidden py-4 border-t border-gray-200 bg-white animate-in slide-in-from-top duration-200 search-container overflow-visible">
             <form onSubmit={handleSearch} className="px-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -115,6 +197,7 @@ export function Header({ onOpenNewsletter }: HeaderProps) {
                   value={query}
                   autoFocus
                   onChange={(e) => setQuery(e.target.value)}
+                  onFocus={() => query.trim() && setShowSuggestions(true)}
                   placeholder="Search articles..."
                   className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#ff4500] focus:ring-2 focus:ring-[#ff4500]/20 outline-none"
                 />
@@ -126,6 +209,44 @@ export function Header({ onOpenNewsletter }: HeaderProps) {
                 Search
               </button>
             </form>
+
+            {/* Mobile Suggestions */}
+            <AnimatePresence>
+              {showSuggestions && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-2 bg-white border-t border-gray-50 overflow-hidden"
+                >
+                  {isSearching ? (
+                    <div className="p-4 flex justify-center">
+                      <Loader2 className="w-5 h-5 text-[#ff4500] animate-spin" />
+                    </div>
+                  ) : suggestions.length > 0 ? (
+                    <div className="max-h-[250px] overflow-y-auto px-2 pb-2">
+                      {suggestions.map((article) => (
+                        <Link
+                          key={article.id}
+                          href={`/?search=${article.title}`}
+                          onClick={() => {
+                            setQuery(article.title);
+                            setShowSuggestions(false);
+                            setIsSearchOpen(false);
+                          }}
+                          className="flex flex-col py-3 border-b last:border-0 border-gray-50 active:bg-gray-50"
+                        >
+                          <span className="text-sm font-semibold text-gray-900 line-clamp-2">{article.title}</span>
+                          <span className="text-[10px] text-[#ff4500] uppercase font-bold tracking-widest">{article.category.categoryName}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-4 text-sm text-gray-500 text-center italic">No results found</div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
 

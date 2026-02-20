@@ -27,9 +27,9 @@ interface FooterProps {
 export function Footer({ onOpenNewsletter }: FooterProps) {
     return (
         <footer className="bg-[#1a1a1a] text-white border-t border-gray-800">
-            <div className="max-w-7xl mx-auto px-6 py-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
                 {/* Main Footer Content */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8 sm:mb-12">
                     {/* Categories Column 1 */}
                     <div>
                         <h3 className="text-[#ff4500] font-bold text-sm uppercase tracking-wider mb-4">
@@ -122,7 +122,7 @@ export function Footer({ onOpenNewsletter }: FooterProps) {
                         <div className="text-center md:text-left">
                             <div className="flex items-center gap-2 mb-2 justify-center md:justify-start">
                                 <span className="font-bold text-2xl tracking-tighter text-[#ff4500]">FORHU</span>
-                                <span className="font-medium text-lg border-l border-gray-700 pl-2">Media & Content Hub</span>
+                                <span className="font-medium text-lg border-l border-gray-700 pl-3">Media & Content Hub</span>
                             </div>
                             <p className="text-gray-500 text-sm">
                                 © {new Date().getFullYear()} FORHU. All rights reserved.
