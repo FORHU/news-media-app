@@ -163,7 +163,7 @@ export function Header({ onOpenNewsletter }: HeaderProps) {
               href="/"
               className="text-xl sm:text-2xl font-bold text-[#FF4500] tracking-tight shrink-0 whitespace-nowrap"
             >
-              NEWSICON
+              NEWSICONS
             </Link>
           </div>
 
