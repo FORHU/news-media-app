@@ -11,51 +11,55 @@ interface SideBarProps {
     onOpenNewsletter?: () => void;
 }
 
+function categoryHref(categoryName: string) {
+    return `/?category=${encodeURIComponent(categoryName)}`;
+}
+
 const CATEGORY_STRUCTURE = [
     { name: "Latest News", link: "/", subcategories: [] },
     {
         name: "News & Current Events",
         subcategories: [
-            { name: "World News", link: "#" },
-            { name: "Local Updates", link: "#" },
+            { name: "World News", link: categoryHref("World News") },
+            { name: "Local Updates", link: categoryHref("Local Updates") },
         ],
     },
     {
         name: "Business & Technology",
         subcategories: [
-            { name: "Markets", link: "#" },
-            { name: "Startups", link: "#" },
-            { name: "AI & Innovation", link: "#" },
+            { name: "Markets", link: categoryHref("Markets") },
+            { name: "Startups", link: categoryHref("Startups") },
+            { name: "AI & Innovation", link: categoryHref("AI & Innovation") },
         ],
     },
     {
         name: "Lifestyle",
         subcategories: [
-            { name: "Health & Wellness", link: "#" },
-            { name: "Travel", link: "#" },
+            { name: "Health & Wellness", link: categoryHref("Health & Wellness") },
+            { name: "Travel", link: categoryHref("Travel") },
         ],
     },
     {
         name: "Entertainment & Sports",
         subcategories: [
-            { name: "Entertainment & Culture", link: "#" },
-            { name: "Sports Fitness", link: "#" },
-            { name: "Automotive", link: "#" },
+            { name: "Entertainment & Culture", link: categoryHref("Entertainment & Culture") },
+            { name: "Sports & Fitness", link: categoryHref("Sports & Fitness") },
+            { name: "Automotive", link: categoryHref("Automotive") },
         ],
     },
     {
         name: "Personal Growth",
         subcategories: [
-            { name: "Education & Learning", link: "#" },
-            { name: "Personal Development", link: "#" },
+            { name: "Education & Learning", link: categoryHref("Education & Learning") },
+            { name: "Personal Development", link: categoryHref("Personal Development") },
         ],
     },
     {
         name: "Opinion & Creative",
         subcategories: [
-            { name: "Editorials/ Opinions", link: "#" },
-            { name: "Creative Writing", link: "#" },
-            { name: "DIY and How to", link: "#" },
+            { name: "Editorials/Opinions", link: categoryHref("Editorials/Opinions") },
+            { name: "Creative Writing", link: categoryHref("Creative Writing") },
+            { name: "DIY and How to", link: categoryHref("DIY and How to") },
         ],
     },
 ];
@@ -127,7 +131,7 @@ export function SideBar({ isOpen, onClose, onOpenNewsletter }: SideBarProps) {
                                         {category.subcategories.length === 0 ? (
                                             <Link
                                                 href={category.link!}
-                                                onClick={category.link === "#" ? handlePlaceholderClick : onClose}
+                                                onClick={onClose}
                                                 className="block px-8 py-4 text-lg text-gray-900 hover:bg-[#ff4500]/5 hover:text-[#ff4500] transition-all font-semibold"
                                             >
                                                 {category.name}
@@ -160,7 +164,7 @@ export function SideBar({ isOpen, onClose, onOpenNewsletter }: SideBarProps) {
                                                                 <Link
                                                                     key={subIndex}
                                                                     href={sub.link}
-                                                                    onClick={sub.link === "#" ? handlePlaceholderClick : onClose}
+                                                                    onClick={onClose}
                                                                     className="block px-8 py-3 pl-14 text-base text-gray-700 hover:bg-[#ff4500]/10 hover:text-[#ff4500] transition-all"
                                                                 >
                                                                     {sub.name}

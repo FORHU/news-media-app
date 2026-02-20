@@ -6,57 +6,61 @@ import { usePathname } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+function categoryHref(categoryName: string) {
+  return `/?category=${encodeURIComponent(categoryName)}`;
+}
+
 const NAV_LINKS = [
   { href: "/", label: "Latest News" },
   {
-    href: "/?cat=news-events",
+    href: "/",
     label: "News & Current Events",
     subcategories: [
-      { label: "World News", href: "#" },
-      { label: "Local Updates", href: "#" },
+      { label: "World News", href: categoryHref("World News") },
+      { label: "Local Updates", href: categoryHref("Local Updates") },
     ]
   },
   {
-    href: "/?cat=business-tech",
+    href: "/",
     label: "Business & Technology",
     subcategories: [
-      { label: "Markets", href: "#" },
-      { label: "Startups", href: "#" },
-      { label: "AI & Innovation", href: "#" },
+      { label: "Markets", href: categoryHref("Markets") },
+      { label: "Startups", href: categoryHref("Startups") },
+      { label: "AI & Innovation", href: categoryHref("AI & Innovation") },
     ]
   },
   {
-    href: "/?cat=lifestyle",
+    href: "/",
     label: "Lifestyle",
     subcategories: [
-      { label: "Health & Wellness", href: "#" },
-      { label: "Travel", href: "#" },
+      { label: "Health & Wellness", href: categoryHref("Health & Wellness") },
+      { label: "Travel", href: categoryHref("Travel") },
     ]
   },
   {
-    href: "/?cat=entertainment",
+    href: "/",
     label: "Entertainment & Sports",
     subcategories: [
-      { label: "Entertainment & Culture", href: "#" },
-      { label: "Sports Fitness", href: "#" },
-      { label: "Automotive", href: "#" },
+      { label: "Entertainment & Culture", href: categoryHref("Entertainment & Culture") },
+      { label: "Sports & Fitness", href: categoryHref("Sports & Fitness") },
+      { label: "Automotive", href: categoryHref("Automotive") },
     ]
   },
   {
-    href: "/?cat=personal-growth",
+    href: "/",
     label: "Personal Growth",
     subcategories: [
-      { label: "Education & Learning", href: "#" },
-      { label: "Personal Development", href: "#" },
+      { label: "Education & Learning", href: categoryHref("Education & Learning") },
+      { label: "Personal Development", href: categoryHref("Personal Development") },
     ]
   },
   {
-    href: "/?cat=opinion",
+    href: "/",
     label: "Opinion & Creative",
     subcategories: [
-      { label: "Editorials/ Opinions", href: "#" },
-      { label: "Creative Writing", href: "#" },
-      { label: "DIY and How to", href: "#" },
+      { label: "Editorials/Opinions", href: categoryHref("Editorials/Opinions") },
+      { label: "Creative Writing", href: categoryHref("Creative Writing") },
+      { label: "DIY and How to", href: categoryHref("DIY and How to") },
     ]
   },
 ];
@@ -65,10 +69,6 @@ export function NavBar() {
   const pathname = usePathname();
   const isHome = pathname === "/";
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-
-  const handlePlaceholderClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-  };
 
   return (
     <nav className="hidden md:block bg-black relative z-50">
@@ -114,7 +114,6 @@ export function NavBar() {
                             <li key={sub.label}>
                               <Link
                                 href={sub.href}
-                                onClick={sub.href === "#" ? handlePlaceholderClick : undefined}
                                 className="block px-6 py-3 text-sm text-gray-700 hover:bg-[#ff4500]/5 hover:text-[#ff4500] transition-colors border-l-4 border-transparent hover:border-[#ff4500]"
                               >
                                 {sub.label}

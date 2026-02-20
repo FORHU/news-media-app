@@ -4,10 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Calendar, Clock, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { TrendingSidebar } from "@/components/home/trending-sidebar";
 import type { Article } from "@/lib/types";
 
 interface HeroSectionProps {
   articles: Article[];
+  allArticles?: Article[];
 }
 
 function formatDate(date: Date | string) {
@@ -42,11 +44,11 @@ function truncateContent(content: string | null, maxLength = 160): string {
   return plain.length <= maxLength ? plain : plain.slice(0, maxLength) + "…";
 }
 
-export function HeroSection({ articles }: HeroSectionProps) {
+export function HeroSection({ articles, allArticles }: HeroSectionProps) {
   const [[page, direction], setPage] = useState([0, 0]);
   const index = Math.abs(page % articles.length);
   const article = articles[index];
-  const total = articles.length;
+  const pool = allArticles ?? articles;
 
   if (!article) return null;
 
@@ -54,6 +56,7 @@ export function HeroSection({ articles }: HeroSectionProps) {
     setPage([page + newDirection, newDirection]);
   };
 
+  const trendingArticles = pool.filter((a) => a.id !== article.id).slice(0, 5);
   const categoryLabel = article.category.categoryName.toUpperCase().replace(/\s+/g, " ");
 
   return (
@@ -61,7 +64,10 @@ export function HeroSection({ articles }: HeroSectionProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h2 className="text-2xl font-bold text-black mb-6">Latest News</h2>
 
-        <div className="relative h-[380px] sm:h-[400px] md:h-[360px] lg:h-[380px]">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main article carousel */}
+          <div className="lg:col-span-2">
+            <div className="relative h-[380px] sm:h-[400px] md:h-[360px] lg:h-[380px]">
           {/* Prev arrow */}
           <button
             type="button"
@@ -147,23 +153,30 @@ export function HeroSection({ articles }: HeroSectionProps) {
           >
             <ChevronRight className="w-5 h-5" />
           </button>
-        </div>
+            </div>
 
-        {/* Carousel dots */}
-        <div className="flex justify-center gap-2 mt-6">
-          {articles.slice(0, 5).map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => {
-                const newDirection = i > index ? 1 : -1;
-                setPage([i, newDirection]);
-              }}
-              className={`h-2 rounded-full transition-all duration-300 ${i === index ? "w-8 bg-[#ff4500]" : "w-2 bg-gray-300 hover:bg-gray-400"
-                }`}
-              aria-label={`Go to slide ${i + 1}`}
-            />
-          ))}
+            {/* Carousel dots */}
+            <div className="flex justify-center gap-2 mt-6">
+              {articles.slice(0, 5).map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => {
+                    const newDirection = i > index ? 1 : -1;
+                    setPage([i, newDirection]);
+                  }}
+                  className={`h-2 rounded-full transition-all duration-300 ${i === index ? "w-8 bg-[#ff4500]" : "w-2 bg-gray-300 hover:bg-gray-400"
+                    }`}
+                  aria-label={`Go to slide ${i + 1}`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Trending sidebar */}
+          <div className="lg:col-span-1">
+            <TrendingSidebar articles={trendingArticles} />
+          </div>
         </div>
       </div>
     </section>
