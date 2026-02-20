@@ -53,7 +53,13 @@ export default function ArticlePage() {
   });
 
   return (
-    <div className="min-h-screen bg-white">
+    <div
+      className={
+        isNewsletterOpen
+          ? "overflow-hidden h-screen bg-white"
+          : "min-h-screen bg-white"
+      }
+    >
       <Header onOpenNewsletter={() => setIsNewsletterOpen(true)} />
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Link

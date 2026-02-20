@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { X, Mail } from "lucide-react";
 
 interface NewsletterModalProps {
@@ -10,17 +10,6 @@ interface NewsletterModalProps {
 
 export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
   const [email, setEmail] = useState("");
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [isOpen]);
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +30,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
       />
       {/* Modal panel */}
       <div
-        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl shadow-2xl z-[70] max-h-[90vh] overflow-y-auto"
+        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl shadow-2xl z-[70] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-8">
