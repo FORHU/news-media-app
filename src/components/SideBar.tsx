@@ -113,24 +113,16 @@ export function SideBar({ isOpen, onClose, onOpenNewsletter }: SideBarProps) {
                                 <div className="w-10"></div>
                             </div>
 
-                        {/* Navigation Links - Scrollable */}
-                        <div className="flex-1 overflow-y-auto scrollbar-hide pt-4">
-                            <nav className="pb-12">
-                                {CATEGORY_STRUCTURE.map((category, index) => (
-                                    <div key={index}>
-                                        {category.subcategories.length === 0 ? (
-                                            <Link
-                                                href={category.link!}
-                                                onClick={onClose}
-                                                className="block px-8 py-4 text-lg text-gray-900 hover:bg-[#ff4500]/5 hover:text-[#ff4500] transition-all font-semibold"
-                                            >
-                                                {category.name}
-                                            </Link>
-                                        ) : (
-                                            <>
-                                                <button
-                                                    onClick={() => toggleCategory(category.name)}
-                                                    className="w-full flex items-center justify-between px-8 py-4 text-lg text-gray-900 hover:bg-[#ff4500]/5 hover:text-[#ff4500] transition-all font-bold text-left"
+                            {/* Navigation Links - Scrollable */}
+                            <div className="flex-1 overflow-y-auto scrollbar-hide pt-4">
+                                <nav className="pb-12">
+                                    {CATEGORY_STRUCTURE.map((category, index) => (
+                                        <div key={index}>
+                                            {category.subcategories.length === 0 ? (
+                                                <Link
+                                                    href={category.link!}
+                                                    onClick={onClose}
+                                                    className="block px-8 py-4 text-lg text-gray-900 hover:bg-[#ff4500]/5 hover:text-[#ff4500] transition-all font-semibold"
                                                 >
                                                     {category.name}
                                                 </Link>
@@ -138,23 +130,14 @@ export function SideBar({ isOpen, onClose, onOpenNewsletter }: SideBarProps) {
                                                 <>
                                                     <button
                                                         onClick={() => toggleCategory(category.name)}
-                                                        className="w-full flex items-center justify-between px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg text-gray-900 hover:bg-[#ff4500]/5 hover:text-[#ff4500] transition-all font-bold text-left"
+                                                        className="w-full flex items-center justify-between px-8 py-4 text-lg text-gray-900 hover:bg-[#ff4500]/5 hover:text-[#ff4500] transition-all font-bold text-left"
                                                     >
                                                         <span>{category.name}</span>
                                                         <motion.div
                                                             animate={{ rotate: expandedCategories.includes(category.name) ? 90 : 0 }}
                                                             transition={{ duration: 0.2 }}
                                                         >
-                                                            {category.subcategories.map((sub, subIndex) => (
-                                                                <Link
-                                                                    key={subIndex}
-                                                                    href={sub.link}
-                                                                    onClick={onClose}
-                                                                    className="block px-8 py-3 pl-14 text-base text-gray-700 hover:bg-[#ff4500]/10 hover:text-[#ff4500] transition-all"
-                                                                >
-                                                                    {sub.name}
-                                                                </Link>
-                                                            ))}
+                                                            <ChevronRight className="w-5 h-5 text-gray-400" />
                                                         </motion.div>
                                                     </button>
 
@@ -171,7 +154,7 @@ export function SideBar({ isOpen, onClose, onOpenNewsletter }: SideBarProps) {
                                                                     <Link
                                                                         key={subIndex}
                                                                         href={sub.link}
-                                                                        onClick={sub.link === "#" ? handlePlaceholderClick : onClose}
+                                                                        onClick={onClose}
                                                                         className="block px-8 py-3 pl-14 text-base text-gray-700 hover:bg-[#ff4500]/10 hover:text-[#ff4500] transition-all"
                                                                     >
                                                                         {sub.name}
