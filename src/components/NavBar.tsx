@@ -87,8 +87,8 @@ export function NavBar() {
 
   return (
     <nav className="hidden md:block bg-black relative z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <ul className="flex items-center justify-start lg:justify-center gap-1 py-0 px-2 lg:px-0 overflow-x-auto scrollbar-hide">
+      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+        <ul className="flex flex-wrap items-center justify-start lg:justify-center gap-x-1 gap-y-0 py-0">
           {NAV_LINKS.map(({ href, label, subcategories }) => {
             const isLatestNews = label === "Latest News" && isHome;
             const hasSub = subcategories && subcategories.length > 0;
@@ -96,7 +96,7 @@ export function NavBar() {
             return (
               <li
                 key={label}
-                className="relative group h-full flex items-center flex-shrink-0"
+                className="relative group flex items-center"
                 onMouseEnter={() => hasSub && setActiveDropdown(label)}
                 onMouseLeave={() => setActiveDropdown(null)}
               >
