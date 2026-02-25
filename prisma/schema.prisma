@@ -162,6 +162,12 @@ model Subscriber {
   id         Int      @id @default(autoincrement())
   email      String   @unique
   isVerified Boolean  @default(false) @map("is_verified")
+
+  // OTP-related fields 
+  otpCode    String?   @map("otp_code")   
+  expiresAt  DateTime? @map("expires_at")  
+  attempts   Int       @default(0)     
+
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
@@ -170,7 +176,6 @@ model Subscriber {
 
   @@map("subscribers")
 }
-
 model SubscriberPreference {
   id           Int      @id @default(autoincrement())
   subscriberId Int      @map("subscriber_id")

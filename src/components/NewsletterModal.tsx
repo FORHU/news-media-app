@@ -2,7 +2,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
 import { X, Mail, Check, ChevronLeft, CheckCircle } from "lucide-react";
 import { RemoveScroll } from "react-remove-scroll";
 import { AnimatePresence, motion } from "framer-motion";
@@ -13,18 +12,10 @@ interface NewsletterModalProps {
   onClose: () => void;
 }
 
-const CATEGORIES = [
-  { id: "breaking", name: "Breaking / Trending" },
-  { id: "tech", name: "Technology & Innovation" },
-  { id: "business", name: "Business & Finance" },
-  { id: "lifestyle", name: "Lifestyle & Wellness" },
-  { id: "entertainment", name: "Entertainment & Culture" },
-  { id: "education", name: "Education & Learning" },
-  { id: "community", name: "Local / Community" },
-  { id: "environment", name: "Environment & Sustainability" },
-  { id: "sports", name: "Sports & Recreation" },
-  { id: "opinion", name: "Opinion / Editorials" },
-];
+type CategoryOption = {
+  id: number;
+  name: string;
+};
 
 export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
   const [step, setStep] = useState<
@@ -32,37 +23,47 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
   >("email");
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
-  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [selectedInterests, setSelectedInterests] = useState<number[]>([]);
+  const [otpSendError, setOtpSendError] = useState("");
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [categoriesError, setCategoriesError] = useState("");
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
 
-  // Verification UI state (frontend-only for now)
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [otpError, setOtpError] = useState(false);
-  const [sentCode, setSentCode] = useState("302477");
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const subscribeMutation = useMutation({
-    mutationFn: async (inputEmail: string) => {
-      const res = await fetch("/api/newsletter", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: inputEmail }),
-      });
+  useEffect(() => {
+    if (!isOpen) return;
+    if (categories.length > 0 || categoriesLoading) return;
 
-      if (!res.ok) {
-        throw new Error("Failed to subscribe");
+    const loadCategories = async () => {
+      try {
+        setCategoriesLoading(true);
+        setCategoriesError("");
+
+        const res = await fetch("/api/categories");
+        if (!res.ok) {
+          setCategoriesError("Failed to load categories");
+          return;
+        }
+
+        const data = (await res.json()) as CategoryOption[];
+        setCategories(data);
+      } catch (err) {
+        console.error("Failed to load categories", err);
+        setCategoriesError("Failed to load categories");
+      } finally {
+        setCategoriesLoading(false);
       }
+    };
 
-      return res.json();
-    },
-    onError: (error) => {
-      console.error("Subscribe error:", error);
-      setError("Failed to subscribe. Please try again.");
-    },
-  });
+    void loadCategories();
+  }, [isOpen, categories.length, categoriesLoading]);
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const parsed = newsletterSubscribeSchema.safeParse({ email });
@@ -72,27 +73,102 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
       return;
     }
 
-    setError("");
+    try {
+      setError("");
 
-    // Call existing backend to store subscriber, then move to interests UI
-    subscribeMutation.mutate(parsed.data.email, {
-      onSuccess: () => {
-        setStep("interests");
-      },
-    });
+      const res = await fetch("/api/newsletter/check-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: parsed.data.email }),
+      });
+
+      if (!res.ok) {
+        setError("Something went wrong. Please try again.");
+        return;
+      }
+
+      const data = (await res.json()) as { subscribed?: boolean };
+      if (data.subscribed) {
+        setError("Email is already subscribed");
+        return;
+      }
+
+      // Not yet subscribed; move to interests step
+      setStep("interests");
+    } catch (err) {
+      console.error("Check email error:", err);
+      setError("Something went wrong. Please try again.");
+    }
   };
 
-  const handleInterestsSubmit = () => {
-    setStep("verification");
+  const handleInterestsSubmit = async () => {
+    if (!email) return;
+
+    try {
+      setIsSendingOtp(true);
+      setOtpSendError("");
+
+      const res = await fetch("/api/newsletter/send-otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setOtpSendError(
+          typeof data.error === "string"
+            ? data.error
+            : "Failed to send verification code."
+        );
+        return;
+      }
+
+      setStep("verification");
+    } catch (err) {
+      console.error("Failed to send OTP:", err);
+      setOtpSendError("Something went wrong. Please try again.");
+    } finally {
+      setIsSendingOtp(false);
+    }
   };
 
-  const handleVerificationSubmit = (e?: React.FormEvent) => {
+  const handleVerificationSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     const code = otp.join("");
-    if (code === sentCode) {
-      setStep("success");
-    } else {
+
+    if (!email || code.length !== 6) {
       setOtpError(true);
+      return;
+    }
+
+    try {
+      setIsVerifyingOtp(true);
+      setOtpError(false);
+
+      const res = await fetch("/api/newsletter/verify-otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, code, categories: selectedInterests }),
+      });
+
+      if (!res.ok) {
+        setOtpError(true);
+        return;
+      }
+
+      setStep("success");
+    } catch (err) {
+      console.error("Verify OTP error:", err);
+      setOtpError(true);
+    } finally {
+      setIsVerifyingOtp(false);
     }
   };
 
@@ -105,12 +181,11 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
       setError("");
       setOtp(["", "", "", "", "", ""]);
       setOtpError(false);
-      setSentCode("302477");
-      subscribeMutation.reset();
+      setIsVerifyingOtp(false);
     }, 300);
   };
 
-  const toggleInterest = (interestId: string) => {
+  const toggleInterest = (interestId: number) => {
     setSelectedInterests((prev) =>
       prev.includes(interestId)
         ? prev.filter((i) => i !== interestId)
@@ -216,10 +291,9 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                       <div className="flex gap-2 sm:gap-3 mb-4 sm:mb-6">
                         <button
                           type="submit"
-                          disabled={subscribeMutation.isPending}
-                          className="flex-1 bg-[#ff4500] text-white px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg hover:bg-[#e63e00] transition-colors font-medium text-sm sm:text-base font-sans disabled:opacity-60 disabled:cursor-not-allowed"
+                          className="flex-1 bg-[#ff4500] text-white px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg hover:bg-[#e63e00] transition-colors font-medium text-sm sm:text-base font-sans"
                         >
-                          {subscribeMutation.isPending ? "Submitting..." : "Next"}
+                          Next
                         </button>
                         <button
                           type="button"
@@ -288,11 +362,6 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                       We've sent a code to{" "}
                       <strong className="text-gray-900">{email}</strong>
                     </p>
-                    <p className="text-[10px] sm:text-sm text-gray-500 mb-4 sm:mb-6 font-sans">
-                      Demo code:{" "}
-                      <strong className="text-[#ff4500]">{sentCode}</strong>
-                    </p>
-
                     <form onSubmit={handleVerificationSubmit}>
                       <div className="flex justify-center gap-1.5 sm:gap-2 mb-4 sm:mb-6 flex-wrap">
                         {otp.map((digit, idx) => (
@@ -318,28 +387,34 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
 
                       <button
                         type="submit"
-                        disabled={otp.some((d) => !d)}
+                        disabled={otp.some((d) => !d) || isVerifyingOtp}
                         className={`w-full px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg font-medium text-sm sm:text-base mb-3 sm:mb-4 transition-colors font-sans ${
-                          otp.some((d) => !d)
+                          otp.some((d) => !d) || isVerifyingOtp
                             ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                             : "bg-[#ff4500] text-white hover:bg-[#e63e00]"
                         }`}
                       >
-                        Verify
+                        {isVerifyingOtp ? "Verifying..." : "Verify"}
                       </button>
 
                       <p className="text-xs sm:text-sm text-gray-600 font-sans">
                         Didn't receive an email?{" "}
                         <button
                           type="button"
-                          onClick={() => {
-                            const code = Math.floor(
-                              100000 + Math.random() * 900000
-                            ).toString();
-                            setSentCode(code);
+                          onClick={async () => {
                             setOtp(["", "", "", "", "", ""]);
                             setOtpError(false);
                             otpInputs.current[0]?.focus();
+
+                            try {
+                              await fetch("/api/newsletter/send-otp", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ email }),
+                              });
+                            } catch (err) {
+                              console.error("Failed to resend OTP", err);
+                            }
                           }}
                           className="text-gray-900 font-semibold hover:text-[#ff4500] transition-colors"
                         >
@@ -364,7 +439,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                     exit={{ opacity: 0, x: -20 }}
                   >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 mb-4 sm:mb-6 max-h-60 sm:max-h-96 overflow-y-auto pr-2">
-                      {CATEGORIES.map((category) => {
+                      {categories.map((category) => {
                         const isSelected = selectedInterests.includes(
                           category.id
                         );
@@ -403,9 +478,14 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                       })}
                     </div>
 
-                    <p className="text-gray-500 mb-4 sm:mb-6 text-center text-[10px] sm:text-sm font-sans">
+                    <p className="text-gray-500 mb-2 sm:mb-3 text-center text-[10px] sm:text-sm font-sans">
                       Select topics to personalize your experience
                     </p>
+                    {categoriesError && (
+                      <p className="text-center text-[10px] sm:text-xs text-red-500 font-sans mb-2">
+                        {categoriesError}
+                      </p>
+                    )}
 
                     <div className="flex items-center justify-between pt-3 sm:pt-4 pb-3 sm:pb-4 border-t border-gray-200">
                       <button
@@ -429,14 +509,22 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                       <button
                         type="button"
                         onClick={handleInterestsSubmit}
-                        disabled={selectedInterests.length === 0}
+                        disabled={
+                          selectedInterests.length === 0 ||
+                          isSendingOtp ||
+                          categoriesLoading ||
+                          categories.length === 0
+                        }
                         className={`flex-1 px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg transition-colors font-medium text-sm sm:text-base font-sans ${
-                          selectedInterests.length === 0
+                          selectedInterests.length === 0 ||
+                          isSendingOtp ||
+                          categoriesLoading ||
+                          categories.length === 0
                             ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                             : "bg-[#ff4500] text-white hover:bg-[#e63e00]"
                         }`}
                       >
-                        Next
+                        {isSendingOtp ? "Sending code..." : "Next"}
                       </button>
                       <button
                         type="button"
@@ -446,6 +534,12 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                         Cancel
                       </button>
                     </div>
+
+                    {otpSendError && (
+                      <p className="mt-2 text-xs sm:text-sm text-red-500 font-sans">
+                        {otpSendError}
+                      </p>
+                    )}
                   </motion.div>
                 )}
 
