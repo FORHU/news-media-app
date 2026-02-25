@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { X, Mail } from "lucide-react";
 import { RemoveScroll } from "react-remove-scroll";
+import { newsletterSubscribeSchema } from "@/lib/validation/newsletter";
 
 interface NewsletterModalProps {
   isOpen: boolean;
@@ -11,12 +13,46 @@ interface NewsletterModalProps {
 
 export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
   const [email, setEmail] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const subscribeMutation = useMutation({
+    mutationFn: async (inputEmail: string) => {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: inputEmail }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to subscribe");
+      }
+
+      return res.json();
+    },
+    onSuccess: () => {
+      onClose();
+      setEmail("");
+      setErrorMessage(null);
+    },
+    onError: (error) => {
+      console.error("Subscribe error:", error);
+    },
+  });
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: call API or save email
-    onClose();
-    setEmail("");
+
+    const parsed = newsletterSubscribeSchema.safeParse({ email });
+    if (!parsed.success) {
+      const fieldErrors = parsed.error.flatten().fieldErrors.email;
+      setErrorMessage(fieldErrors?.[0] ?? "Invalid email");
+      return;
+    }
+
+    setErrorMessage(null);
+    subscribeMutation.mutate(parsed.data.email);
   };
 
   if (!isOpen) return null;
@@ -62,13 +98,19 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                   autoFocus
                   className="w-full pl-10 sm:pl-12 pr-4 py-2.5 sm:py-3.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:border-[#ff4500] focus:outline-none focus:ring-2 focus:ring-[#ff4500]/20 transition-all"
                 />
+                {errorMessage && (
+                  <p className="mt-1 text-xs sm:text-sm text-red-600">
+                    {errorMessage}
+                  </p>
+                )}
               </div>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <button
                   type="submit"
-                  className="flex-1 bg-[#ff4500] text-white px-6 py-2.5 sm:py-3.5 rounded-lg hover:bg-[#e63e00] transition-colors font-medium text-sm sm:text-base order-1 sm:order-2"
+                  disabled={subscribeMutation.isPending}
+                  className="flex-1 bg-[#ff4500] text-white px-6 py-2.5 sm:py-3.5 rounded-lg hover:bg-[#e63e00] transition-colors font-medium text-sm sm:text-base order-1 sm:order-2 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  Subscribe
+                  {subscribeMutation.isPending ? "Subscribing..." : "Subscribe"}
                 </button>
                 <button
                   type="button"

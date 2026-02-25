@@ -32,6 +32,7 @@ model Category {
   // Relations
   contentArticles ContentArticle[]
   rawArticles     RawArticle[]
+  subscriberPreferences SubscriberPreference[]
 
   @@map("categories")
 }
@@ -155,4 +156,31 @@ model SocialMediaPost {
   transformation ContentTransformation @relation(fields: [contentTransformationId], references: [id])
 
   @@map("social_media_posts")
+}
+
+model Subscriber {
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  isVerified Boolean  @default(false) @map("is_verified")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  preferences SubscriberPreference[]
+
+  @@map("subscribers")
+}
+
+model SubscriberPreference {
+  id           Int      @id @default(autoincrement())
+  subscriberId Int      @map("subscriber_id")
+  categoryId   Int      @map("category_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  subscriber Subscriber @relation(fields: [subscriberId], references: [id])
+  category   Category   @relation(fields: [categoryId], references: [id])
+
+  @@unique([subscriberId, categoryId], name: "subscriber_category_unique")
+  @@map("subscriber_preferences")
 }
