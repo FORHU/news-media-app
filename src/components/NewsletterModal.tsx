@@ -6,6 +6,7 @@ import { X, Mail, Check, ChevronLeft, CheckCircle } from "lucide-react";
 import { RemoveScroll } from "react-remove-scroll";
 import { AnimatePresence, motion } from "framer-motion";
 import { newsletterSubscribeSchema } from "@/lib/validation/newsletter";
+import { useQuery, useMutation } from "@tanstack/react-query";
 
 interface NewsletterModalProps {
   isOpen: boolean;
@@ -25,44 +26,114 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
   const [error, setError] = useState("");
   const [selectedInterests, setSelectedInterests] = useState<number[]>([]);
   const [otpSendError, setOtpSendError] = useState("");
-  const [isSendingOtp, setIsSendingOtp] = useState(false);
-  const [categories, setCategories] = useState<CategoryOption[]>([]);
-  const [categoriesError, setCategoriesError] = useState("");
-  const [categoriesLoading, setCategoriesLoading] = useState(false);
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [otpError, setOtpError] = useState(false);
-  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    if (categories.length > 0 || categoriesLoading) return;
-
-    const loadCategories = async () => {
-      try {
-        setCategoriesLoading(true);
-        setCategoriesError("");
-
-        const res = await fetch("/api/categories");
-        if (!res.ok) {
-          setCategoriesError("Failed to load categories");
-          return;
-        }
-
-        const data = (await res.json()) as CategoryOption[];
-        setCategories(data);
-      } catch (err) {
-        console.error("Failed to load categories", err);
-        setCategoriesError("Failed to load categories");
-      } finally {
-        setCategoriesLoading(false);
+  // Load available newsletter categories when the modal is open
+  const {
+    data: categories = [],
+    isLoading: categoriesLoading,
+    isError: categoriesIsError,
+    error: categoriesError,
+  } = useQuery<CategoryOption[], Error>({
+    queryKey: ["newsletterCategories"],
+    queryFn: async () => {
+      const res = await fetch("/api/categories");
+      if (!res.ok) {
+        throw new Error("Failed to load categories");
       }
-    };
+      return (await res.json()) as CategoryOption[];
+    },
+    enabled: isOpen,
+  });
 
-    void loadCategories();
-  }, [isOpen, categories.length, categoriesLoading]);
+  // Check if an email is already subscribed before proceeding
+  const checkEmailMutation = useMutation<
+    { subscribed?: boolean },
+    Error,
+    string
+  >({
+    mutationFn: async (emailToCheck) => {
+      const res = await fetch("/api/newsletter/check-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: emailToCheck }),
+      });
 
+      if (!res.ok) {
+        throw new Error("Something went wrong. Please try again.");
+      }
+
+      return (await res.json()) as { subscribed?: boolean };
+    },
+  });
+
+  // Send OTP code to the user's email and move to verification on success
+  const sendOtpMutation = useMutation<void, Error, string>({
+    mutationFn: async (emailToSend) => {
+      const res = await fetch("/api/newsletter/send-otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: emailToSend }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        const message =
+          typeof (data as { error?: unknown }).error === "string"
+            ? (data as { error: string }).error
+            : "Failed to send verification code.";
+        throw new Error(message);
+      }
+    },
+    onSuccess: () => {
+      setOtpSendError("");
+      setStep("verification");
+    },
+    onError: (err) => {
+      setOtpSendError(err.message || "Failed to send verification code.");
+    },
+  });
+
+  // Verify the OTP code and complete subscription on success
+  const verifyOtpMutation = useMutation<
+    void,
+    Error,
+    { email: string; code: string; categories: number[] }
+  >({
+    mutationFn: async ({ email, code, categories }) => {
+      const res = await fetch("/api/newsletter/verify-otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, code, categories }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Invalid verification code. Please try again.");
+      }
+    },
+    onSuccess: () => {
+      setOtpError(false);
+      setStep("success");
+    },
+    onError: () => {
+      setOtpError(true);
+    },
+  });
+
+  const categoriesErrorMessage = categoriesIsError
+    ? categoriesError?.message ?? "Failed to load categories"
+    : "";
+
+  // Handle submit for the email step (validate + check subscription)
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -75,21 +146,8 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
 
     try {
       setError("");
+      const data = await checkEmailMutation.mutateAsync(parsed.data.email);
 
-      const res = await fetch("/api/newsletter/check-email", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: parsed.data.email }),
-      });
-
-      if (!res.ok) {
-        setError("Something went wrong. Please try again.");
-        return;
-      }
-
-      const data = (await res.json()) as { subscribed?: boolean };
       if (data.subscribed) {
         setError("Email is already subscribed");
         return;
@@ -103,40 +161,19 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
     }
   };
 
+  // Handle submit for the interests step (send OTP)
   const handleInterestsSubmit = async () => {
     if (!email) return;
 
     try {
-      setIsSendingOtp(true);
       setOtpSendError("");
-
-      const res = await fetch("/api/newsletter/send-otp", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setOtpSendError(
-          typeof data.error === "string"
-            ? data.error
-            : "Failed to send verification code."
-        );
-        return;
-      }
-
-      setStep("verification");
+      await sendOtpMutation.mutateAsync(email);
     } catch (err) {
       console.error("Failed to send OTP:", err);
-      setOtpSendError("Something went wrong. Please try again.");
-    } finally {
-      setIsSendingOtp(false);
     }
   };
 
+  // Handle submit for the verification step (verify OTP)
   const handleVerificationSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     const code = otp.join("");
@@ -147,31 +184,18 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
     }
 
     try {
-      setIsVerifyingOtp(true);
       setOtpError(false);
-
-      const res = await fetch("/api/newsletter/verify-otp", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, code, categories: selectedInterests }),
+      await verifyOtpMutation.mutateAsync({
+        email,
+        code,
+        categories: selectedInterests,
       });
-
-      if (!res.ok) {
-        setOtpError(true);
-        return;
-      }
-
-      setStep("success");
     } catch (err) {
       console.error("Verify OTP error:", err);
-      setOtpError(true);
-    } finally {
-      setIsVerifyingOtp(false);
     }
   };
 
+  // Handle closing the modal after success and reset all related states
   const handleFinalClose = () => {
     onClose();
     setTimeout(() => {
@@ -181,7 +205,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
       setError("");
       setOtp(["", "", "", "", "", ""]);
       setOtpError(false);
-      setIsVerifyingOtp(false);
+      setOtpSendError("");
     }, 300);
   };
 
@@ -193,6 +217,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
     );
   };
 
+  //Toggle a category in the selected interests array
   const handleOtpChange = (index: number, value: string) => {
     if (otpError) setOtpError(false);
     const digit = value.replace(/\D/g, "").slice(-1);
@@ -207,6 +232,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
     }
   };
 
+  //Handle keyboard behavior inside OTP inputs (backspace to go back)
   const handleKeyDown = (
     index: number,
     e: React.KeyboardEvent<HTMLInputElement>
@@ -216,6 +242,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
     }
   };
 
+  //When step changes to verification, focus the OTP input after a short delay
   useEffect(() => {
     if (step === "verification") {
       setTimeout(() => otpInputs.current[0]?.focus(), 100);
@@ -264,7 +291,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                     exit={{ opacity: 0, x: 20 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <form onSubmit={handleEmailSubmit}>
+                    <form noValidate onSubmit={handleEmailSubmit}>
                       <div className="relative mb-3 sm:mb-4">
                         <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-[#ff4500]" />
                         <input
@@ -387,14 +414,14 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
 
                       <button
                         type="submit"
-                        disabled={otp.some((d) => !d) || isVerifyingOtp}
+                        disabled={otp.some((d) => !d) || verifyOtpMutation.isPending}
                         className={`w-full px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg font-medium text-sm sm:text-base mb-3 sm:mb-4 transition-colors font-sans ${
-                          otp.some((d) => !d) || isVerifyingOtp
+                          otp.some((d) => !d) || verifyOtpMutation.isPending
                             ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                             : "bg-[#ff4500] text-white hover:bg-[#e63e00]"
                         }`}
                       >
-                        {isVerifyingOtp ? "Verifying..." : "Verify"}
+                        {verifyOtpMutation.isPending ? "Verifying..." : "Verify"}
                       </button>
 
                       <p className="text-xs sm:text-sm text-gray-600 font-sans">
@@ -407,11 +434,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                             otpInputs.current[0]?.focus();
 
                             try {
-                              await fetch("/api/newsletter/send-otp", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ email }),
-                              });
+                              await sendOtpMutation.mutateAsync(email);
                             } catch (err) {
                               console.error("Failed to resend OTP", err);
                             }
@@ -481,9 +504,9 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                     <p className="text-gray-500 mb-2 sm:mb-3 text-center text-[10px] sm:text-sm font-sans">
                       Select topics to personalize your experience
                     </p>
-                    {categoriesError && (
+                    {categoriesErrorMessage && (
                       <p className="text-center text-[10px] sm:text-xs text-red-500 font-sans mb-2">
-                        {categoriesError}
+                        {categoriesErrorMessage}
                       </p>
                     )}
 
@@ -511,20 +534,20 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                         onClick={handleInterestsSubmit}
                         disabled={
                           selectedInterests.length === 0 ||
-                          isSendingOtp ||
+                          sendOtpMutation.isPending ||
                           categoriesLoading ||
                           categories.length === 0
                         }
                         className={`flex-1 px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg transition-colors font-medium text-sm sm:text-base font-sans ${
                           selectedInterests.length === 0 ||
-                          isSendingOtp ||
+                          sendOtpMutation.isPending ||
                           categoriesLoading ||
                           categories.length === 0
                             ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                             : "bg-[#ff4500] text-white hover:bg-[#e63e00]"
                         }`}
                       >
-                        {isSendingOtp ? "Sending code..." : "Next"}
+                        {sendOtpMutation.isPending ? "Sending code..." : "Next"}
                       </button>
                       <button
                         type="button"
