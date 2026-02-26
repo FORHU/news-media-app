@@ -7,6 +7,8 @@ import { RemoveScroll } from "react-remove-scroll";
 import { AnimatePresence, motion } from "framer-motion";
 import { newsletterSubscribeSchema } from "@/lib/validation/newsletter";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { VerifyEmailStep } from "./VerifyEmailStep";
+import { InterestsStep } from "./InterestsStep";
 
 interface NewsletterModalProps {
   isOpen: boolean;
@@ -96,6 +98,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
     onSuccess: () => {
       setOtpSendError("");
       setStep("verification");
+      setTimeout(() => otpInputs.current[0]?.focus(), 100);
     },
     onError: (err) => {
       setOtpSendError(err.message || "Failed to send verification code.");
@@ -252,13 +255,6 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
     }
   };
 
-  //When step changes to verification, focus the OTP input after a short delay
-  useEffect(() => {
-    if (step === "verification") {
-      setTimeout(() => otpInputs.current[0]?.focus(), 100);
-    }
-  }, [step]);
-
   if (!isOpen) return null;
 
   return (
@@ -370,227 +366,46 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                 )}
 
                 {step === "verification" && (
-                  <motion.div
-                    key="verification"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 1.05 }}
-                    className="text-center py-2 sm:py-4 relative"
-                  >
-                    {/* Back Arrow */}
-                    <button
-                      onClick={() => setStep("interests")}
-                      className="absolute left-0 top-0 p-2 text-gray-400 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100"
-                      aria-label="Back to interests"
-                    >
-                      <ChevronLeft className="w-5 h-5" />
-                    </button>
-
-                    <div className="flex justify-center mb-4 sm:mb-6">
-                      <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#ff4500]/10 rounded-2xl flex items-center justify-center">
-                        <Mail className="w-6 h-6 sm:w-8 sm:h-8 text-[#ff4500]" />
-                      </div>
-                    </div>
-
-                    <h3 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3 font-sans">
-                      Please check your email
-                    </h3>
-                    <p className="text-xs sm:text-base text-gray-600 mb-4 sm:mb-8 font-sans">
-                      We've sent a code to{" "}
-                      <strong className="text-gray-900">{email}</strong>
-                    </p>
-                    <form onSubmit={handleVerificationSubmit}>
-                      <div className="flex justify-center gap-1.5 sm:gap-2 mb-4 sm:mb-6 flex-wrap">
-                        {otp.map((digit, idx) => (
-                          <input
-                            key={idx}
-                            ref={(el) => {
-                              otpInputs.current[idx] = el;
-                            }}
-                            type="text"
-                            inputMode="numeric"
-                            maxLength={1}
-                            value={digit}
-                            onChange={(e) =>
-                              handleOtpChange(idx, e.target.value)
-                            }
-                            onKeyDown={(e) => handleKeyDown(idx, e)}
-                            className={`w-9 h-11 sm:w-14 sm:h-14 text-center text-xl sm:text-2xl font-semibold border-2 rounded-lg focus:border-[#ff4500] focus:outline-none transition-all bg-white font-sans text-gray-900 ${
-                              otpError ? "border-red-500" : "border-gray-300"
-                            }`}
-                          />
-                        ))}
-                      </div>
-
-                      <button
-                        type="submit"
-                        disabled={otp.some((d) => !d) || verifyOtpMutation.isPending}
-                        className={`w-full px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg font-medium text-sm sm:text-base mb-3 sm:mb-4 transition-colors font-sans ${
-                          otp.some((d) => !d) || verifyOtpMutation.isPending
-                            ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                            : "bg-[#ff4500] text-white hover:bg-[#e63e00]"
-                        }`}
-                      >
-                        {verifyOtpMutation.isPending ? "Verifying..." : "Verify"}
-                      </button>
-
-                      {resendCooldown > 0 ? (
-                        <p className="text-xs sm:text-sm text-gray-600 font-sans">
-                          You can request a new code in{" "}
-                          <span className="font-semibold text-gray-900">
-                            {resendCooldown}s
-                          </span>
-                          .
-                        </p>
-                      ) : (
-                        <p className="text-xs sm:text-sm text-gray-600 font-sans">
-                          Didn't receive an email?{" "}
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              setOtp(["", "", "", "", "", ""]);
-                              setOtpError(false);
-                              otpInputs.current[0]?.focus();
-
-                              try {
-                                await sendOtpMutation.mutateAsync(email);
-                                setResendCooldown(60);
-                              } catch (err) {
-                                console.error("Failed to resend OTP", err);
-                              }
-                            }}
-                            className="text-gray-900 font-semibold hover:text-[#ff4500] transition-colors"
-                          >
-                            Resend
-                          </button>
-                        </p>
-                      )}
-
-                      {otpSendError && (
-                        <p className="text-xs sm:text-sm text-red-500 mt-2 font-sans">
-                          {otpSendError}
-                        </p>
-                      )}
-
-                      {otpError && (
-                        <p className="text-xs sm:text-sm text-red-500 mt-2 font-sans">
-                          Invalid verification code. Please try again.
-                        </p>
-                      )}
-                    </form>
-                  </motion.div>
+                  <VerifyEmailStep
+                    email={email}
+                    otp={otp}
+                    otpError={otpError}
+                    resendCooldown={resendCooldown}
+                    otpSendError={otpSendError}
+                    isVerifying={verifyOtpMutation.isPending}
+                    otpInputsRef={otpInputs}
+                    onBack={() => setStep("interests")}
+                    onSubmit={handleVerificationSubmit}
+                    onOtpChange={handleOtpChange}
+                    onKeyDown={handleKeyDown}
+                    onResend={async () => {
+                      setOtp(["", "", "", "", "", ""]);
+                      setOtpError(false);
+                      otpInputs.current[0]?.focus();
+                      try {
+                        await sendOtpMutation.mutateAsync(email);
+                        setTimeout(() => otpInputs.current[0]?.focus(), 100);
+                        setResendCooldown(120);
+                      } catch (err) {
+                        console.error("Failed to resend OTP", err);
+                      }
+                    }}
+                  />
                 )}
 
                 {step === "interests" && (
-                  <motion.div
-                    key="interests"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                  >
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 mb-4 sm:mb-6 max-h-60 sm:max-h-96 overflow-y-auto pr-2">
-                      {categories.map((category) => {
-                        const isSelected = selectedInterests.includes(
-                          category.id
-                        );
-                        return (
-                          <button
-                            key={category.id}
-                            type="button"
-                            onClick={() => toggleInterest(category.id)}
-                            className={`p-3 sm:p-4 rounded-xl transition-all text-left relative group border-2 ${
-                              isSelected
-                                ? "bg-white border-[#ff4500] shadow-md"
-                                : "bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm"
-                            }`}
-                          >
-                            {isSelected && (
-                              <div className="absolute inset-0 bg-gradient-to-br from-[#ff4500]/5 to-transparent pointer-events-none rounded-xl" />
-                            )}
-                            <div className="flex items-center justify-between gap-2 sm:gap-3 relative z-10">
-                              <span
-                                className={`text-xs sm:text-sm font-medium flex-1 font-sans ${
-                                  isSelected
-                                    ? "text-[#ff4500]"
-                                    : "text-gray-900"
-                                }`}
-                              >
-                                {category.name}
-                              </span>
-                              {isSelected && (
-                                <div className="w-4 h-4 sm:w-5 sm:h-5 bg-[#ff4500] rounded-full flex items-center justify-center flex-shrink-0 transition-transform scale-110">
-                                  <Check className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-white stroke-[3.5]" />
-                                </div>
-                              )}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    <p className="text-gray-500 mb-2 sm:mb-3 text-center text-[10px] sm:text-sm font-sans">
-                      Select topics to personalize your experience
-                    </p>
-                    {categoriesErrorMessage && (
-                      <p className="text-center text-[10px] sm:text-xs text-red-500 font-sans mb-2">
-                        {categoriesErrorMessage}
-                      </p>
-                    )}
-
-                    <div className="flex items-center justify-between pt-3 sm:pt-4 pb-3 sm:pb-4 border-t border-gray-200">
-                      <button
-                        type="button"
-                        onClick={() => setStep("email")}
-                        className="text-xs sm:text-sm text-gray-600 hover:text-gray-900 font-medium flex items-center gap-1 sm:gap-2 transition-colors font-sans"
-                      >
-                        <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        Back
-                      </button>
-
-                      <div className="text-xs sm:text-sm text-gray-600 font-medium font-sans">
-                        {selectedInterests.length}{" "}
-                        {selectedInterests.length === 1
-                          ? "category"
-                          : "categories"}
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2 sm:gap-3">
-                      <button
-                        type="button"
-                        onClick={handleInterestsSubmit}
-                        disabled={
-                          selectedInterests.length === 0 ||
-                          sendOtpMutation.isPending ||
-                          categoriesLoading ||
-                          categories.length === 0
-                        }
-                        className={`flex-1 px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg transition-colors font-medium text-sm sm:text-base font-sans ${
-                          selectedInterests.length === 0 ||
-                          sendOtpMutation.isPending ||
-                          categoriesLoading ||
-                          categories.length === 0
-                            ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                            : "bg-[#ff4500] text-white hover:bg-[#e63e00]"
-                        }`}
-                      >
-                        {sendOtpMutation.isPending ? "Sending code..." : "Next"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={onClose}
-                        className="px-6 sm:px-8 py-3 sm:py-3.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm sm:text-base font-sans"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-
-                    {otpSendError && (
-                      <p className="mt-2 text-xs sm:text-sm text-red-500 font-sans">
-                        {otpSendError}
-                      </p>
-                    )}
-                  </motion.div>
+                  <InterestsStep
+                    categories={categories}
+                    categoriesLoading={categoriesLoading}
+                    categoriesErrorMessage={categoriesErrorMessage}
+                    selectedInterests={selectedInterests}
+                    otpSendError={otpSendError}
+                    isSendingOtp={sendOtpMutation.isPending}
+                    onBack={() => setStep("email")}
+                    onToggleInterest={toggleInterest}
+                    onSubmit={handleInterestsSubmit}
+                    onCancel={onClose}
+                  />
                 )}
 
                 {step === "success" && (

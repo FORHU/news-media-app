@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { NavBar } from "@/components/NavBar";
-import { NewsletterModal } from "@/components/NewsletterModal";
+import { NewsletterModal } from "@/components/newsLetterModal/NewsletterModal";
 import { HeroSection } from "@/components/HeroSection";
 import { FilterStatusBar } from "@/components/home/filter-status-bar";
 import { LatestStoriesSection } from "@/components/home/latest-stories-section";
