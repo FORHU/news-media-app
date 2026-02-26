@@ -30,6 +30,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [otpError, setOtpError] = useState(false);
   const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   // Load available newsletter categories when the modal is open
   const {
@@ -133,6 +134,14 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
     ? categoriesError?.message ?? "Failed to load categories"
     : "";
 
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
   // Handle submit for the email step (validate + check subscription)
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -206,6 +215,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
       setOtp(["", "", "", "", "", ""]);
       setOtpError(false);
       setOtpSendError("");
+      setResendCooldown(0);
     }, 300);
   };
 
@@ -424,26 +434,37 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                         {verifyOtpMutation.isPending ? "Verifying..." : "Verify"}
                       </button>
 
-                      <p className="text-xs sm:text-sm text-gray-600 font-sans">
-                        Didn't receive an email?{" "}
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            setOtp(["", "", "", "", "", ""]);
-                            setOtpError(false);
-                            otpInputs.current[0]?.focus();
+                      {resendCooldown > 0 ? (
+                        <p className="text-xs sm:text-sm text-gray-600 font-sans">
+                          You can request a new code in{" "}
+                          <span className="font-semibold text-gray-900">
+                            {resendCooldown}s
+                          </span>
+                          .
+                        </p>
+                      ) : (
+                        <p className="text-xs sm:text-sm text-gray-600 font-sans">
+                          Didn't receive an email?{" "}
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              setOtp(["", "", "", "", "", ""]);
+                              setOtpError(false);
+                              otpInputs.current[0]?.focus();
 
-                            try {
-                              await sendOtpMutation.mutateAsync(email);
-                            } catch (err) {
-                              console.error("Failed to resend OTP", err);
-                            }
-                          }}
-                          className="text-gray-900 font-semibold hover:text-[#ff4500] transition-colors"
-                        >
-                          Resend
-                        </button>
-                      </p>
+                              try {
+                                await sendOtpMutation.mutateAsync(email);
+                                setResendCooldown(60);
+                              } catch (err) {
+                                console.error("Failed to resend OTP", err);
+                              }
+                            }}
+                            className="text-gray-900 font-semibold hover:text-[#ff4500] transition-colors"
+                          >
+                            Resend
+                          </button>
+                        </p>
+                      )}
 
                       {otpSendError && (
                         <p className="text-xs sm:text-sm text-red-500 mt-2 font-sans">

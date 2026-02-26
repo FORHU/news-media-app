@@ -62,8 +62,12 @@ export async function POST(request: NextRequest) {
         otpCode: null,
         expiresAt: null,
         attempts: 0,
-      } as any,
+      },
     });
+
+    await prisma.$executeRaw`
+      UPDATE subscribers SET last_otp_sent_at = NULL WHERE email = ${email}
+    `;
 
     const uniqueCategoryIds = [
       ...new Set(

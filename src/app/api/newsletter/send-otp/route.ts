@@ -31,26 +31,21 @@ export async function POST(request: NextRequest) {
 
     const { email } = result.data;
 
-    const existingSubscriber = await prisma.subscriber.findUnique({
-      where: { email },
-    });
-
     const now = new Date();
-    let attempts = 0;
+    let attempts: number;
 
-    if (existingSubscriber) {
-      attempts = existingSubscriber.attempts;
+    const rows = await prisma.$queryRaw<
+      { attempts: number; last_otp_sent_at: Date | null }[]
+    >`SELECT attempts, last_otp_sent_at FROM subscribers WHERE email = ${email} LIMIT 1`;
+    const existing = rows[0];
 
-      // Derive the last send time from expiresAt (we always set expiresAt = sentAt + 10 minutes)
-      const lastSendAt =
-        existingSubscriber.expiresAt &&
-        new Date(existingSubscriber.expiresAt.getTime() - 10 * 60 * 1000);
-
+    if (existing?.last_otp_sent_at != null) {
+      const lastSendAt = existing.last_otp_sent_at;
       const inSameWindow =
-        lastSendAt && now.getTime() - lastSendAt.getTime() < WINDOW_MS;
+        now.getTime() - lastSendAt.getTime() < WINDOW_MS;
 
       if (inSameWindow) {
-        if (attempts >= MAX_SENDS_PER_WINDOW) {
+        if (existing.attempts >= MAX_SENDS_PER_WINDOW) {
           return NextResponse.json(
             {
               error:
@@ -59,7 +54,7 @@ export async function POST(request: NextRequest) {
             { status: 429 }
           );
         }
-        attempts += 1;
+        attempts = existing.attempts + 1;
       } else {
         attempts = 1;
       }
@@ -69,15 +64,15 @@ export async function POST(request: NextRequest) {
 
     // Generate a simple 6-digit code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
 
-    // Store OTP details on the subscriber row (create if missing)
+    // Store OTP details on the subscriber row (create if missing).
+    // Use only fields the generated Prisma client knows; set last_otp_sent_at via raw SQL.
     const otpData = {
       otpCode: code,
       expiresAt,
       attempts,
-    } as any;
+    };
 
     await prisma.subscriber.upsert({
       where: { email },
@@ -87,6 +82,10 @@ export async function POST(request: NextRequest) {
         ...otpData,
       },
     });
+
+    await prisma.$executeRaw`
+      UPDATE subscribers SET last_otp_sent_at = ${now} WHERE email = ${email}
+    `;
 
     await resend.emails.send({
       from: "NewsIcons <onboarding@resend.dev>",
