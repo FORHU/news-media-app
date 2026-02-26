@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db";
 import { newsletterSubscribeSchema } from "@/lib/validation/newsletter";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const MAX_SENDS_PER_WINDOW = 3;
 
 export async function POST(request: NextRequest) {
   if (!prisma) {
@@ -29,6 +31,42 @@ export async function POST(request: NextRequest) {
 
     const { email } = result.data;
 
+    const existingSubscriber = await prisma.subscriber.findUnique({
+      where: { email },
+    });
+
+    const now = new Date();
+    let attempts = 0;
+
+    if (existingSubscriber) {
+      attempts = existingSubscriber.attempts;
+
+      // Derive the last send time from expiresAt (we always set expiresAt = sentAt + 10 minutes)
+      const lastSendAt =
+        existingSubscriber.expiresAt &&
+        new Date(existingSubscriber.expiresAt.getTime() - 10 * 60 * 1000);
+
+      const inSameWindow =
+        lastSendAt && now.getTime() - lastSendAt.getTime() < WINDOW_MS;
+
+      if (inSameWindow) {
+        if (attempts >= MAX_SENDS_PER_WINDOW) {
+          return NextResponse.json(
+            {
+              error:
+                "You have reached the maximum number of resend attempts. Please try again later.",
+            },
+            { status: 429 }
+          );
+        }
+        attempts += 1;
+      } else {
+        attempts = 1;
+      }
+    } else {
+      attempts = 1;
+    }
+
     // Generate a simple 6-digit code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -38,7 +76,7 @@ export async function POST(request: NextRequest) {
     const otpData = {
       otpCode: code,
       expiresAt,
-      attempts: 0,
+      attempts,
     } as any;
 
     await prisma.subscriber.upsert({
@@ -51,13 +89,90 @@ export async function POST(request: NextRequest) {
     });
 
     await resend.emails.send({
-      from: "NewsMedia <onboarding@resend.dev>",
+      from: "NewsIcons <onboarding@resend.dev>",
       to: email,
-      subject: "Your verification code",
+      subject: "Your NewsIcons Verification Code",
       html: `
-        <p>Your verification code is:</p>
-        <p style="font-size:24px;font-weight:700;letter-spacing:4px">${code}</p>
-        <p>This code expires in 10 minutes.</p>
+      <div style="margin:0;padding:0;background-color:#f4f6f8;font-family:Arial,Helvetica,sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+          <tr>
+            <td align="center">
+              
+              <!-- Card -->
+              <table width="100%" cellpadding="0" cellspacing="0" 
+                style="max-width:480px;background:#ffffff;border-radius:12px;
+                       box-shadow:0 8px 24px rgba(0,0,0,0.08);padding:40px;">
+                
+                <!-- Logo / Title -->
+                <tr>
+                  <td align="center" style="padding-bottom:24px;">
+                    <h1 style="margin:0;font-size:22px;color:#ff4500;">
+                      NewsIcons
+                    </h1>
+                  </td>
+                </tr>
+    
+                <!-- Heading -->
+                <tr>
+                  <td align="center" style="padding-bottom:12px;">
+                    <h2 style="margin:0;font-size:18px;color:#222;">
+                      Email Verification
+                    </h2>
+                  </td>
+                </tr>
+    
+                <!-- Description -->
+                <tr>
+                  <td align="center" style="padding-bottom:24px;">
+                    <p style="margin:0;color:#555;font-size:14px;line-height:1.6;">
+                      Use the verification code below to complete your subscription.
+                    </p>
+                  </td>
+                </tr>
+    
+                <!-- Code Box -->
+                <tr>
+                  <td align="center" style="padding-bottom:24px;">
+                    <div style="
+                      display:inline-block;
+                      background:#fff5f0;
+                      color:#ff4500;
+                      font-size:28px;
+                      font-weight:700;
+                      letter-spacing:8px;
+                      padding:16px 24px;
+                      border-radius:8px;
+                      border:2px dashed #ff4500;">
+                      ${code}
+                    </div>
+                  </td>
+                </tr>
+    
+                <!-- Expiry -->
+                <tr>
+                  <td align="center" style="padding-bottom:16px;">
+                    <p style="margin:0;color:#888;font-size:13px;">
+                      This code expires in 10 minutes.
+                    </p>
+                  </td>
+                </tr>
+    
+                <!-- Divider -->
+                <tr>
+                  <td style="border-top:1px solid #eee;padding-top:16px;">
+                    <p style="margin:0;color:#999;font-size:12px;text-align:center;">
+                      If you didn’t request this, you can safely ignore this email.
+                    </p>
+                  </td>
+                </tr>
+    
+              </table>
+              <!-- End Card -->
+    
+            </td>
+          </tr>
+        </table>
+      </div>
       `,
     });
 

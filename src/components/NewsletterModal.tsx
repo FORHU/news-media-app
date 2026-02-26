@@ -445,6 +445,12 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                         </button>
                       </p>
 
+                      {otpSendError && (
+                        <p className="text-xs sm:text-sm text-red-500 mt-2 font-sans">
+                          {otpSendError}
+                        </p>
+                      )}
+
                       {otpError && (
                         <p className="text-xs sm:text-sm text-red-500 mt-2 font-sans">
                           Invalid verification code. Please try again.
