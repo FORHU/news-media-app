@@ -10,6 +10,7 @@ interface LatestStoriesSectionProps {
   articles: Article[];
   error: string;
   searchQuery: string | null;
+  isLoading?: boolean;
 }
 
 function formatDate(date: Date | string) {
@@ -31,6 +32,7 @@ export function LatestStoriesSection({
   articles,
   error,
   searchQuery,
+  isLoading = false,
 }: LatestStoriesSectionProps) {
   const router = useRouter();
   const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -51,7 +53,24 @@ export function LatestStoriesSection({
         <h2 className="text-2xl font-bold text-gray-900">Latest Stories</h2>
       </div>
 
-      {error ? (
+      {isLoading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 5 }).map((_, idx) => (
+            <div
+              key={idx}
+              className="flex flex-row gap-4 pb-6 border-b border-gray-200 rounded-lg p-2 sm:p-3 animate-pulse"
+            >
+              <div className="relative w-28 sm:w-40 h-20 sm:h-28 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="h-4 w-24 bg-gray-200 rounded mb-3" />
+                <div className="h-5 w-3/4 bg-gray-200 rounded mb-3" />
+                <div className="h-4 w-full bg-gray-200 rounded mb-2" />
+                <div className="h-4 w-2/3 bg-gray-200 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : error ? (
         <div className="text-center py-16 text-red-600">{error}</div>
       ) : articles.length === 0 ? (
         <div className="text-center py-16">
