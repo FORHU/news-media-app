@@ -6,7 +6,7 @@ import { useParams, notFound } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { NewsletterModal } from "@/components/NewsletterModal";
+import { NewsletterModal } from "@/components/newsLetterModal/NewsletterModal";
 import { TrendingSidebar } from "@/components/home/trending-sidebar";
 import { FeaturedArticlesSection } from "@/components/home/featured-articles-section";
 import { ArrowLeft, Loader2 } from "lucide-react";
