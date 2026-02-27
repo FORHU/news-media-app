@@ -6,6 +6,7 @@ interface VerifyEmailStepProps {
   email: string;
   otp: string[];
   otpError: boolean;
+  otpErrorMessage: string;
   resendCooldown: number;
   otpSendError: string;
   isVerifying: boolean;
@@ -21,6 +22,7 @@ export function VerifyEmailStep({
   email,
   otp,
   otpError,
+  otpErrorMessage,
   resendCooldown,
   otpSendError,
   isVerifying,
@@ -89,7 +91,7 @@ export function VerifyEmailStep({
 
           {otpError && (
             <p className="text-sm sm:text-base text-red-500 mt-2 mb-4 font-sans">
-              Invalid verification code. Please try again.
+              {otpErrorMessage || "Invalid verification code. Please try again."}
             </p>
           )}
         <button

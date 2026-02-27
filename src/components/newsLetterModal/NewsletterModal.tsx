@@ -31,6 +31,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [otpError, setOtpError] = useState(false);
+  const [otpErrorMessage, setOtpErrorMessage] = useState("");
   const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
   const [resendCooldown, setResendCooldown] = useState(0);
 
@@ -43,7 +44,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
   } = useQuery<CategoryOption[], Error>({
     queryKey: ["newsletterCategories"],
     queryFn: async () => {
-      const res = await fetch("/api/categories");
+      const res = await fetch("/api/routes/categories");
       if (!res.ok) {
         throw new Error("Failed to load categories");
       }
@@ -59,7 +60,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
     string
   >({
     mutationFn: async (emailToCheck) => {
-      const res = await fetch("/api/newsletter/check-email", {
+      const res = await fetch("/api/routes/newsletter/check-email", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -78,7 +79,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
   // Send OTP code to the user's email and move to verification on success
   const sendOtpMutation = useMutation<void, Error, string>({
     mutationFn: async (emailToSend) => {
-      const res = await fetch("/api/newsletter/send-otp", {
+      const res = await fetch("/api/routes/newsletter/send-otp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -112,7 +113,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
     { email: string; code: string; categories: number[] }
   >({
     mutationFn: async ({ email, code, categories }) => {
-      const res = await fetch("/api/newsletter/verify-otp", {
+      const res = await fetch("/api/routes/newsletter/verify-otp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -121,15 +122,22 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
       });
 
       if (!res.ok) {
-        throw new Error("Invalid verification code. Please try again.");
+        const data = await res.json().catch(() => ({}));
+        const message =
+          typeof (data as { error?: unknown }).error === "string"
+            ? (data as { error: string }).error
+            : "Invalid verification code. Please try again.";
+        throw new Error(message);
       }
     },
     onSuccess: () => {
       setOtpError(false);
+      setOtpErrorMessage("");
       setStep("success");
     },
-    onError: () => {
+    onError: (err) => {
       setOtpError(true);
+      setOtpErrorMessage(err.message || "Invalid verification code. Please try again.");
     },
   });
 
@@ -217,6 +225,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
       setError("");
       setOtp(["", "", "", "", "", ""]);
       setOtpError(false);
+      setOtpErrorMessage("");
       setOtpSendError("");
       setResendCooldown(0);
     }, 300);
@@ -233,6 +242,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
   //Toggle a category in the selected interests array
   const handleOtpChange = (index: number, value: string) => {
     if (otpError) setOtpError(false);
+    if (otpErrorMessage) setOtpErrorMessage("");
     const digit = value.replace(/\D/g, "").slice(-1);
     if (!digit && value !== "") return;
 
@@ -370,6 +380,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                     email={email}
                     otp={otp}
                     otpError={otpError}
+                    otpErrorMessage={otpErrorMessage}
                     resendCooldown={resendCooldown}
                     otpSendError={otpSendError}
                     isVerifying={verifyOtpMutation.isPending}
