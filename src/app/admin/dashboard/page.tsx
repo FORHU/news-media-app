@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import GeneratedArticles from '@/components/admin/GeneratedArticles';
@@ -9,8 +10,27 @@ import CrawledUrls from '@/components/admin/CrawledUrls';
 import { Menu } from 'lucide-react';
 
 export default function DashboardPage() {
+    const router = useRouter();
     const [activeSection, setActiveSection] = useState('dashboard');
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const isLoggedIn = localStorage.getItem('isLoggedIn');
+        if (!isLoggedIn) {
+            router.push('/admin/login');
+        } else {
+            setIsLoading(false);
+        }
+    }, [router]);
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-white flex items-center justify-center">
+                <div className="w-8 h-8 border-4 border-[#ff4500] border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
 
     const renderContent = () => {
         switch (activeSection) {

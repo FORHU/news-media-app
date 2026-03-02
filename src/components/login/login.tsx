@@ -12,6 +12,8 @@ export default function AdminLogin() {
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
+        // Set basic session flag
+        localStorage.setItem('isLoggedIn', 'true');
         // Accept any email and password - redirect to dashboard
         router.push('/admin/dashboard');
     };

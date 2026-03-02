@@ -33,14 +33,15 @@ export default function AdminSidebar({
     };
 
     const handleLogout = () => {
+        localStorage.removeItem('isLoggedIn');
         window.location.href = "/";
     };
 
     const menuItems = [
-        { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
-        { id: 'generated', label: 'Generated Articles', icon: <FileText className="w-5 h-5" /> },
-        { id: 'urls', label: 'Crawl URLs', icon: <LinkIcon className="w-5 h-5" /> },
-        { id: 'crawled', label: 'Crawled Articles', icon: <Database className="w-5 h-5" /> },
+        { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { id: 'generated', label: 'Generated Articles', icon: FileText },
+        { id: 'urls', label: 'Crawl URLs', icon: LinkIcon },
+        { id: 'crawled', label: 'Crawled Articles', icon: Database },
     ];
 
     return (
@@ -81,12 +82,12 @@ export default function AdminSidebar({
                             if (window.innerWidth < 1024) setSidebarOpen(false);
                         }}
                         className={`w-full flex items-center px-4 py-3 rounded-xl mb-2 transition-all duration-200 ${activeSection === item.id
-                                ? 'bg-gradient-to-r from-[#ff4500] to-[#ff6b35] text-white shadow-lg shadow-orange-500/50 scale-105'
-                                : 'text-gray-300 hover:bg-gray-800/50 hover:scale-105'
+                            ? 'bg-gradient-to-r from-[#ff4500] to-[#ff6b35] text-white shadow-lg shadow-orange-500/50 scale-105'
+                            : 'text-gray-300 hover:bg-gray-800/50 hover:scale-105'
                             } ${!sidebarOpen ? 'justify-center px-3' : 'gap-3'}`}
                         title={!sidebarOpen ? item.label : ''}
                     >
-                        {React.cloneElement(item.icon as React.ReactElement, { className: "w-5 h-5 flex-shrink-0" })}
+                        <item.icon className="w-5 h-5 flex-shrink-0" />
                         <span className={`font-medium whitespace-nowrap transition-all duration-300 ${sidebarOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'
                             }`}>{item.label}</span>
                     </button>
