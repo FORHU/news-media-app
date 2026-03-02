@@ -178,7 +178,7 @@ export function Header({ onOpenNewsletter }: HeaderProps) {
               <span className="hidden sm:inline">NEWSLETTER</span>
             </button>
             <Link
-              href="/admin/login"
+              href="/admin/dashboard"
               className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg shrink-0"
               aria-label="Profile"
             >
