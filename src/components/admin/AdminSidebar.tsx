@@ -13,7 +13,8 @@ import {
     X
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabaseClient';
 
 interface AdminSidebarProps {
     sidebarOpen: boolean;
@@ -25,15 +26,16 @@ export default function AdminSidebar({
     setSidebarOpen
 }: AdminSidebarProps) {
     const pathname = usePathname();
+    const router = useRouter();
 
     const user = {
         name: "Admin User",
         email: "admin@forhu.com"
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('isLoggedIn');
-        window.location.href = "/";
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        router.push('/admin/login');
     };
 
     const menuItems = [

@@ -4,23 +4,42 @@ import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { LogIn, Home } from 'lucide-react';
+import { supabase } from '@/lib/supabaseClient';
+import { adminLoginSchema } from '@/lib/validation/login';
 
 export default function LoginForm() {
     const router = useRouter();
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleSubmit = (e: FormEvent) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
 
-        if (username === "admin" && password === "admin") {
-            localStorage.setItem('isLoggedIn', 'true');
-            router.push('/admin/dashboard');
-        } else {
-            setError("Invalid username or password.");
+        const parsed = adminLoginSchema.safeParse({ email, password });
+        if (!parsed.success) {
+            const firstError = parsed.error.issues[0]?.message ?? 'Invalid input.';
+            setError(firstError);
+            return;
         }
+
+        setIsSubmitting(true);
+
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+
+        setIsSubmitting(false);
+
+        if (signInError) {
+            setError(signInError.message || 'Invalid email or password.');
+            return;
+        }
+
+        router.push('/admin/dashboard');
     };
 
     return (
@@ -47,17 +66,17 @@ export default function LoginForm() {
                     <form onSubmit={handleSubmit} className="space-y-4">
 
                         <div>
-                            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-                                Username
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                                Admin email
                             </label>
                             <input
-                                id="username"
-                                type="text"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
+                                id="email"
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 required
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff4500] focus:border-transparent outline-none text-gray-900"
-                                placeholder="admin"
+                                placeholder="admin@example.com"
                             />
                         </div>
 
@@ -72,7 +91,7 @@ export default function LoginForm() {
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff4500] focus:border-transparent outline-none text-gray-900"
-                                placeholder="admin"
+                                placeholder="Your admin password"
                             />
                         </div>
 
@@ -84,18 +103,13 @@ export default function LoginForm() {
 
                         <button
                             type="submit"
-                            className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-[#ff4500] transition-colors flex items-center justify-center gap-2"
+                            disabled={isSubmitting}
+                            className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-[#ff4500] disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                         >
                             <LogIn className="w-5 h-5" />
-                            Sign In
+                            {isSubmitting ? 'Signing In...' : 'Sign In'}
                         </button>
                     </form>
-
-                    <div className="mt-6 pt-6 border-t border-gray-200">
-                        <p className="text-sm text-gray-600 text-center">
-                            Use <strong>admin</strong> / <strong>admin</strong> to access the dashboard
-                        </p>
-                    </div>
                 </div>
             </div>
         </div>
