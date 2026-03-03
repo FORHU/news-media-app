@@ -89,62 +89,64 @@ export default function GeneratedArticles() {
                             {articles.length > 0 ? (
                                 articles.map((article) => (
                                     <tr key={article.id} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-transparent transition-all duration-200">
-                                        <td className="px-3 sm:px-6 py-4 sm:py-5">
-                                            <div className="flex items-start gap-2 sm:gap-3">
-                                                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-xl shadow-md flex-shrink-0 overflow-hidden relative">
-                                                    <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                                                        <FileText className="w-6 h-6 text-gray-400" />
+                                        <td className="px-3 sm:px-6 py-5 sm:py-6">
+                                            <div className="flex items-start gap-4">
+                                                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-900 rounded-2xl shadow-lg flex-shrink-0 overflow-hidden relative border border-gray-100">
+                                                    <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-black flex items-center justify-center">
+                                                        <FileText className="w-6 h-6 text-gray-500" />
                                                     </div>
                                                 </div>
-                                                <div>
-                                                    <p className="text-xs sm:text-sm font-semibold text-gray-900 line-clamp-2">
+                                                <div className="flex flex-col gap-1">
+                                                    <p className="text-sm sm:text-[15px] font-bold text-gray-900 line-clamp-2 leading-snug">
                                                         {article.title}
                                                     </p>
-                                                    <p className="text-[10px] sm:text-xs text-gray-500 mt-1 sm:mt-1.5 font-medium">
+                                                    <p className="text-[11px] sm:text-xs text-gray-400 font-semibold tracking-wide">
                                                         5 min read
                                                     </p>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap">
-                                            <span className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 shadow-sm">
+                                        <td className="px-3 sm:px-6 py-5 sm:py-6 whitespace-nowrap">
+                                            <span className="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200/50">
                                                 {article.category}
                                             </span>
                                         </td>
-                                        <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap">
+                                        <td className="px-3 sm:px-6 py-5 sm:py-6 whitespace-nowrap">
                                             <span
-                                                className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold shadow-sm text-white ${article.type === 'news'
-                                                    ? 'bg-gradient-to-r from-blue-500 to-blue-600'
-                                                    : 'bg-gradient-to-r from-purple-500 to-purple-600'
+                                                className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-bold shadow-md text-white ${article.type === 'news'
+                                                    ? 'bg-blue-600 shadow-blue-500/20'
+                                                    : 'bg-purple-600 shadow-purple-500/20'
                                                     }`}
                                             >
                                                 {article.type}
                                             </span>
                                         </td>
-                                        <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap">
-                                            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-[#ff4500] animate-pulse" />
+                                        <td className="px-3 sm:px-6 py-5 sm:py-6 whitespace-nowrap">
+                                            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-[#ff4500] fill-[#ff4500]/10 animate-pulse" />
                                         </td>
-                                        <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap text-[10px] sm:text-sm text-gray-600 font-medium">
+                                        <td className="px-3 sm:px-6 py-5 sm:py-6 whitespace-nowrap text-[11px] sm:text-[13px] text-gray-500 font-bold">
                                             {article.date}
                                         </td>
-                                        <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap text-right text-sm font-medium">
-                                            <button
-                                                className="inline-flex items-center justify-center p-2 text-blue-600 hover:bg-blue-50 rounded-lg mr-1 sm:mr-2 transition-all duration-200 hover:scale-110"
-                                            >
-                                                <Edit2 className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                className="inline-flex items-center justify-center p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 hover:scale-110"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
+                                        <td className="px-3 sm:px-6 py-5 sm:py-6 whitespace-nowrap text-right">
+                                            <div className="flex items-center justify-end gap-1 sm:gap-2">
+                                                <button
+                                                    className="inline-flex items-center justify-center p-2 text-blue-500 hover:bg-blue-50 rounded-xl transition-all duration-200 hover:scale-110 active:scale-95"
+                                                >
+                                                    <Edit2 className="w-[18px] h-[18px]" />
+                                                </button>
+                                                <button
+                                                    className="inline-flex items-center justify-center p-2 text-red-500 hover:bg-red-50 rounded-xl transition-all duration-200 hover:scale-110 active:scale-95"
+                                                >
+                                                    <Trash2 className="w-[18px] h-[18px]" />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
                                     <td colSpan={6} className="px-6 py-32 text-center text-gray-500">
-                                        <p>No articles found.</p>
+                                        <p className="font-medium text-gray-400">No articles found.</p>
                                     </td>
                                 </tr>
                             )}

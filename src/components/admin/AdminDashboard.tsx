@@ -1,5 +1,6 @@
 "use client";
 
+// Redesigned Admin UI with premium tables and optimized Server Components - Final Deployment Version
 import React from 'react';
 import {
     FileText,
