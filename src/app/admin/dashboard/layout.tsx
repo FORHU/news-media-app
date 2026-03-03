@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
+import { supabase } from '@/lib/supabaseClient';
 
 export default function DashboardLayout({
     children,
@@ -11,6 +12,7 @@ export default function DashboardLayout({
 }) {
     const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(false); // Default to false for mobile first
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const checkWindowSize = () => {
@@ -28,15 +30,20 @@ export default function DashboardLayout({
         // window.addEventListener('resize', checkWindowSize);
         // return () => window.removeEventListener('resize', checkWindowSize);
     }, []);
-    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const isLoggedIn = localStorage.getItem('isLoggedIn');
-        if (!isLoggedIn) {
-            router.push('/admin/login');
-        } else {
+        const checkSession = async () => {
+            const { data, error } = await supabase.auth.getSession();
+
+            if (error || !data.session) {
+                router.push('/admin/login');
+                return;
+            }
+
             setIsLoading(false);
-        }
+        };
+
+        void checkSession();
     }, [router]);
 
     if (isLoading) {
