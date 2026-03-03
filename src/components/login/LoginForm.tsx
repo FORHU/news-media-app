@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { LogIn, Home } from 'lucide-react';
 
-export default function AdminLogin() {
+export default function LoginForm() {
     const router = useRouter();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');

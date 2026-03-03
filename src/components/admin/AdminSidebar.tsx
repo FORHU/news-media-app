@@ -9,23 +9,22 @@ import {
     LogOut,
     ChevronLeft,
     ChevronRight,
-    Home
+    Home,
+    X
 } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 interface AdminSidebarProps {
-    activeSection: string;
-    onSectionChange: (section: string) => void;
     sidebarOpen: boolean;
     setSidebarOpen: (open: boolean) => void;
 }
 
 export default function AdminSidebar({
-    activeSection,
-    onSectionChange,
     sidebarOpen,
     setSidebarOpen
 }: AdminSidebarProps) {
+    const pathname = usePathname();
 
     const user = {
         name: "Admin User",
@@ -38,20 +37,28 @@ export default function AdminSidebar({
     };
 
     const menuItems = [
-        { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { id: 'generated', label: 'Generated Articles', icon: FileText },
-        { id: 'urls', label: 'Crawl URLs', icon: LinkIcon },
-        { id: 'crawled', label: 'Crawled Articles', icon: Database },
+        { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/admin/dashboard' },
+        { id: 'generated', label: 'Generated Articles', icon: FileText, href: '/admin/dashboard/generated' },
+        { id: 'urls', label: 'Crawl URLs', icon: LinkIcon, href: '/admin/dashboard/urls' },
+        { id: 'crawled', label: 'Crawled Articles', icon: Database, href: '/admin/dashboard/crawled' },
     ];
 
     return (
-        <aside className={`bg-gradient-to-b from-black via-gray-900 to-black text-white flex-shrink-0 flex flex-col fixed left-0 top-0 bottom-0 shadow-2xl z-50 transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-20'
-            } ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        <aside className={`bg-gradient-to-b from-black via-gray-900 to-black text-white flex-shrink-0 flex flex-col fixed left-0 top-0 bottom-0 shadow-2xl z-50 transition-all duration-300 h-full overflow-hidden ${sidebarOpen ? 'w-64 translate-x-0' : 'w-20 -translate-x-full lg:translate-x-0'
             }`}>
-            {/* Toggle Button - Seamlessly integrated as sidebar extension */}
+            {/* Mobile Close Button */}
+            <button
+                onClick={() => setSidebarOpen(false)}
+                className="absolute right-4 top-4 p-2 bg-gray-800 hover:bg-gray-700 rounded-xl lg:hidden transition-colors z-20"
+                title="Close sidebar"
+            >
+                <X className="w-5 h-5 text-white" />
+            </button>
+
+            {/* Toggle Button - Desktop only */}
             <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="absolute -right-3 top-1/2 -translate-y-1/2 p-2 bg-gradient-to-br from-[#ff4500] to-[#ff6b35] hover:from-[#ff6b35] hover:to-[#ff4500] rounded-full transition-all duration-200 hidden lg:flex items-center justify-center shadow-lg hover:shadow-xl z-10 group"
+                className="absolute -right-3 top-1/2 -translate-y-1/2 p-2 bg-gradient-to-br from-[#ff4500] to-[#ff6b35] hover:from-[#ff6b35] hover:to-[#ff4500] rounded-full transition-all duration-200 hidden lg:flex items-center justify-center shadow-lg hover:shadow-xl z-20 group"
                 title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
             >
                 {sidebarOpen ? (
@@ -72,35 +79,38 @@ export default function AdminSidebar({
                 </div>
             </div>
 
-            {/* Navigation */}
-            <nav className="flex-1 p-4 overflow-y-auto">
-                {menuItems.map((item) => (
-                    <button
-                        key={item.id}
-                        onClick={() => {
-                            onSectionChange(item.id);
-                            if (window.innerWidth < 1024) setSidebarOpen(false);
-                        }}
-                        className={`w-full flex items-center px-4 py-3 rounded-xl mb-2 transition-all duration-200 ${activeSection === item.id
-                            ? 'bg-gradient-to-r from-[#ff4500] to-[#ff6b35] text-white shadow-lg shadow-orange-500/50 scale-105'
-                            : 'text-gray-300 hover:bg-gray-800/50 hover:scale-105'
-                            } ${!sidebarOpen ? 'justify-center px-3' : 'gap-3'}`}
-                        title={!sidebarOpen ? item.label : ''}
-                    >
-                        <item.icon className="w-5 h-5 flex-shrink-0" />
-                        <span className={`font-medium whitespace-nowrap transition-all duration-300 ${sidebarOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'
-                            }`}>{item.label}</span>
-                    </button>
-                ))}
+            {/* Navigation - Only this area scrolls if content is too long */}
+            <nav className="flex-1 p-4 overflow-y-auto scrollbar-hide">
+                {menuItems.map((item) => {
+                    const isActive = pathname === item.href;
+                    return (
+                        <Link
+                            key={item.id}
+                            href={item.href}
+                            onClick={() => {
+                                if (window.innerWidth < 1024) setSidebarOpen(false);
+                            }}
+                            className={`w-full flex items-center px-4 py-3 rounded-xl mb-2 transition-all duration-200 ${isActive
+                                ? 'bg-gradient-to-r from-[#ff4500] to-[#ff6b35] text-white shadow-lg shadow-orange-500/50 scale-105'
+                                : 'text-gray-300 hover:bg-gray-800/50 hover:scale-105'
+                                } ${!sidebarOpen ? 'justify-center px-3' : 'gap-3'}`}
+                            title={!sidebarOpen ? item.label : ''}
+                        >
+                            <item.icon className="w-5 h-5 flex-shrink-0" />
+                            <span className={`font-medium whitespace-nowrap transition-all duration-300 ${sidebarOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'
+                                }`}>{item.label}</span>
+                        </Link>
+                    );
+                })}
             </nav>
 
-            {/* Admin Details & Actions - Sticky at bottom */}
-            <div className="sticky bottom-0 p-4 border-t border-gray-800 bg-gradient-to-b from-black to-gray-900 flex-shrink-0 mt-auto">
+            {/* Admin Details & Actions - Sticky at bottom, fixed position via flex-shrink-0 */}
+            <div className="p-4 border-t border-gray-800 bg-gradient-to-b from-black to-gray-900 flex-shrink-0">
                 <div className={`transition-all duration-300 ease-in-out ${sidebarOpen ? 'opacity-100 max-h-40 mb-3' : 'opacity-0 max-h-0 mb-0 overflow-hidden'
                     }`}>
                     <div className="mb-3 p-3 bg-gray-800/50 rounded-lg backdrop-blur-sm">
-                        <p className="text-sm font-medium text-white">{user?.name}</p>
-                        <p className="text-xs text-gray-400">{user?.email}</p>
+                        <p className="text-sm font-medium text-white line-clamp-1">{user?.name}</p>
+                        <p className="text-xs text-gray-400 line-clamp-1">{user?.email}</p>
                     </div>
                     <Link
                         href="/"

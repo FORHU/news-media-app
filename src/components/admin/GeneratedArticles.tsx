@@ -26,39 +26,29 @@ export default function GeneratedArticles() {
             </div>
 
             {/* Filter Bar */}
-            <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-wrap items-center gap-4">
-                <div className="relative flex-1 min-w-[300px]">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <div className="bg-white p-3 md:p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row items-stretch md:items-center gap-4">
+                <div className="relative flex-1">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-gray-400" />
                     <input
                         type="text"
                         placeholder="Search articles..."
-                        className="w-full pl-12 pr-4 py-3 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
+                        className="w-full pl-10 md:pl-12 pr-4 py-2.5 md:py-3 bg-gray-50 border-none rounded-xl text-xs md:text-sm focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
                     />
                 </div>
 
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-xl border border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors">
-                        <Filter className="w-4 h-4 text-gray-500" />
-                        <select className="bg-transparent border-none text-sm font-semibold text-gray-700 focus:ring-0 outline-none cursor-pointer">
+                <div className="flex flex-wrap items-center gap-2 md:gap-3">
+                    <div className="flex-1 md:flex-none flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-xl border border-gray-100">
+                        <Filter className="w-3.5 h-3.5 text-gray-500" />
+                        <select className="bg-transparent border-none text-[10px] md:text-sm font-semibold text-gray-700 focus:ring-0 outline-none cursor-pointer w-full">
                             <option>All Types</option>
                             <option>News</option>
                             <option>Blog</option>
                         </select>
                     </div>
 
-                    <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-xl border border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors">
-                        <select className="bg-transparent border-none text-sm font-semibold text-gray-700 focus:ring-0 outline-none cursor-pointer">
-                            <option>All Categories</option>
-                            <option>Business & Finance</option>
-                            <option>Technology & Innovation</option>
-                            <option>Opinion / Editorials</option>
-                        </select>
-                        <ChevronDown className="w-4 h-4 text-gray-400" />
-                    </div>
-
-                    <button className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[#ff4500] to-[#ff6b35] hover:from-[#ff6b35] hover:to-[#ff4500] text-white rounded-xl font-bold shadow-lg shadow-orange-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
-                        <Plus className="w-5 h-5" />
-                        Create New
+                    <button className="flex items-center justify-center gap-2 px-4 md:px-6 py-2 md:py-2.5 bg-gradient-to-r from-[#ff4500] to-[#ff6b35] text-white rounded-xl text-xs md:text-sm font-bold shadow-lg shadow-orange-500/20 transition-all active:scale-95">
+                        <Plus className="w-4 h-4 md:w-5 md:h-5" />
+                        <span className="whitespace-nowrap">Create New</span>
                     </button>
                 </div>
             </div>
@@ -83,83 +73,84 @@ export default function GeneratedArticles() {
 
             {/* Table Container */}
             <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden min-h-[400px]">
-                <table className="w-full text-left">
-                    <thead className="bg-[#fafafa] border-b border-gray-100">
-                        <tr>
-                            <th className="px-8 py-5 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Title</th>
-                            <th className="px-8 py-5 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Category</th>
-                            <th className="px-8 py-5 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Type</th>
-                            <th className="px-8 py-5 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] text-center">AI</th>
-                            <th className="px-8 py-5 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Date</th>
-                            <th className="px-8 py-5 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                        {articles.length > 0 ? (
-                            articles.map((article) => (
-                                <tr key={article.id} className="group hover:bg-gray-50/50 transition-all">
-                                    <td className="px-8 py-6">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-14 h-14 rounded-2xl bg-gray-200 overflow-hidden flex-shrink-0 relative shadow-sm">
-                                                {/* Placeholder for actual image */}
-                                                <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-300 flex items-center justify-center">
-                                                    <FileText className="w-6 h-6 text-gray-400" />
+                <div className="overflow-x-auto scrollbar-hide">
+                    <table className="w-full text-left min-w-[800px]">
+                        <thead className="bg-[#fafafa] border-b border-gray-100">
+                            <tr>
+                                <th className="px-3 sm:px-6 py-5 text-[10px] md:text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">TITLE</th>
+                                <th className="px-3 sm:px-6 py-5 text-[10px] md:text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">CATEGORY</th>
+                                <th className="px-3 sm:px-6 py-5 text-[10px] md:text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">TYPE</th>
+                                <th className="px-3 sm:px-6 py-5 text-[10px] md:text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] text-center">AI</th>
+                                <th className="px-3 sm:px-6 py-5 text-[10px] md:text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">DATE</th>
+                                <th className="px-3 sm:px-6 py-5 text-[10px] md:text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] text-right">ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-100">
+                            {articles.length > 0 ? (
+                                articles.map((article) => (
+                                    <tr key={article.id} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-transparent transition-all duration-200">
+                                        <td className="px-3 sm:px-6 py-4 sm:py-5">
+                                            <div className="flex items-start gap-2 sm:gap-3">
+                                                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-xl shadow-md flex-shrink-0 overflow-hidden relative">
+                                                    <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                                                        <FileText className="w-6 h-6 text-gray-400" />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs sm:text-sm font-semibold text-gray-900 line-clamp-2">
+                                                        {article.title}
+                                                    </p>
+                                                    <p className="text-[10px] sm:text-xs text-gray-500 mt-1 sm:mt-1.5 font-medium">
+                                                        5 min read
+                                                    </p>
                                                 </div>
                                             </div>
-                                            <div className="flex flex-col gap-0.5">
-                                                <h4 className="text-[15px] font-bold text-gray-900 line-clamp-1 group-hover:text-orange-600 transition-colors">{article.title}</h4>
-                                                <p className="text-xs text-gray-400 font-medium">5 min read</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-6">
-                                        <span className="px-4 py-1.5 bg-gray-100 text-gray-600 rounded-full text-[11px] font-bold tracking-tight">
-                                            {article.category}
-                                        </span>
-                                    </td>
-                                    <td className="px-8 py-6">
-                                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${article.type === 'news' ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/20' : 'bg-purple-600 text-white shadow-sm shadow-purple-500/20'
-                                            }`}>
-                                            {article.type}
-                                        </span>
-                                    </td>
-                                    <td className="px-8 py-6">
-                                        <div className="flex justify-center">
-                                            <Sparkles className="w-5 h-5 text-orange-500 fill-orange-500 animate-pulse" />
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-6 text-sm font-bold text-gray-500">
-                                        {article.date}
-                                    </td>
-                                    <td className="px-8 py-6 text-right">
-                                        <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all">
-                                            <button className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors">
+                                        </td>
+                                        <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap">
+                                            <span className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 shadow-sm">
+                                                {article.category}
+                                            </span>
+                                        </td>
+                                        <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap">
+                                            <span
+                                                className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold shadow-sm text-white ${article.type === 'news'
+                                                    ? 'bg-gradient-to-r from-blue-500 to-blue-600'
+                                                    : 'bg-gradient-to-r from-purple-500 to-purple-600'
+                                                    }`}
+                                            >
+                                                {article.type}
+                                            </span>
+                                        </td>
+                                        <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap">
+                                            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-[#ff4500] animate-pulse" />
+                                        </td>
+                                        <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap text-[10px] sm:text-sm text-gray-600 font-medium">
+                                            {article.date}
+                                        </td>
+                                        <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap text-right text-sm font-medium">
+                                            <button
+                                                className="inline-flex items-center justify-center p-2 text-blue-600 hover:bg-blue-50 rounded-lg mr-1 sm:mr-2 transition-all duration-200 hover:scale-110"
+                                            >
                                                 <Edit2 className="w-4 h-4" />
                                             </button>
-                                            <button className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                                            <button
+                                                className="inline-flex items-center justify-center p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 hover:scale-110"
+                                            >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
-                                        </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={6} className="px-6 py-32 text-center text-gray-500">
+                                        <p>No articles found.</p>
                                     </td>
                                 </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan={6} className="px-8 py-32 text-center">
-                                    <div className="flex flex-col items-center gap-4 max-w-xs mx-auto">
-                                        <div className="w-16 h-16 bg-orange-50 rounded-3xl flex items-center justify-center">
-                                            <Play className="w-8 h-8 text-[#ff4500] fill-[#ff4500]" />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <h3 className="text-lg font-bold text-gray-900">Get Started</h3>
-                                            <p className="text-sm text-gray-400 font-medium leading-relaxed">No generated articles found. Click &apos;Create New&apos; to begin.</p>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );

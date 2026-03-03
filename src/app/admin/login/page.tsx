@@ -1,4 +1,4 @@
-import AdminLogin from "@/components/login/login";
+import LoginForm from "@/components/login/LoginForm";
 
 export const metadata = {
     title: "Admin Login | FORHU",
@@ -6,5 +6,5 @@ export const metadata = {
 };
 
 export default function LoginPage() {
-    return <AdminLogin />;
+    return <LoginForm />;
 }
