@@ -9,11 +9,12 @@ import { TrendingProductsSection } from "@/components/home/trending-products-sec
 import { LandingClientWrapper } from "@/components/home/LandingClientWrapper";
 import { articlesService } from "@/app/api/services/articles.service";
 
-export default async function Page({
-  searchParams
-}: {
-  searchParams: { search?: string; category?: string }
+export const dynamic = "force-dynamic";
+
+export default async function Page(props: {
+  searchParams: Promise<{ search?: string; category?: string }>;
 }) {
+  const searchParams = await props.searchParams;
   const searchQuery = searchParams.search;
   const categoryParam = searchParams.category;
 
