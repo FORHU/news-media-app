@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import AdminSidebar from './AdminSidebar';
+import AdminSidebar from '@/components/admin/AdminSidebar';
 import { Menu } from 'lucide-react';
 
 interface AdminLayoutProps {

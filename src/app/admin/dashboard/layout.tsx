@@ -15,24 +15,7 @@ export default function DashboardLayout({
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const checkWindowSize = () => {
-            if (window.innerWidth >= 1024) {
-                setSidebarOpen(true);
-            } else {
-                setSidebarOpen(false);
-            }
-        };
-
-        // Check on initial load
-        checkWindowSize();
-
-        // Optional: Add resize listener if you want it to react to window resizing
-        // window.addEventListener('resize', checkWindowSize);
-        // return () => window.removeEventListener('resize', checkWindowSize);
-    }, []);
-
-    useEffect(() => {
-        const checkSession = async () => {
+        const initDashboard = async () => {
             const { data, error } = await supabase.auth.getSession();
 
             if (error || !data.session) {
@@ -40,11 +23,14 @@ export default function DashboardLayout({
                 return;
             }
 
+            // Sync initial sidebar state without brittle listeners
+            setSidebarOpen(window.matchMedia('(min-width: 1024px)').matches);
             setIsLoading(false);
         };
 
-        void checkSession();
+        void initDashboard();
     }, [router]);
+
 
     if (isLoading) {
         return (
