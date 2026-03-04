@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { NewsletterModal } from "@/components/newsLetterModal/NewsletterModal";
@@ -17,8 +17,12 @@ export function LandingClientWrapper({ children }: LandingClientWrapperProps) {
 
     return (
         <>
-            <Header onOpenNewsletter={openNewsletter} />
-            {children}
+            <Suspense fallback={<div className="h-16 bg-white border-b" />}>
+                <Header onOpenNewsletter={openNewsletter} />
+            </Suspense>
+            <Suspense fallback={null}>
+                {children}
+            </Suspense>
             <Footer onOpenNewsletter={openNewsletter} />
             <NewsletterModal
                 isOpen={isNewsletterOpen}
