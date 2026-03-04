@@ -1,4 +1,7 @@
-import React from 'react';
+"use client";
+
+import React, { useState } from 'react';
+import ButtonDropdowns from '@/components/admin/ButtonDropdowns';
 import {
     Plus,
     Search,
@@ -8,10 +11,30 @@ import {
     Trash2,
     Sparkles,
     FileText,
-    Play
+    Play,
+    ArrowUpRight,
+    Globe,
+    PenTool
 } from 'lucide-react';
 
+const StatCard = ({ title, value, icon, color, description }: any) => (
+    <div className="bg-white p-5 md:p-8 rounded-2xl md:rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all group">
+        <div className="flex justify-between items-start mb-4">
+            <div className={`p-3 md:p-4 rounded-xl md:rounded-2xl ${color} shadow-sm transition-all group-hover:shadow-md`}>
+                {React.cloneElement(icon, { className: `w-5 h-5 md:w-6 md:h-6 text-white` })}
+            </div>
+            <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5 text-gray-300 group-hover:text-gray-900 transition-colors" />
+        </div>
+        <div>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] mb-1">{title}</p>
+            <h3 className="text-2xl md:text-4xl font-extrabold text-gray-900 leading-tight">{value}</h3>
+            {description && <p className="text-[10px] md:text-xs text-gray-500 mt-2 font-medium">{description}</p>}
+        </div>
+    </div>
+);
+
 export default function GeneratedArticlesPage() {
+    const [filterType, setFilterType] = useState('All Types');
     const articles: any[] = [];
 
     return (
@@ -34,14 +57,13 @@ export default function GeneratedArticlesPage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 md:gap-3">
-                    <div className="flex-1 md:flex-none flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-xl border border-gray-100">
-                        <Filter className="w-3.5 h-3.5 text-gray-500" />
-                        <select className="bg-transparent border-none text-[10px] md:text-sm font-semibold text-gray-700 focus:ring-0 outline-none cursor-pointer w-full">
-                            <option>All Types</option>
-                            <option>News</option>
-                            <option>Blog</option>
-                        </select>
-                    </div>
+                    <ButtonDropdowns
+                        options={['All Types', 'News', 'Blog']}
+                        value={filterType}
+                        onChange={setFilterType}
+                        icon={<Filter className="w-4 h-4" />}
+                        className="w-full md:w-48"
+                    />
 
                     <button className="flex items-center justify-center gap-2 px-4 md:px-6 py-2 md:py-2.5 bg-gradient-to-r from-[#ff4500] to-[#ff6b35] text-white rounded-xl text-xs md:text-sm font-bold shadow-lg shadow-orange-500/20 transition-all active:scale-95">
                         <Plus className="w-4 h-4 md:w-5 md:h-5" />
@@ -52,20 +74,27 @@ export default function GeneratedArticlesPage() {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm transition-all hover:shadow-md">
-                    <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Total Articles</p>
-                    <h3 className="text-5xl font-extrabold text-gray-900 leading-tight">0</h3>
-                </div>
-
-                <div className="bg-[#eff6ff] p-8 rounded-3xl border border-blue-50 transition-all hover:shadow-md">
-                    <p className="text-blue-500 text-xs font-bold uppercase tracking-widest mb-1">News Articles</p>
-                    <h3 className="text-5xl font-extrabold text-blue-600 leading-tight">0</h3>
-                </div>
-
-                <div className="bg-[#f5f3ff] p-8 rounded-3xl border border-purple-50 transition-all hover:shadow-md">
-                    <p className="text-purple-500 text-xs font-bold uppercase tracking-widest mb-1">Blog Posts</p>
-                    <h3 className="text-5xl font-extrabold text-purple-600 leading-tight">0</h3>
-                </div>
+                <StatCard
+                    title="Total Articles"
+                    value="0"
+                    icon={<FileText />}
+                    color="bg-gray-900"
+                    description="Across all categories"
+                />
+                <StatCard
+                    title="News Articles"
+                    value="0"
+                    icon={<Globe />}
+                    color="bg-blue-600"
+                    description="Standard news content"
+                />
+                <StatCard
+                    title="Blog Posts"
+                    value="0"
+                    icon={<PenTool />}
+                    color="bg-purple-600"
+                    description="Opinion and long-form"
+                />
             </div>
 
             {/* Table Container */}

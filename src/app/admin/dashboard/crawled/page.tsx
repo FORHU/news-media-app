@@ -1,5 +1,8 @@
 
-import React from 'react';
+"use client";
+
+import React, { useState } from 'react';
+import ButtonDropdowns from '@/components/admin/ButtonDropdowns';
 import {
     Search,
     Filter,
@@ -14,6 +17,8 @@ import {
 } from 'lucide-react';
 
 export default function CrawledArticlesPage() {
+    const [filterSource, setFilterSource] = useState('All Sources');
+    const [filterDate, setFilterDate] = useState('Today');
     const crawledData: any[] = [];
 
     return (
@@ -34,26 +39,23 @@ export default function CrawledArticlesPage() {
                         className="w-full pl-10 md:pl-12 pr-4 py-2.5 md:py-3 bg-gray-50 border-none rounded-xl text-xs md:text-sm focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
                     />
                 </div>
-
+                {/* Example Sources Only */}
                 <div className="flex flex-wrap items-center gap-2 md:gap-3">
-                    <div className="flex-1 md:flex-none flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-xl border border-gray-100">
-                        <Filter className="w-3.5 h-3.5 text-gray-500" />
-                        <select className="bg-transparent border-none text-[10px] md:text-sm font-semibold text-gray-700 focus:ring-0 outline-none cursor-pointer w-full">
-                            <option>All Sources</option>
-                            <option>BBC News</option>
-                            <option>TechCrunch</option>
-                            <option>CNN</option>
-                        </select>
-                    </div>
+                    <ButtonDropdowns
+                        options={['All Sources', 'BBC News', 'TechCrunch', 'CNN']}
+                        value={filterSource}
+                        onChange={setFilterSource}
+                        icon={<Filter className="w-4 h-4" />}
+                        className="flex-1 md:flex-none md:w-48"
+                    />
 
-                    <div className="flex-1 md:flex-none flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-xl border border-gray-100">
-                        <Calendar className="w-3.5 h-3.5 text-gray-500" />
-                        <select className="bg-transparent border-none text-[10px] md:text-sm font-semibold text-gray-700 focus:ring-0 outline-none cursor-pointer w-full">
-                            <option>Today</option>
-                            <option>Last 7 Days</option>
-                            <option>This Month</option>
-                        </select>
-                    </div>
+                    <ButtonDropdowns
+                        options={['Today', 'Last 7 Days', 'This Month']}
+                        value={filterDate}
+                        onChange={setFilterDate}
+                        icon={<Calendar className="w-4 h-4" />}
+                        className="flex-1 md:flex-none md:w-48"
+                    />
                 </div>
             </div>
 

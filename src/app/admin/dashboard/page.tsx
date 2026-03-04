@@ -12,8 +12,8 @@ import {
 const StatCard = ({ title, value, icon, color, description }: any) => (
     <div className="bg-white p-5 md:p-8 rounded-2xl md:rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all group">
         <div className="flex justify-between items-start mb-4">
-            <div className={`p-3 md:p-4 rounded-xl md:rounded-2xl ${color} bg-opacity-10 transition-colors group-hover:bg-opacity-20`}>
-                {React.cloneElement(icon, { className: `w-5 h-5 md:w-6 md:h-6 ${color.replace('bg-', 'text-')}` })}
+            <div className={`p-3 md:p-4 rounded-xl md:rounded-2xl ${color} shadow-sm transition-all group-hover:shadow-md`}>
+                {React.cloneElement(icon, { className: `w-5 h-5 md:w-6 md:h-6 text-white` })}
             </div>
             <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5 text-gray-300 group-hover:text-gray-900 transition-colors" />
         </div>
@@ -94,31 +94,31 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                <div className="bg-gradient-to-br from-gray-900 to-black p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-xl text-white relative overflow-hidden flex flex-col">
+                <div className="bg-white p-6 md:p-8 rounded-2xl md:rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden flex flex-col group">
                     <div className="relative z-10">
-                        <h2 className="text-lg md:text-xl font-bold mb-2">System Status</h2>
-                        <p className="text-gray-400 text-xs md:text-sm font-medium mb-6 md:mb-8">Efficiency metrics.</p>
+                        <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-2">System Status</h2>
+                        <p className="text-gray-500 text-xs md:text-sm font-medium mb-6 md:mb-8">Efficiency metrics.</p>
 
                         <div className="space-y-4 md:space-y-6">
                             <div className="flex justify-between items-end">
                                 <span className="text-xs md:text-sm font-bold text-gray-400">System Load</span>
-                                <span className="text-xl md:text-2xl font-black">0%</span>
+                                <span className="text-xl md:text-2xl font-black text-gray-900">0%</span>
                             </div>
-                            <div className="w-full h-1.5 md:h-2 bg-gray-800 rounded-full overflow-hidden">
+                            <div className="w-full h-1.5 md:h-2 bg-gray-100 rounded-full overflow-hidden">
                                 <div className="w-0 h-full bg-[#ff4500] rounded-full transition-all duration-1000"></div>
                             </div>
                         </div>
                     </div>
 
                     <div className="mt-8 md:mt-auto pt-4 md:pt-8 relative z-10">
-                        <div className="p-3 md:p-4 bg-white/5 rounded-xl md:rounded-2xl border border-white/10 backdrop-blur-sm">
+                        <div className="p-3 md:p-4 bg-gray-50 rounded-xl md:rounded-2xl border border-gray-100">
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Last Update</p>
-                            <p className="text-xs md:text-sm font-medium text-white">{new Date().toLocaleTimeString()}</p>
+                            <p className="text-xs md:text-sm font-medium text-gray-900">{new Date().toLocaleTimeString()}</p>
                         </div>
                     </div>
 
                     {/* Decorative element */}
-                    <div className="absolute -right-10 -bottom-10 w-32 h-32 md:w-40 md:h-40 bg-[#ff4500] rounded-full blur-[60px] md:blur-[80px] opacity-20"></div>
+                    <div className="absolute -right-10 -bottom-10 w-32 h-32 md:w-40 md:h-40 bg-[#ff4500] rounded-full blur-[60px] md:blur-[80px] opacity-[0.05]"></div>
                 </div>
             </div>
         </div>

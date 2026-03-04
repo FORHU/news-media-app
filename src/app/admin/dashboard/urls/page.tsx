@@ -1,4 +1,7 @@
-import React from 'react';
+"use client";
+
+import React, { useState } from 'react';
+import ButtonDropdowns from '@/components/admin/ButtonDropdowns';
 import {
     Plus,
     Search,
@@ -11,6 +14,7 @@ import {
 } from 'lucide-react';
 
 export default function CrawledUrlsPage() {
+    const [filterStatus, setFilterStatus] = useState('All Status');
     const sources: any[] = [];
 
     return (
@@ -33,14 +37,13 @@ export default function CrawledUrlsPage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 md:gap-3">
-                    <div className="flex-1 md:flex-none flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-xl border border-gray-100">
-                        <Filter className="w-3.5 h-3.5 text-gray-500" />
-                        <select className="bg-transparent border-none text-[10px] md:text-sm font-semibold text-gray-700 focus:ring-0 outline-none cursor-pointer w-full">
-                            <option>All Status</option>
-                            <option>Active</option>
-                            <option>Paused</option>
-                        </select>
-                    </div>
+                    <ButtonDropdowns
+                        options={['All Status', 'Active', 'Paused']}
+                        value={filterStatus}
+                        onChange={setFilterStatus}
+                        icon={<Filter className="w-4 h-4" />}
+                        className="flex-1 md:flex-none md:w-48"
+                    />
 
                     <button className="flex items-center justify-center gap-2 px-4 md:px-6 py-2 md:py-2.5 bg-gray-900 text-white rounded-xl text-xs md:text-sm font-bold shadow-lg transition-all active:scale-95">
                         <Plus className="w-4 h-4 md:w-5 md:h-5" />
