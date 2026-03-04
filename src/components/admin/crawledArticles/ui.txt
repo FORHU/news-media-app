@@ -1,0 +1,2137 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
+import { articlesApi } from '../../lib/api';
+import { Article, ALL_CATEGORIES } from '../../lib/types';
+import {
+  Plus,
+  Edit,
+  Trash2,
+  LogOut,
+  Search,
+  Filter,
+  Loader2,
+  X,
+  Save,
+  Sparkles,
+  FileText,
+  Link as LinkIcon,
+  LayoutDashboard,
+  Play,
+  Pause,
+  RefreshCw,
+  Database,
+  Menu,
+  ChevronLeft,
+  ChevronRight,
+  PanelLeftClose,
+  PanelLeft,
+  TrendingUp,
+  Eye,
+  Users,
+  BarChart3,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { Toaster } from '../components/ui/sonner';
+import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+
+interface CrawlURL {
+  id: string;
+  url: string;
+  category: string;
+  type: 'news' | 'product';
+  status: 'active' | 'paused';
+  lastCrawled?: string;
+  articlesGenerated: number;
+  createdAt: string;
+}
+
+interface CrawledArticle extends Article {
+  sourceUrl: string;
+  crawledAt: string;
+  published: boolean;
+  generationStatus: 'pending' | 'generated' | 'processing';
+}
+
+export default function AdminDashboardNew() {
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
+  const [crawledArticles, setCrawledArticles] = useState<CrawledArticle[]>([]);
+  const [filteredCrawledArticles, setFilteredCrawledArticles] = useState<CrawledArticle[]>([]);
+  const [crawledStatusFilter, setCrawledStatusFilter] = useState<'all' | 'pending' | 'generated' | 'processing'>('all');
+  const [urls, setUrls] = useState<CrawlURL[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'news' | 'blog'>('all');
+  const [showModal, setShowModal] = useState(false);
+  const [showUrlModal, setShowUrlModal] = useState(false);
+  const [editingArticle, setEditingArticle] = useState<Article | null>(null);
+  const [editingUrl, setEditingUrl] = useState<CrawlURL | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [activeView, setActiveView] = useState<'dashboard' | 'articles' | 'urls' | 'crawled-articles'>('articles');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [articleToDelete, setArticleToDelete] = useState<string | null>(null);
+  const [deleteUrlModalOpen, setDeleteUrlModalOpen] = useState(false);
+  const [urlToDelete, setUrlToDelete] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
+    loadArticles();
+    loadUrls();
+    loadCrawledArticles();
+  }, []);
+
+  useEffect(() => {
+    filterArticles();
+  }, [articles, searchQuery, categoryFilter, typeFilter]);
+
+  useEffect(() => {
+    filterCrawledArticles();
+  }, [crawledArticles, crawledStatusFilter]);
+
+  const checkAuth = async () => {
+    setUser({ name: 'Admin', email: 'admin@forhu.com' });
+    setLoading(false);
+  };
+
+  const loadArticles = async () => {
+    try {
+      setLoading(true);
+      const data = await articlesApi.getArticles({ limit: 200 });
+      setArticles(data);
+    } catch (error) {
+      toast.error('Failed to load articles');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadUrls = async () => {
+    // Mock data - replace with actual API call
+    setUrls([
+      {
+        id: '1',
+        url: 'https://techcrunch.com/feed',
+        category: 'Technology / Innovation',
+        type: 'news',
+        status: 'active',
+        lastCrawled: new Date(Date.now() - 3600000).toISOString(),
+        articlesGenerated: 45,
+        createdAt: new Date(Date.now() - 86400000 * 7).toISOString(),
+      },
+      {
+        id: '2',
+        url: 'https://www.producthunt.com/feed',
+        category: 'Technology / Innovation',
+        type: 'product',
+        status: 'active',
+        lastCrawled: new Date(Date.now() - 7200000).toISOString(),
+        articlesGenerated: 32,
+        createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
+      },
+      {
+        id: '3',
+        url: 'https://finance.yahoo.com/news/rssindex',
+        category: 'Finance / Economics',
+        type: 'news',
+        status: 'paused',
+        lastCrawled: new Date(Date.now() - 86400000).toISOString(),
+        articlesGenerated: 28,
+        createdAt: new Date(Date.now() - 86400000 * 10).toISOString(),
+      },
+    ]);
+  };
+
+  const loadCrawledArticles = async () => {
+    // Mock crawled articles data - replace with actual API call
+    setCrawledArticles([
+      {
+        id: 'crawled-1',
+        title: 'Apple Vision Pro Sales Face Unexpected Challenges in Q1 2026',
+        excerpt: 'Despite initial hype, Apple\'s Vision Pro headset is experiencing slower than expected sales due to high pricing and limited consumer applications...',
+        content: 'Full article content here...',
+        image: 'https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?w=800&h=600&fit=crop',
+        category: 'Technology / Innovation',
+        type: 'news' as const,
+        readTime: '4 min read',
+        author: 'Crawl Bot',
+        createdAt: new Date(Date.now() - 3600000).toISOString(),
+        aiGenerated: false,
+        sourceUrl: 'https://techcrunch.com/2026/03/01/apple-vision-pro-sales',
+        crawledAt: new Date(Date.now() - 3600000).toISOString(),
+        published: false,
+        generationStatus: 'pending' as const,
+      },
+      {
+        id: 'crawled-2',
+        title: 'Federal Reserve Signals Potential Rate Cuts Amid Economic Slowdown',
+        excerpt: 'The Federal Reserve hints at possible interest rate reductions as economic indicators show signs of cooling inflation and sluggish GDP growth...',
+        content: 'Full article content here...',
+        image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&h=600&fit=crop',
+        category: 'Finance / Economics',
+        type: 'news' as const,
+        readTime: '5 min read',
+        author: 'Crawl Bot',
+        createdAt: new Date(Date.now() - 7200000).toISOString(),
+        aiGenerated: false,
+        sourceUrl: 'https://reuters.com/markets/fed-rate-decision',
+        crawledAt: new Date(Date.now() - 7200000).toISOString(),
+        published: false,
+        generationStatus: 'generated' as const,
+      },
+      {
+        id: 'crawled-3',
+        title: 'Quantum Computing Breakthrough: Google Claims New Performance Milestone',
+        excerpt: 'Google announces its latest quantum processor can solve complex problems 100x faster than previous generation, marking significant progress in quantum supremacy...',
+        content: 'Full article content here...',
+        image: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&h=600&fit=crop',
+        category: 'Technology / Innovation',
+        type: 'news' as const,
+        readTime: '6 min read',
+        author: 'Crawl Bot',
+        createdAt: new Date(Date.now() - 10800000).toISOString(),
+        aiGenerated: false,
+        sourceUrl: 'https://techcrunch.com/2026/03/02/google-quantum',
+        crawledAt: new Date(Date.now() - 10800000).toISOString(),
+        published: false,
+        generationStatus: 'pending' as const,
+      },
+      {
+        id: 'crawled-4',
+        title: 'Tesla Cybertruck Recall: Battery Issues Affect 15,000 Units',
+        excerpt: 'Tesla announces voluntary recall of Cybertruck models due to battery management system concerns, affecting early production units from 2024...',
+        content: 'Full article content here...',
+        image: 'https://images.unsplash.com/photo-1617788138017-80ad40651399?w=800&h=600&fit=crop',
+        category: 'Business / Trends',
+        type: 'news' as const,
+        readTime: '3 min read',
+        author: 'Crawl Bot',
+        createdAt: new Date(Date.now() - 14400000).toISOString(),
+        aiGenerated: false,
+        sourceUrl: 'https://bloomberg.com/news/tesla-cybertruck-recall',
+        crawledAt: new Date(Date.now() - 14400000).toISOString(),
+        published: false,
+        generationStatus: 'generated' as const,
+      },
+      {
+        id: 'crawled-5',
+        title: 'AI Regulation Framework Proposed by European Union for 2027',
+        excerpt: 'EU unveils comprehensive AI regulation framework aiming to balance innovation with safety, setting global standards for AI development and deployment...',
+        content: 'Full article content here...',
+        image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&h=600&fit=crop',
+        category: 'Politics / Policy',
+        type: 'news' as const,
+        readTime: '7 min read',
+        author: 'Crawl Bot',
+        createdAt: new Date(Date.now() - 18000000).toISOString(),
+        aiGenerated: false,
+        sourceUrl: 'https://bbc.com/news/eu-ai-regulation',
+        crawledAt: new Date(Date.now() - 18000000).toISOString(),
+        published: false,
+        generationStatus: 'pending' as const,
+      },
+      {
+        id: 'crawled-6',
+        title: 'Nvidia Stock Surges 12% on Strong AI Chip Demand Forecast',
+        excerpt: 'Nvidia shares jump following earnings report showing unprecedented demand for AI processors, with data center revenue exceeding analyst expectations...',
+        content: 'Full article content here...',
+        image: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&h=600&fit=crop',
+        category: 'Markets / Stocks',
+        type: 'news' as const,
+        readTime: '4 min read',
+        author: 'Crawl Bot',
+        createdAt: new Date(Date.now() - 21600000).toISOString(),
+        aiGenerated: false,
+        sourceUrl: 'https://wsj.com/markets/nvidia-earnings',
+        crawledAt: new Date(Date.now() - 21600000).toISOString(),
+        published: false,
+        generationStatus: 'processing' as const,
+      },
+      {
+        id: 'crawled-7',
+        title: 'Meta Announces New AR Glasses Partnership with Ray-Ban',
+        excerpt: 'Meta expands collaboration with Ray-Ban to launch next-generation augmented reality glasses with advanced AI capabilities and improved battery life...',
+        content: 'Full article content here...',
+        image: 'https://images.unsplash.com/photo-1617791160505-6f00504e3519?w=800&h=600&fit=crop',
+        category: 'Technology / Innovation',
+        type: 'news' as const,
+        readTime: '5 min read',
+        author: 'Crawl Bot',
+        createdAt: new Date(Date.now() - 25200000).toISOString(),
+        aiGenerated: false,
+        sourceUrl: 'https://techcrunch.com/2026/03/01/meta-ray-ban-ar',
+        crawledAt: new Date(Date.now() - 25200000).toISOString(),
+        published: false,
+        generationStatus: 'pending' as const,
+      },
+      {
+        id: 'crawled-8',
+        title: 'Climate Summit 2026: World Leaders Commit to Net Zero by 2040',
+        excerpt: 'Major economies announce accelerated climate action plans with binding commitments to achieve net-zero carbon emissions a decade earlier than planned...',
+        content: 'Full article content here...',
+        image: 'https://images.unsplash.com/photo-1569163139394-de4798aa62b6?w=800&h=600&fit=crop',
+        category: 'Environment / Climate',
+        type: 'news' as const,
+        readTime: '8 min read',
+        author: 'Crawl Bot',
+        createdAt: new Date(Date.now() - 28800000).toISOString(),
+        aiGenerated: false,
+        sourceUrl: 'https://reuters.com/climate-summit-2026',
+        crawledAt: new Date(Date.now() - 28800000).toISOString(),
+        published: false,
+        generationStatus: 'pending' as const,
+      },
+    ]);
+  };
+
+  const filterArticles = () => {
+    let filtered = [...articles];
+
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (a) =>
+          a.title.toLowerCase().includes(query) ||
+          a.description.toLowerCase().includes(query) ||
+          a.category.toLowerCase().includes(query)
+      );
+    }
+
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter((a) => a.category === categoryFilter);
+    }
+
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter((a) => a.type === typeFilter);
+    }
+
+    setFilteredArticles(filtered);
+  };
+
+  const filterCrawledArticles = () => {
+    let filtered = [...crawledArticles];
+
+    if (crawledStatusFilter !== 'all') {
+      filtered = filtered.filter((a) => a.generationStatus === crawledStatusFilter);
+    }
+
+    setFilteredCrawledArticles(filtered);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminUser');
+    navigate('/admin/login');
+  };
+
+  const handleCreateNew = () => {
+    setEditingArticle(null);
+    setShowModal(true);
+  };
+
+  const handleEdit = (article: Article) => {
+    setEditingArticle(article);
+    setShowModal(true);
+  };
+
+  const handleDelete = (id: string) => {
+    setArticleToDelete(id);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!articleToDelete) return;
+
+    try {
+      await articlesApi.deleteArticle(articleToDelete, '');
+      toast.success('Article deleted successfully');
+      loadArticles();
+      setDeleteModalOpen(false);
+      setArticleToDelete(null);
+    } catch (error) {
+      toast.error('Failed to delete article');
+    }
+  };
+
+  const cancelDelete = () => {
+    setDeleteModalOpen(false);
+    setArticleToDelete(null);
+  };
+
+  const handleCreateUrl = () => {
+    setEditingUrl(null);
+    setShowUrlModal(true);
+  };
+
+  const handleEditUrl = (url: CrawlURL) => {
+    setEditingUrl(url);
+    setShowUrlModal(true);
+  };
+
+  const handleDeleteUrl = (id: string) => {
+    setUrlToDelete(id);
+    setDeleteUrlModalOpen(true);
+  };
+
+  const confirmDeleteUrl = () => {
+    if (!urlToDelete) return;
+
+    setUrls(urls.filter((u) => u.id !== urlToDelete));
+    toast.success('Crawl URL deleted successfully');
+    setDeleteUrlModalOpen(false);
+    setUrlToDelete(null);
+  };
+
+  const cancelDeleteUrl = () => {
+    setDeleteUrlModalOpen(false);
+    setUrlToDelete(null);
+  };
+
+  const handleToggleUrlStatus = (id: string) => {
+    setUrls(
+      urls.map((u) =>
+        u.id === id
+          ? { ...u, status: u.status === 'active' ? 'paused' : 'active' }
+          : u
+      )
+    );
+    toast.success('URL status updated');
+  };
+
+  const handleCrawlNow = (id: string) => {
+    toast.success('Crawling started...');
+    // Trigger immediate crawl
+  };
+
+  if (loading && !user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-[#ff4500] animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 flex">
+      <Toaster position="top-right" />
+
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside className={`bg-gradient-to-b from-black via-gray-900 to-black text-white flex-shrink-0 flex flex-col fixed left-0 top-0 bottom-0 shadow-2xl z-50 transition-all duration-300 relative ${
+        sidebarOpen ? 'w-64' : 'w-20'
+      } ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      }`}>
+        {/* Toggle Button - Seamlessly integrated as sidebar extension */}
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="absolute -right-3 top-1/2 -translate-y-1/2 p-2 bg-gradient-to-br from-[#ff4500] to-[#ff6b35] hover:from-[#ff6b35] hover:to-[#ff4500] rounded-full transition-all duration-200 hidden lg:flex items-center justify-center shadow-lg hover:shadow-xl z-10 group"
+          title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+        >
+          {sidebarOpen ? (
+            <ChevronLeft className="w-4 h-4 text-white transition-transform group-hover:scale-110" />
+          ) : (
+            <ChevronRight className="w-4 h-4 text-white transition-transform group-hover:scale-110" />
+          )}
+        </button>
+
+        {/* Logo */}
+        <div className={`p-6 border-b border-gray-800 flex-shrink-0 bg-gradient-to-r from-[#ff4500] to-[#ff6b35] transition-all duration-300 ${
+          !sidebarOpen ? 'px-3' : ''
+        }`}>
+          <div className={`transition-all duration-300 ${!sidebarOpen ? 'text-center' : ''}`}>
+            <h1 className={`text-2xl font-bold tracking-tight transition-all duration-300 ${
+              !sidebarOpen ? 'text-xl' : ''
+            }`}>{sidebarOpen ? 'FORHU' : 'F'}</h1>
+            <p className={`text-sm text-orange-100 mt-1 font-medium transition-all duration-300 ${
+              sidebarOpen ? 'opacity-100 h-auto' : 'opacity-0 h-0 overflow-hidden'
+            }`}>Admin Portal</p>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 p-4 overflow-y-auto">
+          <button
+            onClick={() => {
+              setActiveView('dashboard');
+              if (window.innerWidth < 1024) setSidebarOpen(false);
+            }}
+            className={`w-full flex items-center px-4 py-3 rounded-xl mb-2 transition-all duration-200 ${
+              activeView === 'dashboard'
+                ? 'bg-gradient-to-r from-[#ff4500] to-[#ff6b35] text-white shadow-lg shadow-orange-500/50 scale-105'
+                : 'text-gray-300 hover:bg-gray-800/50 hover:scale-105'
+            } ${!sidebarOpen ? 'justify-center px-3' : 'gap-3'}`}
+            title={!sidebarOpen ? 'Dashboard' : ''}
+          >
+            <LayoutDashboard className="w-5 h-5 flex-shrink-0" />
+            <span className={`font-medium whitespace-nowrap transition-all duration-300 ${
+              sidebarOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'
+            }`}>Dashboard</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setActiveView('articles');
+              if (window.innerWidth < 1024) setSidebarOpen(false);
+            }}
+            className={`w-full flex items-center px-4 py-3 rounded-xl mb-2 transition-all duration-200 ${
+              activeView === 'articles'
+                ? 'bg-gradient-to-r from-[#ff4500] to-[#ff6b35] text-white shadow-lg shadow-orange-500/50 scale-105'
+                : 'text-gray-300 hover:bg-gray-800/50 hover:scale-105'
+            } ${!sidebarOpen ? 'justify-center px-3' : 'gap-3'}`}
+            title={!sidebarOpen ? 'Generated Articles' : ''}
+          >
+            <FileText className="w-5 h-5 flex-shrink-0" />
+            <span className={`font-medium whitespace-nowrap transition-all duration-300 ${
+              sidebarOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'
+            }`}> Generated Articles</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setActiveView('urls');
+              if (window.innerWidth < 1024) setSidebarOpen(false);
+            }}
+            className={`w-full flex items-center px-4 py-3 rounded-xl mb-2 transition-all duration-200 ${
+              activeView === 'urls'
+                ? 'bg-gradient-to-r from-[#ff4500] to-[#ff6b35] text-white shadow-lg shadow-orange-500/50 scale-105'
+                : 'text-gray-300 hover:bg-gray-800/50 hover:scale-105'
+            } ${!sidebarOpen ? 'justify-center px-3' : 'gap-3'}`}
+            title={!sidebarOpen ? 'Crawl URLs' : ''}
+          >
+            <LinkIcon className="w-5 h-5 flex-shrink-0" />
+            <span className={`font-medium whitespace-nowrap transition-all duration-300 ${
+              sidebarOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'
+            }`}>Crawl URLs</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setActiveView('crawled-articles');
+              if (window.innerWidth < 1024) setSidebarOpen(false);
+            }}
+            className={`w-full flex items-center px-4 py-3 rounded-xl mb-2 transition-all duration-200 ${
+              activeView === 'crawled-articles'
+                ? 'bg-gradient-to-r from-[#ff4500] to-[#ff6b35] text-white shadow-lg shadow-orange-500/50 scale-105'
+                : 'text-gray-300 hover:bg-gray-800/50 hover:scale-105'
+            } ${!sidebarOpen ? 'justify-center px-3' : 'gap-3'}`}
+            title={!sidebarOpen ? 'Crawled Articles' : ''}
+          >
+            <Database className="w-5 h-5 flex-shrink-0" />
+            <span className={`font-medium whitespace-nowrap transition-all duration-300 ${
+              sidebarOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'
+            }`}>Crawled Articles</span>
+          </button>
+        </nav>
+
+        {/* Admin Details & Actions - Sticky at bottom */}
+        <div className="sticky bottom-0 p-4 border-t border-gray-800 bg-gradient-to-b from-black to-gray-900 flex-shrink-0 mt-auto">
+          <div className={`transition-all duration-300 ease-in-out ${
+            sidebarOpen ? 'opacity-100 max-h-40 mb-3' : 'opacity-0 max-h-0 mb-0 overflow-hidden'
+          }`}>
+            <div className="mb-3 p-3 bg-gray-800/50 rounded-lg backdrop-blur-sm">
+              <p className="text-sm font-medium text-white">{user?.name}</p>
+              <p className="text-xs text-gray-400">{user?.email}</p>
+            </div>
+            <a
+              href="/"
+              className="block w-full text-center px-4 py-2.5 bg-gradient-to-r from-gray-800 to-gray-700 hover:from-gray-700 hover:to-gray-600 rounded-lg text-sm transition-all duration-200 font-medium shadow-md hover:shadow-lg"
+            >
+              View Site
+            </a>
+          </div>
+          <button
+            onClick={handleLogout}
+            className={`w-full flex items-center rounded-lg text-sm transition-all duration-300 ease-in-out font-medium shadow-md hover:shadow-lg bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 ${
+              sidebarOpen ? 'justify-center gap-2 px-4 py-2.5' : 'justify-center px-0 py-2.5'
+            }`}
+            title={!sidebarOpen ? 'Logout' : ''}
+          >
+            <LogOut className="w-4 h-4 flex-shrink-0" />
+            <span className={`whitespace-nowrap transition-all duration-300 ease-in-out ${
+              sidebarOpen ? 'opacity-100 max-w-[100px]' : 'opacity-0 max-w-0 overflow-hidden'
+            }`}>Logout</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="overflow-y-auto h-screen flex-1">
+        {/* Header */}
+        <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+          <div className="px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="p-2.5 bg-gradient-to-br from-gray-100 to-gray-50 hover:from-[#ff4500] hover:to-[#ff6b35] border-2 border-gray-200 hover:border-[#ff4500] rounded-xl transition-all duration-200 lg:hidden shadow-md hover:shadow-lg group"
+              >
+                <Menu className="w-6 h-6 text-gray-700 group-hover:text-white transition-colors" />
+              </button>
+              <div className="flex-1">
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                  {activeView === 'dashboard' && 'Dashboard Overview'}
+                  {activeView === 'articles' && ' Generated Article Management'}
+                  {activeView === 'urls' && 'Crawl URL Management'}
+                  {activeView === 'crawled-articles' && 'Crawled Articles'}
+                </h2>
+                <p className="text-xs sm:text-sm text-gray-600 mt-1 lg:mt-2 font-medium">
+                  {activeView === 'dashboard' && 'Monitor your content performance and analytics'}
+                  {activeView === 'articles' && 'Manage articles and blogs across all categories'}
+                  {activeView === 'urls' && 'Configure web crawling sources for AI content generation'}
+                  {activeView === 'crawled-articles' && 'View and manage articles generated from crawl URLs'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="p-4 sm:p-6 lg:p-8">
+          {/* Dashboard View */}
+          {activeView === 'dashboard' && (
+            <DashboardView articles={articles} urls={urls} />
+          )}
+
+          {/* Articles View */}
+          {activeView === 'articles' && (
+            <ArticlesView
+              articles={articles}
+              filteredArticles={filteredArticles}
+              loading={loading}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              categoryFilter={categoryFilter}
+              setCategoryFilter={setCategoryFilter}
+              typeFilter={typeFilter}
+              setTypeFilter={setTypeFilter}
+              handleCreateNew={handleCreateNew}
+              handleEdit={handleEdit}
+              handleDelete={handleDelete}
+            />
+          )}
+
+          {/* URLs View */}
+          {activeView === 'urls' && (
+            <UrlsView
+              urls={urls}
+              handleCreateUrl={handleCreateUrl}
+              handleEditUrl={handleEditUrl}
+              handleDeleteUrl={handleDeleteUrl}
+              handleToggleUrlStatus={handleToggleUrlStatus}
+              handleCrawlNow={handleCrawlNow}
+            />
+          )}
+
+          {/* Crawled Articles View */}
+          {activeView === 'crawled-articles' && (
+            <CrawledArticlesView
+              articles={crawledArticles}
+              filteredArticles={filteredCrawledArticles}
+              loading={loading}
+              statusFilter={crawledStatusFilter}
+              setStatusFilter={setCrawledStatusFilter}
+            />
+          )}
+        </div>
+      </main>
+
+      {/* Article Form Modal */}
+      {showModal && (
+        <ArticleFormModal
+          article={editingArticle}
+          onClose={() => {
+            setShowModal(false);
+            setEditingArticle(null);
+          }}
+          onSuccess={() => {
+            setShowModal(false);
+            setEditingArticle(null);
+            loadArticles();
+          }}
+        />
+      )}
+
+      {/* URL Form Modal */}
+      {showUrlModal && (
+        <UrlFormModal
+          url={editingUrl}
+          onClose={() => {
+            setShowUrlModal(false);
+            setEditingUrl(null);
+          }}
+          onSuccess={(newUrl) => {
+            if (editingUrl) {
+              setUrls(urls.map((u) => (u.id === editingUrl.id ? newUrl : u)));
+              toast.success('Crawl URL updated successfully');
+            } else {
+              setUrls([...urls, { ...newUrl, id: Date.now().toString(), createdAt: new Date().toISOString(), articlesGenerated: 0 }]);
+              toast.success('Crawl URL added successfully');
+            }
+            setShowUrlModal(false);
+            setEditingUrl(null);
+          }}
+        />
+      )}
+
+      {/* Delete Article Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8 transform transition-all animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-center w-16 h-16 mx-auto bg-red-100 rounded-full mb-4">
+              <Trash2 className="w-8 h-8 text-red-600" />
+            </div>
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 text-center mb-2">
+              Delete Article?
+            </h3>
+            <p className="text-gray-600 text-center mb-6">
+              Are you sure you want to delete this article? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={cancelDelete}
+                className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all duration-200 hover:scale-105"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-105 shadow-lg shadow-red-500/30"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete URL Confirmation Modal */}
+      {deleteUrlModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8 transform transition-all animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-center w-16 h-16 mx-auto bg-red-100 rounded-full mb-4">
+              <Trash2 className="w-8 h-8 text-red-600" />
+            </div>
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 text-center mb-2">
+              Delete Crawl URL?
+            </h3>
+            <p className="text-gray-600 text-center mb-6">
+              Are you sure you want to delete this crawl URL? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={cancelDeleteUrl}
+                className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all duration-200 hover:scale-105"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteUrl}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-105 shadow-lg shadow-red-500/30"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Dashboard View Component
+function DashboardView({ articles, urls }: { articles: Article[]; urls: CrawlURL[] }) {
+  // Mock AI article generation data for the past 14 days
+  const aiGenerationData = [
+    { date: 'Feb 13', news: 8, blog: 5, total: 13 },
+    { date: 'Feb 14', news: 6, blog: 4, total: 10 },
+    { date: 'Feb 15', news: 10, blog: 6, total: 16 },
+    { date: 'Feb 16', news: 12, blog: 7, total: 19 },
+    { date: 'Feb 17', news: 9, blog: 5, total: 14 },
+    { date: 'Feb 18', news: 11, blog: 6, total: 17 },
+    { date: 'Feb 19', news: 13, blog: 8, total: 21 },
+    { date: 'Feb 20', news: 15, blog: 9, total: 24 },
+    { date: 'Feb 21', news: 12, blog: 7, total: 19 },
+    { date: 'Feb 22', news: 8, blog: 5, total: 13 },
+    { date: 'Feb 23', news: 16, blog: 10, total: 26 },
+    { date: 'Feb 24', news: 18, blog: 11, total: 29 },
+    { date: 'Feb 25', news: 14, blog: 8, total: 22 },
+    { date: 'Feb 26', news: 17, blog: 10, total: 27 },
+  ];
+
+  // Mock source performance data based on crawl URLs
+  const sourcePerformanceData = [
+    { source: 'TechCrunch', articles: 45, successRate: 92 },
+    { source: 'Reuters Business', articles: 38, successRate: 88 },
+    { source: 'Bloomberg', articles: 42, successRate: 95 },
+    { source: 'The Verge', articles: 32, successRate: 85 },
+    { source: 'WSJ Markets', articles: 28, successRate: 90 },
+    { source: 'BBC News', articles: 25, successRate: 87 },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-200/50 p-4 sm:p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wide">Total Articles</p>
+              <p className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mt-2">{articles.length}</p>
+            </div>
+            <div className="p-3 sm:p-4 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl">
+              <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-gray-700" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-2xl shadow-lg border border-blue-200/50 p-4 sm:p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs sm:text-sm font-semibold text-blue-600 uppercase tracking-wide">News Articles</p>
+              <p className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mt-2">
+                {articles.filter((a) => a.type === 'news').length}
+              </p>
+            </div>
+            <div className="p-3 sm:p-4 bg-gradient-to-br from-blue-200 to-blue-300 rounded-xl">
+              <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-blue-700" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-2xl shadow-lg border border-purple-200/50 p-4 sm:p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs sm:text-sm font-semibold text-purple-600 uppercase tracking-wide">Blog Posts</p>
+              <p className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent mt-2">
+                {articles.filter((a) => a.type === 'blog').length}
+              </p>
+            </div>
+            <div className="p-3 sm:p-4 bg-gradient-to-br from-purple-200 to-purple-300 rounded-xl">
+              <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-purple-700" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-2xl shadow-lg border border-orange-200/50 p-4 sm:p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs sm:text-sm font-semibold text-[#ff4500] uppercase tracking-wide">Active URLs</p>
+              <p className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-[#ff4500] to-[#ff6b35] bg-clip-text text-transparent mt-2">
+                {urls.filter((u) => u.status === 'active').length}
+              </p>
+            </div>
+            <div className="p-3 sm:p-4 bg-gradient-to-br from-orange-200 to-orange-300 rounded-xl">
+              <LinkIcon className="w-6 h-6 sm:w-8 sm:h-8 text-orange-700" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Traffic Analytics Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-2xl shadow-lg border border-emerald-200/50 p-4 sm:p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs sm:text-sm font-semibold text-emerald-600 uppercase tracking-wide">Total Visitors</p>
+              <p className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-800 bg-clip-text text-transparent mt-2">
+                48.2K
+              </p>
+              <p className="text-xs text-emerald-600 mt-2 flex items-center gap-1">
+                <TrendingUp className="w-3 h-3" />
+                <span className="font-semibold">+12.5%</span> from last week
+              </p>
+            </div>
+            <div className="p-3 sm:p-4 bg-gradient-to-br from-emerald-200 to-emerald-300 rounded-xl">
+              <Users className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-700" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-sky-50 to-sky-100/50 rounded-2xl shadow-lg border border-sky-200/50 p-4 sm:p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs sm:text-sm font-semibold text-sky-600 uppercase tracking-wide">Page Views</p>
+              <p className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-sky-600 to-sky-800 bg-clip-text text-transparent mt-2">
+                96.4K
+              </p>
+              <p className="text-xs text-sky-600 mt-2 flex items-center gap-1">
+                <TrendingUp className="w-3 h-3" />
+                <span className="font-semibold">+18.2%</span> from last week
+              </p>
+            </div>
+            <div className="p-3 sm:p-4 bg-gradient-to-br from-sky-200 to-sky-300 rounded-xl">
+              <Eye className="w-6 h-6 sm:w-8 sm:h-8 text-sky-700" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-violet-50 to-violet-100/50 rounded-2xl shadow-lg border border-violet-200/50 p-4 sm:p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs sm:text-sm font-semibold text-violet-600 uppercase tracking-wide">Avg. Session</p>
+              <p className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-violet-600 to-violet-800 bg-clip-text text-transparent mt-2">
+                3m 24s
+              </p>
+              <p className="text-xs text-violet-600 mt-2 flex items-center gap-1">
+                <TrendingUp className="w-3 h-3" />
+                <span className="font-semibold">+8.4%</span> from last week
+              </p>
+            </div>
+            <div className="p-3 sm:p-4 bg-gradient-to-br from-violet-200 to-violet-300 rounded-xl">
+              <BarChart3 className="w-6 h-6 sm:w-8 sm:h-8 text-violet-700" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* AI Analytics Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* AI Article Generation Timeline */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-6 sm:p-8 hover:shadow-xl transition-shadow duration-300">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-[#ff4500]" />
+              <h3 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">AI Generation Timeline</h3>
+            </div>
+            <div className="px-3 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-semibold">
+              Last 14 days
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={aiGenerationData}>
+              <defs>
+                <linearGradient id="colorNews" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="colorBlog" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#a855f7" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis dataKey="date" stroke="#9ca3af" style={{ fontSize: '11px' }} />
+              <YAxis stroke="#9ca3af" style={{ fontSize: '12px' }} />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'white', 
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                }}
+              />
+              <Legend wrapperStyle={{ fontSize: '12px' }} />
+              <Area type="monotone" dataKey="news" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorNews)" name="News Articles" />
+              <Area type="monotone" dataKey="blog" stroke="#a855f7" strokeWidth={2} fillOpacity={1} fill="url(#colorBlog)" name="Blog Posts" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Source Performance Chart */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-6 sm:p-8 hover:shadow-xl transition-shadow duration-300">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <Database className="w-5 h-5 text-[#ff4500]" />
+              <h3 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">Source Performance</h3>
+            </div>
+            <div className="px-3 py-1 bg-orange-100 text-[#ff4500] rounded-lg text-xs font-semibold">
+              Top 6 Sources
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={sourcePerformanceData} layout="horizontal">
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis type="number" stroke="#9ca3af" style={{ fontSize: '12px' }} />
+              <YAxis dataKey="source" type="category" stroke="#9ca3af" style={{ fontSize: '11px' }} width={110} />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'white', 
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                }}
+              />
+              <Bar dataKey="articles" fill="#ff4500" radius={[0, 8, 8, 0]} name="Articles Generated" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Recent Articles */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-8 hover:shadow-xl transition-shadow duration-300">
+        <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-6">Recent Articles</h3>
+        <div className="space-y-4">
+          {articles.slice(0, 5).map((article) => (
+            <div key={article.id} className="flex items-center gap-4 pb-4 border-b border-gray-100 last:border-0 last:pb-0 hover:bg-gray-50 p-3 rounded-xl transition-all duration-200">
+              <img src={article.image} alt="" className="w-20 h-20 object-cover rounded-xl shadow-md" />
+              <div className="flex-1">
+                <h4 className="font-semibold text-gray-900 line-clamp-1">{article.title}</h4>
+                <p className="text-sm text-gray-500 mt-1.5">{article.category} • {article.readTime}</p>
+              </div>
+              <span className={`px-4 py-1.5 rounded-full text-xs font-semibold shadow-sm ${
+                article.type === 'news' ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white' : 'bg-gradient-to-r from-purple-500 to-purple-600 text-white'
+              }`}>
+                {article.type}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Articles View Component
+function ArticlesView({
+  articles,
+  filteredArticles,
+  loading,
+  searchQuery,
+  setSearchQuery,
+  categoryFilter,
+  setCategoryFilter,
+  typeFilter,
+  setTypeFilter,
+  handleCreateNew,
+  handleEdit,
+  handleDelete,
+}: any) {
+  return (
+    <div className="space-y-6">
+      {/* Actions Bar */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-6 hover:shadow-xl transition-shadow duration-300">
+        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+          <div className="relative flex-1 w-full lg:max-w-md">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search articles..."
+              className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ff4500] focus:border-[#ff4500] outline-none transition-all duration-200 bg-gray-50 hover:bg-white"
+            />
+          </div>
+
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3 items-stretch sm:items-center">
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-gray-500" />
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value as any)}
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ff4500] focus:border-[#ff4500] outline-none text-sm font-medium bg-gray-50 hover:bg-white transition-all duration-200"
+              >
+                <option value="all">All Types</option>
+                <option value="news">News</option>
+                <option value="blog">Blog</option>
+              </select>
+            </div>
+
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="px-3 sm:px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ff4500] focus:border-[#ff4500] outline-none text-sm font-medium bg-gray-50 hover:bg-white transition-all duration-200"
+            >
+              <option value="all">All Categories</option>
+              {ALL_CATEGORIES.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+
+            <button
+              onClick={handleCreateNew}
+              className="flex items-center justify-center gap-2 bg-gradient-to-r from-[#ff4500] to-[#ff6b35] text-white px-4 sm:px-6 py-2.5 rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200 font-semibold shadow-md"
+            >
+              <Plus className="w-5 h-5" />
+              <span className="whitespace-nowrap">Create New</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-200/50 p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Total Articles</h3>
+          <p className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">{articles.length}</p>
+        </div>
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-2xl shadow-lg border border-blue-200/50 p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <h3 className="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-2">News Articles</h3>
+          <p className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+            {articles.filter((a: Article) => a.type === 'news').length}
+          </p>
+        </div>
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-2xl shadow-lg border border-purple-200/50 p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <h3 className="text-sm font-semibold text-purple-600 uppercase tracking-wide mb-2">Blog Posts</h3>
+          <p className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
+            {articles.filter((a: Article) => a.type === 'blog').length}
+          </p>
+        </div>
+      </div>
+
+      {/* Articles Table */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden hover:shadow-xl transition-shadow duration-300">
+        <div className="overflow-x-auto">
+          {loading ? (
+            <div className="p-12 text-center">
+              <Loader2 className="w-12 h-12 text-[#ff4500] animate-spin mx-auto mb-4" />
+              <p className="text-gray-600 font-medium">Loading articles...</p>
+            </div>
+          ) : filteredArticles.length === 0 ? (
+            <div className="p-12 text-center">
+              <p className="text-gray-600 mb-4 font-medium">No articles found</p>
+              <button
+                onClick={handleCreateNew}
+                className="text-[#ff4500] hover:text-[#e63e00] font-semibold"
+              >
+                Create your first article
+              </button>
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
+                <tr>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    Title
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    Category
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    AI
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    Date
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-100">
+                {filteredArticles.map((article: Article) => (
+                  <tr key={article.id} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-transparent transition-all duration-200">
+                    <td className="px-3 sm:px-6 py-4 sm:py-5">
+                      <div className="flex items-start gap-2 sm:gap-3">
+                        <img
+                          src={article.image}
+                          alt=""
+                          className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-xl shadow-md flex-shrink-0"
+                        />
+                        <div>
+                          <p className="text-xs sm:text-sm font-semibold text-gray-900 line-clamp-2">
+                            {article.title}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1 sm:mt-1.5 font-medium">
+                            {article.readTime}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap">
+                      <span className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 shadow-sm">
+                        {article.category}
+                      </span>
+                    </td>
+                    <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap">
+                      <span
+                        className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold shadow-sm ${
+                          article.type === 'news'
+                            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+                            : 'bg-gradient-to-r from-purple-500 to-purple-600 text-white'
+                        }`}
+                      >
+                        {article.type}
+                      </span>
+                    </td>
+                    <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap">
+                      {article.aiGenerated && (
+                        <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-[#ff4500] animate-pulse" />
+                      )}
+                    </td>
+                    <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap text-xs sm:text-sm text-gray-600 font-medium">
+                      {new Date(article.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap text-right text-sm font-medium">
+                      <button
+                        onClick={() => handleEdit(article)}
+                        className="inline-flex items-center justify-center p-2 text-blue-600 hover:bg-blue-50 rounded-lg mr-2 transition-all duration-200 hover:scale-110"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(article.id)}
+                        className="inline-flex items-center justify-center p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 hover:scale-110"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// URLs View Component
+function UrlsView({
+  urls,
+  handleCreateUrl,
+  handleEditUrl,
+  handleDeleteUrl,
+  handleToggleUrlStatus,
+  handleCrawlNow,
+}: any) {
+  return (
+    <div className="space-y-6">
+      {/* Header Actions */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-4 sm:p-6 hover:shadow-xl transition-shadow duration-300">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <p className="text-xs sm:text-sm text-gray-600 font-medium">
+              Manage web crawling sources to automatically generate AI-powered content
+            </p>
+          </div>
+          <button
+            onClick={handleCreateUrl}
+            className="flex items-center justify-center gap-2 bg-gradient-to-r from-[#ff4500] to-[#ff6b35] text-white px-4 sm:px-6 py-2.5 rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200 font-semibold shadow-md whitespace-nowrap"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="hidden sm:inline">Add Crawl URL</span>
+            <span className="sm:hidden">Add URL</span>
+          </button>
+        </div>
+      </div>
+
+      {/* URLs Table */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden hover:shadow-xl transition-shadow duration-300">
+        <div className="overflow-x-auto">
+          {urls.length === 0 ? (
+            <div className="p-12 text-center">
+              <LinkIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-600 mb-4 font-medium">No crawl URLs configured</p>
+              <button
+                onClick={handleCreateUrl}
+                className="text-[#ff4500] hover:text-[#e63e00] font-semibold"
+              >
+                Add your first crawl URL
+              </button>
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
+                <tr>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    URL
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider hidden md:table-cell">
+                    Last Crawled
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider hidden lg:table-cell">
+                    Articles
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-100">
+                {urls.map((url: CrawlURL) => (
+                  <tr key={url.id} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-transparent transition-all duration-200">
+                    <td className="px-3 sm:px-6 py-4 sm:py-5">
+                      <div>
+                        <p className="text-xs sm:text-sm font-semibold text-gray-900 max-w-[150px] sm:max-w-md truncate">
+                          {url.url}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1 sm:mt-1.5 font-medium">
+                          Added {new Date(url.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </td>
+                    <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold shadow-sm ${
+                        url.type === 'news' ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white' : 'bg-gradient-to-r from-green-500 to-green-600 text-white'
+                      }`}>
+                        {url.type}
+                      </span>
+                    </td>
+                    <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold shadow-sm ${
+                        url.status === 'active' ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' : 'bg-gradient-to-r from-gray-400 to-gray-500 text-white'
+                      }`}>
+                        {url.status}
+                      </span>
+                    </td>
+                    <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap text-xs sm:text-sm text-gray-600 font-medium hidden md:table-cell">
+                      {url.lastCrawled
+                        ? new Date(url.lastCrawled).toLocaleString()
+                        : 'Never'}
+                    </td>
+                    <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap hidden lg:table-cell">
+                      <span className="text-sm font-bold text-gray-900">
+                        {url.articlesGenerated}
+                      </span>
+                    </td>
+                    <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => handleCrawlNow(url.id)}
+                          className="inline-flex items-center justify-center p-2 text-[#ff4500] hover:bg-orange-50 rounded-lg transition-all duration-200 hover:scale-110"
+                          title="Crawl now"
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleToggleUrlStatus(url.id)}
+                          className={`inline-flex items-center justify-center p-2 rounded-lg transition-all duration-200 hover:scale-110 ${url.status === 'active' ? 'text-yellow-600 hover:bg-yellow-50' : 'text-green-600 hover:bg-green-50'}`}
+                          title={url.status === 'active' ? 'Pause' : 'Resume'}
+                        >
+                          {url.status === 'active' ? (
+                            <Pause className="w-4 h-4" />
+                          ) : (
+                            <Play className="w-4 h-4" />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleEditUrl(url)}
+                          className="inline-flex items-center justify-center p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 hover:scale-110"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteUrl(url.id)}
+                          className="inline-flex items-center justify-center p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 hover:scale-110"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Crawled Articles View Component
+function CrawledArticlesView({
+  articles,
+  filteredArticles,
+  loading,
+  statusFilter,
+  setStatusFilter,
+}: any) {
+  const [selectedArticles, setSelectedArticles] = useState<string[]>([]);
+
+  const handleGenerateArticle = (article: CrawledArticle) => {
+    toast.success(`Generating AI article from: ${article.title}`, {
+      description: 'This will use the crawled content as context for AI generation.',
+    });
+    // TODO: Implement actual AI generation logic
+  };
+
+  const handleBulkGenerate = () => {
+    const selectedPendingArticles = articles.filter(
+      (a: CrawledArticle) => selectedArticles.includes(a.id) && a.generationStatus === 'pending'
+    );
+    toast.success(`Initiating bulk generation for ${selectedPendingArticles.length} articles`, {
+      description: 'AI will process selected articles in the background.',
+    });
+    setSelectedArticles([]);
+    // TODO: Implement actual bulk generation logic
+  };
+
+  const handleSelectAll = () => {
+    const pendingIds = filteredArticles
+      .filter((a: CrawledArticle) => a.generationStatus === 'pending')
+      .map((a: CrawledArticle) => a.id);
+    
+    if (selectedArticles.length === pendingIds.length && pendingIds.length > 0) {
+      setSelectedArticles([]);
+    } else {
+      setSelectedArticles(pendingIds);
+    }
+  };
+
+  const handleToggleArticle = (articleId: string) => {
+    setSelectedArticles(prev => 
+      prev.includes(articleId) 
+        ? prev.filter(id => id !== articleId)
+        : [...prev, articleId]
+    );
+  };
+
+  const pendingCount = articles.filter((a: CrawledArticle) => a.generationStatus === 'pending').length;
+  const selectedPendingCount = selectedArticles.filter(id => {
+    const article = articles.find((a: CrawledArticle) => a.id === id);
+    return article && article.generationStatus === 'pending';
+  }).length;
+
+  return (
+    <div className="space-y-6">
+      {/* Header Actions with Filters */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-6 hover:shadow-xl transition-shadow duration-300">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+          <div className="flex-1">
+            <div className="mb-3">
+              <p className="text-sm text-gray-600 font-medium">
+                View and manage articles crawled from web sources. Click on pending article rows or use checkboxes to select 2+ articles for bulk generation.
+              </p>
+              {selectedPendingCount >= 1 && selectedPendingCount < 2 && (
+                <p className="text-xs text-yellow-600 font-semibold mt-1 flex items-center gap-1">
+                  <span>⚠️</span>
+                  <span>Select at least one more article to enable bulk generation (minimum 2 required)</span>
+                </p>
+              )}
+            </div>
+            
+            {/* Filters */}
+            <div className="flex flex-wrap gap-3 items-center">
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4 text-gray-500" />
+                <span className="text-xs font-semibold text-gray-500 uppercase">Status:</span>
+              </div>
+              <button
+                onClick={() => setStatusFilter('all')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                  statusFilter === 'all'
+                    ? 'bg-gradient-to-r from-gray-700 to-gray-900 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                All ({articles.length})
+              </button>
+              <button
+                onClick={() => setStatusFilter('pending')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                  statusFilter === 'pending'
+                    ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white shadow-md'
+                    : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'
+                }`}
+              >
+                Pending ({articles.filter((a: CrawledArticle) => a.generationStatus === 'pending').length})
+              </button>
+              <button
+                onClick={() => setStatusFilter('processing')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                  statusFilter === 'processing'
+                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md'
+                    : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                }`}
+              >
+                Processing ({articles.filter((a: CrawledArticle) => a.generationStatus === 'processing').length})
+              </button>
+              <button
+                onClick={() => setStatusFilter('generated')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                  statusFilter === 'generated'
+                    ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-md'
+                    : 'bg-green-50 text-green-700 hover:bg-green-100'
+                }`}
+              >
+                Generated ({articles.filter((a: CrawledArticle) => a.generationStatus === 'generated').length})
+              </button>
+            </div>
+          </div>
+          
+          {/* Selection Actions */}
+          <div className="flex items-center gap-3">
+            {selectedPendingCount > 0 && (
+              <div className="px-4 py-2 bg-blue-50 text-blue-700 rounded-xl text-sm font-semibold border border-blue-200">
+                {selectedPendingCount} Selected
+              </div>
+            )}
+            <button
+              onClick={handleBulkGenerate}
+              disabled={selectedPendingCount < 2}
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl transition-all duration-200 font-semibold shadow-md whitespace-nowrap ${
+                selectedPendingCount >= 2
+                  ? 'bg-gradient-to-r from-[#ff4500] to-[#ff6b35] text-white hover:shadow-lg hover:scale-105 cursor-pointer'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+              }`}
+            >
+              <Sparkles className={`w-5 h-5 ${selectedPendingCount >= 2 ? 'animate-pulse' : ''}`} />
+              <span>Generate Selected {selectedPendingCount > 0 ? `(${selectedPendingCount})` : ''}</span>
+            </button>
+            {selectedPendingCount > 0 && (
+              <button
+                onClick={() => setSelectedArticles([])}
+                className="flex items-center gap-2 bg-gray-200 text-gray-700 px-4 py-3 rounded-xl hover:bg-gray-300 transition-all duration-200 font-semibold"
+              >
+                <X className="w-4 h-4" />
+                <span>Clear</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-200/50 p-5 hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Total Crawled</h3>
+          <p className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">{articles.length}</p>
+        </div>
+        <div className="bg-gradient-to-br from-yellow-50 to-yellow-100/50 rounded-2xl shadow-lg border border-yellow-200/50 p-5 hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <h3 className="text-xs font-semibold text-yellow-700 uppercase tracking-wide mb-1.5">Pending</h3>
+          <p className="text-3xl font-bold bg-gradient-to-r from-yellow-600 to-yellow-800 bg-clip-text text-transparent">
+            {articles.filter((a: CrawledArticle) => a.generationStatus === 'pending').length}
+          </p>
+        </div>
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-2xl shadow-lg border border-blue-200/50 p-5 hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <h3 className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1.5">Processing</h3>
+          <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+            {articles.filter((a: CrawledArticle) => a.generationStatus === 'processing').length}
+          </p>
+        </div>
+        <div className="bg-gradient-to-br from-green-50 to-green-100/50 rounded-2xl shadow-lg border border-green-200/50 p-5 hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <h3 className="text-xs font-semibold text-green-600 uppercase tracking-wide mb-1.5">Generated</h3>
+          <p className="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">
+            {articles.filter((a: CrawledArticle) => a.generationStatus === 'generated').length}
+          </p>
+        </div>
+      </div>
+
+      {/* Info Banner */}
+      {pendingCount > 0 && selectedPendingCount === 0 && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 p-4 rounded-xl shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0">
+              <svg className="w-5 h-5 text-blue-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-blue-800">
+                💡 Tip: Click on article rows or use checkboxes to select 2+ pending articles for bulk generation
+              </p>
+              <p className="text-xs text-blue-600 mt-1">
+                You currently have {pendingCount} pending article{pendingCount !== 1 ? 's' : ''} ready to be generated. Selected articles will have an orange highlight.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Articles Table */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden hover:shadow-xl transition-shadow duration-300">
+        <div className="overflow-x-auto">
+          {loading ? (
+            <div className="p-12 text-center">
+              <Loader2 className="w-12 h-12 text-[#ff4500] animate-spin mx-auto mb-4" />
+              <p className="text-gray-600 font-medium">Loading crawled articles...</p>
+            </div>
+          ) : filteredArticles.length === 0 ? (
+            <div className="p-12 text-center">
+              <p className="text-gray-600 mb-4 font-medium">No articles found for this filter</p>
+              <button
+                onClick={() => setStatusFilter('all')}
+                className="text-[#ff4500] hover:text-[#e63e00] font-semibold text-sm"
+              >
+                View all crawled articles
+              </button>
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
+                <tr>
+                  <th className="px-3 sm:px-4 py-3 sm:py-4 text-center">
+                    <div className="flex items-center justify-center">
+                      <input
+                        type="checkbox"
+                        checked={
+                          filteredArticles.filter((a: CrawledArticle) => a.generationStatus === 'pending').length > 0 &&
+                          selectedArticles.length === filteredArticles.filter((a: CrawledArticle) => a.generationStatus === 'pending').length
+                        }
+                        onChange={handleSelectAll}
+                        className="w-5 h-5 text-[#ff4500] bg-white border-2 border-gray-300 rounded-md focus:ring-2 focus:ring-[#ff4500] focus:ring-offset-2 cursor-pointer transition-all duration-200 hover:border-[#ff4500] checked:bg-[#ff4500] checked:border-[#ff4500]"
+                        title="Select all pending articles"
+                      />
+                    </div>
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    Article Details
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    Category
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider hidden sm:table-cell">
+                    Source
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider hidden lg:table-cell">
+                    Crawled
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-100">
+                {filteredArticles.map((article: CrawledArticle) => (
+                  <tr 
+                    key={article.id} 
+                    onClick={() => article.generationStatus === 'pending' && handleToggleArticle(article.id)}
+                    className={`transition-all duration-200 ${
+                      article.generationStatus === 'pending' 
+                        ? 'cursor-pointer hover:shadow-md' 
+                        : ''
+                    } ${
+                      selectedArticles.includes(article.id) 
+                        ? 'bg-gradient-to-r from-orange-50 to-amber-50 border-l-4 border-[#ff4500] shadow-sm' 
+                        : article.generationStatus === 'pending'
+                        ? 'hover:bg-gradient-to-r hover:from-blue-50 hover:to-transparent'
+                        : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-transparent'
+                    }`}
+                  >
+                    <td className="px-3 sm:px-4 py-4 sm:py-5" onClick={(e) => e.stopPropagation()}>
+                      {article.generationStatus === 'pending' ? (
+                        <div className="flex items-center justify-center">
+                          <input
+                            type="checkbox"
+                            checked={selectedArticles.includes(article.id)}
+                            onChange={() => handleToggleArticle(article.id)}
+                            className="w-5 h-5 text-[#ff4500] bg-white border-2 border-gray-300 rounded-md focus:ring-2 focus:ring-[#ff4500] focus:ring-offset-2 cursor-pointer transition-all duration-200 hover:border-[#ff4500] checked:bg-[#ff4500] checked:border-[#ff4500]"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-5 h-5"></div>
+                      )}
+                    </td>
+                    <td className="px-3 sm:px-6 py-4 sm:py-5">
+                      <div className="flex items-start gap-2 sm:gap-3">
+                        <img
+                          src={article.image}
+                          alt=""
+                          className="w-12 h-12 sm:w-20 sm:h-20 object-cover rounded-xl shadow-md flex-shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs sm:text-sm font-semibold text-gray-900 line-clamp-2 mb-1">
+                            {article.title}
+                          </p>
+                          <p className="text-xs text-gray-500 line-clamp-1 mb-1.5">
+                            {article.excerpt}
+                          </p>
+                          <span className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-xs font-semibold shadow-sm ${
+                            article.type === 'news'
+                              ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+                              : 'bg-gradient-to-r from-purple-500 to-purple-600 text-white'
+                          }`}>
+                            {article.type}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap">
+                      <span className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 shadow-sm">
+                        {article.category}
+                      </span>
+                    </td>
+                    <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold shadow-md ${
+                        article.generationStatus === 'pending'
+                          ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900'
+                          : article.generationStatus === 'processing'
+                          ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+                          : 'bg-gradient-to-r from-green-500 to-green-600 text-white'
+                      }`}>
+                        {article.generationStatus === 'processing' && (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        )}
+                        {article.generationStatus === 'generated' && (
+                          <Sparkles className="w-3 h-3" />
+                        )}
+                        <span className="capitalize">{article.generationStatus}</span>
+                      </span>
+                    </td>
+                    <td className="px-3 sm:px-6 py-4 sm:py-5 hidden sm:table-cell">
+                      <a 
+                        href={article.sourceUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 hover:text-blue-800 hover:underline font-medium flex items-center gap-1 max-w-[150px] truncate"
+                        title={article.sourceUrl}
+                      >
+                        <LinkIcon className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">View Source</span>
+                      </a>
+                    </td>
+                    <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap hidden lg:table-cell">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs sm:text-sm text-gray-600 font-medium">
+                          {new Date(article.crawledAt).toLocaleDateString()}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          {new Date(article.crawledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-3 sm:px-6 py-4 sm:py-5 whitespace-nowrap text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {article.generationStatus === 'pending' ? (
+                          <button
+                            onClick={() => handleGenerateArticle(article)}
+                            className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-[#ff4500] to-[#ff6b35] text-white rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200 font-semibold text-xs sm:text-sm shadow-md group"
+                            title="Generate AI Article from this content"
+                          >
+                            <Sparkles className="w-4 h-4 animate-pulse" />
+                            <span className="hidden sm:inline">Generate</span>
+                          </button>
+                        ) : article.generationStatus === 'processing' ? (
+                          <div className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-blue-100 text-blue-700 rounded-xl text-xs sm:text-sm font-semibold">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span className="hidden sm:inline">Processing...</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-green-100 text-green-700 rounded-xl text-xs sm:text-sm font-semibold">
+                            <Sparkles className="w-4 h-4" />
+                            <span className="hidden sm:inline">Completed</span>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Article Form Modal Component
+function ArticleFormModal({
+  article,
+  onClose,
+  onSuccess,
+}: {
+  article: Article | null;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [formData, setFormData] = useState({
+    type: article?.type || 'news',
+    category: article?.category || 'Breaking / Trending',
+    title: article?.title || '',
+    description: article?.description || '',
+    content: article?.content || '',
+    image: article?.image || '',
+    readTime: article?.readTime || '5 min read',
+    aiGenerated: article?.aiGenerated || false,
+    featured: article?.featured || false,
+    authorName: article?.author.name || 'Admin',
+    authorRole: article?.author.role || 'Content Editor',
+  });
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    setSaving(true);
+
+    try {
+      const articleData = {
+        ...formData,
+        author: {
+          name: formData.authorName,
+          avatar: `https://i.pravatar.cc/40?img=${Math.floor(Math.random() * 70)}`,
+          role: formData.authorRole,
+        },
+      };
+
+      if (article) {
+        await articlesApi.updateArticle(article.id, articleData, '');
+        toast.success('Article updated successfully');
+      } else {
+        await articlesApi.createArticle(articleData, '');
+        toast.success('Article created successfully');
+      }
+
+      onSuccess();
+    } catch (error) {
+      toast.error(article ? 'Failed to update article' : 'Failed to create article');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4">
+      <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-track]:my-2 [&::-webkit-scrollbar-thumb]:bg-gray-400 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-solid [&::-webkit-scrollbar-thumb]:border-white [&::-webkit-scrollbar-thumb]:hover:bg-gray-500">
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+            {article ? 'Edit Article' : 'Create New Article'}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X className="w-5 h-5 sm:w-6 sm:h-6" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Type
+              </label>
+              <select
+                value={formData.type}
+                onChange={(e) =>
+                  setFormData({ ...formData, type: e.target.value as any })
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff4500] focus:border-transparent outline-none"
+              >
+                <option value="news">News</option>
+                <option value="blog">Blog</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Category
+              </label>
+              <select
+                value={formData.category}
+                onChange={(e) =>
+                  setFormData({ ...formData, category: e.target.value })
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff4500] focus:border-transparent outline-none"
+              >
+                {ALL_CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Title
+            </label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
+              required
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff4500] focus:border-transparent outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Description
+            </label>
+            <textarea
+              value={formData.description}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
+              required
+              rows={3}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff4500] focus:border-transparent outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Content
+            </label>
+            <textarea
+              value={formData.content}
+              onChange={(e) =>
+                setFormData({ ...formData, content: e.target.value })
+              }
+              required
+              rows={8}
+              className="w-full px-4 py-2 pr-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff4500] focus:border-transparent outline-none [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-track]:my-1 [&::-webkit-scrollbar-thumb]:bg-gray-400 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-solid [&::-webkit-scrollbar-thumb]:border-white [&::-webkit-scrollbar-thumb]:hover:bg-gray-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Image URL
+            </label>
+            <input
+              type="url"
+              value={formData.image}
+              onChange={(e) =>
+                setFormData({ ...formData, image: e.target.value })
+              }
+              required
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff4500] focus:border-transparent outline-none"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Read Time
+              </label>
+              <input
+                type="text"
+                value={formData.readTime}
+                onChange={(e) =>
+                  setFormData({ ...formData, readTime: e.target.value })
+                }
+                placeholder="5 min read"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff4500] focus:border-transparent outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Author Name
+              </label>
+              <input
+                type="text"
+                value={formData.authorName}
+                onChange={(e) =>
+                  setFormData({ ...formData, authorName: e.target.value })
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff4500] focus:border-transparent outline-none"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Author Role
+            </label>
+            <input
+              type="text"
+              value={formData.authorRole}
+              onChange={(e) =>
+                setFormData({ ...formData, authorRole: e.target.value })
+              }
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff4500] focus:border-transparent outline-none"
+            />
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={formData.aiGenerated}
+                onChange={(e) =>
+                  setFormData({ ...formData, aiGenerated: e.target.checked })
+                }
+                className="w-4 h-4 text-[#ff4500] border-gray-300 rounded focus:ring-[#ff4500]"
+              />
+              <span className="text-sm text-gray-700">AI Generated</span>
+            </label>
+
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={formData.featured}
+                onChange={(e) =>
+                  setFormData({ ...formData, featured: e.target.checked })
+                }
+                className="w-4 h-4 text-[#ff4500] border-gray-300 rounded focus:ring-[#ff4500]"
+              />
+              <span className="text-sm text-gray-700">Featured</span>
+            </label>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 border border-gray-300 rounded-lg text-sm sm:text-base text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-[#ff4500] text-white rounded-lg hover:bg-[#e63e00] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-5 h-5" />
+                  {article ? 'Update' : 'Create'}
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// URL Form Modal Component
+function UrlFormModal({
+  url,
+  onClose,
+  onSuccess,
+}: {
+  url: CrawlURL | null;
+  onClose: () => void;
+  onSuccess: (url: CrawlURL) => void;
+}) {
+  const [formData, setFormData] = useState({
+    url: url?.url || '',
+    category: url?.category || 'Breaking / Trending',
+    type: url?.type || 'news',
+    status: url?.status || 'active',
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSuccess(formData as CrawlURL);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4">
+      <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+            {url ? 'Edit Crawl URL' : 'Add Crawl URL'}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X className="w-5 h-5 sm:w-6 sm:h-6" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              URL
+            </label>
+            <input
+              type="url"
+              value={formData.url}
+              onChange={(e) =>
+                setFormData({ ...formData, url: e.target.value })
+              }
+              required
+              placeholder="https://example.com/feed"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff4500] focus:border-transparent outline-none"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Enter a URL to crawl (RSS feed, website, or API endpoint)
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Category
+              </label>
+              <select
+                value={formData.category}
+                onChange={(e) =>
+                  setFormData({ ...formData, category: e.target.value })
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff4500] focus:border-transparent outline-none"
+              >
+                {ALL_CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Type
+              </label>
+              <select
+                value={formData.type}
+                onChange={(e) =>
+                  setFormData({ ...formData, type: e.target.value as any })
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff4500] focus:border-transparent outline-none"
+              >
+                <option value="news">News</option>
+                <option value="product">Product</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Status
+            </label>
+            <select
+              value={formData.status}
+              onChange={(e) =>
+                setFormData({ ...formData, status: e.target.value as any })
+              }
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff4500] focus:border-transparent outline-none"
+            >
+              <option value="active">Active</option>
+              <option value="paused">Paused</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 border border-gray-300 rounded-lg text-sm sm:text-base text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-[#ff4500] text-white rounded-lg hover:bg-[#e63e00] transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
+            >
+              <Save className="w-4 h-4 sm:w-5 sm:h-5" />
+              {url ? 'Update' : 'Add'} URL
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
