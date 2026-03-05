@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
 
 interface ArticleLinkProps extends LinkProps {
-    articleId: number;
+    articleId: string;
     children: React.ReactNode;
     className?: string;
 }

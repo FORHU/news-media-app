@@ -12,7 +12,7 @@ import { TrendingSidebar } from "@/components/home/trending-sidebar";
 import { FeaturedArticlesSection } from "@/components/home/featured-articles-section";
 import { articlesApi } from "@/lib/api";
 
-export default function ArticlePageClient({ articleId }: { articleId: number }) {
+export default function ArticlePageClient({ articleId }: { articleId: string }) {
   const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
 
   const {
@@ -22,7 +22,7 @@ export default function ArticlePageClient({ articleId }: { articleId: number }) 
   } = useQuery({
     queryKey: ["article", articleId],
     queryFn: () => articlesApi.getArticle(articleId),
-    enabled: Number.isFinite(articleId) && articleId > 0,
+    enabled: Boolean(articleId),
   });
 
   const { data: allArticles = [] } = useQuery({

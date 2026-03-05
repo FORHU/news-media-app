@@ -7,15 +7,15 @@ const sourceCites = [
   { url: "https://nature.com/articles/abc" },
 ];
 
-export async function seedSourceCites(prisma: PrismaClient): Promise<number[]> {
-  const ids: number[] = [];
+export async function seedSourceCites(prisma: PrismaClient): Promise<string[]> {
+  const ids: string[] = [];
   for (const s of sourceCites) {
     const existing = await prisma.sourceCite.findFirst({ where: { url: s.url } });
     if (existing) {
-      ids.push(existing.id);
+      ids.push(String(existing.id));
     } else {
       const created = await prisma.sourceCite.create({ data: { url: s.url } });
-      ids.push(created.id);
+      ids.push(String(created.id));
     }
   }
   return ids;

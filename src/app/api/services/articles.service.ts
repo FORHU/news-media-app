@@ -24,8 +24,8 @@ export const articlesService = {
     });
   },
 
-  async getArticleById(id: number) {
-    if (Number.isNaN(id)) {
+  async getArticleById(id: string) {
+    if (!id || typeof id !== "string") {
       throw new ArticlesServiceError("Invalid id", 400);
     }
 

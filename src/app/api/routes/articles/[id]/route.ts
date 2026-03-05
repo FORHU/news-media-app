@@ -11,9 +11,8 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const numId = parseInt(id, 10);
 
-    const article = await articlesService.getArticleById(numId);
+    const article = await articlesService.getArticleById(id);
     return NextResponse.json(article);
   } catch (error) {
     if (error instanceof ArticlesServiceError) {

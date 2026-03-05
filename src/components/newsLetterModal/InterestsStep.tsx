@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, Check } from "lucide-react";
 
 type CategoryOption = {
-  id: number;
+  id: string;
   name: string;
 };
 
@@ -10,11 +10,11 @@ interface InterestsStepProps {
   categories: CategoryOption[];
   categoriesLoading: boolean;
   categoriesErrorMessage: string;
-  selectedInterests: number[];
+  selectedInterests: string[];
   otpSendError: string;
   isSendingOtp: boolean;
   onBack: () => void;
-  onToggleInterest: (id: number) => void;
+  onToggleInterest: (id: string) => void;
   onSubmit: () => void;
   onCancel: () => void;
 }

@@ -7,17 +7,17 @@ const crawledUrls = [
   { url: "https://example.com/news/science-2024", status: "crawled" },
 ];
 
-export async function seedCrawledUrls(prisma: PrismaClient): Promise<number[]> {
-  const ids: number[] = [];
+export async function seedCrawledUrls(prisma: PrismaClient): Promise<string[]> {
+  const ids: string[] = [];
   for (const c of crawledUrls) {
     const existing = await prisma.crawledUrl.findUnique({ where: { url: c.url } });
     if (existing) {
-      ids.push(existing.id);
+      ids.push(String(existing.id));
     } else {
       const created = await prisma.crawledUrl.create({
         data: { url: c.url, status: c.status },
       });
-      ids.push(created.id);
+      ids.push(String(created.id));
     }
   }
   return ids;

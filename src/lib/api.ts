@@ -12,7 +12,7 @@ export const articlesApi = {
     return res.json();
   },
 
-  async getArticle(id: number): Promise<Article> {
+  async getArticle(id: string): Promise<Article> {
     const res = await fetch(`/api/routes/articles/${id}`);
     if (!res.ok) throw new Error("Failed to fetch article");
     return res.json();

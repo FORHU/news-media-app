@@ -25,7 +25,7 @@ export const articlesRepository = {
     }) as Promise<Article[]>;
   },
 
-  async findById(id: number): Promise<Article | null> {
+  async findById(id: string): Promise<Article | null> {
     return (await prisma.contentArticle.findUnique({
       where: { id },
       include: { category: true },
