@@ -55,7 +55,7 @@ export default function ArticlePageClient({ articleId }: { articleId: string }) 
             className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#ff4500] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to home
+            Back
           </Link>
         </div>
       </div>
