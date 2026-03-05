@@ -9,7 +9,7 @@ import { TrendingProductsSection } from "@/components/home/trending-products-sec
 import { LandingClientWrapper } from "@/components/home/LandingClientWrapper";
 import { articlesService } from "@/app/api/services/articles.service";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function Page(props: {
   searchParams: Promise<{ search?: string; category?: string }>;

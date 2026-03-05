@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
 import { Header } from "@/components/Header";
@@ -14,6 +15,12 @@ import { articlesApi } from "@/lib/api";
 
 export default function ArticlePageClient({ articleId }: { articleId: string }) {
   const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
+  const router = useRouter();
+
+  // Prefetch the home page so "Back to Home" is instant
+  useEffect(() => {
+    router.prefetch('/');
+  }, [router]);
 
   const {
     data: article,
@@ -79,13 +86,14 @@ export default function ArticlePageClient({ articleId }: { articleId: string }) 
     >
       <Header onOpenNewsletter={() => setIsNewsletterOpen(true)} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Link
-          href="/"
+        <button
+          type="button"
+          onClick={() => window.history.length > 1 ? router.back() : router.push('/')}
           className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#ff4500] mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to home
-        </Link>
+        </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">

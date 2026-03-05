@@ -9,7 +9,7 @@ import {
 } from "@/app/api/services/articles.service";
 import ArticlePageClient from "./ArticlePageClient";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 export default async function ArticlePage({
   params,
