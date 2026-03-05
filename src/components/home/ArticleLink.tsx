@@ -29,15 +29,20 @@ export function ArticleLink({
                 const entry = entries[0];
                 if (entry.isIntersecting && !prefetched.current) {
                     prefetched.current = true;
-                    queryClient.prefetchQuery({
-                        queryKey: ["article", articleId],
-                        queryFn: () => articlesApi.getArticle(articleId),
-                        staleTime: 5 * 60 * 1000, // 5 minutes
-                    });
+                    // Small random stagger (0-500ms) so all visible articles
+                    // don't all hit the DB at the exact same moment
+                    const delay = Math.random() * 500;
+                    setTimeout(() => {
+                        queryClient.prefetchQuery({
+                            queryKey: ["article", articleId],
+                            queryFn: () => articlesApi.getArticle(articleId),
+                            staleTime: 5 * 60 * 1000, // 5 minutes
+                        });
+                    }, delay);
                     observer.disconnect();
                 }
             },
-            { rootMargin: "200px" } // Start prefetching 200px before it enters the viewport
+            { rootMargin: "200px" }
         );
 
         observer.observe(ref.current);
