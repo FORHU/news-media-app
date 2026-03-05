@@ -64,7 +64,7 @@ export const newsletterRepository = {
     `;
   },
 
-  async replacePreferences(subscriberId: number, categoryIds: number[]) {
+  async replacePreferences(subscriberId: string, categoryIds: string[]) {
     await prisma.subscriberPreference.deleteMany({
       where: { subscriberId },
     });
