@@ -24,7 +24,7 @@ export const newsletterVerifyOtpSchema = z.object({
     .length(6, "Code must be 6 digits")
     .regex(/^\d{6}$/, "Code must contain only digits"),
   categories: z
-    .array(z.number().int().positive())
+    .array(z.string())
     .optional()
     .default([]),
 });

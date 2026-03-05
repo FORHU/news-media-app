@@ -68,7 +68,7 @@ export const newsletterService = {
   async verifyOtp(
     email: string,
     code: string,
-    categories: number[]
+    categories: string[]
   ): Promise<void> {
     await prisma.$transaction(async (tx) => {
       const subscriber = await tx.subscriber.findUnique({
