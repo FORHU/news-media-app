@@ -37,13 +37,8 @@ export default async function ArticlePage({
     // We fall back to client fetching so users still get a usable screen.
   }
 
-  try {
-    const articles = await articlesService.getArticles({ limit: 50 });
-    queryClient.setQueryData(["articles"], articles);
-  } catch {
-    // Optional hydration; ignore and let the client fetch if needed.
-  }
-
+  // We only fetch the main article on the server for SEO and initial render.
+  // Secondary content (sidebar/recommendations) will be fetched on the client.
   const dehydratedState = dehydrate(queryClient);
 
   return (

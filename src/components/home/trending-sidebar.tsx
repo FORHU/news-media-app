@@ -1,5 +1,5 @@
-import Link from "next/link";
 import type { Article } from "@/lib/types";
+import { ArticleLink } from "@/components/home/ArticleLink";
 
 interface TrendingSidebarProps {
   articles: Article[];
@@ -24,8 +24,9 @@ export function TrendingSidebar({ articles }: TrendingSidebarProps) {
 
         <div className="space-y-5">
           {articles.map((article, index) => (
-            <Link
+            <ArticleLink
               key={article.id}
+              articleId={article.id}
               href={`/article/${article.id}`}
               className="group cursor-pointer flex gap-3 hover:bg-gray-50 transition-colors rounded-lg p-2 -m-2 block"
             >
@@ -45,7 +46,7 @@ export function TrendingSidebar({ articles }: TrendingSidebarProps) {
                   {formatDate(article.createdAt)}
                 </div>
               </div>
-            </Link>
+            </ArticleLink>
           ))}
         </div>
       </div>

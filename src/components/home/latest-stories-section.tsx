@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Calendar, Clock } from "lucide-react";
+import { ArticleLink } from "@/components/home/ArticleLink";
 import type { Article } from "@/lib/types";
 
 interface LatestStoriesSectionProps {
@@ -93,8 +94,9 @@ export function LatestStoriesSection({
       ) : (
         <div className="space-y-3">
           {(searchQuery ? articles : latestStories).map((article) => (
-            <Link
+            <ArticleLink
               key={article.id}
+              articleId={article.id}
               href={`/article/${article.id}`}
               className="group cursor-pointer flex flex-row gap-4 pb-6 border-b border-gray-200 hover:bg-gray-50 transition-colors rounded-lg p-2 sm:p-3"
             >
@@ -128,7 +130,7 @@ export function LatestStoriesSection({
                   </span>
                 </div>
               </div>
-            </Link>
+            </ArticleLink>
           ))}
 
           {/* Pagination Controls */}

@@ -1,7 +1,5 @@
-"use client";
-
-import React, { useState } from 'react';
-import ButtonDropdowns from '@/components/admin/ButtonDropdowns';
+import React from 'react';
+import NavigatingDropdown from '@/components/admin/NavigatingDropdown';
 import {
     Search,
     Filter,
@@ -15,9 +13,12 @@ import {
     Eye
 } from 'lucide-react';
 
-export default function CrawledArticlesPage() {
-    const [filterSource, setFilterSource] = useState('All Sources');
-    const [filterDate, setFilterDate] = useState('Today');
+export default async function CrawledArticlesPage(props: {
+    searchParams: Promise<{ source?: string; date?: string }>;
+}) {
+    const searchParams = await props.searchParams;
+    const filterSource = searchParams.source || 'All Sources';
+    const filterDate = searchParams.date || 'Today';
     const crawledData: any[] = [];
 
     return (
@@ -40,18 +41,18 @@ export default function CrawledArticlesPage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 md:gap-3">
-                    <ButtonDropdowns
+                    <NavigatingDropdown
                         options={['All Sources', 'BBC News', 'TechCrunch', 'CNN']}
                         value={filterSource}
-                        onChange={setFilterSource}
+                        paramName="source"
                         icon={<Filter className="w-4 h-4" />}
                         className="flex-1 md:flex-none md:w-48"
                     />
 
-                    <ButtonDropdowns
+                    <NavigatingDropdown
                         options={['Today', 'Last 7 Days', 'This Month']}
                         value={filterDate}
-                        onChange={setFilterDate}
+                        paramName="date"
                         icon={<Calendar className="w-4 h-4" />}
                         className="flex-1 md:flex-none md:w-48"
                     />
