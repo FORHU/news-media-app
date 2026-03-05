@@ -3,10 +3,10 @@ import { articles } from "./articles";
 
 export async function seedRawArticles(
   prisma: PrismaClient,
-  contentArticleIds: number[],
-  categoryMap: Record<string, number>,
-  crawledUrlIds: number[],
-  sourceCiteIds: number[]
+  contentArticleIds: string[],
+  categoryMap: Record<string, string>,
+  crawledUrlIds: string[],
+  sourceCiteIds: string[]
 ): Promise<void> {
   const statuses = ["generated", "pending", "processing"] as const;
   const count = Math.min(4, contentArticleIds.length);
@@ -25,7 +25,7 @@ export async function seedRawArticles(
         content: articles[i].content.slice(0, 200) + "...",
         imageUrl: articles[i].imageUrl,
         status: statuses[i % statuses.length],
-      },
+      } as unknown as Parameters<PrismaClient["rawArticle"]["create"]>[0]["data"],
     });
   }
 }

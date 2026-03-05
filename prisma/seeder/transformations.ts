@@ -9,10 +9,10 @@ const socialChannelsData = [
 
 export async function seedTransformations(
   prisma: PrismaClient,
-  contentArticleIds: number[],
-  socialChannelIds: number[]
-): Promise<number[]> {
-  const transformationIds: number[] = [];
+  contentArticleIds: string[],
+  socialChannelIds: string[]
+): Promise<string[]> {
+  const transformationIds: string[] = [];
   const articleCount = Math.min(3, contentArticleIds.length);
   const channelCount = Math.min(2, socialChannelIds.length);
   for (let i = 0; i < articleCount; i++) {
@@ -26,9 +26,11 @@ export async function seedTransformations(
           transformedTitle: `[${socialChannelsData[j].socialMediaName}] ${articles[i].title.slice(0, 40)}`,
           transformedContent: articles[i].content.slice(0, 280) + "...",
           status: "published",
-        },
+        } as unknown as Parameters<
+          PrismaClient["contentTransformation"]["create"]
+        >[0]["data"],
       });
-      transformationIds.push(created.id);
+      transformationIds.push(String(created.id));
     }
   }
   return transformationIds;

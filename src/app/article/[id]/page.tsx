@@ -17,9 +17,9 @@ export default async function ArticlePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const articleId = Number.parseInt(id, 10);
+  const articleId = id?.trim() ?? "";
 
-  if (!Number.isFinite(articleId) || articleId <= 0) {
+  if (!articleId) {
     notFound();
   }
 

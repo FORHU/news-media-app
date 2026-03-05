@@ -8,7 +8,7 @@ datasource db {
 }
 
 model User {
-  id              Int              @id @default(autoincrement())
+  id              String           @id @default(cuid())
   firstName       String           @map("first_name")
   lastName        String           @map("last_name")
   email           String           @unique
@@ -21,7 +21,7 @@ model User {
 }
 
 model Category {
-  id                    Int                    @id @default(autoincrement())
+  id                    String                 @id @default(cuid())
   categoryName          String                 @map("category_name")
   updatedAt             DateTime               @updatedAt @map("updated_at")
   createdAt             DateTime               @default(now()) @map("created_at")
@@ -33,18 +33,18 @@ model Category {
 }
 
 model ContentArticle {
-  id              Int                     @id @default(autoincrement())
-  usersId         Int                     @map("users_id")
-  categoryId      Int                     @map("category_id")
+  id              String                   @id @default(cuid())
+  usersId         String                   @map("users_id")
+  categoryId      String                   @map("category_id")
   title           String
-  publishDate     DateTime?               @map("publish_date")
-  imageUrl        String?                 @map("image_url")
+  publishDate     DateTime?                @map("publish_date")
+  imageUrl        String?                  @map("image_url")
   content         String
   status          String
-  createdAt       DateTime                @default(now()) @map("created_at")
-  updatedAt       DateTime                @updatedAt @map("updated_at")
-  category        Category                @relation(fields: [categoryId], references: [id])
-  user            User                    @relation(fields: [usersId], references: [id])
+  createdAt       DateTime                 @default(now()) @map("created_at")
+  updatedAt       DateTime                 @updatedAt @map("updated_at")
+  category        Category                 @relation(fields: [categoryId], references: [id])
+  user            User                     @relation(fields: [usersId], references: [id])
   transformations ContentTransformation[]
   rawArticles     RawArticle[]
 
@@ -52,79 +52,79 @@ model ContentArticle {
 }
 
 model RawArticle {
-  id               Int            @id @default(autoincrement())
-  contentArticleId Int            @map("content_article_id")
-  crawledUrlId     Int            @map("crawled_url_id")
-  categoryId       Int            @map("category_id")
-  sourceCitesId    Int            @map("source_cites_id")
+  id               String       @id @default(cuid())
+  contentArticleId String       @map("content_article_id")
+  crawledUrlId     String       @map("crawled_url_id")
+  categoryId       String       @map("category_id")
+  sourceCitesId    String       @map("source_cites_id")
   title            String
   author           String?
-  publishDate      DateTime?      @map("publish_date")
-  imageUrl         String?        @map("image_url")
-  content          String?        @map("content")
-  createdAt        DateTime       @default(now()) @map("created_at")
-  updatedAt        DateTime       @updatedAt @map("updated_at")
-  status           String         @default("pending")
-  category         Category       @relation(fields: [categoryId], references: [id])
+  publishDate      DateTime?    @map("publish_date")
+  imageUrl         String?      @map("image_url")
+  content          String?      @map("content")
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+  status           String       @default("pending")
+  category         Category     @relation(fields: [categoryId], references: [id])
   contentArticle   ContentArticle @relation(fields: [contentArticleId], references: [id])
-  crawledUrl       CrawledUrl     @relation(fields: [crawledUrlId], references: [id])
-  sourceCite       SourceCite     @relation(fields: [sourceCitesId], references: [id])
+  crawledUrl       CrawledUrl   @relation(fields: [crawledUrlId], references: [id])
+  sourceCite       SourceCite   @relation(fields: [sourceCitesId], references: [id])
 
   @@map("raw_articles")
 }
 
 model CrawledUrl {
-  id          Int          @id @default(autoincrement())
-  url         String       @unique
+  id          String        @id @default(cuid())
+  url         String        @unique
   status      String
-  createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
   rawArticles RawArticle[]
 
   @@map("crawled_urls")
 }
 
 model SourceCite {
-  id          Int          @id @default(autoincrement())
+  id          String        @id @default(cuid())
   url         String
-  createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
   rawArticles RawArticle[]
 
   @@map("source_cites")
 }
 
 model ContentTransformation {
-  id                 Int               @id @default(autoincrement())
-  contentArticleId   Int               @map("content_article_id")
-  socialChannelsId   Int               @map("social_channels_id")
-  tone               String?
-  formatType         String?           @map("format_type")
-  transformedTitle   String?           @map("transformed_title")
-  transformedContent String?           @map("transformed_content")
-  status             String
-  createdAt          DateTime          @default(now()) @map("created_at")
-  updatedAt          DateTime          @updatedAt @map("updated_at")
-  contentArticle     ContentArticle    @relation(fields: [contentArticleId], references: [id])
-  socialChannel      SocialChannel     @relation(fields: [socialChannelsId], references: [id])
-  socialMediaPosts   SocialMediaPost[]
+  id                   String             @id @default(cuid())
+  contentArticleId     String             @map("content_article_id")
+  socialChannelsId     String             @map("social_channels_id")
+  tone                 String?
+  formatType           String?            @map("format_type")
+  transformedTitle     String?            @map("transformed_title")
+  transformedContent   String?            @map("transformed_content")
+  status               String
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
+  contentArticle       ContentArticle     @relation(fields: [contentArticleId], references: [id])
+  socialChannel        SocialChannel      @relation(fields: [socialChannelsId], references: [id])
+  socialMediaPosts     SocialMediaPost[]
 
   @@map("content_transformations")
 }
 
 model SocialChannel {
-  id              Int                     @id @default(autoincrement())
-  socialMediaName String                  @map("social_media_name")
-  createdAt       DateTime                @default(now()) @map("created_at")
-  updatedAt       DateTime                @updatedAt @map("updated_at")
+  id              String                   @id @default(cuid())
+  socialMediaName String                   @map("social_media_name")
+  createdAt       DateTime                 @default(now()) @map("created_at")
+  updatedAt       DateTime                 @updatedAt @map("updated_at")
   transformations ContentTransformation[]
 
   @@map("social_channels")
 }
 
 model SocialMediaPost {
-  id                      Int                   @id @default(autoincrement())
-  contentTransformationId Int                   @map("content_transformation_id")
+  id                      String                @id @default(cuid())
+  contentTransformationId String                @map("content_transformation_id")
   postUrl                 String?               @map("post_url")
   mediaUrl                Json?                 @map("media_url")
   postedAt                DateTime?             @map("posted_at")
@@ -136,14 +136,14 @@ model SocialMediaPost {
 }
 
 model Subscriber {
-  id            Int                    @id @default(autoincrement())
+  id            String                 @id @default(cuid())
   email         String                 @unique
   isVerified    Boolean                @default(false) @map("is_verified")
   createdAt     DateTime               @default(now()) @map("created_at")
   updatedAt     DateTime               @updatedAt @map("updated_at")
   attempts      Int                    @default(0)
   expiresAt     DateTime?              @map("expires_at")
-  otpCode       String?                @map("otp_code")
+  otpCode       String?                 @map("otp_code")
   lastOtpSentAt DateTime?              @map("last_otp_sent_at")
   preferences   SubscriberPreference[]
 
@@ -151,9 +151,9 @@ model Subscriber {
 }
 
 model SubscriberPreference {
-  id           Int        @id @default(autoincrement())
-  subscriberId Int        @map("subscriber_id")
-  categoryId   Int        @map("category_id")
+  id           String     @id @default(cuid())
+  subscriberId String     @map("subscriber_id")
+  categoryId   String     @map("category_id")
   createdAt    DateTime   @default(now()) @map("created_at")
   category     Category   @relation(fields: [categoryId], references: [id])
   subscriber   Subscriber @relation(fields: [subscriberId], references: [id])

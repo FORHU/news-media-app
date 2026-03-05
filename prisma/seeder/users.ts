@@ -9,12 +9,12 @@ const users = [
   },
 ];
 
-export async function seedUsers(prisma: PrismaClient): Promise<number[]> {
-  const userIds: number[] = [];
+export async function seedUsers(prisma: PrismaClient): Promise<string[]> {
+  const userIds: string[] = [];
   for (const user of users) {
     const existing = await prisma.user.findUnique({ where: { email: user.email } });
     if (existing) {
-      userIds.push(existing.id);
+      userIds.push(String(existing.id));
       continue;
     }
     const created = await prisma.user.create({
@@ -25,7 +25,7 @@ export async function seedUsers(prisma: PrismaClient): Promise<number[]> {
         password: user.password,
       },
     });
-    userIds.push(created.id);
+    userIds.push(String(created.id));
   }
   return userIds;
 }

@@ -16,7 +16,7 @@ interface NewsletterModalProps {
 }
 
 type CategoryOption = {
-  id: number;
+  id: string;
   name: string;
 };
 
@@ -26,7 +26,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
   >("email");
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
-  const [selectedInterests, setSelectedInterests] = useState<number[]>([]);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [otpSendError, setOtpSendError] = useState("");
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);

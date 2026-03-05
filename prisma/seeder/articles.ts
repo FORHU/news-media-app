@@ -369,10 +369,10 @@ export { articles };
 
 export async function seedArticles(
   prisma: PrismaClient,
-  userId: number,
-  categoryMap: Record<string, number>,
-): Promise<number[]> {
-  const contentArticleIds: number[] = [];
+  userId: string,
+  categoryMap: Record<string, string>,
+): Promise<string[]> {
+  const contentArticleIds: string[] = [];
   for (const a of articles) {
     const categoryId = categoryMap[a.categoryName];
     if (categoryId == null) continue;
@@ -384,9 +384,11 @@ export async function seedArticles(
         content: a.content,
         imageUrl: a.imageUrl,
         status: a.status,
-      },
+      } as unknown as Parameters<
+        PrismaClient["contentArticle"]["create"]
+      >[0]["data"],
     });
-    contentArticleIds.push(created.id);
+    contentArticleIds.push(String(created.id));
   }
   return contentArticleIds;
 }
