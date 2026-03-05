@@ -55,7 +55,7 @@ export default function ArticlePageClient({ articleId }: { articleId: string }) 
             className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#ff4500] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back
+            Back to home
           </Link>
         </div>
       </div>
@@ -92,7 +92,7 @@ export default function ArticlePageClient({ articleId }: { articleId: string }) 
           className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#ff4500] mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to home
+          Back
         </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
