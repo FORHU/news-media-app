@@ -20,10 +20,10 @@ export function LandingClientWrapper({ children }: LandingClientWrapperProps) {
             <Suspense fallback={<div className="h-16 bg-white border-b" />}>
                 <Header onOpenNewsletter={openNewsletter} />
             </Suspense>
-            <Suspense fallback={null}>
+            <Suspense fallback={<div className="min-h-screen bg-white" />}>
                 {children}
+                <Footer onOpenNewsletter={openNewsletter} />
             </Suspense>
-            <Footer onOpenNewsletter={openNewsletter} />
             <NewsletterModal
                 isOpen={isNewsletterOpen}
                 onClose={closeNewsletter}
