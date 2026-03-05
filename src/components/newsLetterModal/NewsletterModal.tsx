@@ -110,7 +110,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
   const verifyOtpMutation = useMutation<
     void,
     Error,
-    { email: string; code: string; categories: number[] }
+    { email: string; code: string; categories: string[] }
   >({
     mutationFn: async ({ email, code, categories }) => {
       const res = await fetch("/api/routes/newsletter/verify-otp", {
@@ -231,7 +231,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
     }, 300);
   };
 
-  const toggleInterest = (interestId: number) => {
+  const toggleInterest = (interestId: string) => {
     setSelectedInterests((prev) =>
       prev.includes(interestId)
         ? prev.filter((i) => i !== interestId)
@@ -319,11 +319,10 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                           }}
                           placeholder="Enter your email address"
                           autoFocus
-                          className={`w-full thick-border pl-10 sm:pl-12 pr-4 py-3 sm:py-3.5 text-sm sm:text-base bg-gray-100 border-2 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all placeholder:text-gray-500 font-sans ${
-                            error
+                          className={`w-full thick-border pl-10 sm:pl-12 pr-4 py-3 sm:py-3.5 text-sm sm:text-base bg-gray-100 border-2 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all placeholder:text-gray-500 font-sans ${error
                               ? "border-red-500 bg-red-50"
                               : "border-transparent"
-                          }`}
+                            }`}
                         />
                       </div>
                       {error && (
