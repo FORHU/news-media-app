@@ -8,6 +8,7 @@ export async function seedRawArticles(
   crawledUrlIds: number[],
   sourceCiteIds: number[]
 ): Promise<void> {
+  const statuses = ["generated", "pending", "processing"] as const;
   const count = Math.min(4, contentArticleIds.length);
   for (let i = 0; i < count; i++) {
     const contentArticleId = contentArticleIds[i];
@@ -23,6 +24,7 @@ export async function seedRawArticles(
         author: i % 2 === 0 ? "Staff Writer" : null,
         content: articles[i].content.slice(0, 200) + "...",
         imageUrl: articles[i].imageUrl,
+        status: statuses[i % statuses.length],
       },
     });
   }
