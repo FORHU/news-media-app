@@ -1,7 +1,5 @@
-"use client";
-
-import React, { useState } from 'react';
-import ButtonDropdowns from '@/components/admin/ButtonDropdowns';
+import React from 'react';
+import NavigatingDropdown from '@/components/admin/NavigatingDropdown';
 import {
     Plus,
     Search,
@@ -33,8 +31,11 @@ const StatCard = ({ title, value, icon, color, description }: any) => (
     </div>
 );
 
-export default function GeneratedArticlesPage() {
-    const [filterType, setFilterType] = useState('All Types');
+export default async function GeneratedArticlesPage(props: {
+    searchParams: Promise<{ type?: string }>;
+}) {
+    const searchParams = await props.searchParams;
+    const filterType = searchParams.type || 'All Types';
     const articles: any[] = [];
 
     return (
@@ -57,10 +58,10 @@ export default function GeneratedArticlesPage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 md:gap-3">
-                    <ButtonDropdowns
+                    <NavigatingDropdown
                         options={['All Types', 'News', 'Blog']}
                         value={filterType}
-                        onChange={setFilterType}
+                        paramName="type"
                         icon={<Filter className="w-4 h-4" />}
                         className="w-full md:w-48"
                     />

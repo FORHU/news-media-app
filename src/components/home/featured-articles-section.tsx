@@ -1,5 +1,5 @@
-import Link from "next/link";
 import type { Article } from "@/lib/types";
+import { ArticleLink } from "@/components/home/ArticleLink";
 
 interface FeaturedArticlesSectionProps {
   articles: Article[];
@@ -28,8 +28,9 @@ export function FeaturedArticlesSection({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       {articles.map((article) => (
-        <Link
+        <ArticleLink
           key={article.id}
+          articleId={article.id}
           href={`/article/${article.id}`}
           className="group cursor-pointer bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 block"
         >
@@ -59,7 +60,7 @@ export function FeaturedArticlesSection({
               {formatDate(article.createdAt)}
             </div>
           </div>
-        </Link>
+        </ArticleLink>
       ))}
     </div>
   );

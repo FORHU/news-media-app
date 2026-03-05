@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Calendar, Clock, ArrowRight } from "lucide-react";
+import { ArticleLink } from "@/components/home/ArticleLink";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Article } from "@/lib/types";
 
@@ -90,7 +91,8 @@ export function HeroSection({ articles }: HeroSectionProps) {
                       opacity: { duration: 0.2 }
                     }}
                   >
-                    <Link
+                    <ArticleLink
+                      articleId={article.id}
                       href={`/article/${article.id}`}
                       className="block h-full bg-white"
                     >
@@ -135,7 +137,7 @@ export function HeroSection({ articles }: HeroSectionProps) {
                           </span>
                         </div>
                       </div>
-                    </Link>
+                    </ArticleLink>
                   </motion.div>
                 </AnimatePresence>
               </div>

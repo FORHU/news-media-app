@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { ArticleLink } from "@/components/home/ArticleLink";
 import type { Article } from "@/lib/types";
 
 interface TrendingProductsSectionProps {
@@ -31,8 +32,9 @@ export function TrendingProductsSection({
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {articles.map((product) => (
-          <Link
+          <ArticleLink
             key={product.id}
+            articleId={product.id}
             href={`/article/${product.id}`}
             className="group cursor-pointer bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 block"
           >
@@ -51,7 +53,7 @@ export function TrendingProductsSection({
                 {truncateContent(product.content)}
               </p>
             </div>
-          </Link>
+          </ArticleLink>
         ))}
       </div>
     </section>

@@ -1,7 +1,5 @@
-"use client";
-
-import React, { useState } from 'react';
-import ButtonDropdowns from '@/components/admin/ButtonDropdowns';
+import React from 'react';
+import NavigatingDropdown from '@/components/admin/NavigatingDropdown';
 import {
     Plus,
     Search,
@@ -13,8 +11,11 @@ import {
     Link as LinkIcon
 } from 'lucide-react';
 
-export default function CrawledUrlsPage() {
-    const [filterStatus, setFilterStatus] = useState('All Status');
+export default async function CrawledUrlsPage(props: {
+    searchParams: Promise<{ status?: string }>;
+}) {
+    const searchParams = await props.searchParams;
+    const filterStatus = searchParams.status || 'All Status';
     const sources: any[] = [];
 
     return (
@@ -37,10 +38,10 @@ export default function CrawledUrlsPage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 md:gap-3">
-                    <ButtonDropdowns
+                    <NavigatingDropdown
                         options={['All Status', 'Active', 'Paused']}
                         value={filterStatus}
-                        onChange={setFilterStatus}
+                        paramName="status"
                         icon={<Filter className="w-4 h-4" />}
                         className="flex-1 md:flex-none md:w-48"
                     />

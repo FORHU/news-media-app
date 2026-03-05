@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -30,16 +30,8 @@ export default function ArticlePageClient({ articleId }: { articleId: number }) 
     queryFn: () => articlesApi.getArticles({ limit: 50 }),
   });
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-[#ff4500] animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading article...</p>
-        </div>
-      </div>
-    );
-  }
+  // We remove the full-page loading state to ensure a seamless transition.
+  // The article data is populated via SSR hydration.
 
   if (isError || !article) {
     return (
