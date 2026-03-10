@@ -3,23 +3,20 @@ import { articles } from "./articles";
 
 export async function seedRawArticles(
   prisma: PrismaClient,
-  contentArticleIds: string[],
   categoryMap: Record<string, string>,
-  crawledUrlIds: string[],
-  sourceCiteIds: string[]
-): Promise<void> {
+  crawledUrlIds: string[]
+): Promise<string[]> {
   const statuses = ["generated", "pending", "processing"] as const;
-  const count = Math.min(4, contentArticleIds.length);
+  const count = Math.min(4, articles.length);
+  const rawArticleIds: string[] = [];
   for (let i = 0; i < count; i++) {
-    const contentArticleId = contentArticleIds[i];
     const categoryId = categoryMap[articles[i].categoryName];
     if (categoryId == null) continue;
-    await prisma.rawArticle.create({
+    const crawledUrlId = crawledUrlIds[i % crawledUrlIds.length];
+    const created = await prisma.rawArticle.create({
       data: {
-        contentArticleId,
-        crawledUrlId: crawledUrlIds[i % crawledUrlIds.length],
-        categoryId,
-        sourceCitesId: sourceCiteIds[i % sourceCiteIds.length],
+        crawledUrl: { connect: { id: crawledUrlId } },
+        category: { connect: { id: categoryId } },
         title: `Raw: ${articles[i].title.slice(0, 50)}`,
         author: i % 2 === 0 ? "Staff Writer" : null,
         content: articles[i].content.slice(0, 200) + "...",
@@ -27,5 +24,7 @@ export async function seedRawArticles(
         status: statuses[i % statuses.length],
       } as unknown as Parameters<PrismaClient["rawArticle"]["create"]>[0]["data"],
     });
+    rawArticleIds.push(String(created.id));
   }
+  return rawArticleIds;
 }
