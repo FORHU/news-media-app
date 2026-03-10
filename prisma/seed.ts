@@ -9,7 +9,6 @@ import { seedUsers } from "./seeder/users";
 import { seedCategories } from "./seeder/categories";
 import { seedArticles } from "./seeder/articles";
 import { seedCrawledUrls } from "./seeder/crawledUrls";
-import { seedSourceCites } from "./seeder/sourceCites";
 import { seedSocialChannels } from "./seeder/socialChannels";
 import { seedRawArticles } from "./seeder/rawArticles";
 import { seedTransformations } from "./seeder/transformations";
@@ -29,17 +28,15 @@ async function main() {
   const categoryNames = [...new Set(articles.map((a) => a.categoryName))];
   const categoryMap = await seedCategories(prisma, categoryNames);
 
-  const contentArticleIds = await seedArticles(prisma, userId, categoryMap);
   const crawledUrlIds = await seedCrawledUrls(prisma);
-  const sourceCiteIds = await seedSourceCites(prisma);
   const socialChannelIds = await seedSocialChannels(prisma);
 
-  await seedRawArticles(
+  const rawArticleIds = await seedRawArticles(prisma, categoryMap, crawledUrlIds);
+  const contentArticleIds = await seedArticles(
     prisma,
-    contentArticleIds,
+    userId,
     categoryMap,
-    crawledUrlIds,
-    sourceCiteIds
+    rawArticleIds
   );
 
   const transformationIds = await seedTransformations(

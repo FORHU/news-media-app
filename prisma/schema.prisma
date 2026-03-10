@@ -36,6 +36,7 @@ model ContentArticle {
   id              String                   @id @default(cuid())
   usersId         String                   @map("users_id")
   categoryId      String                   @map("category_id")
+  rawArticleId    String?                  @unique @map("raw_article_id")
   title           String
   publishDate     DateTime?                @map("publish_date")
   imageUrl        String?                  @map("image_url")
@@ -45,30 +46,27 @@ model ContentArticle {
   updatedAt       DateTime                 @updatedAt @map("updated_at")
   category        Category                 @relation(fields: [categoryId], references: [id])
   user            User                     @relation(fields: [usersId], references: [id])
+  rawArticle      RawArticle?              @relation(fields: [rawArticleId], references: [id])
   transformations ContentTransformation[]
-  rawArticles     RawArticle[]
 
   @@map("content_articles")
 }
 
 model RawArticle {
-  id               String       @id @default(cuid())
-  contentArticleId String       @map("content_article_id")
-  crawledUrlId     String       @map("crawled_url_id")
-  categoryId       String       @map("category_id")
-  sourceCitesId    String       @map("source_cites_id")
-  title            String
-  author           String?
-  publishDate      DateTime?    @map("publish_date")
-  imageUrl         String?      @map("image_url")
-  content          String?      @map("content")
-  createdAt        DateTime     @default(now()) @map("created_at")
-  updatedAt        DateTime     @updatedAt @map("updated_at")
-  status           String       @default("pending")
-  category         Category     @relation(fields: [categoryId], references: [id])
-  contentArticle   ContentArticle @relation(fields: [contentArticleId], references: [id])
-  crawledUrl       CrawledUrl   @relation(fields: [crawledUrlId], references: [id])
-  sourceCite       SourceCite   @relation(fields: [sourceCitesId], references: [id])
+  id           String    @id @default(cuid())
+  crawledUrlId String    @map("crawled_url_id")
+  categoryId   String    @map("category_id")
+  title        String
+  author       String?
+  publishDate  DateTime? @map("publish_date")
+  imageUrl     String?   @map("image_url")
+  content      String?   @map("content")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  status       String    @default("pending")
+  category     Category  @relation(fields: [categoryId], references: [id])
+  crawledUrl   CrawledUrl @relation(fields: [crawledUrlId], references: [id])
+  contentArticle ContentArticle?
 
   @@map("raw_articles")
 }
@@ -82,16 +80,6 @@ model CrawledUrl {
   rawArticles RawArticle[]
 
   @@map("crawled_urls")
-}
-
-model SourceCite {
-  id          String        @id @default(cuid())
-  url         String
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
-  rawArticles RawArticle[]
-
-  @@map("source_cites")
 }
 
 model ContentTransformation {
