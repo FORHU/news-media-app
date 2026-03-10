@@ -371,15 +371,19 @@ export async function seedArticles(
   prisma: PrismaClient,
   userId: string,
   categoryMap: Record<string, string>,
+  rawArticleIds: string[] = []
 ): Promise<string[]> {
   const contentArticleIds: string[] = [];
+  let index = 0;
   for (const a of articles) {
     const categoryId = categoryMap[a.categoryName];
     if (categoryId == null) continue;
+    const rawArticleId = rawArticleIds[index] ?? undefined;
     const created = await prisma.contentArticle.create({
       data: {
         usersId: userId,
         categoryId,
+        rawArticleId: rawArticleId || undefined,
         title: a.title,
         content: a.content,
         imageUrl: a.imageUrl,
@@ -389,6 +393,7 @@ export async function seedArticles(
       >[0]["data"],
     });
     contentArticleIds.push(String(created.id));
+    index += 1;
   }
   return contentArticleIds;
 }
