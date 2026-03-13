@@ -56,6 +56,7 @@ model RawArticle {
   id           String    @id @default(cuid())
   crawledUrlId String    @map("crawled_url_id")
   categoryId   String    @map("category_id")
+  crawlJobId   String?   @map("crawl_jobs_id")
   title        String
   author       String?
   publishDate  DateTime? @map("publish_date")
@@ -69,6 +70,18 @@ model RawArticle {
   contentArticle ContentArticle?
 
   @@map("raw_articles")
+}
+
+model CrawlJob {
+  id                 String      @id @default(uuid())
+  status             String      @default("PENDING")
+  urls               String[]    @default([]) @map("urls")
+  maxArticlesRequest Int         @default(10) @map("max_articles_request")
+  createdAt          DateTime    @default(now()) @map("created_at")
+  startedAt          DateTime?   @map("started_at")
+  finishedAt         DateTime?   @map("finished_at")
+
+  @@map("crawl_jobs")
 }
 
 model CrawledUrl {
