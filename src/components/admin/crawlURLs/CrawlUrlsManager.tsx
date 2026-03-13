@@ -1,36 +1,25 @@
 "use client";
 
 import React from "react";
+import { CirclePlay, Link as LinkIcon, Plus, Lightbulb, Calendar } from "lucide-react";
 import {
-  CirclePlay,
-  ClipboardPaste,
-  Link as LinkIcon,
-  Plus,
-  Trash2,
-  X,
-} from "lucide-react";
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
-type UrlStatus = "Queued" | "Invalid";
-
-type QueuedUrl = {
-  id: string;
-  url: string;
-  domain: string;
-  status: UrlStatus;
-  addedAt: number;
-};
-
-function normalizeUrl(raw: string): { url: string; domain: string; valid: boolean } {
+function normalizeUrl(raw: string): { url: string; valid: boolean } {
   const trimmed = raw.trim();
-  if (!trimmed) return { url: "", domain: "", valid: false };
-
+  if (!trimmed) return { url: "", valid: false };
   const withScheme = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
   try {
     const u = new URL(withScheme);
-    if (!u.hostname) return { url: trimmed, domain: "", valid: false };
-    return { url: u.toString(), domain: u.hostname, valid: true };
+    if (!u.hostname) return { url: trimmed, valid: false };
+    return { url: u.toString(), valid: true };
   } catch {
-    return { url: trimmed, domain: "", valid: false };
+    return { url: trimmed, valid: false };
   }
 }
 
@@ -41,7 +30,7 @@ function splitBulk(input: string): string[] {
     .filter(Boolean);
 }
 
-function getValidUrlsForSend(rawUrls: string[]) {
+function getValidUrls(rawUrls: string[]): string[] {
   const out: string[] = [];
   const seen = new Set<string>();
   for (const raw of rawUrls) {
@@ -55,11 +44,6 @@ function getValidUrlsForSend(rawUrls: string[]) {
   return out;
 }
 
-function makeId() {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
-  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
-
 function formatDateInput(d: Date) {
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, "0");
@@ -68,384 +52,298 @@ function formatDateInput(d: Date) {
 }
 
 export default function CrawlUrlsManager() {
+  const [modalOpen, setModalOpen] = React.useState(false);
   const [singleUrl, setSingleUrl] = React.useState("");
   const [bulk, setBulk] = React.useState("");
-  const [queue, setQueue] = React.useState<QueuedUrl[]>([]);
-  const [lastAction, setLastAction] = React.useState<string | null>(null);
-  const [starting, setStarting] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-
+  const [urls, setUrls] = React.useState<string[]>([]);
   const [startDate, setStartDate] = React.useState(() => {
     const d = new Date();
     d.setDate(d.getDate() - 7);
     return formatDateInput(d);
   });
   const [endDate, setEndDate] = React.useState(() => formatDateInput(new Date()));
-  const [maxRequestsPerCrawl, setMaxRequestsPerCrawl] = React.useState<number>(10);
+  const [maxArticles, setMaxArticles] = React.useState(50);
+  const [starting, setStarting] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
-  const queuedCount = queue.filter((q) => q.status === "Queued").length;
-  const invalidCount = queue.filter((q) => q.status === "Invalid").length;
-  const bulkValidCount = React.useMemo(() => {
-    const items = splitBulk(bulk);
-    return getValidUrlsForSend(items).length;
-  }, [bulk]);
-
-  const addUrls = React.useCallback((urls: string[]) => {
-    if (urls.length === 0) return;
-
-    setQueue((prev) => {
-      const existing = new Set(prev.map((p) => p.url.toLowerCase()));
-      const next: QueuedUrl[] = [];
-
-      for (const raw of urls) {
-        const parsed = normalizeUrl(raw);
-        if (!parsed.url) continue;
-        const key = parsed.url.toLowerCase();
-        if (existing.has(key)) continue;
-        existing.add(key);
-
-        next.push({
-          id: makeId(),
-          url: parsed.url,
-          domain: parsed.domain,
-          status: parsed.valid ? "Queued" : "Invalid",
-          addedAt: Date.now(),
-        });
-      }
-
-      if (next.length > 0) {
-        setLastAction(`Added ${next.length} URL${next.length === 1 ? "" : "s"} to queue`);
-      }
-      return [...next, ...prev];
+  const addUrl = React.useCallback(() => {
+    const items = singleUrl.trim() ? [singleUrl] : splitBulk(bulk);
+    const valid = getValidUrls(items);
+    if (valid.length === 0) {
+      setError("Add at least one valid URL.");
+      return;
+    }
+    setUrls((prev) => {
+      const seen = new Set(prev.map((u) => u.toLowerCase()));
+      const added = valid.filter((u) => !seen.has(u.toLowerCase()));
+      return [...added, ...prev];
     });
-  }, []);
-
-  const onAddSingle = React.useCallback(() => {
-    const value = singleUrl.trim();
-    if (!value) return;
-    addUrls([value]);
     setSingleUrl("");
-  }, [addUrls, singleUrl]);
-
-  const onAddBulk = React.useCallback(() => {
-    const items = splitBulk(bulk);
-    addUrls(items);
     setBulk("");
-  }, [addUrls, bulk]);
+    setError(null);
+  }, [singleUrl, bulk]);
 
-  const remove = React.useCallback((id: string) => {
-    setQueue((prev) => prev.filter((q) => q.id !== id));
-  }, []);
-
-  const clearInvalid = React.useCallback(() => {
-    setQueue((prev) => prev.filter((q) => q.status !== "Invalid"));
-    setLastAction("Cleared invalid URLs");
-  }, []);
-
-  const clearAll = React.useCallback(() => {
-    setQueue([]);
-    setLastAction("Cleared queue");
+  const removeUrl = React.useCallback((url: string) => {
+    setUrls((prev) => prev.filter((u) => u !== url));
   }, []);
 
   const startCrawl = React.useCallback(async () => {
-    if (starting) return;
-    const queuedUrls = queue.filter((q) => q.status === "Queued").map((q) => q.url);
-    const bulkUrls = queuedUrls.length === 0 ? getValidUrlsForSend(splitBulk(bulk)) : [];
-    const urls = queuedUrls.length > 0 ? queuedUrls : bulkUrls;
-    if (urls.length === 0) {
+    const valid =
+      urls.length > 0
+        ? urls.filter((u) => getValidUrls([u]).length > 0)
+        : getValidUrls(splitBulk(singleUrl || bulk));
+    if (valid.length === 0) {
       setError("Add at least one valid URL to start crawling.");
       return;
     }
-
     setStarting(true);
     setError(null);
     try {
-      if (queuedUrls.length === 0 && bulkUrls.length > 0) {
-        addUrls(splitBulk(bulk));
-        setBulk("");
-      }
-
       const res = await fetch("/api/crawl", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          urls,
+          urls: valid,
           start_date: startDate,
           end_date: endDate,
-          max_requests_per_crawl: maxRequestsPerCrawl,
+          max_requests_per_crawl: maxArticles,
         }),
       });
-
       if (!res.ok) {
-        let message = `Request failed (${res.status})`;
+        let msg = `Request failed (${res.status})`;
         try {
-          const data = (await res.json()) as any;
-          if (typeof data?.error === "string") message = data.error;
-          else if (typeof data?.message === "string") message = data.message;
+          const data = (await res.json()) as { error?: string };
+          if (typeof data?.error === "string") msg = data.error;
         } catch {
-          // ignore
+          /* ignore */
         }
-        throw new Error(message);
+        throw new Error(msg);
       }
-
-      setLastAction(
-        `Crawl started for ${urls.length} URL${urls.length === 1 ? "" : "s"} (${startDate} → ${endDate}, max ${maxRequestsPerCrawl})`,
-      );
+      setModalOpen(false);
+      setUrls([]);
+      setSingleUrl("");
+      setBulk("");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to start crawl");
     } finally {
       setStarting(false);
     }
-  }, [addUrls, bulk, endDate, maxRequestsPerCrawl, queue, startDate, starting]);
+  }, [bulk, endDate, maxArticles, singleUrl, startDate, urls]);
+
+  const effectiveUrls =
+    urls.length > 0 ? urls : getValidUrls(splitBulk(singleUrl || bulk));
+  const canStart = effectiveUrls.length > 0;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Crawl URLs</h1>
+        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+          Crawl URLs
+        </h1>
         <p className="text-gray-500 font-medium">
-          Add one or more URLs, then start a crawl run.
+          Configure websites to crawl for AI content generation.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white p-4 md:p-6 rounded-3xl border border-gray-100 shadow-sm">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
-                Add URL(s)
-              </p>
-              <p className="mt-1 text-sm font-bold text-gray-900">Queue URLs to crawl</p>
-              <p className="mt-1 text-xs text-gray-500 font-medium">
-                Paste multiple URLs (new line / comma / space separated). Duplicates are ignored.
-              </p>
-            </div>
+      {/* Web Crawler Configuration Card */}
+      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="flex items-start gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20 flex-shrink-0">
+            <LinkIcon className="w-7 h-7 text-white" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">
+              Web Crawler Configuration
+            </h2>
+            <p className="text-gray-500 font-medium mt-1">
+              Configure websites to crawl for AI content generation
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => setModalOpen(true)}
+          className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl font-bold text-sm shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all"
+        >
+          <Plus className="w-5 h-5" />
+          Start New Crawl
+        </button>
+      </div>
 
-            {lastAction && (
-              <div className="flex items-center gap-2">
-                <span className="hidden md:inline text-xs font-semibold text-gray-500">{lastAction}</span>
-                <button
-                  onClick={() => setLastAction(null)}
-                  className="p-2 rounded-xl text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-all active:scale-95"
-                  aria-label="Dismiss"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+      {/* New Crawl Configuration Modal */}
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent
+          showCloseButton={true}
+          className="sm:max-w-[560px] p-0 overflow-hidden rounded-2xl border-gray-200"
+        >
+          {/* Dark Header */}
+          <div className="bg-gray-900 px-6 py-5 flex items-start justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                <CirclePlay className="w-5 h-5 text-orange-400 fill-orange-400" />
+              </div>
+              <div>
+                <DialogTitle className="text-lg font-bold text-white">
+                  New Crawl Configuration
+                </DialogTitle>
+                <DialogDescription className="text-gray-400 text-sm mt-0.5">
+                  Configure websites and parameters for AI content generation
+                </DialogDescription>
+              </div>
+            </div>
+          </div>
+
+          <div className="px-6 py-6 space-y-6">
+            {error && (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-medium">
+                {error}
               </div>
             )}
-          </div>
 
-          {error && (
-            <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-semibold">
-              {error}
-            </div>
-          )}
-
-          <div className="mt-5 grid grid-cols-1 md:grid-cols-12 gap-3">
-            <div className="md:col-span-8 relative">
-              <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                value={singleUrl}
-                onChange={(e) => setSingleUrl(e.target.value)}
-                placeholder="https://example.com/news"
-                className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
+            {/* Section 1: Website URLs */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold">
+                  1
+                </span>
+                <span className="font-bold text-gray-900">
+                  Website URLs to Crawl
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={singleUrl}
+                  onChange={(e) => setSingleUrl(e.target.value)}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && (e.preventDefault(), addUrl())
+                  }
+                  placeholder="https://example.com/news"
+                  className="flex-1 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-orange-500/20 outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={addUrl}
+                  className="flex items-center gap-2 px-4 py-3 bg-orange-100 text-gray-900 rounded-xl font-bold text-sm hover:bg-orange-200 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add URL
+                </button>
+              </div>
+              <p className="text-xs text-gray-500">
+                Add one or more website URLs to crawl for content
+              </p>
+              {urls.length > 0 && (
+                <ul className="space-y-2 mt-2 max-h-32 overflow-y-auto">
+                  {urls.map((u) => (
+                    <li
+                      key={u}
+                      className="flex items-center justify-between text-sm bg-gray-50 rounded-lg px-3 py-2"
+                    >
+                      <span className="truncate text-gray-700">{u}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeUrl(u)}
+                        className="text-red-500 hover:text-red-600 text-xs font-medium"
+                      >
+                        Remove
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <textarea
+                value={bulk}
+                onChange={(e) => setBulk(e.target.value)}
+                placeholder="Or paste multiple URLs (one per line)..."
+                rows={2}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-orange-500/20 outline-none resize-none"
               />
             </div>
-            <button
-              onClick={onAddSingle}
-              className="md:col-span-4 flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 text-white rounded-2xl text-sm font-bold shadow-lg transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-              disabled={!singleUrl.trim()}
-            >
-              <Plus className="w-5 h-5" />
-              Add URL
-            </button>
 
-            <div className="md:col-span-8">
-              <div className="relative">
-                <ClipboardPaste className="absolute left-4 top-4 w-4 h-4 text-gray-400" />
-                <textarea
-                  value={bulk}
-                  onChange={(e) => setBulk(e.target.value)}
-                  placeholder={"Paste multiple URLs here...\nexample.com/page-1\nhttps://site.com/a, https://site.com/b"}
-                  rows={5}
-                  className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-orange-500/20 outline-none transition-all resize-none"
-                />
+            {/* Section 2: Crawl Parameters */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold">
+                  2
+                </span>
+                <span className="font-bold text-gray-900">
+                  Crawl Parameters
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <label className="space-y-1">
+                  <span className="text-xs font-semibold text-gray-600">
+                    Start Date
+                  </span>
+                  <div className="relative">
+                    <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="w-full px-4 py-3 pr-10 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-orange-500/20 outline-none"
+                    />
+                  </div>
+                </label>
+                <label className="space-y-1">
+                  <span className="text-xs font-semibold text-gray-600">
+                    End Date
+                  </span>
+                  <div className="relative">
+                    <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="w-full px-4 py-3 pr-10 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-orange-500/20 outline-none"
+                    />
+                  </div>
+                </label>
+                <label className="space-y-1">
+                  <span className="text-xs font-semibold text-gray-600">
+                    # Max Articles
+                  </span>
+                  <input
+                    type="number"
+                    min={1}
+                    value={maxArticles}
+                    onChange={(e) =>
+                      setMaxArticles(Math.max(1, Number(e.target.value) || 1))
+                    }
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-orange-500/20 outline-none"
+                  />
+                </label>
+              </div>
+              <div className="flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-100 px-4 py-3">
+                <Lightbulb className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-amber-800 font-medium">
+                  The crawler will fetch articles published between these dates,
+                  up to the maximum count specified.
+                </p>
               </div>
             </div>
+          </div>
+
+          <DialogFooter className="px-6 py-4 border-t border-gray-100 gap-2">
             <button
-              onClick={onAddBulk}
-              className="md:col-span-4 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-[#ff4500] to-[#ff6b35] text-white rounded-2xl text-sm font-bold shadow-lg shadow-orange-500/20 transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-              disabled={splitBulk(bulk).length === 0}
+              type="button"
+              onClick={() => setModalOpen(false)}
+              className="px-5 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 font-bold text-sm hover:bg-gray-50 transition-colors"
             >
-              <Plus className="w-5 h-5" />
-              Add Bulk
+              Cancel
             </button>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 md:p-6 rounded-3xl border border-gray-100 shadow-sm">
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Run settings</p>
-          <div className="mt-3 space-y-3">
-            <div className="grid grid-cols-1 gap-3">
-              <label className="space-y-1">
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
-                  Start date
-                </span>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border-none rounded-2xl text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
-                />
-              </label>
-
-              <label className="space-y-1">
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
-                  End date
-                </span>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border-none rounded-2xl text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
-                />
-              </label>
-
-              <label className="space-y-1">
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
-                  Max requests
-                </span>
-                <input
-                  type="number"
-                  min={1}
-                  step={1}
-                  value={Number.isFinite(maxRequestsPerCrawl) ? maxRequestsPerCrawl : 10}
-                  onChange={(e) => setMaxRequestsPerCrawl(Math.max(1, Number(e.target.value || 1)))}
-                  className="w-full px-4 py-3 bg-gray-50 border-none rounded-2xl text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
-                />
-              </label>
-            </div>
-
-            <div className="pt-1">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Queue</p>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-gray-900">Ready</span>
-              <span className="text-sm font-extrabold text-gray-900">{queuedCount}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-gray-500">Invalid</span>
-              <span className="text-sm font-extrabold text-gray-500">{invalidCount}</span>
-            </div>
-            <div className="pt-3 border-t border-gray-100 space-y-2">
-              <button
-                onClick={startCrawl}
-                disabled={(queuedCount === 0 && bulkValidCount === 0) || starting}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 text-white rounded-2xl text-sm font-bold shadow-lg transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <CirclePlay className="w-5 h-5" />
-                {starting ? "Starting..." : "Start Crawl"}
-              </button>
-              <button
-                onClick={clearInvalid}
-                disabled={invalidCount === 0}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 text-gray-900 rounded-2xl text-sm font-bold transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <Trash2 className="w-5 h-5 text-gray-500" />
-                Clear Invalid
-              </button>
-              <button
-                onClick={clearAll}
-                disabled={queue.length === 0}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-50 text-gray-900 rounded-2xl text-sm font-bold transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <Trash2 className="w-5 h-5 text-gray-400" />
-                Clear All
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden min-h-[280px]">
-        <div className="overflow-x-auto scrollbar-hide">
-          <table className="w-full text-left min-w-[900px]">
-            <thead className="bg-[#fafafa] border-b border-gray-100">
-              <tr>
-                <th className="px-3 sm:px-6 py-5 text-[10px] md:text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">
-                  URL
-                </th>
-                <th className="px-3 sm:px-6 py-5 text-[10px] md:text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">
-                  Domain
-                </th>
-                <th className="px-3 sm:px-6 py-5 text-[10px] md:text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">
-                  Status
-                </th>
-                <th className="px-3 sm:px-6 py-5 text-[10px] md:text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] text-right">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-100">
-              {queue.length > 0 ? (
-                queue.map((item) => (
-                  <tr
-                    key={item.id}
-                    className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-transparent transition-all duration-200"
-                  >
-                    <td className="px-3 sm:px-6 py-5 sm:py-6">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-orange-50 rounded-2xl shadow-sm flex-shrink-0 flex items-center justify-center text-orange-600 border border-orange-100/60">
-                          <LinkIcon className="w-6 h-6" />
-                        </div>
-                        <div className="flex flex-col gap-1 min-w-0">
-                          <p className="text-sm sm:text-[15px] font-bold text-gray-900 line-clamp-1 leading-snug">
-                            {item.url}
-                          </p>
-                          <p className="text-[11px] sm:text-xs text-gray-400 font-semibold tracking-wide">
-                            Added {new Date(item.addedAt).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-3 sm:px-6 py-5 sm:py-6 whitespace-nowrap text-[11px] sm:text-[13px] font-bold text-gray-500">
-                      {item.domain || "—"}
-                    </td>
-                    <td className="px-3 sm:px-6 py-5 sm:py-6 whitespace-nowrap">
-                      {item.status === "Queued" ? (
-                        <span className="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-bold bg-gray-900 text-white shadow-md">
-                          Queued
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-bold bg-red-600 text-white shadow-md shadow-red-500/20">
-                          Invalid
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-3 sm:px-6 py-5 sm:py-6 whitespace-nowrap text-right">
-                      <div className="flex items-center justify-end gap-1 sm:gap-2">
-                        <button
-                          onClick={() => remove(item.id)}
-                          className="inline-flex items-center justify-center p-2 text-red-500 hover:bg-red-50 rounded-xl transition-all duration-200 hover:scale-110 active:scale-95"
-                          aria-label="Remove"
-                        >
-                          <Trash2 className="w-[18px] h-[18px]" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={4} className="px-6 py-24 text-center text-gray-500">
-                    <p className="font-medium text-gray-400">No URLs queued yet.</p>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            <button
+              type="button"
+              onClick={startCrawl}
+              disabled={!canStart || starting}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-sm shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+            >
+              <CirclePlay className="w-4 h-4" />
+              {starting ? "Starting..." : "Start Crawling"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
-
