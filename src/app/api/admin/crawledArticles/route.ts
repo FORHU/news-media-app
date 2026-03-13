@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
             .from('crawled_urls')
             .select('url');
         
-        const uniqueSources = ['All Sources', ...new Set(sourcesData?.map(s => {
+        const uniqueSources = ['All Sources', ...new Set((sourcesData || []).map((s: { url: string }) => {
             try {
                 return new URL(s.url).hostname.replace('www.', '');
             } catch {
@@ -65,26 +65,41 @@ export async function GET(req: NextRequest) {
             }
         }) || [])];
 
+        interface RawArticleSupabase {
+            id: string;
+            title: string;
+            content: string | null;
+            image_url: string | null;
+            publish_date: string | null;
+            created_at: string;
+            status: string;
+            category: { category_name: string } | null;
+            crawledUrl: { url: string } | null;
+            contentArticle: { id: string }[] | { id: string } | null;
+        }
+
         // Map data to match the component's expected structure
-        const articles = data.map((article: any) => {
+        const articles = ((data as unknown as RawArticleSupabase[]) || []).map((article) => {
             const rawImg = article.image_url;
             const imageUrl = typeof rawImg === 'string' && rawImg.trim().length > 0 ? rawImg.trim() : null;
             return {
-            id: article.id,
-            title: article.title,
-            content: article.content,
-            imageUrl,
-            publishDate: article.publish_date,
-            createdAt: article.created_at,
-            status: article.status,
-            category: {
-                categoryName: article.category?.category_name
-            },
-            crawledUrl: {
-                url: article.crawledUrl?.url
-            },
-            contentArticle: article.contentArticle?.[0] || article.contentArticle || null
-        };
+                id: article.id,
+                title: article.title,
+                content: article.content,
+                imageUrl,
+                publishDate: article.publish_date,
+                createdAt: article.created_at,
+                status: article.status,
+                category: {
+                    categoryName: article.category?.category_name || 'Uncategorized'
+                },
+                crawledUrl: {
+                    url: article.crawledUrl?.url || ''
+                },
+                contentArticle: Array.isArray(article.contentArticle) 
+                    ? (article.contentArticle[0] || null)
+                    : (article.contentArticle || null)
+            };
         });
 
         return NextResponse.json({ 
@@ -101,4 +116,4 @@ export async function GET(req: NextRequest) {
         console.error('Error fetching crawled articles from Supabase SDK:', error);
         return NextResponse.json({ error: 'Failed to fetch articles' }, { status: 500 });
     }
-}
+}

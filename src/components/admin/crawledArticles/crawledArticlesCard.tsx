@@ -1,37 +1,33 @@
 "use client";
 
+import React from 'react';
 import Image from 'next/image';
 import { 
     Globe, 
     ExternalLink, 
     Calendar, 
     Zap, 
-    Check 
+    Check,
+    Search,
+    Newspaper,
+    Loader2
 } from 'lucide-react';
 import { div as MotionDiv } from 'framer-motion/client';
+import NavigatingDropdown from '@/components/admin/NavigatingDropdown';
+import Pagination from '@/components/admin/pagination';
+import { useQuery } from '@tanstack/react-query';
+import { articlesApi } from '@/lib/api';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+
+import { MappedRawArticle, CrawledArticlesResponse } from '@/lib/types';
+import { Variants } from 'framer-motion';
 
 interface CrawledArticleCardProps {
-    article: {
-        id: string;
-        title: string;
-        content: string | null;
-        imageUrl: string | null;
-        publishDate: Date | null;
-        createdAt: Date;
-        category: {
-            categoryName: string;
-        };
-        crawledUrl: {
-            url: string;
-        };
-        contentArticle: {
-            id: string;
-        } | null;
-    };
-    variants: any; // Keep any for simplicity with RSC variants
+    article: MappedRawArticle;
+    variants: Variants;
 }
 
-export default function CrawledArticleCard({ article, variants }: CrawledArticleCardProps) {
+export function CrawledArticleCard({ article, variants }: CrawledArticleCardProps) {
     const isGenerated = !!article.contentArticle;
     const publishDate = article.publishDate || article.createdAt;
 
@@ -132,3 +128,161 @@ export default function CrawledArticleCard({ article, variants }: CrawledArticle
         </MotionDiv>
     );
 }
+
+// Minimal shell to handle React Query and interactive UI
+export default function CrawledArticlesList({ searchParams }: { 
+    searchParams: { source?: string; date?: string; q?: string; page?: string } 
+}) {
+    const router = useRouter();
+    const pathname = usePathname();
+    const urlSearchParams = useSearchParams();
+
+    const filterSource = searchParams.source || 'All Sources';
+    const filterDate = searchParams.date || 'Today';
+    const searchQuery = searchParams.q || '';
+    const currentPage = parseInt(searchParams.page || '1');
+
+    const { data, isLoading, isError } = useQuery<CrawledArticlesResponse>({
+        queryKey: ['crawledArticles', { filterSource, filterDate, searchQuery, currentPage }],
+        queryFn: () => articlesApi.getCrawledArticles({
+            source: filterSource,
+            date: filterDate,
+            q: searchQuery,
+            page: currentPage,
+            limit: 10
+        }),
+    });
+
+    const articles = data?.articles || [];
+    const sources = data?.sources || ['All Sources'];
+    const pagination = data?.pagination || { totalPages: 0 };
+
+    const handleSearch = (q: string) => {
+        const params = new URLSearchParams(urlSearchParams.toString());
+        if (q) {
+            params.set('q', q);
+        } else {
+            params.delete('q');
+        }
+        params.set('page', '1');
+        router.push(`${pathname}?${params.toString()}`);
+    };
+
+    const containerVariants: Variants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1
+            }
+        }
+    };
+
+    const itemVariants: Variants = {
+        hidden: { y: 20, opacity: 0 },
+        visible: {
+            y: 0,
+            opacity: 1,
+            transition: {
+                type: 'spring',
+                stiffness: 100
+            }
+        }
+    };
+
+    return (
+        <div className="space-y-8 min-h-screen pb-20">
+            {/* Header Section */}
+            <div className="flex flex-col gap-2">
+                <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
+                    Crawled <span className="text-orange-600">Articles</span>
+                </h1>
+                <p className="text-gray-500 font-medium text-lg">
+                    Discover and transform automated intelligence into premium news content.
+                </p>
+            </div>
+
+            {/* Premium Filter Bar */}
+            <div className="bg-white/80 backdrop-blur-md p-4 rounded-3xl shadow-xl shadow-gray-100/50 border border-gray-100 flex flex-col lg:flex-row items-stretch lg:items-center gap-4 sticky top-4 z-10">
+                <div className="relative flex-1 group">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-orange-500 transition-colors" />
+                    <input
+                        type="text"
+                        placeholder="Search intelligence..."
+                        defaultValue={searchQuery}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                handleSearch((e.target as HTMLInputElement).value);
+                            }
+                        }}
+                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm focus:ring-4 focus:ring-orange-500/10 focus:bg-white focus:border-orange-200 outline-none transition-all placeholder:text-gray-400"
+                    />
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                    <NavigatingDropdown
+                        options={sources}
+                        value={filterSource}
+                        paramName="source"
+                        icon={<Globe className="w-4 h-4" />}
+                        className="flex-1 md:flex-none md:w-48 !rounded-2xl !py-3.5"
+                    />
+
+                    <NavigatingDropdown
+                        options={['Today', 'Last 7 Days', 'This Month']}
+                        value={filterDate}
+                        paramName="date"
+                        icon={<Calendar className="w-4 h-4" />}
+                        className="flex-1 md:flex-none md:w-48 !rounded-2xl !py-3.5"
+                    />
+                </div>
+            </div>
+
+            {/* Grid of Article Cards */}
+            {isLoading ? (
+                <div className="py-32 flex flex-col items-center justify-center">
+                    <Loader2 className="w-12 h-12 text-orange-500 animate-spin mb-4" />
+                    <p className="text-gray-500 font-bold">Scanning the intelligence horizon...</p>
+                </div>
+            ) : isError ? (
+                <div className="py-32 flex flex-col items-center justify-center bg-red-50 rounded-[3rem] border-2 border-dashed border-red-100 text-red-500">
+                    <p className="font-bold text-lg">Failed to load intelligence.</p>
+                    <p className="text-sm italic">Please check your connection or try again later.</p>
+                </div>
+            ) : (
+                <MotionDiv 
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="grid grid-cols-1 gap-6"
+                >
+                    {articles.length > 0 ? (
+                        articles.map((article: MappedRawArticle) => (
+                            <CrawledArticleCard 
+                                key={article.id} 
+                                article={article} 
+                                variants={itemVariants} 
+                            />
+                        ))
+                    ) : (
+                        <div className="py-32 flex flex-col items-center justify-center bg-white rounded-[3rem] border-2 border-dashed border-gray-100">
+                            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                                <Newspaper className="w-10 h-10 text-gray-200" />
+                            </div>
+                            <p className="text-gray-400 font-bold text-lg">No intelligence discovered yet.</p>
+                            <p className="text-gray-300 text-sm italic">The crawler is scanning the horizon for fresh news...</p>
+                        </div>
+                    )}
+                </MotionDiv>
+            )}
+
+            {/* Pagination Segment */}
+            {!isLoading && !isError && (
+                <Pagination 
+                    totalPages={pagination?.totalPages || 0} 
+                    currentPage={currentPage} 
+                />
+            )}
+        </div>
+    );
+}
