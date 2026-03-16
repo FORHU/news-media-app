@@ -3,15 +3,18 @@
 import React from "react";
 import { Link as LinkIcon, Plus } from "lucide-react";
 import CrawlConfigurationModal from "./CrawlConfigurationModal";
+import CrawlJobsTable from "./CrawlJobsTable";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function CrawlUrlsManager() {
   const [modalOpen, setModalOpen] = React.useState(false);
+  const queryClient = useQueryClient();
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-12 animate-in fade-in duration-500">
       <div className="flex flex-col gap-1">
         <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-          Crawl URLs
+          Crawl <span className="text-orange-600">URLs</span>
         </h1>
         <p className="text-gray-500 font-medium">
           Configure websites to crawl for AI content generation.
@@ -42,11 +45,14 @@ export default function CrawlUrlsManager() {
         </button>
       </div>
 
+      {/* Crawl Jobs List */}
+      <CrawlJobsTable />
+
       <CrawlConfigurationModal
         open={modalOpen}
         onOpenChange={setModalOpen}
         onSuccess={() => {
-          // You might want to refresh lists here if there were any
+          queryClient.invalidateQueries({ queryKey: ["crawlJobs"] });
         }}
       />
     </div>

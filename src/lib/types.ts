@@ -42,3 +42,22 @@ export interface CrawledArticlesResponse {
     totalPages: number;
   };
 }
+export interface CrawlJob {
+  id: string;
+  status: string;
+  urls: string[];
+  maxArticlesRequest: number;
+  createdAt: string | Date;
+  startedAt: string | Date | null;
+  finishedAt: string | Date | null;
+}
+
+export interface CrawlJobsResponse {
+  jobs: CrawlJob[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}

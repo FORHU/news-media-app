@@ -108,7 +108,7 @@ export default function CrawlConfigurationModal({
     setStarting(true);
     setError(null);
     try {
-      const res = await fetch("/api/crawl", {
+      const res = await fetch("/api/admin/crawledArticles/crawlUrl", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
