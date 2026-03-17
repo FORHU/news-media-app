@@ -14,10 +14,10 @@ export default function CrawlUrlsManager() {
     <div className="space-y-12 animate-in fade-in duration-500">
       <div className="flex flex-col gap-1">
         <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-          Crawl <span className="text-orange-600">URLs</span>
+          Crawl URL Management
         </h1>
         <p className="text-gray-500 font-medium">
-          Configure websites to crawl for AI content generation.
+          Configure web crawling sources for AI content generation
         </p>
       </div>
 

@@ -70,7 +70,7 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
                         {article.title}
                     </h3>
                     <p className="text-gray-500 text-sm line-clamp-2 font-medium leading-relaxed max-w-2xl">
-                        {article.content || "No excerpt available for this intelligence report. Review the source content for full details."}
+                        {article.content || "No excerpt available for this article. Review the source content for full details."}
                     </p>
                 </div>
 
@@ -198,7 +198,7 @@ export default function CrawledArticlesList({ searchParams }: {
                     Crawled <span className="text-orange-600">Articles</span>
                 </h1>
                 <p className="text-gray-500 font-medium text-lg">
-                    Discover and transform automated intelligence into premium news content.
+                    Discover and transform automated crawls into premium news content.
                 </p>
             </div>
 
@@ -208,7 +208,7 @@ export default function CrawledArticlesList({ searchParams }: {
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-orange-500 transition-colors" />
                     <input
                         type="text"
-                        placeholder="Search intelligence..."
+                        placeholder="Search articles..."
                         defaultValue={searchQuery}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter') {
@@ -242,11 +242,11 @@ export default function CrawledArticlesList({ searchParams }: {
             {isLoading ? (
                 <div className="py-32 flex flex-col items-center justify-center">
                     <Loader2 className="w-12 h-12 text-orange-500 animate-spin mb-4" />
-                    <p className="text-gray-500 font-bold">Scanning the intelligence horizon...</p>
+                    <p className="text-gray-500 font-bold">Scanning the horizon...</p>
                 </div>
             ) : isError ? (
                 <div className="py-32 flex flex-col items-center justify-center bg-red-50 rounded-[3rem] border-2 border-dashed border-red-100 text-red-500">
-                    <p className="font-bold text-lg">Failed to load intelligence.</p>
+                    <p className="font-bold text-lg">Failed to load articles.</p>
                     <p className="text-sm italic">Please check your connection or try again later.</p>
                 </div>
             ) : (
@@ -269,7 +269,7 @@ export default function CrawledArticlesList({ searchParams }: {
                             <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
                                 <Newspaper className="w-10 h-10 text-gray-200" />
                             </div>
-                            <p className="text-gray-400 font-bold text-lg">No intelligence discovered yet.</p>
+                            <p className="text-gray-400 font-bold text-lg">No articles discovered yet.</p>
                             <p className="text-gray-300 text-sm italic">The crawler is scanning the horizon for fresh news...</p>
                         </div>
                     )}

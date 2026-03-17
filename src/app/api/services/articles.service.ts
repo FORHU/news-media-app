@@ -14,6 +14,7 @@ export const articlesService = {
   async getArticles(params: {
     limit?: number;
     search?: string | null;
+    category?: string | null;
   }) {
     const rawLimit = params.limit ?? 50;
     const safeLimit = Math.min(rawLimit || 50, 100);
@@ -21,6 +22,7 @@ export const articlesService = {
     return articlesRepository.findMany({
       limit: safeLimit,
       search: params.search ?? null,
+      category: params.category ?? null,
     });
   },
 

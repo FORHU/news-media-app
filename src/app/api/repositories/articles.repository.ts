@@ -2,24 +2,40 @@ import { prisma } from "@/lib/db";
 import type { Article } from "@/lib/types";
 
 export const articlesRepository = {
-  async findMany(params: { limit: number; search?: string | null }): Promise<Article[]> {
-    const { limit, search } = params;
+  async findMany(params: {
+    limit: number;
+    search?: string | null;
+    category?: string | null;
+  }): Promise<Article[]> {
+    const { limit, search, category } = params;
+
+    const where: any = {
+      AND: [],
+    };
+
+    if (search) {
+      where.AND.push({
+        OR: [
+          { title: { contains: search, mode: "insensitive" } },
+          { content: { contains: search, mode: "insensitive" } },
+          {
+            category: {
+              categoryName: { contains: search, mode: "insensitive" },
+            },
+          },
+        ],
+      });
+    }
+
+    if (category) {
+      where.AND.push({
+        category: { categoryName: category },
+      });
+    }
 
     return prisma.contentArticle.findMany({
       take: limit,
-      where: search
-        ? {
-            OR: [
-              { title: { contains: search, mode: "insensitive" } },
-              { content: { contains: search, mode: "insensitive" } },
-              {
-                category: {
-                  categoryName: { contains: search, mode: "insensitive" },
-                },
-              },
-            ],
-          }
-        : undefined,
+      where: where.AND.length > 0 ? where : undefined,
       orderBy: { createdAt: "desc" },
       include: { category: true },
     }) as Promise<Article[]>;

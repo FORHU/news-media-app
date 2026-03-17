@@ -1,5 +1,6 @@
 "use client";
 
+import { SafeImage } from "@/components/ui/SafeImage";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
@@ -107,11 +108,14 @@ export default function ArticlePageClient({ articleId }: { articleId: string }) 
                 </h1>
                 <p className="text-gray-500">{formattedDate}</p>
                 {article.imageUrl && (
-                  <div className="mt-6 rounded-xl overflow-hidden bg-gray-200">
-                    <img
+                  <div className="mt-6 rounded-xl overflow-hidden bg-gray-200 relative aspect-video">
+                    <SafeImage
                       src={article.imageUrl}
                       alt={article.title}
-                      className="w-full h-auto object-cover"
+                      title={article.title}
+                      fill
+                      priority
+                      className="object-cover"
                     />
                   </div>
                 )}

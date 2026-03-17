@@ -1,5 +1,6 @@
 "use client";
 
+import { SafeImage } from "@/components/ui/SafeImage";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -101,9 +102,12 @@ export function LatestStoriesSection({
               className="group cursor-pointer flex flex-row gap-4 pb-6 border-b border-gray-200 hover:bg-gray-50 transition-colors rounded-lg p-2 sm:p-3"
             >
               <div className="relative w-28 sm:w-40 h-20 sm:h-28 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                <img
+                <SafeImage
                   src={article.imageUrl ?? `https://placehold.co/400x200/e5e7eb/9ca3af?text=${encodeURIComponent(article.title.slice(0, 20))}`}
                   alt={article.title}
+                  title={article.title}
+                  width={400}
+                  height={200}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               </div>

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
+import ActiveCrawlIndicator from '@/components/admin/ActiveCrawlIndicator';
 import { Menu } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -51,6 +52,7 @@ export default function AdminLayout({
                     {children}
                 </div>
             </main>
+            <ActiveCrawlIndicator />
         </div>
     );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { ArticleLink } from "@/components/home/ArticleLink";
+import { SafeImage } from "@/components/ui/SafeImage";
 import type { Article } from "@/lib/types";
 
 interface TrendingProductsSectionProps {
@@ -39,10 +40,12 @@ export function TrendingProductsSection({
             className="group cursor-pointer bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 block"
           >
             <div className="relative h-48 bg-gray-200 overflow-hidden">
-              <img
+              <SafeImage
                 src={product.imageUrl ?? `https://placehold.co/400x300/e5e7eb/9ca3af?text=${encodeURIComponent(product.title.slice(0, 20))}`}
                 alt={product.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                title={product.title}
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-300"
               />
             </div>
             <div className="p-4">

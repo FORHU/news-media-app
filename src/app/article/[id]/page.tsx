@@ -1,6 +1,6 @@
+import { Suspense } from "react";
 import { dehydrate } from "@tanstack/react-query";
 import { notFound } from "next/navigation";
-
 import { createQueryClient } from "@/lib/react-query";
 import { Hydrate } from "@/components/react-query/Hydrate";
 import {
@@ -8,8 +8,14 @@ import {
   ArticlesServiceError,
 } from "@/app/api/services/articles.service";
 import ArticlePageClient from "./ArticlePageClient";
+export const revalidate = 300;
 
-export const revalidate = 3600;
+export async function generateStaticParams() {
+  const articles = await articlesService.getArticles({ limit: 100 });
+  return articles.map((article) => ({
+    id: article.id,
+  }));
+}
 
 export default async function ArticlePage({
   params,
@@ -43,7 +49,9 @@ export default async function ArticlePage({
 
   return (
     <Hydrate state={dehydratedState}>
-      <ArticlePageClient articleId={articleId} />
+      <Suspense fallback={<div className="min-h-screen bg-white" />}>
+        <ArticlePageClient articleId={articleId} />
+      </Suspense>
     </Hydrate>
   );
 }
