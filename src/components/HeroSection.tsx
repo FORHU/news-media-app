@@ -1,5 +1,6 @@
 "use client";
 
+import { SafeImage } from "@/components/ui/SafeImage";
 import { useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Calendar, Clock, ArrowRight } from "lucide-react";
@@ -99,12 +100,16 @@ export function HeroSection({ articles }: HeroSectionProps) {
                       <div className="grid grid-cols-1 md:grid-cols-2 h-full min-h-0">
                         {/* Image side */}
                         <div className="relative aspect-video md:aspect-auto md:h-full min-h-0 bg-gray-900">
-                          <img
+                          <SafeImage
                             src={article.imageUrl ?? `https://placehold.co/800x400/e5e7eb/9ca3af?text=${encodeURIComponent(article.title.slice(0, 30))}`}
                             alt={article.title}
-                            className="w-full h-full object-cover"
+                            title={article.title}
+                            fill
+                            priority={index === 0}
+                            className="object-cover"
+                            sizes="(max-width: 768px) 100vw, 50vw"
                           />
-                          <span className="absolute top-3 left-3 px-2 py-1 bg-[#ff4500] text-white text-xs font-bold uppercase rounded">
+                          <span className="absolute top-3 left-3 px-2 py-1 bg-[#ff4500] text-white text-xs font-bold uppercase rounded z-10">
                             {categoryLabel}
                           </span>
                         </div>

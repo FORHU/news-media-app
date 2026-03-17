@@ -47,12 +47,12 @@ async function main() {
 
   await seedSocialMediaPosts(prisma, transformationIds);
 
-  console.log("✅ Seeding finished successfully.");
+  console.log("Seeding finished successfully.");
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Seed failed", e);
+    console.error("Seed failed", e);
     process.exit(1);
   })
   .finally(async () => {

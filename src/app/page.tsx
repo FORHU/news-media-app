@@ -9,7 +9,7 @@ import { TrendingProductsSection } from "@/components/home/trending-products-sec
 import { LandingClientWrapper } from "@/components/home/LandingClientWrapper";
 import { articlesService } from "@/app/api/services/articles.service";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export default async function Page(props: {
   searchParams: Promise<{ search?: string; category?: string }>;
@@ -18,29 +18,14 @@ export default async function Page(props: {
   const searchQuery = searchParams.search;
   const categoryParam = searchParams.category;
 
-  // Fetch articles on the server
-  const articles = await articlesService.getArticles({ limit: 50 });
+  // Fetch articles on the server using database-level filtering
+  const articles = await articlesService.getArticles({ 
+    limit: 50,
+    search: searchQuery,
+    category: categoryParam 
+  });
 
-  // Filter articles by category and/or search
-  let filteredArticles = articles;
-
-  if (categoryParam) {
-    filteredArticles = filteredArticles.filter(
-      (article) => article.category.categoryName === categoryParam
-    );
-  }
-
-  if (searchQuery) {
-    const query = searchQuery.toLowerCase();
-    filteredArticles = filteredArticles.filter((article) => {
-      const content = article.content?.toLowerCase() ?? "";
-      return (
-        article.title.toLowerCase().includes(query) ||
-        content.includes(query) ||
-        article.category.categoryName.toLowerCase().includes(query)
-      );
-    });
-  }
+  const filteredArticles = articles;
 
   const error = ""; // Errors can be handled via error.tsx in Next.js
 
