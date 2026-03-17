@@ -22,8 +22,9 @@ export async function GET(req: NextRequest) {
         const jobs = (data || []).map((job) => ({
             id: job.id,
             status: job.status || 'Pending',
-            urls: job.urls,
-            maxArticlesRequest: job.max_articles_request,
+            urls: Array.isArray(job.urls) ? job.urls : (typeof job.urls === 'string' && job.urls ? [job.urls] : []),
+            maxArticlesRequest: typeof job.max_articles_request === 'number' ? job.max_articles_request : 0,
+            articlesSaved: typeof job.articles_saved === 'number' ? job.articles_saved : 0,
             createdAt: job.created_at,
             startedAt: job.started_at,
             finishedAt: job.finished_at,
