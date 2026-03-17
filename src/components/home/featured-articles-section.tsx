@@ -1,5 +1,6 @@
 import type { Article } from "@/lib/types";
 import { ArticleLink } from "@/components/home/ArticleLink";
+import { SafeImage } from "@/components/ui/SafeImage";
 
 interface FeaturedArticlesSectionProps {
   articles: Article[];
@@ -35,10 +36,12 @@ export function FeaturedArticlesSection({
           className="group cursor-pointer bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 block"
         >
           <div className="relative h-32 bg-gray-200 overflow-hidden">
-            <img
+            <SafeImage
               src={article.imageUrl ?? `https://placehold.co/600x400/e5e7eb/9ca3af?text=${encodeURIComponent(article.title.slice(0, 20))}`}
               alt={article.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              title={article.title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
             <div className="absolute top-2 right-2">
               <span className="inline-block bg-[#ff4500] text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase">
