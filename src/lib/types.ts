@@ -47,6 +47,7 @@ export interface CrawlJob {
   status: string;
   urls: string[];
   maxArticlesRequest: number;
+  articlesSaved: number;
   createdAt: string | Date;
   startedAt: string | Date | null;
   finishedAt: string | Date | null;
