@@ -9,6 +9,13 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as ShadCalendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { crawlConfigurationSchema } from "@/lib/validation/crawl";
 
 interface CrawlConfigurationModalProps {
   open: boolean;
@@ -57,6 +64,13 @@ function formatDateInput(d: Date) {
   return `${year}-${month}-${day}`;
 }
 
+function parseISODateInput(value: string): Date | undefined {
+  if (!value) return undefined;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return undefined;
+  return d;
+}
+
 export default function CrawlConfigurationModal({
   open,
   onOpenChange,
@@ -96,15 +110,31 @@ export default function CrawlConfigurationModal({
     setUrls((prev) => prev.filter((u) => u !== url));
   }, []);
 
+  const dateRange = React.useMemo(() => {
+    const from = parseISODateInput(startDate);
+    const to = parseISODateInput(endDate);
+    return { from, to };
+  }, [endDate, startDate]);
+
   const startCrawl = React.useCallback(async () => {
     const valid =
       urls.length > 0
         ? urls.filter((u) => getValidUrls([u]).length > 0)
         : getValidUrls(splitBulk(singleUrl || bulk));
-    if (valid.length === 0) {
-      setError("Add at least one valid URL to start crawling.");
+
+    const parsed = crawlConfigurationSchema.safeParse({
+      urls: valid,
+      start_date: startDate,
+      end_date: endDate,
+      max_requests_per_crawl: maxArticles,
+    });
+
+    if (!parsed.success) {
+      const first = parsed.error.issues[0]?.message ?? "Invalid crawl configuration.";
+      setError(first);
       return;
     }
+
     setStarting(true);
     setError(null);
     try {
@@ -112,10 +142,10 @@ export default function CrawlConfigurationModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          urls: valid,
-          start_date: startDate,
-          end_date: endDate,
-          max_requests_per_crawl: maxArticles,
+          urls: parsed.data.urls,
+          start_date: parsed.data.start_date,
+          end_date: parsed.data.end_date,
+          max_requests_per_crawl: parsed.data.max_requests_per_crawl,
         }),
       });
       if (!res.ok) {
@@ -185,7 +215,7 @@ export default function CrawlConfigurationModal({
               </span>
             </div>
             <div className="flex gap-2">
-              <input
+              <Input
                 type="url"
                 value={singleUrl}
                 onChange={(e) => setSingleUrl(e.target.value)}
@@ -193,16 +223,17 @@ export default function CrawlConfigurationModal({
                   e.key === "Enter" && (e.preventDefault(), addUrl())
                 }
                 placeholder="https://example.com/news"
-                className="flex-1 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-orange-500/20 outline-none"
+                className="h-11 flex-1 rounded-xl bg-gray-50 border-gray-100 text-sm focus-visible:ring-orange-500/20 focus-visible:border-orange-200"
               />
-              <button
+              <Button
                 type="button"
                 onClick={addUrl}
-                className="flex items-center gap-2 px-4 py-3 bg-orange-100 text-gray-900 rounded-xl font-bold text-sm hover:bg-orange-200 transition-colors"
+                variant="secondary"
+                className="h-11 rounded-xl bg-orange-100 text-gray-900 hover:bg-orange-200 font-bold"
               >
                 <Plus className="w-4 h-4" />
                 Add URL
-              </button>
+              </Button>
             </div>
             <p className="text-xs text-gray-500">
               Add one or more website URLs to crawl for content
@@ -215,23 +246,25 @@ export default function CrawlConfigurationModal({
                     className="flex items-center justify-between text-sm bg-gray-50 rounded-lg px-3 py-2"
                   >
                     <span className="truncate text-gray-700">{u}</span>
-                    <button
+                    <Button
                       type="button"
                       onClick={() => removeUrl(u)}
-                      className="text-red-500 hover:text-red-600 text-xs font-medium"
+                      variant="link"
+                      size="xs"
+                      className="px-0 text-red-500 hover:text-red-600"
                     >
                       Remove
-                    </button>
+                    </Button>
                   </li>
                 ))}
               </ul>
             )}
-            <textarea
+            <Textarea
               value={bulk}
               onChange={(e) => setBulk(e.target.value)}
               placeholder="Or paste multiple URLs (one per line)..."
               rows={2}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-orange-500/20 outline-none resize-none"
+              className="w-full rounded-xl bg-gray-50 border-gray-100 text-sm focus-visible:ring-orange-500/20 focus-visible:border-orange-200 resize-none"
             />
           </div>
 
@@ -246,46 +279,53 @@ export default function CrawlConfigurationModal({
               </span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <label className="space-y-1">
+              <div className="space-y-1 sm:col-span-2">
                 <span className="text-xs font-semibold text-gray-600">
-                  Start Date
+                  Date Range
                 </span>
-                <div className="relative">
-                  <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full px-4 py-3 pr-10 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-orange-500/20 outline-none"
-                  />
-                </div>
-              </label>
-              <label className="space-y-1">
-                <span className="text-xs font-semibold text-gray-600">
-                  End Date
-                </span>
-                <div className="relative">
-                  <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full px-4 py-3 pr-10 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-orange-500/20 outline-none"
-                  />
-                </div>
-              </label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-11 w-full justify-start rounded-xl border-gray-100 bg-gray-50 text-left text-sm font-semibold text-gray-900 hover:bg-white"
+                    >
+                      <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                      {dateRange.from && dateRange.to
+                        ? `${format(dateRange.from, "MMM d, yyyy")} – ${format(dateRange.to, "MMM d, yyyy")}`
+                        : dateRange.from
+                          ? `${format(dateRange.from, "MMM d, yyyy")} – …`
+                          : dateRange.to
+                            ? `… – ${format(dateRange.to, "MMM d, yyyy")}`
+                            : <span className="text-gray-400 font-semibold">Pick a date range</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0" align="start">
+                    <ShadCalendar
+                      mode="range"
+                      numberOfMonths={2}
+                      selected={dateRange}
+                      onSelect={(range) => {
+                        setStartDate(range?.from ? formatDateInput(range.from) : formatDateInput(new Date()));
+                        setEndDate(range?.to ? formatDateInput(range.to) : formatDateInput(new Date()));
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
               <label className="space-y-1">
                 <span className="text-xs font-semibold text-gray-600">
                   # Max Articles
                 </span>
-                <input
+                <Input
                   type="number"
                   min={1}
                   value={maxArticles}
                   onChange={(e) =>
                     setMaxArticles(Math.max(1, Number(e.target.value) || 1))
                   }
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-orange-500/20 outline-none"
+                  className="h-11 w-full rounded-xl bg-gray-50 border-gray-100 text-sm focus-visible:ring-orange-500/20 focus-visible:border-orange-200"
                 />
               </label>
             </div>
@@ -300,22 +340,23 @@ export default function CrawlConfigurationModal({
         </div>
 
         <DialogFooter className="px-6 py-4 border-t border-gray-100 gap-2">
-          <button
+          <Button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="px-5 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 font-bold text-sm hover:bg-gray-50 transition-colors"
+            variant="outline"
+            className="rounded-xl font-bold"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={startCrawl}
             disabled={!canStart || starting}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-sm shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+            className="rounded-xl font-bold bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 disabled:opacity-60"
           >
             <CirclePlay className="w-4 h-4" />
             {starting ? "Starting..." : "Start Crawling"}
-          </button>
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

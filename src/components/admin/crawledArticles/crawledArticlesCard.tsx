@@ -2,25 +2,29 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { 
-    Globe, 
-    ExternalLink, 
-    Calendar, 
-    Zap, 
+import {
+    Globe,
+    ExternalLink,
+    Calendar,
+    Zap,
     Check,
     Search,
     Newspaper,
     Loader2
 } from 'lucide-react';
 import { div as MotionDiv } from 'framer-motion/client';
-import NavigatingDropdown from '@/components/admin/NavigatingDropdown';
 import Pagination from '@/components/admin/pagination';
 import { useQuery } from '@tanstack/react-query';
 import { articlesApi } from '@/lib/api';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { format } from 'date-fns';
 
 import { MappedRawArticle, CrawledArticlesResponse } from '@/lib/types';
 import { Variants } from 'framer-motion';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as ShadCalendar } from '@/components/ui/calendar';
 
 interface CrawledArticleCardProps {
     article: MappedRawArticle;
@@ -46,8 +50,8 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
             {/* Thumbnail Image Container */}
             <div className="relative w-full md:w-64 h-48 md:h-44 rounded-[1.5rem] overflow-hidden shadow-inner bg-gray-50 flex-shrink-0">
                 {hasValidImage ? (
-                    <Image 
-                        src={imageUrl} 
+                    <Image
+                        src={imageUrl}
                         alt={article.title}
                         fill
                         className="object-cover transition-transform duration-700 group-hover:scale-110"
@@ -94,8 +98,8 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
                     )}
 
                     {article.crawledUrl?.url ? (
-                        <a 
-                            href={article.crawledUrl.url} 
+                        <a
+                            href={article.crawledUrl.url}
                             target="_blank"
                             rel="noreferrer"
                             className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-full border border-blue-100 hover:bg-blue-600 hover:text-white transition-all group/link shadow-sm"
@@ -130,43 +134,88 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
 }
 
 // Minimal shell to handle React Query and interactive UI
-export default function CrawledArticlesList({ searchParams }: { 
-    searchParams: { source?: string; date?: string; q?: string; page?: string } 
+export default function CrawledArticlesList({ searchParams }: {
+    searchParams: { from?: string; to?: string; q?: string; page?: string }
 }) {
     const router = useRouter();
     const pathname = usePathname();
     const urlSearchParams = useSearchParams();
 
-    const filterSource = searchParams.source || 'All Sources';
-    const filterDate = searchParams.date || 'Today';
+    const from = searchParams.from || '';
+    const to = searchParams.to || '';
     const searchQuery = searchParams.q || '';
     const currentPage = parseInt(searchParams.page || '1');
 
     const { data, isLoading, isError } = useQuery<CrawledArticlesResponse>({
-        queryKey: ['crawledArticles', { filterSource, filterDate, searchQuery, currentPage }],
+        queryKey: ['crawledArticles', { from, to, searchQuery, currentPage }],
         queryFn: () => articlesApi.getCrawledArticles({
-            source: filterSource,
-            date: filterDate,
+            from: from || undefined,
+            to: to || undefined,
             q: searchQuery,
             page: currentPage,
             limit: 10
         }),
+        placeholderData: (prev) => prev,
     });
 
     const articles = data?.articles || [];
-    const sources = data?.sources || ['All Sources'];
     const pagination = data?.pagination || { totalPages: 0 };
 
-    const handleSearch = (q: string) => {
-        const params = new URLSearchParams(urlSearchParams.toString());
-        if (q) {
-            params.set('q', q);
-        } else {
-            params.delete('q');
-        }
-        params.set('page', '1');
-        router.push(`${pathname}?${params.toString()}`);
+    const setQueryParams = React.useCallback(
+        (updates: Record<string, string | null | undefined>) => {
+            const params = new URLSearchParams(urlSearchParams.toString());
+            for (const [key, value] of Object.entries(updates)) {
+                if (value == null || value === '') params.delete(key);
+                else params.set(key, value);
+            }
+            params.set('page', '1');
+            router.push(`${pathname}?${params.toString()}`);
+        },
+        [pathname, router, urlSearchParams]
+    );
+
+    const toLocalISODate = (value: string | Date | null | undefined) => {
+        if (!value) return '';
+        const d = new Date(value);
+        if (Number.isNaN(d.getTime())) return '';
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
     };
+
+    const [searchDraft, setSearchDraft] = React.useState(searchQuery);
+    const [rangeDraft, setRangeDraft] = React.useState<{ from: string; to: string }>({
+        from,
+        to,
+    });
+
+    React.useEffect(() => {
+        setSearchDraft(searchQuery);
+    }, [searchQuery]);
+
+    React.useEffect(() => {
+        setRangeDraft({ from, to });
+    }, [from, to]);
+
+    React.useEffect(() => {
+        const t = setTimeout(() => {
+            if (searchDraft === (searchQuery || '')) return;
+            setQueryParams({ q: searchDraft || null });
+        }, 400);
+        return () => clearTimeout(t);
+    }, [searchDraft, searchQuery, setQueryParams]);
+
+    React.useEffect(() => {
+        const t = setTimeout(() => {
+            if (rangeDraft.from === from && rangeDraft.to === to) return;
+            setQueryParams({
+                from: rangeDraft.from || null,
+                to: rangeDraft.to || null,
+            });
+        }, 350);
+        return () => clearTimeout(t);
+    }, [from, rangeDraft.from, rangeDraft.to, setQueryParams, to]);
 
     const containerVariants: Variants = {
         hidden: { opacity: 0 },
@@ -206,35 +255,67 @@ export default function CrawledArticlesList({ searchParams }: {
             <div className="bg-white/80 backdrop-blur-md p-4 rounded-3xl shadow-xl shadow-gray-100/50 border border-gray-100 flex flex-col lg:flex-row items-stretch lg:items-center gap-4 sticky top-4 z-10">
                 <div className="relative flex-1 group">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-orange-500 transition-colors" />
-                    <input
+                    <Input
                         type="text"
                         placeholder="Search articles..."
-                        defaultValue={searchQuery}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                                handleSearch((e.target as HTMLInputElement).value);
-                            }
-                        }}
-                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm focus:ring-4 focus:ring-orange-500/10 focus:bg-white focus:border-orange-200 outline-none transition-all placeholder:text-gray-400"
+                        value={searchDraft}
+                        onChange={(e) => setSearchDraft(e.target.value)}
+                        className="h-12 w-full pl-12 pr-4 rounded-2xl bg-gray-50/50 border-gray-100 text-sm focus-visible:ring-orange-500/20 focus-visible:border-orange-200 placeholder:text-gray-400"
                     />
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                    <NavigatingDropdown
-                        options={sources}
-                        value={filterSource}
-                        paramName="source"
-                        icon={<Globe className="w-4 h-4" />}
-                        className="flex-1 md:flex-none md:w-48 !rounded-2xl !py-3.5"
-                    />
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="h-12 flex-1 md:flex-none md:w-[320px] justify-start rounded-2xl border-gray-100 bg-gray-50/50 text-left text-sm font-semibold text-gray-900 hover:bg-white"
+                            >
+                                <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                                {rangeDraft.from && rangeDraft.to
+                                    ? `${format(new Date(rangeDraft.from), "MMM d, yyyy")} – ${format(new Date(rangeDraft.to), "MMM d, yyyy")}`
+                                    : rangeDraft.from
+                                        ? `${format(new Date(rangeDraft.from), "MMM d, yyyy")} – …`
+                                        : rangeDraft.to
+                                            ? `… – ${format(new Date(rangeDraft.to), "MMM d, yyyy")}`
+                                            : <span className="text-gray-400 font-semibold">Pick a date range</span>}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="p-0" align="end">
+                            <ShadCalendar
+                                mode="range"
+                                numberOfMonths={2}
+                                selected={{
+                                    from: rangeDraft.from ? new Date(rangeDraft.from) : undefined,
+                                    to: rangeDraft.to ? new Date(rangeDraft.to) : undefined,
+                                }}
+                                onSelect={(range) => {
+                                    setRangeDraft({
+                                        from: range?.from ? toLocalISODate(range.from) : '',
+                                        to: range?.to ? toLocalISODate(range.to) : '',
+                                    })
+                                }}
+                                initialFocus
+                            />
+                        </PopoverContent>
+                    </Popover>
 
-                    <NavigatingDropdown
-                        options={['Today', 'Last 7 Days', 'This Month']}
-                        value={filterDate}
-                        paramName="date"
-                        icon={<Calendar className="w-4 h-4" />}
-                        className="flex-1 md:flex-none md:w-48 !rounded-2xl !py-3.5"
-                    />
+                    {(rangeDraft.from || rangeDraft.to || searchDraft) && (
+                        <Button
+                            type="button"
+                            variant="link"
+                            size="sm"
+                            className="px-0 text-xs font-black uppercase tracking-widest text-[#ff4500] hover:text-orange-600"
+                            onClick={() => {
+                                setRangeDraft({ from: '', to: '' });
+                                setSearchDraft('');
+                                setQueryParams({ from: null, to: null, q: null });
+                            }}
+                        >
+                            Clear
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -250,7 +331,7 @@ export default function CrawledArticlesList({ searchParams }: {
                     <p className="text-sm italic">Please check your connection or try again later.</p>
                 </div>
             ) : (
-                <MotionDiv 
+                <MotionDiv
                     variants={containerVariants}
                     initial="hidden"
                     animate="visible"
@@ -258,10 +339,10 @@ export default function CrawledArticlesList({ searchParams }: {
                 >
                     {articles.length > 0 ? (
                         articles.map((article: MappedRawArticle) => (
-                            <CrawledArticleCard 
-                                key={article.id} 
-                                article={article} 
-                                variants={itemVariants} 
+                            <CrawledArticleCard
+                                key={article.id}
+                                article={article}
+                                variants={itemVariants}
                             />
                         ))
                     ) : (
@@ -278,11 +359,11 @@ export default function CrawledArticlesList({ searchParams }: {
 
             {/* Pagination Segment */}
             {!isLoading && !isError && (
-                <Pagination 
-                    totalPages={pagination?.totalPages || 0} 
-                    currentPage={currentPage} 
+                <Pagination
+                    totalPages={pagination?.totalPages || 0}
+                    currentPage={currentPage}
                 />
             )}
         </div>
     );
-}
+}
