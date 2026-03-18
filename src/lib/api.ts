@@ -21,6 +21,8 @@ export const articlesApi = {
   async getCrawledArticles(params: {
     source?: string;
     date?: string;
+    from?: string;
+    to?: string;
     q?: string;
     page: number;
     limit: number;
@@ -28,6 +30,8 @@ export const articlesApi = {
     const searchParams = new URLSearchParams();
     if (params.source) searchParams.append("source", params.source);
     if (params.date) searchParams.append("date", params.date);
+    if (params.from) searchParams.append("from", params.from);
+    if (params.to) searchParams.append("to", params.to);
     if (params.q) searchParams.append("q", params.q);
     searchParams.append("page", params.page.toString());
     searchParams.append("limit", params.limit.toString());
@@ -57,8 +61,8 @@ export const articlesApi = {
       body: JSON.stringify({ job_id: jobId }),
     });
     if (!res.ok) {
-        const error = await res.json().catch(() => ({}));
-        throw new Error(error.error || "Failed to stop crawl job");
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to stop crawl job");
     }
     return res.json();
   },

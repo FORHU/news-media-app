@@ -5,6 +5,8 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const source = searchParams.get('source') || 'All Sources';
     const dateFilter = searchParams.get('date') || 'Today';
+    const from = searchParams.get('from');
+    const to = searchParams.get('to');
     const q = searchParams.get('q') || '';
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
@@ -21,17 +23,30 @@ export async function GET(req: NextRequest) {
                 contentArticle:content_articles(id)
             `, { count: 'exact' });
 
-        // Apply Date Filter
-        const now = new Date();
-        if (dateFilter === 'Today') {
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-            query = query.gte('created_at', today);
-        } else if (dateFilter === 'Last 7 Days') {
-            const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-            query = query.gte('created_at', lastWeek);
-        } else if (dateFilter === 'This Month') {
-            const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-            query = query.gte('created_at', firstOfMonth);
+        // Apply Date Filter (range takes precedence over presets)
+        if (from || to) {
+            if (from) {
+                const fromStart = new Date(from);
+                fromStart.setHours(0, 0, 0, 0);
+                if (!Number.isNaN(fromStart.getTime())) query = query.gte('created_at', fromStart.toISOString());
+            }
+            if (to) {
+                const toEnd = new Date(to);
+                toEnd.setHours(23, 59, 59, 999);
+                if (!Number.isNaN(toEnd.getTime())) query = query.lte('created_at', toEnd.toISOString());
+            }
+        } else {
+            const now = new Date();
+            if (dateFilter === 'Today') {
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+                query = query.gte('created_at', today);
+            } else if (dateFilter === 'Last 7 Days') {
+                const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+                query = query.gte('created_at', lastWeek);
+            } else if (dateFilter === 'This Month') {
+                const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+                query = query.gte('created_at', firstOfMonth);
+            }
         }
 
         if (source !== 'All Sources') {
@@ -56,7 +71,7 @@ export async function GET(req: NextRequest) {
         const { data: sourcesData } = await supabase
             .from('crawled_urls')
             .select('url');
-        
+
         const uniqueSources = ['All Sources', ...new Set((sourcesData || []).map((s: { url: string }) => {
             try {
                 return new URL(s.url).hostname.replace('www.', '');
@@ -96,14 +111,14 @@ export async function GET(req: NextRequest) {
                 crawledUrl: {
                     url: article.crawledUrl?.url || ''
                 },
-                contentArticle: Array.isArray(article.contentArticle) 
+                contentArticle: Array.isArray(article.contentArticle)
                     ? (article.contentArticle[0] || null)
                     : (article.contentArticle || null)
             };
         });
 
-        return NextResponse.json({ 
-            articles, 
+        return NextResponse.json({
+            articles,
             sources: uniqueSources,
             pagination: {
                 total: count || 0,
@@ -116,4 +131,4 @@ export async function GET(req: NextRequest) {
         console.error('Error fetching crawled articles from Supabase SDK:', error);
         return NextResponse.json({ error: 'Failed to fetch articles' }, { status: 500 });
     }
-}
+}

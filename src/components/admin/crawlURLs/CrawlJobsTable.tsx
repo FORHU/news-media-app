@@ -17,17 +17,30 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Pagination from '@/components/admin/pagination';
 import { CrawlJob, CrawlJobsResponse } from '@/lib/types';
 import { Variants } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import CrawlJobsFilters from '@/components/admin/crawlURLs/CrawlJobsFilters';
+
+const normalizeStatus = (status: string | null | undefined) => {
+    const s = (status ?? '').trim().toLowerCase();
+    if (!s) return 'pending';
+    if (s === 'successful' || s === 'success' || s === 'done') return 'success';
+    if (s === 'failed' || s === 'error') return 'failed';
+    if (s === 'stopped' || s === 'stop') return 'stopped';
+    if (s === 'crawling' || s === 'running' || s === 'processing') return 'crawling';
+    return s;
+};
 
 const StatusBadge = ({ status }: { status: string }) => {
-    const s = (status ?? '').toLowerCase();
+    const s = normalizeStatus(status);
 
     let colorClass = "bg-gray-300 shadow-[0_0_0_3px_rgba(209,213,219,0.15)]";
     let label = status || 'Pending';
-    let isCrawling = s === 'crawling' || s === 'running' || s === 'processing';
+    let isCrawling = s === 'crawling';
 
-    if (s === 'successful' || s === 'success' || s === 'done') {
+    if (s === 'success') {
         colorClass = "bg-[#22c55e] shadow-[0_0_0_3px_rgba(34,197,94,0.15)]";
-        label = "Successful";
+        label = "Success";
     } else if (s === 'failed') {
         colorClass = "bg-red-500 shadow-[0_0_0_3px_rgba(239,68,68,0.15)]";
         label = "Failed";
@@ -58,18 +71,16 @@ const CrawlProgressBar = ({ saved, max, isActive }: { saved: number; max: number
                 <span className="text-xs font-bold text-gray-600 tabular-nums">{saved}/{max}</span>
                 <span className="text-[10px] font-semibold text-gray-400">{pct}%</span>
             </div>
-            <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
-                <div
-                    className={`h-full rounded-full transition-all duration-500 ease-out ${
-                        isActive
-                            ? 'bg-gradient-to-r from-[#ff4500] to-orange-400'
-                            : pct >= 100
-                                ? 'bg-gradient-to-r from-emerald-500 to-emerald-400'
-                                : 'bg-gradient-to-r from-gray-300 to-gray-200'
-                    } ${isActive ? 'animate-pulse' : ''}`}
-                    style={{ width: `${pct}%` }}
-                />
-            </div>
+            <Progress
+                value={pct}
+                className={`bg-gray-100 ${
+                    isActive
+                        ? "[&>[data-slot=progress-indicator]]:bg-gradient-to-r [&>[data-slot=progress-indicator]]:from-[#ff4500] [&>[data-slot=progress-indicator]]:to-orange-400"
+                        : pct >= 100
+                            ? "[&>[data-slot=progress-indicator]]:bg-gradient-to-r [&>[data-slot=progress-indicator]]:from-emerald-500 [&>[data-slot=progress-indicator]]:to-emerald-400"
+                            : "[&>[data-slot=progress-indicator]]:bg-gradient-to-r [&>[data-slot=progress-indicator]]:from-gray-300 [&>[data-slot=progress-indicator]]:to-gray-200"
+                } ${isActive ? "animate-pulse" : ""}`}
+            />
         </div>
     );
 };
@@ -82,6 +93,16 @@ const getDisplayHost = (urls: string[]) => {
     } catch {
         return first;
     }
+};
+
+const toLocalISODate = (value: string | Date | null | undefined) => {
+    if (!value) return '';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '';
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
 };
 
 export default function CrawlJobsTable() {
@@ -173,6 +194,53 @@ export default function CrawlJobsTable() {
 
     const jobs = data?.jobs || [];
 
+    const statusFilter = (urlSearchParams.get('status') || 'all').toLowerCase();
+    const dateFrom = urlSearchParams.get('from') || '';
+    const dateTo = urlSearchParams.get('to') || '';
+    const qFilter = urlSearchParams.get('q') || '';
+
+    const setQueryParams = React.useCallback(
+        (updates: Record<string, string | null | undefined>) => {
+            const params = new URLSearchParams(urlSearchParams.toString());
+            for (const [key, value] of Object.entries(updates)) {
+                if (value == null || value === '' || value === 'all') params.delete(key);
+                else params.set(key, value);
+            }
+            params.set('page', '1');
+            router.replace(`${pathname}?${params.toString()}`);
+        },
+        [pathname, router, urlSearchParams]
+    );
+
+    const filteredJobs = React.useMemo(() => {
+        const q = qFilter.trim().toLowerCase();
+        const fromTs = dateFrom ? new Date(dateFrom).setHours(0, 0, 0, 0) : null;
+        const toTs = dateTo ? new Date(dateTo).setHours(23, 59, 59, 999) : null;
+        return jobs.filter((job) => {
+            if (!job?.id) return false;
+
+            if (statusFilter !== 'all') {
+                const s = normalizeStatus(job.status);
+                if (s !== statusFilter) return false;
+            }
+
+            if (fromTs != null || toTs != null) {
+                const ts = new Date(job.createdAt).getTime();
+                if (Number.isNaN(ts)) return false;
+                if (fromTs != null && ts < fromTs) return false;
+                if (toTs != null && ts > toTs) return false;
+            }
+
+            if (q) {
+                const urls = (job.urls ?? []).join(' ').toLowerCase();
+                const host = getDisplayHost(job.urls ?? []).toLowerCase();
+                if (!urls.includes(q) && !host.includes(q)) return false;
+            }
+
+            return true;
+        });
+    }, [dateFrom, dateTo, jobs, qFilter, statusFilter]);
+
     React.useEffect(() => {
         setStoppingIds((prev) => {
             if (prev.size === 0) return prev;
@@ -248,6 +316,19 @@ export default function CrawlJobsTable() {
         <div className="space-y-6">
             <h2 className="text-xl font-bold text-gray-900 px-2">Recent Crawl Jobs</h2>
 
+            {/* Filters */}
+            <CrawlJobsFilters
+                status={statusFilter}
+                dateFrom={dateFrom}
+                dateTo={dateTo}
+                query={qFilter}
+                filteredCount={filteredJobs.length}
+                onStatusChange={(v) => setQueryParams({ status: v })}
+                onRangeChange={(from, to) => setQueryParams({ from, to })}
+                onQueryChange={(q) => setQueryParams({ q })}
+                onClear={() => setQueryParams({ status: null, from: null, to: null, q: null })}
+            />
+
             {/* Table Header Wrapper */}
             <div className="px-10 grid grid-cols-[1.2fr_2fr_1.5fr_1fr_0.8fr] gap-4">
                 <span className="text-[10px] font-black uppercase tracking-widest text-[#9ca3af]">Status</span>
@@ -263,8 +344,8 @@ export default function CrawlJobsTable() {
                 animate="visible"
                 className="space-y-4"
             >
-                {jobs.length > 0 ? (
-                    jobs.filter((job) => job?.id).map((job) => {
+                {filteredJobs.length > 0 ? (
+                    filteredJobs.map((job) => {
                         const isCrawling = ['RUNNING', 'PROCESSING', 'CRAWLING'].includes((job.status ?? '').toUpperCase());
                         const isStopping = stoppingIds.has(job.id);
                         const isExpanded = expandedIds.has(job.id);
@@ -313,32 +394,36 @@ export default function CrawlJobsTable() {
 
                                     {/* Actions Column */}
                                     <div className="flex items-center justify-end gap-1">
-                                        <button
+                                        <Button
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 queryClient.invalidateQueries({ queryKey: ['crawlJobs'] });
                                             }}
-                                            className="p-2 text-[#d1d5db] hover:text-[#ff4500] hover:bg-orange-50 rounded-xl transition-all"
+                                            variant="ghost"
+                                            size="icon-sm"
+                                            className="rounded-xl text-[#d1d5db] hover:text-[#ff4500] hover:bg-orange-50"
                                             title={isCrawling ? 'Crawling in progress...' : 'Refresh'}
                                             disabled={isCrawling}
                                         >
                                             <RefreshCw className={`w-4 h-4 ${isCrawling ? 'animate-spin' : ''}`} />
-                                        </button>
-                                        <button
+                                        </Button>
+                                        <Button
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 stopMutation.mutate(job.id);
                                             }}
                                             disabled={!isCrawling || isStopping}
                                             title={isStopping ? 'Stopping...' : 'Stop crawl'}
-                                            className={`p-2 rounded-xl transition-all disabled:opacity-40 ${isCrawling ? 'text-red-500 bg-red-50 hover:bg-red-100' : 'text-[#d1d5db] hover:text-red-500 hover:bg-red-50'}`}
+                                            variant="ghost"
+                                            size="icon-sm"
+                                            className={`rounded-xl disabled:opacity-40 ${isCrawling ? 'text-red-500 bg-red-50 hover:bg-red-100' : 'text-[#d1d5db] hover:text-red-500 hover:bg-red-50'}`}
                                         >
                                             {isStopping ? (
                                                 <Loader2 className="w-4 h-4 animate-spin" />
                                             ) : (
                                                 <StopCircle className="w-4 h-4" />
                                             )}
-                                        </button>
+                                        </Button>
                                     </div>
                                 </div>
 
@@ -366,8 +451,8 @@ export default function CrawlJobsTable() {
                         <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
                             <LinkIcon className="w-8 h-8 text-[#d1d5db]" />
                         </div>
-                        <p className="text-[#4b5563] font-bold text-lg">No crawl jobs yet</p>
-                        <p className="text-[#9ca3af] text-sm italic">Start your first crawl to generate AI-powered content</p>
+                        <p className="text-[#4b5563] font-bold text-lg">No matching crawl jobs</p>
+                        <p className="text-[#9ca3af] text-sm italic">Try adjusting your filters or start a new crawl.</p>
                     </div>
                 )}
             </MotionDiv>
