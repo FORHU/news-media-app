@@ -1,6 +1,6 @@
 "use client";
 
-import { SafeImage } from "@/components/ui/SafeImage";
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
@@ -14,13 +14,30 @@ import { TrendingSidebar } from "@/components/home/trending-sidebar";
 import { FeaturedArticlesSection } from "@/components/home/featured-articles-section";
 import { articlesApi } from "@/lib/api";
 
+function getFallbackImage(title: string) {
+  const colors = ['#6366f1', '#a855f7', '#ec4899', '#f43f5e', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6'];
+  const color = colors[Math.max(0, title.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)) % colors.length];
+  const svg = `
+    <svg width="800" height="400" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100%" height="100%" fill="${color}" />
+      <foreignObject x="50" y="50" width="700" height="300">
+        <div xmlns="http://www.w3.org/1999/xhtml" style="height:100%; display:flex; align-items:center; justify-content:center; text-align:center; color:white; font-family:sans-serif; font-size:36px; font-weight:bold; line-height:1.4; overflow:hidden;">
+          ${title}
+        </div>
+      </foreignObject>
+    </svg>
+  `.trim().replace(/\n/g, '').replace(/"/g, "'");
+  return `data:image/svg+xml;base64,${btoa(svg)}`;
+}
+
 export default function ArticlePageClient({ articleId }: { articleId: string }) {
   const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
+  const [imgSrc, setImgSrc] = useState("");
   const router = useRouter();
 
   // Prefetch the home page so "Back to Home" is instant
   useEffect(() => {
-    router.prefetch('/');
+    router.prefetch("/");
   }, [router]);
 
   const {
@@ -32,6 +49,12 @@ export default function ArticlePageClient({ articleId }: { articleId: string }) 
     queryFn: () => articlesApi.getArticle(articleId),
     enabled: Boolean(articleId),
   });
+
+  useEffect(() => {
+    if (article?.imageUrl) {
+      setImgSrc(article.imageUrl);
+    }
+  }, [article?.imageUrl]);
 
   const { data: allArticles = [] } = useQuery({
     queryKey: ["articles"],
@@ -109,13 +132,13 @@ export default function ArticlePageClient({ articleId }: { articleId: string }) 
                 <p className="text-gray-500">{formattedDate}</p>
                 {article.imageUrl && (
                   <div className="mt-6 rounded-xl overflow-hidden bg-gray-200 relative aspect-video">
-                    <SafeImage
-                      src={article.imageUrl}
+                    <Image
+                      src={imgSrc || getFallbackImage(article.title)}
                       alt={article.title}
-                      title={article.title}
                       fill
                       priority
                       className="object-cover"
+                      onError={() => setImgSrc(getFallbackImage(article.title))}
                     />
                   </div>
                 )}

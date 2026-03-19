@@ -35,10 +35,9 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
     const isGenerated = !!article.contentArticle;
     const publishDate = article.publishDate || article.createdAt;
 
-    // Normalize image URL to avoid passing empty/invalid values to next/image (fixes picomatch "Expected a non-empty string")
+    // Normalize image URL to avoid passing empty strings to next/image
     const rawImage = article.imageUrl ?? '';
     const imageUrl = typeof rawImage === 'string' ? rawImage.trim() : '';
-    const hasValidImage = imageUrl.length > 0 && imageUrl.startsWith('http');
 
     return (
         <MotionDiv
@@ -49,7 +48,7 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
 
             {/* Thumbnail Image Container */}
             <div className="relative w-full md:w-64 h-48 md:h-44 rounded-[1.5rem] overflow-hidden shadow-inner bg-gray-50 flex-shrink-0">
-                {hasValidImage ? (
+                {imageUrl ? (
                     <Image
                         src={imageUrl}
                         alt={article.title}
@@ -135,7 +134,7 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
 
 // Minimal shell to handle React Query and interactive UI
 export default function CrawledArticlesList({ searchParams }: {
-    searchParams: { from?: string; to?: string; q?: string; page?: string }
+    searchParams: { from?: string; to?: string; q?: string; page?: string; source?: string; date?: string }
 }) {
     const router = useRouter();
     const pathname = usePathname();
@@ -144,13 +143,17 @@ export default function CrawledArticlesList({ searchParams }: {
     const from = searchParams.from || '';
     const to = searchParams.to || '';
     const searchQuery = searchParams.q || '';
+    const source = searchParams.source || '';
+    const date = searchParams.date || '';
     const currentPage = parseInt(searchParams.page || '1');
 
     const { data, isLoading, isError } = useQuery<CrawledArticlesResponse>({
-        queryKey: ['crawledArticles', { from, to, searchQuery, currentPage }],
+        queryKey: ['crawledArticles', { from, to, searchQuery, currentPage, source, date }],
         queryFn: () => articlesApi.getCrawledArticles({
             from: from || undefined,
             to: to || undefined,
+            source: source || undefined,
+            date: date || undefined,
             q: searchQuery,
             page: currentPage,
             limit: 10
@@ -159,6 +162,7 @@ export default function CrawledArticlesList({ searchParams }: {
     });
 
     const articles = data?.articles || [];
+    const sources = data?.sources || ['All Sources'];
     const pagination = data?.pagination || { totalPages: 0 };
 
     const setQueryParams = React.useCallback(
@@ -185,6 +189,7 @@ export default function CrawledArticlesList({ searchParams }: {
     };
 
     const [searchDraft, setSearchDraft] = React.useState(searchQuery);
+    const [sourceDraft, setSourceDraft] = React.useState(source);
     const [rangeDraft, setRangeDraft] = React.useState<{ from: string; to: string }>({
         from,
         to,
@@ -197,6 +202,10 @@ export default function CrawledArticlesList({ searchParams }: {
     React.useEffect(() => {
         setRangeDraft({ from, to });
     }, [from, to]);
+
+    React.useEffect(() => {
+        setSourceDraft(source);
+    }, [source]);
 
     React.useEffect(() => {
         const t = setTimeout(() => {
@@ -216,6 +225,11 @@ export default function CrawledArticlesList({ searchParams }: {
         }, 350);
         return () => clearTimeout(t);
     }, [from, rangeDraft.from, rangeDraft.to, setQueryParams, to]);
+
+    React.useEffect(() => {
+        if (sourceDraft === source) return;
+        setQueryParams({ source: sourceDraft || null });
+    }, [sourceDraft, source, setQueryParams]);
 
     const containerVariants: Variants = {
         hidden: { opacity: 0 },
@@ -265,6 +279,16 @@ export default function CrawledArticlesList({ searchParams }: {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
+                    <select
+                        value={sourceDraft}
+                        onChange={(e) => setSourceDraft(e.target.value)}
+                        className="h-12 px-4 rounded-2xl bg-gray-50/50 border border-gray-100 text-sm font-semibold text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                    >
+                        {sources.map(s => (
+                            <option key={s} value={s}>{s}</option>
+                        ))}
+                    </select>
+
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button
@@ -301,7 +325,7 @@ export default function CrawledArticlesList({ searchParams }: {
                         </PopoverContent>
                     </Popover>
 
-                    {(rangeDraft.from || rangeDraft.to || searchDraft) && (
+                    {((rangeDraft.from || rangeDraft.to) || searchDraft || (sourceDraft && sourceDraft !== 'All Sources')) && (
                         <Button
                             type="button"
                             variant="link"
@@ -310,7 +334,8 @@ export default function CrawledArticlesList({ searchParams }: {
                             onClick={() => {
                                 setRangeDraft({ from: '', to: '' });
                                 setSearchDraft('');
-                                setQueryParams({ from: null, to: null, q: null });
+                                setSourceDraft('All Sources');
+                                setQueryParams({ from: null, to: null, q: null, source: null });
                             }}
                         >
                             Clear
