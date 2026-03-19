@@ -20,7 +20,7 @@ export interface MappedRawArticle {
   imageUrl: string | null;
   publishDate: string | Date | null;
   createdAt: string | Date;
-  status?: string;
+  status: string;
   category: {
     categoryName: string;
   };

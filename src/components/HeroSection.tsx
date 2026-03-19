@@ -1,7 +1,7 @@
 "use client";
 
-import { SafeImage } from "@/components/ui/SafeImage";
-import { useState } from "react";
+import Image from "next/image";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Calendar, Clock, ArrowRight } from "lucide-react";
 import { ArticleLink } from "@/components/home/ArticleLink";
@@ -44,10 +44,34 @@ function truncateContent(content: string | null, maxLength = 160): string {
   return plain.length <= maxLength ? plain : plain.slice(0, maxLength) + "…";
 }
 
+function getFallbackImage(title: string) {
+  const colors = ['#6366f1', '#a855f7', '#ec4899', '#f43f5e', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6'];
+  const color = colors[Math.max(0, title.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)) % colors.length];
+  const svg = `
+    <svg width="800" height="400" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100%" height="100%" fill="${color}" />
+      <foreignObject x="40" y="40" width="720" height="320">
+        <div xmlns="http://www.w3.org/1999/xhtml" style="height:100%; display:flex; align-items:center; justify-content:center; text-align:center; color:white; font-family:sans-serif; font-size:32px; font-weight:bold; line-height:1.4; overflow:hidden;">
+          ${title}
+        </div>
+      </foreignObject>
+    </svg>
+  `.trim().replace(/\n/g, '').replace(/"/g, "'");
+  return `data:image/svg+xml;base64,${btoa(svg)}`;
+}
+
 export function HeroSection({ articles }: HeroSectionProps) {
   const [[page, direction], setPage] = useState([0, 0]);
   const index = Math.abs(page % articles.length);
   const article = articles[index];
+
+  const [imgSrc, setImgSrc] = useState<string>("");
+
+  useEffect(() => {
+    if (article) {
+       setImgSrc(article.imageUrl || "");
+    }
+  }, [article]);
 
   if (!article) return null;
 
@@ -99,15 +123,14 @@ export function HeroSection({ articles }: HeroSectionProps) {
                     >
                       <div className="grid grid-cols-1 md:grid-cols-2 h-full min-h-0">
                         {/* Image side */}
-                        <div className="relative aspect-video md:aspect-auto md:h-full min-h-0 bg-gray-900">
-                          <SafeImage
-                            src={article.imageUrl ?? `https://placehold.co/800x400/e5e7eb/9ca3af?text=${encodeURIComponent(article.title.slice(0, 30))}`}
+                        <div className="relative w-full h-full bg-gray-200 flex items-center justify-center">
+                          <Image
+                            src={imgSrc || getFallbackImage(article.title)}
                             alt={article.title}
-                            title={article.title}
                             fill
                             priority={index === 0}
-                            className="object-cover"
-                            sizes="(max-width: 768px) 100vw, 50vw"
+                            className="object-cover transition-transform duration-700 group-hover:scale-105"
+                            onError={() => setImgSrc(getFallbackImage(article.title))}
                           />
                           <span className="absolute top-3 left-3 px-2 py-1 bg-[#ff4500] text-white text-xs font-bold uppercase rounded z-10">
                             {categoryLabel}
