@@ -16,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as ShadCalendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { crawlConfigurationSchema } from "@/lib/validation/crawl";
+import { useMutation } from "@tanstack/react-query";
 
 interface CrawlConfigurationModalProps {
   open: boolean;
@@ -86,14 +87,49 @@ export default function CrawlConfigurationModal({
   });
   const [endDate, setEndDate] = React.useState(() => formatDateInput(new Date()));
   const [maxArticles, setMaxArticles] = React.useState(50);
-  const [starting, setStarting] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+  const [validationError, setValidationError] = React.useState<string | null>(null);
+
+  const startCrawlMutation = useMutation({
+    mutationFn: async (payload: {
+      urls: string[];
+      start_date: string;
+      end_date: string;
+      max_requests_per_crawl: number;
+    }) => {
+      const res = await fetch("/api/admin/crawledArticles/crawlUrl", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        let msg = `Request failed (${res.status})`;
+        try {
+          const data = (await res.json()) as { error?: string; message?: string };
+          if (typeof data?.error === "string") msg = data.error;
+          else if (typeof data?.message === "string") msg = data.message;
+        } catch {
+          /* ignore */
+        }
+        throw new Error(msg);
+      }
+
+      return (await res.json().catch(() => null)) as unknown;
+    },
+    onSuccess: () => {
+      onOpenChange(false);
+      setUrls([]);
+      setSingleUrl("");
+      setBulk("");
+      onSuccess?.();
+    },
+  });
 
   const addUrl = React.useCallback(() => {
     const items = singleUrl.trim() ? [singleUrl] : splitBulk(bulk);
     const valid = getValidUrls(items);
     if (valid.length === 0) {
-      setError("Add at least one valid URL.");
+      setValidationError("Add at least one valid URL.");
       return;
     }
     setUrls((prev) => {
@@ -103,7 +139,7 @@ export default function CrawlConfigurationModal({
     });
     setSingleUrl("");
     setBulk("");
-    setError(null);
+    setValidationError(null);
   }, [singleUrl, bulk]);
 
   const removeUrl = React.useCallback((url: string) => {
@@ -116,7 +152,7 @@ export default function CrawlConfigurationModal({
     return { from, to };
   }, [endDate, startDate]);
 
-  const startCrawl = React.useCallback(async () => {
+  const startCrawl = React.useCallback(() => {
     const valid =
       urls.length > 0
         ? urls.filter((u) => getValidUrls([u]).length > 0)
@@ -130,49 +166,33 @@ export default function CrawlConfigurationModal({
     });
 
     if (!parsed.success) {
-      const first = parsed.error.issues[0]?.message ?? "Invalid crawl configuration.";
-      setError(first);
+      const first =
+        parsed.error.issues[0]?.message ?? "Invalid crawl configuration.";
+      setValidationError(first);
       return;
     }
 
-    setStarting(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/admin/crawledArticles/crawlUrl", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          urls: parsed.data.urls,
-          start_date: parsed.data.start_date,
-          end_date: parsed.data.end_date,
-          max_requests_per_crawl: parsed.data.max_requests_per_crawl,
-        }),
-      });
-      if (!res.ok) {
-        let msg = `Request failed (${res.status})`;
-        try {
-          const data = (await res.json()) as { error?: string };
-          if (typeof data?.error === "string") msg = data.error;
-        } catch {
-          /* ignore */
-        }
-        throw new Error(msg);
-      }
-      onOpenChange(false);
-      setUrls([]);
-      setSingleUrl("");
-      setBulk("");
-      onSuccess?.();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to start crawl");
-    } finally {
-      setStarting(false);
-    }
-  }, [bulk, endDate, maxArticles, singleUrl, startDate, urls, onOpenChange, onSuccess]);
+    setValidationError(null);
+    startCrawlMutation.mutate({
+      urls: parsed.data.urls,
+      start_date: parsed.data.start_date,
+      end_date: parsed.data.end_date,
+      max_requests_per_crawl: parsed.data.max_requests_per_crawl,
+    });
+  }, [bulk, endDate, maxArticles, singleUrl, startDate, startCrawlMutation, urls]);
 
   const effectiveUrls =
     urls.length > 0 ? urls : getValidUrls(splitBulk(singleUrl || bulk));
   const canStart = effectiveUrls.length > 0;
+  const error =
+    startCrawlMutation.error instanceof Error
+      ? startCrawlMutation.error.message
+      : startCrawlMutation.error
+        ? "Failed to start crawl"
+        : null;
+  const starting = startCrawlMutation.isPending;
+  const emptyUrlsError = canStart ? null : "Add at least one valid URL.";
+  const uiError = validationError || emptyUrlsError || error;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -198,9 +218,9 @@ export default function CrawlConfigurationModal({
         </div>
 
         <div className="px-6 py-6 space-y-6">
-          {error && (
+          {uiError && (
             <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-medium">
-              {error}
+              {uiError}
             </div>
           )}
 
