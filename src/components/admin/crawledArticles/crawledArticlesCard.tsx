@@ -140,12 +140,13 @@ export default function CrawledArticlesList({ searchParams }: {
     const pathname = usePathname();
     const urlSearchParams = useSearchParams();
 
-    const from = searchParams.from || '';
-    const to = searchParams.to || '';
-    const searchQuery = searchParams.q || '';
-    const source = searchParams.source || '';
-    const date = searchParams.date || '';
-    const currentPage = parseInt(searchParams.page || '1');
+    const from = urlSearchParams.get('from') || searchParams.from || '';
+    const to = urlSearchParams.get('to') || searchParams.to || '';
+    const searchQuery = urlSearchParams.get('q') || searchParams.q || '';
+    const source = urlSearchParams.get('source') || searchParams.source || '';
+    const date = urlSearchParams.get('date') || searchParams.date || '';
+    const currentPage = parseInt(urlSearchParams.get('page') || searchParams.page || '1');
+    const limit = 10;
 
     const { data, isLoading, isError } = useQuery<CrawledArticlesResponse>({
         queryKey: ['crawledArticles', { from, to, searchQuery, currentPage, source, date }],
@@ -156,7 +157,7 @@ export default function CrawledArticlesList({ searchParams }: {
             date: date || undefined,
             q: searchQuery,
             page: currentPage,
-            limit: 10
+            limit
         }),
         placeholderData: (prev) => prev,
     });
@@ -164,6 +165,14 @@ export default function CrawledArticlesList({ searchParams }: {
     const articles = data?.articles || [];
     const sources = data?.sources || ['All Sources'];
     const pagination = data?.pagination || { totalPages: 0 };
+
+    const setPage = React.useCallback((page: number) => {
+        const totalPagesVal = pagination?.totalPages || 0;
+        const nextPage = Math.max(1, Math.min(page, Math.max(1, totalPagesVal || 1)));
+        const params = new URLSearchParams(urlSearchParams.toString());
+        params.set('page', String(nextPage));
+        router.push(`${pathname}?${params.toString()}`);
+    }, [pagination?.totalPages, pathname, router, urlSearchParams]);
 
     const setQueryParams = React.useCallback(
         (updates: Record<string, string | null | undefined>) => {
@@ -385,8 +394,9 @@ export default function CrawledArticlesList({ searchParams }: {
             {/* Pagination Segment */}
             {!isLoading && !isError && (
                 <Pagination
-                    totalPages={pagination?.totalPages || 0}
                     currentPage={currentPage}
+                    totalPages={pagination?.totalPages || 1}
+                    onPageChange={setPage}
                 />
             )}
         </div>

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const CRAWL_API_URL = "http://rckgck80kk8kg40ok4coc8ck.158.178.241.113.sslip.io/crawl";
+const CRAWL_API_URL = process.env.CRAWL_API_URL;
 
 type CrawlRequestBody = {
   urls: string[];
@@ -14,6 +14,13 @@ function isIsoDateString(value: unknown) {
 }
 
 export async function POST(req: Request) {
+  if (!CRAWL_API_URL) {
+    return NextResponse.json(
+      { error: "CRAWL_API_URL is not set. Define it in .env (server-side)." },
+      { status: 500 },
+    );
+  }
+
   let body: CrawlRequestBody;
   try {
     body = (await req.json()) as CrawlRequestBody;

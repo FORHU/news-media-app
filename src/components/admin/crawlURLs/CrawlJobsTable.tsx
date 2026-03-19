@@ -111,6 +111,7 @@ export default function CrawlJobsTable() {
     const urlSearchParams = useSearchParams();
     const queryClient = useQueryClient();
     const currentPage = parseInt(urlSearchParams.get('page') || '1');
+    const limit = 10;
     const [expandedIds, setExpandedIds] = React.useState<Set<string>>(new Set());
     const [stoppingIds, setStoppingIds] = React.useState<Set<string>>(new Set());
 
@@ -118,7 +119,7 @@ export default function CrawlJobsTable() {
         queryKey: ['crawlJobs', { currentPage }],
         queryFn: () => articlesApi.getCrawlJobs({
             page: currentPage,
-            limit: 10
+            limit
         }),
     });
 
@@ -193,6 +194,15 @@ export default function CrawlJobsTable() {
     }, [queryClient]);
 
     const jobs = data?.jobs || [];
+    const pagination = data?.pagination || { totalPages: 0 };
+
+    const setPage = React.useCallback((page: number) => {
+        const totalPagesVal = pagination?.totalPages || 0;
+        const nextPage = Math.max(1, Math.min(page, Math.max(1, totalPagesVal || 1)));
+        const params = new URLSearchParams(urlSearchParams.toString());
+        params.set('page', String(nextPage));
+        router.replace(`${pathname}?${params.toString()}`);
+    }, [pagination?.totalPages, pathname, router, urlSearchParams]);
 
     const statusFilter = (urlSearchParams.get('status') || 'all').toLowerCase();
     const dateFrom = urlSearchParams.get('from') || '';
@@ -257,8 +267,6 @@ export default function CrawlJobsTable() {
             return changed ? next : prev;
         });
     }, [jobs]);
-
-    const pagination = data?.pagination || { totalPages: 0 };
 
     const toggleExpand = (id: string, e: React.MouseEvent) => {
         if ((e.target as HTMLElement).closest('button')) return;
@@ -457,11 +465,13 @@ export default function CrawlJobsTable() {
                 )}
             </MotionDiv>
 
-            {jobs.length > 0 && (pagination.totalPages > 1) && (
+            {jobs.length > 0 && (
                 <div className="pt-4">
                     <Pagination
-                        totalPages={pagination.totalPages}
                         currentPage={currentPage}
+                        totalPages={pagination.totalPages || 1}
+                        onPageChange={setPage}
+                        alwaysShow={true}
                     />
                 </div>
             )}
