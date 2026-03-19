@@ -1,10 +1,27 @@
+import { z } from "zod";
 import type { Article, CrawledArticlesResponse, CrawlJobsResponse } from "./types";
 
+const articlesParamsSchema = z.object({
+  limit: z.number().optional(),
+  search: z.string().optional(),
+});
+
+const crawledArticlesParamsSchema = z.object({
+  source: z.string().optional(),
+  date: z.string().optional(),
+  from: z.string().optional(),
+  to: z.string().optional(),
+  q: z.string().optional(),
+  page: z.number(),
+  limit: z.number(),
+});
+
 export const articlesApi = {
-  async getArticles(params?: { limit?: number; search?: string }): Promise<Article[]> {
+  async getArticles(params?: z.infer<typeof articlesParamsSchema>): Promise<Article[]> {
+    const validated = articlesParamsSchema.parse(params ?? {});
     const searchParams = new URLSearchParams();
-    if (params?.limit) searchParams.append("limit", params.limit.toString());
-    if (params?.search) searchParams.append("search", params.search);
+    if (validated.limit) searchParams.append("limit", validated.limit.toString());
+    if (validated.search) searchParams.append("search", validated.search);
 
     const qs = searchParams.toString() ? `?${searchParams.toString()}` : "";
     const res = await fetch(`/api/routes/articles${qs}`);
@@ -18,23 +35,16 @@ export const articlesApi = {
     return res.json();
   },
 
-  async getCrawledArticles(params: {
-    source?: string;
-    date?: string;
-    from?: string;
-    to?: string;
-    q?: string;
-    page: number;
-    limit: number;
-  }): Promise<CrawledArticlesResponse> {
+  async getCrawledArticles(params: z.infer<typeof crawledArticlesParamsSchema>): Promise<CrawledArticlesResponse> {
+    const validated = crawledArticlesParamsSchema.parse(params);
     const searchParams = new URLSearchParams();
-    if (params.source) searchParams.append("source", params.source);
-    if (params.date) searchParams.append("date", params.date);
-    if (params.from) searchParams.append("from", params.from);
-    if (params.to) searchParams.append("to", params.to);
-    if (params.q) searchParams.append("q", params.q);
-    searchParams.append("page", params.page.toString());
-    searchParams.append("limit", params.limit.toString());
+    if (validated.source) searchParams.append("source", validated.source);
+    if (validated.date) searchParams.append("date", validated.date);
+    if (validated.from) searchParams.append("from", validated.from);
+    if (validated.to) searchParams.append("to", validated.to);
+    if (validated.q) searchParams.append("q", validated.q);
+    searchParams.append("page", validated.page.toString());
+    searchParams.append("limit", validated.limit.toString());
 
     const res = await fetch(`/api/admin/crawledArticles?${searchParams.toString()}`);
     if (!res.ok) throw new Error("Failed to fetch crawled articles");

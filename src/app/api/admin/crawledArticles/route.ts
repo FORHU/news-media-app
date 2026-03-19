@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabaseClient';
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const source = searchParams.get('source') || 'All Sources';
-    const dateFilter = searchParams.get('date') || 'Today';
+    const dateFilter = searchParams.get('date') || 'All Time';
     const from = searchParams.get('from');
     const to = searchParams.get('to');
     const q = searchParams.get('q') || '';
