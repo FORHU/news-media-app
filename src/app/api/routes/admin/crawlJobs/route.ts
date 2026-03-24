@@ -3,14 +3,25 @@ import {
   crawlJobsService,
   CrawlJobsServiceError,
 } from "@/app/api/services/admin/crawlJobs.service";
+import { crawlJobsQuerySchema } from "@/lib/validation/crawl";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const page = parseInt(searchParams.get("page") || "1");
-  const limit = parseInt(searchParams.get("limit") || "10");
+
+  const parsed = crawlJobsQuerySchema.safeParse({
+    page: searchParams.get("page") ?? undefined,
+    limit: searchParams.get("limit") ?? undefined,
+  });
+
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid query parameters", details: parsed.error.flatten() },
+      { status: 400 }
+    );
+  }
 
   try {
-    const result = await crawlJobsService.getJobs({ page, limit });
+    const result = await crawlJobsService.getJobs(parsed.data);
     return NextResponse.json(result);
   } catch (error) {
     console.error("Error fetching crawl jobs:", error);

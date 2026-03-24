@@ -1,58 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import {
   crawledArticlesService,
   CrawledArticlesServiceError,
 } from "@/app/api/services/admin/crawledArticles.service";
-
-const DATE_PRESETS = ["All Time", "Today", "Last 7 Days", "This Month"] as const;
-
-const QuerySchema = z
-  .object({
-    source: z.string().optional().default("All Sources"),
-    date: z.enum(DATE_PRESETS).optional().default("All Time"),
-    from: z
-      .string()
-      .optional()
-      .refine((v) => !v || !Number.isNaN(new Date(v).getTime()), {
-        message: "Invalid from date",
-      }),
-    to: z
-      .string()
-      .optional()
-      .refine((v) => !v || !Number.isNaN(new Date(v).getTime()), {
-        message: "Invalid to date",
-      }),
-    q: z.string().optional().default(""),
-    page: z
-      .preprocess(
-        (v) => (typeof v === "string" ? Number.parseInt(v, 10) : v),
-        z.number().int().min(1)
-      )
-      .optional()
-      .default(1),
-    limit: z
-      .preprocess(
-        (v) => (typeof v === "string" ? Number.parseInt(v, 10) : v),
-        z.number().int().min(1).max(100)
-      )
-      .optional()
-      .default(10),
-  })
-  .superRefine((val, ctx) => {
-    if ((val.from || val.to) && val.date !== "All Time") {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Use either from/to range OR date preset, not both",
-        path: ["date"],
-      });
-    }
-  });
+import { crawledArticlesQuerySchema } from "@/lib/validation/crawl";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
 
-  const parsed = QuerySchema.safeParse({
+  const parsed = crawledArticlesQuerySchema.safeParse({
     source: searchParams.get("source") ?? undefined,
     date: searchParams.get("date") ?? undefined,
     from: searchParams.get("from") ?? undefined,
