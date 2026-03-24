@@ -3,11 +3,26 @@ import {
   crawlJobsService,
   CrawlJobsServiceError,
 } from "@/app/api/services/admin/crawlJobs.service";
+import { crawlJobsStopBodySchema } from "@/lib/validation/crawl";
 
 export async function POST(req: Request) {
+  let json: unknown;
   try {
-    const { job_id } = await req.json();
-    const result = await crawlJobsService.stopJob(String(job_id || ""));
+    json = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const parsed = crawlJobsStopBodySchema.safeParse(json);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid request body", details: parsed.error.flatten() },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const result = await crawlJobsService.stopJob(parsed.data.job_id);
     return NextResponse.json(result, { status: 200 });
   } catch (e) {
     if (e instanceof CrawlJobsServiceError) {

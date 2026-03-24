@@ -86,7 +86,7 @@ export default function CrawlConfigurationModal({
     return formatDateInput(d);
   });
   const [endDate, setEndDate] = React.useState(() => formatDateInput(new Date()));
-  const [maxArticles, setMaxArticles] = React.useState(50);
+  const [maxArticles, setMaxArticles] = React.useState(10);
   const [validationError, setValidationError] = React.useState<string | null>(null);
 
   const startCrawlMutation = useMutation({
