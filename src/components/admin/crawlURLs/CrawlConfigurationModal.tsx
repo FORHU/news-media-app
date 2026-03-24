@@ -86,7 +86,7 @@ export default function CrawlConfigurationModal({
     return formatDateInput(d);
   });
   const [endDate, setEndDate] = React.useState(() => formatDateInput(new Date()));
-  const [maxArticles, setMaxArticles] = React.useState(50);
+  const [maxArticles, setMaxArticles] = React.useState(10);
   const [validationError, setValidationError] = React.useState<string | null>(null);
 
   const startCrawlMutation = useMutation({
@@ -96,7 +96,7 @@ export default function CrawlConfigurationModal({
       end_date: string;
       max_requests_per_crawl: number;
     }) => {
-      const res = await fetch("/api/admin/crawledArticles/crawlUrl", {
+      const res = await fetch("/api/routes/admin/crawledArticles/crawlUrl", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
