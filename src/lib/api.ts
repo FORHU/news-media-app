@@ -46,7 +46,7 @@ export const articlesApi = {
     searchParams.append("page", validated.page.toString());
     searchParams.append("limit", validated.limit.toString());
 
-    const res = await fetch(`/api/admin/crawledArticles?${searchParams.toString()}`);
+    const res = await fetch(`/api/routes/admin/crawledArticles?${searchParams.toString()}`);
     if (!res.ok) throw new Error("Failed to fetch crawled articles");
     return res.json();
   },
@@ -59,13 +59,13 @@ export const articlesApi = {
     searchParams.append("page", params.page.toString());
     searchParams.append("limit", params.limit.toString());
 
-    const res = await fetch(`/api/admin/crawlJobs?${searchParams.toString()}`);
+    const res = await fetch(`/api/routes/admin/crawlJobs?${searchParams.toString()}`);
     if (!res.ok) throw new Error("Failed to fetch crawl jobs");
     return res.json();
   },
 
   async stopCrawlJob(jobId: string): Promise<{ ok: boolean }> {
-    const res = await fetch("/api/admin/crawlJobs/stop", {
+    const res = await fetch("/api/routes/admin/crawlJobs/stop", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ job_id: jobId }),
