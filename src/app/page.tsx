@@ -7,7 +7,7 @@ import { TrendingSidebar } from "@/components/home/trending-sidebar";
 import { FeaturedArticlesSection } from "@/components/home/featured-articles-section";
 import { TrendingProductsSection } from "@/components/home/trending-products-section";
 import { LandingClientWrapper } from "@/components/home/LandingClientWrapper";
-import { articlesService } from "@/app/api/services/articles.service";
+import { articlesService } from "@/services/articles.service";
 
 export const revalidate = 300;
 
