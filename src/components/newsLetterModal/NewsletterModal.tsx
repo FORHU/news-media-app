@@ -44,7 +44,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
   } = useQuery<CategoryOption[], Error>({
     queryKey: ["newsletterCategories"],
     queryFn: async () => {
-      const res = await fetch("/api/routes/categories");
+      const res = await fetch("/api/categories");
       if (!res.ok) {
         throw new Error("Failed to load categories");
       }
@@ -60,7 +60,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
     string
   >({
     mutationFn: async (emailToCheck) => {
-      const res = await fetch("/api/routes/newsletter/check-email", {
+      const res = await fetch("/api/newsletter/check-email", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -79,7 +79,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
   // Send OTP code to the user's email and move to verification on success
   const sendOtpMutation = useMutation<void, Error, string>({
     mutationFn: async (emailToSend) => {
-      const res = await fetch("/api/routes/newsletter/send-otp", {
+      const res = await fetch("/api/newsletter/send-otp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -113,7 +113,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
     { email: string; code: string; categories: string[] }
   >({
     mutationFn: async ({ email, code, categories }) => {
-      const res = await fetch("/api/routes/newsletter/verify-otp", {
+      const res = await fetch("/api/newsletter/verify-otp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
