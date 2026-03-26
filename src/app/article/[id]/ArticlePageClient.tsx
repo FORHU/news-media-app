@@ -136,6 +136,7 @@ export default function ArticlePageClient({ articleId }: { articleId: string }) 
                       src={imgSrc || getFallbackImage(article.title)}
                       alt={article.title}
                       fill
+                      sizes="(max-width: 1024px) 100vw, 80vw"
                       priority
                       className="object-cover"
                       onError={() => setImgSrc(getFallbackImage(article.title))}
