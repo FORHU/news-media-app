@@ -6,7 +6,7 @@ import { Hydrate } from "@/components/react-query/Hydrate";
 import {
   articlesService,
   ArticlesServiceError,
-} from "@/app/api/services/articles.service";
+} from "@/services/articles.service";
 import ArticlePageClient from "./ArticlePageClient";
 export const revalidate = 300;
 
