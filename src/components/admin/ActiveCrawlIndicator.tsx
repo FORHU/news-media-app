@@ -1,113 +1,29 @@
 "use client";
 
 import React from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
 import { articlesApi } from '@/lib/api';
-import { supabase } from '@/lib/supabaseClient';
-import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
-import type { CrawlJob, CrawlJobsResponse } from '@/lib/types';
 
 export default function ActiveCrawlIndicator() {
     const pathname = usePathname();
-    const queryClient = useQueryClient();
-    const crawlJobsQueryKey = ['crawlJobs', { page: 1, limit: 10 }] as const;
-
-    const { data } = useQuery<CrawlJobsResponse>({
-        queryKey: crawlJobsQueryKey,
+    const { data } = useQuery({
+        queryKey: ['crawlJobs', { page: 1, limit: 10 }],
         queryFn: () => articlesApi.getCrawlJobs({ page: 1, limit: 10 }),
+        refetchInterval: 5000, // Poll every 5 seconds
     });
 
     const activeJobs = data?.jobs.filter(job => 
         ['CRAWLING', 'RUNNING', 'PROCESSING'].includes(job.status.toUpperCase())
     ) || [];
 
-    const shouldShow = activeJobs.length > 0 && pathname !== '/admin/dashboard/urls';
-
-    function normalizeUrls(raw: unknown): string[] {
-        if (Array.isArray(raw)) return raw.filter((u) => typeof u === 'string' && u.trim());
-        if (typeof raw === 'string' && raw.trim()) return [raw.trim()];
-        return [];
-    }
-
-    function mapRowToCrawlJob(row: any): CrawlJob | null {
-        if (!row?.id) return null;
-
-        return {
-            id: row.id,
-            status: row.status || 'Pending',
-            urls: normalizeUrls(row.urls),
-            maxArticlesRequest: typeof row.max_articles_request === 'number' ? row.max_articles_request : 0,
-            articlesSaved: typeof row.articles_saved === 'number' ? row.articles_saved : 0,
-            createdAt: row.created_at,
-            startedAt: row.started_at,
-            finishedAt: row.finished_at,
-        };
-    }
-
-    function toMs(value: CrawlJob['createdAt']) {
-        const d = value instanceof Date ? value : new Date(value);
-        const t = d.getTime();
-        return Number.isFinite(t) ? t : 0;
-    }
-
-    React.useEffect(() => {
-        const channel = supabase
-            .channel('realtime:crawl_jobs:indicator')
-            .on(
-                'postgres_changes',
-                { event: '*', schema: 'public', table: 'crawl_jobs' },
-                (payload: RealtimePostgresChangesPayload<any>) => {
-                    queryClient.setQueryData(crawlJobsQueryKey, (oldData: CrawlJobsResponse | undefined) => {
-                        if (!oldData) return oldData;
-
-                        let newJobs = [...oldData.jobs];
-
-                        if (payload.eventType === 'INSERT') {
-                            const inserted = mapRowToCrawlJob(payload.new);
-                            if (inserted) newJobs = [inserted, ...newJobs];
-                        }
-
-                        if (payload.eventType === 'UPDATE') {
-                            const updated = mapRowToCrawlJob(payload.new);
-                            if (updated) {
-                                const exists = newJobs.some((j) => j.id === updated.id);
-                                newJobs = exists
-                                    ? newJobs.map((j) => (j.id === updated.id ? updated : j))
-                                    : [updated, ...newJobs];
-                            }
-                        }
-
-                        if (payload.eventType === 'DELETE') {
-                            const deletedId = payload.old?.id;
-                            if (deletedId) newJobs = newJobs.filter((j) => j.id !== deletedId);
-                        }
-
-                        // Keep consistent with repository ordering: created_at desc, then trim to limit.
-                        newJobs = newJobs
-                            .slice()
-                            .sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt))
-                            .slice(0, 10);
-
-                        return { ...oldData, jobs: newJobs };
-                    });
-                }
-            )
-            .subscribe();
-
-        return () => {
-            supabase.removeChannel(channel);
-        };
-    }, [queryClient]);
-
-    if (!shouldShow) return null;
+    if (activeJobs.length === 0 || pathname === '/admin/dashboard/urls') return null;
 
     const mainJob = activeJobs[0];
     // Capitalize first letter
-    const statusTitle =
-        mainJob.status.charAt(0).toUpperCase() + mainJob.status.slice(1).toLowerCase();
+    const statusTitle = mainJob.status.charAt(0).toUpperCase() + mainJob.status.slice(1).toLowerCase();
 
     return (
         <AnimatePresence mode="wait">

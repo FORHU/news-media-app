@@ -31,33 +31,6 @@ const normalizeStatus = (status: string | null | undefined) => {
     return s;
 };
 
-function normalizeUrls(raw: unknown): string[] {
-    if (Array.isArray(raw)) return raw.filter((u) => typeof u === 'string' && u.trim());
-    if (typeof raw === 'string' && raw.trim()) return [raw.trim()];
-    return [];
-}
-
-function toMs(value: CrawlJob['createdAt']) {
-    const d = value instanceof Date ? value : new Date(value);
-    const t = d.getTime();
-    return Number.isFinite(t) ? t : 0;
-}
-
-function mapRowToCrawlJob(row: any): CrawlJob | null {
-    if (!row?.id) return null;
-
-    return {
-        id: row.id,
-        status: row.status || 'Pending',
-        urls: normalizeUrls(row.urls),
-        maxArticlesRequest: typeof row.max_articles_request === 'number' ? row.max_articles_request : 0,
-        articlesSaved: typeof row.articles_saved === 'number' ? row.articles_saved : 0,
-        createdAt: row.created_at,
-        startedAt: row.started_at,
-        finishedAt: row.finished_at,
-    };
-}
-
 const StatusBadge = ({ status }: { status: string }) => {
     const s = normalizeStatus(status);
 
@@ -139,12 +112,11 @@ export default function CrawlJobsTable() {
     const queryClient = useQueryClient();
     const currentPage = parseInt(urlSearchParams.get('page') || '1');
     const limit = 10;
-    const crawlJobsQueryKey = ['crawlJobs', { currentPage }] as const;
     const [expandedIds, setExpandedIds] = React.useState<Set<string>>(new Set());
     const [stoppingIds, setStoppingIds] = React.useState<Set<string>>(new Set());
 
     const { data, isLoading, isError } = useQuery<CrawlJobsResponse>({
-        queryKey: crawlJobsQueryKey,
+        queryKey: ['crawlJobs', { currentPage }],
         queryFn: () => articlesApi.getCrawlJobs({
             page: currentPage,
             limit
@@ -169,6 +141,8 @@ export default function CrawlJobsTable() {
     });
 
     React.useEffect(() => {
+        let refetchTimer: ReturnType<typeof setTimeout> | null = null;
+
         const channel = supabase
             .channel('realtime:crawl_jobs')
             .on(
@@ -177,55 +151,20 @@ export default function CrawlJobsTable() {
                 (payload: RealtimePostgresChangesPayload<{ id?: string }>) => {
                     try {
                         console.log('[Realtime] crawl_jobs event:', payload.eventType, payload);
-
-                        queryClient.setQueryData(crawlJobsQueryKey, (oldData: CrawlJobsResponse | undefined) => {
-                            if (!oldData) return oldData;
-
-                            let newJobs = [...oldData.jobs];
-
-                            if (payload.eventType === 'INSERT') {
-                                const inserted = mapRowToCrawlJob(payload.new);
-                                if (inserted) {
-                                    // Only safely prepend for the first page.
-                                    if (currentPage === 1) {
-                                        newJobs = [inserted, ...newJobs]
-                                            .slice()
-                                            .sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt))
-                                            .slice(0, limit);
-                                    } else {
-                                        // For non-first pages, avoid corrupting pagination without server refetch.
-                                        // We still update if the job already exists in the current page list.
-                                        if (newJobs.some((j) => j.id === inserted.id)) {
-                                            newJobs = newJobs.map((j) => (j.id === inserted.id ? inserted : j));
-                                        }
-                                    }
-                                }
+                        if (refetchTimer) clearTimeout(refetchTimer);
+                        refetchTimer = setTimeout(async () => {
+                            refetchTimer = null;
+                            try {
+                                queryClient.invalidateQueries({ queryKey: ['crawlJobs'] });
+                                const results = await queryClient.refetchQueries({ queryKey: ['crawlJobs'] });
+                                const first = Array.isArray(results) ? results[0] : results;
+                                const fetchedData = (first as { data?: CrawlJobsResponse })?.data;
+                                const jobs = fetchedData?.jobs ?? [];
+                                console.log('[Realtime] refetch done, jobs count:', jobs.length, 'raw data:', JSON.stringify(fetchedData, null, 2));
+                            } catch (err) {
+                                console.error('[Realtime] refetch error:', err);
                             }
-
-                            if (payload.eventType === 'UPDATE') {
-                                const updated = mapRowToCrawlJob(payload.new);
-                                if (updated) {
-                                    const exists = newJobs.some((j) => j.id === updated.id);
-                                    if (exists) {
-                                        newJobs = newJobs.map((j) => (j.id === updated.id ? updated : j));
-                                    } else if (currentPage === 1) {
-                                        newJobs = [updated, ...newJobs]
-                                            .slice()
-                                            .sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt))
-                                            .slice(0, limit);
-                                    }
-                                }
-                            }
-
-                            if (payload.eventType === 'DELETE') {
-                                const deletedId = payload.old?.id;
-                                if (deletedId) {
-                                    newJobs = newJobs.filter((j) => j.id !== deletedId);
-                                }
-                            }
-
-                            return { ...oldData, jobs: newJobs };
-                        });
+                        }, 500);
 
                         if (payload.eventType === 'DELETE') {
                             const deletedId = payload.old?.id;
@@ -249,9 +188,10 @@ export default function CrawlJobsTable() {
             });
 
         return () => {
+            if (refetchTimer) clearTimeout(refetchTimer);
             supabase.removeChannel(channel);
         };
-    }, [queryClient, crawlJobsQueryKey, currentPage]);
+    }, [queryClient]);
 
     const jobs = data?.jobs || [];
     const pagination = data?.pagination || { totalPages: 0 };
