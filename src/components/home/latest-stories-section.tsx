@@ -33,28 +33,17 @@ function truncateContent(content: string | null, maxLength = 120): string {
 function getFallbackImage(title: string) {
   const colors = ['#6366f1', '#a855f7', '#ec4899', '#f43f5e', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6'];
   const color = colors[Math.abs(title.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)) % colors.length];
-  const safeTitle = title
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-  const toBase64Utf8 = (input: string) => {
-    // btoa only supports Latin1; encode UTF-8 bytes first.
-    const bytes = new TextEncoder().encode(input);
-    let binary = "";
-    for (const b of bytes) binary += String.fromCharCode(b);
-    return btoa(binary);
-  };
   const svg = `
     <svg width="400" height="200" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
       <rect width="100%" height="100%" fill="${color}" />
       <foreignObject x="20" y="20" width="360" height="160">
         <div xmlns="http://www.w3.org/1999/xhtml" style="height:100%; display:flex; align-items:center; justify-content:center; text-align:center; color:white; font-family:sans-serif; font-size:18px; font-weight:bold; line-height:1.2; overflow:hidden;">
-          ${safeTitle}
+          ${title}
         </div>
       </foreignObject>
     </svg>
   `.trim().replace(/\n/g, '').replace(/"/g, "'");
-  return `data:image/svg+xml;base64,${toBase64Utf8(svg)}`;
+  return `data:image/svg+xml;base64,${btoa(svg)}`;
 }
 
 function StoryImage({ src, alt, width, height, className }: { src: string; alt: string; width?: number; height?: number; className?: string }) {
