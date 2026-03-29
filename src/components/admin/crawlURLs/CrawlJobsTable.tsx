@@ -1,7 +1,6 @@
 "use client";
 
 import React from 'react';
-import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import {
     RefreshCw,
     StopCircle,
@@ -27,7 +26,15 @@ const normalizeStatus = (status: string | null | undefined) => {
     if (s === 'successful' || s === 'success' || s === 'done') return 'success';
     if (s === 'failed' || s === 'error') return 'failed';
     if (s === 'stopped' || s === 'stop') return 'stopped';
-    if (s === 'crawling' || s === 'running' || s === 'processing') return 'crawling';
+    if (
+        s === 'crawling' ||
+        s === 'running' ||
+        s === 'processing' ||
+        s === 'starting' ||
+        s === 'in_progress' ||
+        s === 'active'
+    )
+        return 'crawling';
     return s;
 };
 
@@ -105,6 +112,18 @@ const toLocalISODate = (value: string | Date | null | undefined) => {
     return `${yyyy}-${mm}-${dd}`;
 };
 
+const CRAWL_ACTIVE_STATUSES = new Set([
+    'RUNNING',
+    'PROCESSING',
+    'CRAWLING',
+    'STARTING',
+    'IN_PROGRESS',
+    'ACTIVE',
+]);
+
+const isJobActivelyCrawling = (status: string | undefined) =>
+    CRAWL_ACTIVE_STATUSES.has((status ?? '').toUpperCase());
+
 export default function CrawlJobsTable() {
     const router = useRouter();
     const pathname = usePathname();
@@ -116,11 +135,12 @@ export default function CrawlJobsTable() {
     const [stoppingIds, setStoppingIds] = React.useState<Set<string>>(new Set());
 
     const { data, isLoading, isError } = useQuery<CrawlJobsResponse>({
-        queryKey: ['crawlJobs', { currentPage }],
+        queryKey: ['crawlJobs', { page: currentPage, limit }],
         queryFn: () => articlesApi.getCrawlJobs({
             page: currentPage,
             limit
         }),
+        staleTime: 0,
     });
 
     const stopMutation = useMutation({
@@ -141,54 +161,49 @@ export default function CrawlJobsTable() {
     });
 
     React.useEffect(() => {
-        let refetchTimer: ReturnType<typeof setTimeout> | null = null;
+        let debounce: ReturnType<typeof setTimeout> | null = null;
+
+        const refetchFromRealtime = () => {
+            if (debounce) clearTimeout(debounce);
+            debounce = setTimeout(() => {
+                debounce = null;
+                // React Query keys include pagination objects; use non-exact matching
+                // so any active crawlJobs query variant refetches.
+                queryClient.invalidateQueries({
+                    queryKey: ['crawlJobs'],
+                    exact: false,
+                });
+                void queryClient.refetchQueries({
+                    queryKey: ['crawlJobs'],
+                    exact: false,
+                });
+            }, 400);
+        };
 
         const channel = supabase
             .channel('realtime:crawl_jobs')
             .on(
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'crawl_jobs' },
-                (payload: RealtimePostgresChangesPayload<{ id?: string }>) => {
-                    try {
-                        console.log('[Realtime] crawl_jobs event:', payload.eventType, payload);
-                        if (refetchTimer) clearTimeout(refetchTimer);
-                        refetchTimer = setTimeout(async () => {
-                            refetchTimer = null;
-                            try {
-                                queryClient.invalidateQueries({ queryKey: ['crawlJobs'] });
-                                const results = await queryClient.refetchQueries({ queryKey: ['crawlJobs'] });
-                                const first = Array.isArray(results) ? results[0] : results;
-                                const fetchedData = (first as { data?: CrawlJobsResponse })?.data;
-                                const jobs = fetchedData?.jobs ?? [];
-                                console.log('[Realtime] refetch done, jobs count:', jobs.length, 'raw data:', JSON.stringify(fetchedData, null, 2));
-                            } catch (err) {
-                                console.error('[Realtime] refetch error:', err);
-                            }
-                        }, 500);
-
-                        if (payload.eventType === 'DELETE') {
-                            const deletedId = payload.old?.id;
-                            if (deletedId) {
-                                setExpandedIds((prev) => {
-                                    if (!prev.has(deletedId)) return prev;
-                                    const next = new Set(prev);
-                                    next.delete(deletedId);
-                                    return next;
-                                });
-                            }
+                (payload) => {
+                    refetchFromRealtime();
+                    if (payload.eventType === 'DELETE') {
+                        const deletedId = payload.old?.id as string | undefined;
+                        if (deletedId) {
+                            setExpandedIds((prev) => {
+                                if (!prev.has(deletedId)) return prev;
+                                const next = new Set(prev);
+                                next.delete(deletedId);
+                                return next;
+                            });
                         }
-                    } catch (err) {
-                        console.error('[Realtime] callback error:', err);
                     }
                 }
             )
-            .subscribe((status, err) => {
-                console.log('[Realtime] subscription status:', status);
-                if (err) console.error('[Realtime] subscription error:', err);
-            });
+            .subscribe();
 
         return () => {
-            if (refetchTimer) clearTimeout(refetchTimer);
+            if (debounce) clearTimeout(debounce);
             supabase.removeChannel(channel);
         };
     }, [queryClient]);
@@ -258,7 +273,7 @@ export default function CrawlJobsTable() {
             let changed = false;
             for (const id of next) {
                 const job = jobs.find((j) => j.id === id);
-                const stillCrawling = job && ['RUNNING', 'PROCESSING', 'CRAWLING'].includes((job.status ?? '').toUpperCase());
+                const stillCrawling = job && isJobActivelyCrawling(job.status);
                 if (!stillCrawling) {
                     next.delete(id);
                     changed = true;
@@ -354,7 +369,7 @@ export default function CrawlJobsTable() {
             >
                 {filteredJobs.length > 0 ? (
                     filteredJobs.map((job) => {
-                        const isCrawling = ['RUNNING', 'PROCESSING', 'CRAWLING'].includes((job.status ?? '').toUpperCase());
+                        const isCrawling = isJobActivelyCrawling(job.status);
                         const isStopping = stoppingIds.has(job.id);
                         const isExpanded = expandedIds.has(job.id);
                         const hasMultipleUrls = (job.urls?.length ?? 0) > 1;

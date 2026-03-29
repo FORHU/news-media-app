@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+
+export const dynamic = "force-dynamic";
 import {
   crawlJobsService,
   CrawlJobsServiceError,
@@ -22,7 +24,9 @@ export async function GET(req: NextRequest) {
 
   try {
     const result = await crawlJobsService.getJobs(parsed.data);
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+      headers: { "Cache-Control": "no-store, must-revalidate" },
+    });
   } catch (error) {
     console.error("Error fetching crawl jobs:", error);
 
