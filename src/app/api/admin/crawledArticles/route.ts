@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+
+export const dynamic = "force-dynamic";
 import {
   crawledArticlesService,
   CrawledArticlesServiceError,
@@ -30,7 +32,9 @@ export async function GET(req: NextRequest) {
 
   try {
     const result = await crawledArticlesService.getCrawledArticles(parsed.data);
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+      headers: { "Cache-Control": "no-store, must-revalidate" },
+    });
   } catch (error) {
     console.error("Error fetching crawled articles:", error);
 

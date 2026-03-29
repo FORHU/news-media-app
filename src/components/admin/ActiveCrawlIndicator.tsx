@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Loader2, Zap } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
@@ -12,12 +12,15 @@ export default function ActiveCrawlIndicator() {
     const { data } = useQuery({
         queryKey: ['crawlJobs', { page: 1, limit: 10 }],
         queryFn: () => articlesApi.getCrawlJobs({ page: 1, limit: 10 }),
-        refetchInterval: 5000, // Poll every 5 seconds
+        staleTime: 0,
     });
 
-    const activeJobs = data?.jobs.filter(job => 
-        ['CRAWLING', 'RUNNING', 'PROCESSING'].includes(job.status.toUpperCase())
-    ) || [];
+    const activeJobs =
+        data?.jobs.filter((job) =>
+            ['CRAWLING', 'RUNNING', 'PROCESSING', 'STARTING', 'IN_PROGRESS', 'ACTIVE'].includes(
+                (job.status ?? '').toUpperCase()
+            )
+        ) || [];
 
     if (activeJobs.length === 0 || pathname === '/admin/dashboard/urls') return null;
 

@@ -46,7 +46,9 @@ export const articlesApi = {
     searchParams.append("page", validated.page.toString());
     searchParams.append("limit", validated.limit.toString());
 
-    const res = await fetch(`/api/admin/crawledArticles?${searchParams.toString()}`);
+    const res = await fetch(`/api/admin/crawledArticles?${searchParams.toString()}`, {
+      cache: "no-store",
+    });
     if (!res.ok) throw new Error("Failed to fetch crawled articles");
     return res.json();
   },
@@ -59,7 +61,9 @@ export const articlesApi = {
     searchParams.append("page", params.page.toString());
     searchParams.append("limit", params.limit.toString());
 
-    const res = await fetch(`/api/admin/crawlJobs?${searchParams.toString()}`);
+    const res = await fetch(`/api/admin/crawlJobs?${searchParams.toString()}`, {
+      cache: "no-store",
+    });
     if (!res.ok) throw new Error("Failed to fetch crawl jobs");
     return res.json();
   },

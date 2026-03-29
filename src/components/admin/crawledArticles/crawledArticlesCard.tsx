@@ -14,8 +14,9 @@ import {
 } from 'lucide-react';
 import { div as MotionDiv } from 'framer-motion/client';
 import Pagination from '@/components/admin/pagination';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { articlesApi } from '@/lib/api';
+import { supabase } from '@/lib/supabaseClient';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { format } from 'date-fns';
 
@@ -140,6 +141,7 @@ export default function CrawledArticlesList({ searchParams }: {
     const router = useRouter();
     const pathname = usePathname();
     const urlSearchParams = useSearchParams();
+    const queryClient = useQueryClient();
 
     const from = urlSearchParams.get('from') || searchParams.from || '';
     const to = urlSearchParams.get('to') || searchParams.to || '';
@@ -161,6 +163,8 @@ export default function CrawledArticlesList({ searchParams }: {
             limit
         }),
         placeholderData: (prev) => prev,
+        staleTime: 0,
+        // Event-driven: Supabase realtime should cause a refetch.
     });
 
     const articles = data?.articles || [];
@@ -216,6 +220,64 @@ export default function CrawledArticlesList({ searchParams }: {
     React.useEffect(() => {
         setSourceDraft(source);
     }, [source]);
+
+    React.useEffect(() => {
+        // Debug: confirms the realtime effect is mounted for this page.
+        // eslint-disable-next-line no-console
+        console.log('[Realtime] crawledArticlesCard effect mount');
+
+        // If Supabase emits multiple events for the same change burst, throttle
+        // so we don't spam the API.
+        let lastRefetchAt = 0;
+        const throttleMs = 500;
+
+        const refetchFromRealtime = (payload?: any) => {
+            const now = Date.now();
+            if (now - lastRefetchAt < throttleMs) return;
+            lastRefetchAt = now;
+
+            // eslint-disable-next-line no-console
+            console.log('[Realtime] crawled_articles change:', {
+                eventType: payload?.eventType,
+                table: payload?.table,
+                id: payload?.new?.id ?? payload?.old?.id,
+            });
+
+            const isCrawledArticlesQuery = (q: { queryKey?: unknown }) => {
+                return Array.isArray(q.queryKey) && q.queryKey[0] === 'crawledArticles';
+            };
+
+            queryClient.invalidateQueries({
+                predicate: isCrawledArticlesQuery,
+            });
+
+            void queryClient.refetchQueries({
+                predicate: isCrawledArticlesQuery,
+                type: 'active',
+            });
+        };
+
+        const channel = supabase
+            .channel('realtime:crawled_articles')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'raw_articles' },
+                refetchFromRealtime
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'content_articles' },
+                refetchFromRealtime
+            )
+            .subscribe((status, err) => {
+                // eslint-disable-next-line no-console
+                console.log('[Realtime] crawled_articles channel status:', status, err ?? null);
+            });
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [queryClient]);
 
     React.useEffect(() => {
         const t = setTimeout(() => {
