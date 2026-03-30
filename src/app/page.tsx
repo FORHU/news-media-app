@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import type { Metadata } from "next";
 import { NavBar } from "@/components/NavBar";
 import { HeroSection } from "@/components/HeroSection";
 import { FilterStatusBar } from "@/components/home/filter-status-bar";
@@ -8,8 +8,37 @@ import { FeaturedArticlesSection } from "@/components/home/featured-articles-sec
 import { TrendingProductsSection } from "@/components/home/trending-products-section";
 import { LandingClientWrapper } from "@/components/home/LandingClientWrapper";
 import { articlesService } from "@/services/articles.service";
+import { DEFAULT_OG_IMAGE, DEFAULT_SEO } from "@/config/site";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Home",
+  description: DEFAULT_SEO.description,
+  openGraph: {
+    title: "Home",
+    description: DEFAULT_SEO.description,
+    url: "/",
+    type: "website",
+    images: [
+      {
+        url: DEFAULT_OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: DEFAULT_SEO.title,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Home",
+    description: DEFAULT_SEO.description,
+    images: [DEFAULT_OG_IMAGE],
+  },
+  alternates: {
+    canonical: "/",
+  },
+};
 
 export default async function Page(props: {
   searchParams: Promise<{ search?: string; category?: string }>;

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import { DEFAULT_OG_IMAGE, DEFAULT_SEO, SITE_URL } from "@/config/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,8 +15,36 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NewsIcons",
-  description: "Media & Content Hub",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: DEFAULT_SEO.title,
+    template: "%s | NewsIcons",
+  },
+  description: DEFAULT_SEO.description,
+  openGraph: {
+    title: DEFAULT_SEO.title,
+    description: DEFAULT_SEO.description,
+    url: "/",
+    siteName: "NewsIcons",
+    images: [
+      {
+        url: DEFAULT_OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: DEFAULT_SEO.title,
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: DEFAULT_SEO.title,
+    description: DEFAULT_SEO.description,
+    images: [DEFAULT_OG_IMAGE],
+  },
+  alternates: {
+    canonical: "/",
+  },
 };
 
 export default function RootLayout({
