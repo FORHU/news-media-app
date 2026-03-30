@@ -16,7 +16,6 @@ import { div as MotionDiv } from 'framer-motion/client';
 import Pagination from '@/components/admin/pagination';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { articlesApi } from '@/lib/api';
-import { supabase } from '@/lib/supabaseClient';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { format } from 'date-fns';
 
@@ -26,6 +25,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as ShadCalendar } from '@/components/ui/calendar';
+import { supabase } from '@/lib/supabaseClient';
 
 interface CrawledArticleCardProps {
     article: MappedRawArticle;
@@ -62,7 +62,6 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
                         src={imageUrl}
                         alt={article.title}
                         fill
-                        sizes="(max-width: 768px) 100vw, 256px"
                         className="object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                 ) : (
@@ -134,7 +133,6 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
             {/* Action Buttons */}
             <div className="w-full md:w-auto flex flex-col gap-2 flex-shrink-0 self-stretch md:self-center justify-center">
                 <button
-                    type="button"
                     onClick={() => mutation.mutate()}
                     disabled={isGenerated || mutation.isPending}
                     className={`flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-sm shadow-lg transition-all group/btn ${isGenerated || mutation.isPending
@@ -163,7 +161,6 @@ export default function CrawledArticlesList({ searchParams }: {
     const router = useRouter();
     const pathname = usePathname();
     const urlSearchParams = useSearchParams();
-    const queryClient = useQueryClient();
 
     const from = urlSearchParams.get('from') || searchParams.from || '';
     const to = urlSearchParams.get('to') || searchParams.to || '';
@@ -173,8 +170,17 @@ export default function CrawledArticlesList({ searchParams }: {
     const currentPage = parseInt(urlSearchParams.get('page') || searchParams.page || '1');
     const limit = 10;
 
+    const queryClient = useQueryClient();
+    const crawledArticlesQueryKey = React.useMemo(
+        () => [
+            'crawledArticles',
+            { from, to, searchQuery, currentPage, source, date }
+        ] as const,
+        [from, to, searchQuery, currentPage, source, date]
+    );
+
     const { data, isLoading, isError } = useQuery<CrawledArticlesResponse>({
-        queryKey: ['crawledArticles', { from, to, searchQuery, currentPage, source, date }],
+        queryKey: crawledArticlesQueryKey,
         queryFn: () => articlesApi.getCrawledArticles({
             from: from || undefined,
             to: to || undefined,
@@ -185,13 +191,76 @@ export default function CrawledArticlesList({ searchParams }: {
             limit
         }),
         placeholderData: (prev) => prev,
-        staleTime: 0,
-        // Event-driven: Supabase realtime should cause a refetch.
     });
 
     const articles = data?.articles || [];
     const sources = data?.sources || ['All Sources'];
     const pagination = data?.pagination || { totalPages: 0 };
+
+    // Realtime subscription: whenever crawler/gen writes to relevant tables,
+    // debounce and refetch once so joined data (categories/crawledUrl/content) stays correct.
+    const burstRefetchTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+    React.useEffect(() => {
+        const scheduleRefetch = () => {
+            if (burstRefetchTimer.current) clearTimeout(burstRefetchTimer.current);
+            burstRefetchTimer.current = setTimeout(() => {
+                // Refetch explicitly so the UI updates even when the query is still "fresh".
+                queryClient
+                    .refetchQueries({ queryKey: crawledArticlesQueryKey, exact: true })
+                    .catch(() => null);
+            }, 400);
+        };
+
+        const channel = supabase
+            .channel('realtime:crawled_articles:list')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'raw_articles' },
+                () => {
+                    // Helps confirm realtime is actually firing while crawling.
+                    console.log('[Realtime] raw_articles changed');
+                    scheduleRefetch();
+                }
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'content_articles' },
+                () => {
+                    console.log('[Realtime] content_articles changed');
+                    scheduleRefetch();
+                }
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'crawled_urls' },
+                () => {
+                    console.log('[Realtime] crawled_urls changed');
+                    scheduleRefetch();
+                }
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'categories' },
+                () => {
+                    console.log('[Realtime] categories changed');
+                    scheduleRefetch();
+                }
+            )
+            .subscribe((status, err) => {
+                console.log('[Realtime] crawled_articles subscription status:', status);
+                if (err) console.error('[Realtime] crawled_articles subscription error:', err);
+                if (status === 'SUBSCRIBED') {
+                    // After enabling realtime / reconnects, this ensures the UI refreshes
+                    // even if events happened before we fully mounted or before publication was enabled.
+                    scheduleRefetch();
+                }
+            });
+
+        return () => {
+            if (burstRefetchTimer.current) clearTimeout(burstRefetchTimer.current);
+            supabase.removeChannel(channel);
+        };
+    }, [queryClient, crawledArticlesQueryKey]);
 
     const setPage = React.useCallback((page: number) => {
         const totalPagesVal = pagination?.totalPages || 0;
@@ -242,64 +311,6 @@ export default function CrawledArticlesList({ searchParams }: {
     React.useEffect(() => {
         setSourceDraft(source);
     }, [source]);
-
-    React.useEffect(() => {
-        // Debug: confirms the realtime effect is mounted for this page.
-        // eslint-disable-next-line no-console
-        console.log('[Realtime] crawledArticlesCard effect mount');
-
-        // If Supabase emits multiple events for the same change burst, throttle
-        // so we don't spam the API.
-        let lastRefetchAt = 0;
-        const throttleMs = 500;
-
-        const refetchFromRealtime = (payload?: any) => {
-            const now = Date.now();
-            if (now - lastRefetchAt < throttleMs) return;
-            lastRefetchAt = now;
-
-            // eslint-disable-next-line no-console
-            console.log('[Realtime] crawled_articles change:', {
-                eventType: payload?.eventType,
-                table: payload?.table,
-                id: payload?.new?.id ?? payload?.old?.id,
-            });
-
-            const isCrawledArticlesQuery = (q: { queryKey?: unknown }) => {
-                return Array.isArray(q.queryKey) && q.queryKey[0] === 'crawledArticles';
-            };
-
-            queryClient.invalidateQueries({
-                predicate: isCrawledArticlesQuery,
-            });
-
-            void queryClient.refetchQueries({
-                predicate: isCrawledArticlesQuery,
-                type: 'active',
-            });
-        };
-
-        const channel = supabase
-            .channel('realtime:crawled_articles')
-            .on(
-                'postgres_changes',
-                { event: '*', schema: 'public', table: 'raw_articles' },
-                refetchFromRealtime
-            )
-            .on(
-                'postgres_changes',
-                { event: '*', schema: 'public', table: 'content_articles' },
-                refetchFromRealtime
-            )
-            .subscribe((status, err) => {
-                // eslint-disable-next-line no-console
-                console.log('[Realtime] crawled_articles channel status:', status, err ?? null);
-            });
-
-        return () => {
-            supabase.removeChannel(channel);
-        };
-    }, [queryClient]);
 
     React.useEffect(() => {
         const t = setTimeout(() => {

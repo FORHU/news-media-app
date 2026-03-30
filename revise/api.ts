@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Article, CrawledArticlesResponse, CrawlJobsResponse } from "./types";
+import type { Article, CrawledArticlesResponse, CrawlJobsResponse } from "@/lib/types";
 
 const articlesParamsSchema = z.object({
   limit: z.number().optional(),
@@ -46,9 +46,7 @@ export const articlesApi = {
     searchParams.append("page", validated.page.toString());
     searchParams.append("limit", validated.limit.toString());
 
-    const res = await fetch(`/api/admin/crawledArticles?${searchParams.toString()}`, {
-      cache: "no-store",
-    });
+    const res = await fetch(`/api/admin/crawledArticles?${searchParams.toString()}`);
     if (!res.ok) throw new Error("Failed to fetch crawled articles");
     return res.json();
   },
@@ -61,9 +59,7 @@ export const articlesApi = {
     searchParams.append("page", params.page.toString());
     searchParams.append("limit", params.limit.toString());
 
-    const res = await fetch(`/api/admin/crawlJobs?${searchParams.toString()}`, {
-      cache: "no-store",
-    });
+    const res = await fetch(`/api/admin/crawlJobs?${searchParams.toString()}`);
     if (!res.ok) throw new Error("Failed to fetch crawl jobs");
     return res.json();
   },
@@ -81,17 +77,15 @@ export const articlesApi = {
     return res.json();
   },
 
-  async generateAiContent(articleId: string): Promise<unknown> {
-    const res = await fetch("/api/admin/crawledArticles/aiGenerateContent", {
+  async generateAiContent(articleId: string): Promise<{ ok: boolean; success: boolean; article: any }> {
+    const res = await fetch("/api/admin/aiGenerateContent", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ articleId }),
     });
     if (!res.ok) {
       const error = await res.json().catch(() => ({}));
-      throw new Error(
-        typeof error.error === "string" ? error.error : "Failed to generate AI content"
-      );
+      throw new Error(error.error || "Failed to generate AI content");
     }
     return res.json();
   },
