@@ -6,8 +6,9 @@ export const articlesRepository = {
     limit: number;
     search?: string | null;
     category?: string | null;
+    status?: string | null;
   }): Promise<Article[]> {
-    const { limit, search, category } = params;
+    const { limit, search, category, status } = params;
 
     const and: unknown[] = [];
 
@@ -28,6 +29,12 @@ export const articlesRepository = {
     if (category) {
       and.push({
         category: { categoryName: category },
+      });
+    }
+
+    if (status) {
+      and.push({
+        status: status,
       });
     }
 

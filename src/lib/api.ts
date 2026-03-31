@@ -122,4 +122,15 @@ export const articlesApi = {
     if (!res.ok) throw new Error("Failed to fetch generated articles");
     return res.json();
   },
+
+  async publishArticle(id: string): Promise<{ success: boolean; message: string }> {
+    const res = await fetch(`/api/admin/generatedArticles/${id}/publish`, {
+      method: "POST",
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to publish article");
+    }
+    return res.json();
+  },
 };

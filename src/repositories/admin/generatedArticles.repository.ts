@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabaseClient";
+import { prisma } from "@/lib/db";
 
 export type FetchGeneratedArticlesParams = {
   q: string;
@@ -57,5 +58,12 @@ export const generatedArticlesRepository = {
       data: (data as ContentArticleSupabase[]) || [],
       count: count || 0,
     };
+  },
+
+  async updateStatus(id: string, status: string): Promise<void> {
+    await prisma.contentArticle.update({
+      where: { id },
+      data: { status },
+    });
   },
 };

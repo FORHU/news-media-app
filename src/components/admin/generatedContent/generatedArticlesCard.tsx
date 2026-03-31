@@ -28,49 +28,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as ShadCalendar } from '@/components/ui/calendar';
 
-// --- Image Fallback Logic (Mirrored from Landing Page) ---
-function getFallbackImage(title: string) {
-    const colors = ['#6366f1', '#a855f7', '#ec4899', '#f43f5e', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6'];
-    const hash = title.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const color = colors[Math.abs(hash) % colors.length];
-    
-    // Simplifed SVG for base64
-    const svg = `
-      <svg width="400" height="200" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
-        <rect width="100%" height="100%" fill="${color}" />
-        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="sans-serif" font-size="24" font-weight="bold">
-          ${title.slice(0, 20)}...
-        </text>
-      </svg>
-    `.trim().replace(/\n/g, '').replace(/"/g, "'");
-    
-    // Check if btoa is available (it is in browser environment)
-    if (typeof window !== 'undefined') {
-        return `data:image/svg+xml;base64,${window.btoa(svg)}`;
-    }
-    return '';
-}
-
-function StoryImage({ src, alt, fill, sizes, className }: { src: string | null; alt: string; fill?: boolean; sizes?: string; className?: string }) {
-    const [imgSrc, setImgSrc] = React.useState(src || '');
-    const fallback = React.useMemo(() => getFallbackImage(alt), [alt]);
-
-    React.useEffect(() => {
-        setImgSrc(src || fallback);
-    }, [src, fallback]);
-
-    return (
-        <Image
-            src={imgSrc || fallback}
-            alt={alt}
-            fill={fill}
-            sizes={sizes}
-            className={className}
-            onError={() => setImgSrc(fallback)}
-        />
-    );
-}
-// --- End Image Fallback Logic ---
+import { StoryImage } from '@/components/StoryImage';
 
 // Mock response type for now, as it might be added to types.ts later
 interface GeneratedArticlesResponse {
@@ -89,8 +47,19 @@ interface GeneratedArticleCardProps {
 }
 
 export function GeneratedArticleCard({ article, variants }: GeneratedArticleCardProps) {
+    const queryClient = useQueryClient();
     const isPublished = article.status === 'published';
     const publishDate = article.publishDate || article.createdAt;
+
+    const publishMutation = useMutation({
+        mutationFn: () => articlesApi.publishArticle(article.id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['generatedArticles'] });
+        },
+        onError: (error: Error) => {
+            alert(`Failed to publish: ${error.message}`);
+        }
+    });
 
     return (
         <MotionDiv
@@ -162,15 +131,19 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
             <div className="w-full md:w-auto flex flex-col sm:flex-row md:flex-col gap-2 flex-shrink-0 self-stretch md:self-center justify-center">
                 <button
                     type="button"
-                    onClick={() => {}} // No logic yet
-                    disabled={isPublished}
+                    onClick={() => publishMutation.mutate()}
+                    disabled={isPublished || publishMutation.isPending}
                     className={`flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-sm shadow-lg transition-all group/btn ${isPublished
                             ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
                             : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98]'
                         }`}
                 >
-                    <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                    {isPublished ? 'Published' : 'Publish Article'}
+                    {publishMutation.isPending ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                        <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                    )}
+                    {isPublished ? 'Published' : publishMutation.isPending ? 'Publishing...' : 'Publish Article'}
                 </button>
             </div>
         </MotionDiv>

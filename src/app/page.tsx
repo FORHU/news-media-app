@@ -51,7 +51,8 @@ export default async function Page(props: {
   const articles = await articlesService.getArticles({ 
     limit: 50,
     search: searchQuery,
-    category: categoryParam 
+    category: categoryParam,
+    status: "published"
   });
 
   const filteredArticles = articles;

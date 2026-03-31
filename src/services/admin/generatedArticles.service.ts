@@ -58,4 +58,8 @@ export const generatedArticlesService = {
       },
     };
   },
+
+  async publishArticle(id: string) {
+    return generatedArticlesRepository.updateStatus(id, "published");
+  },
 };

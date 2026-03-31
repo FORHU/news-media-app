@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
         usersId: user.id,
         categoryId: rawArticle.categoryId,
         rawArticleId: rawArticle.id,
-        imageUrl: rawArticle.imageUrl,
+        imageUrl: null,
         publishDate: new Date(),
       },
     });
