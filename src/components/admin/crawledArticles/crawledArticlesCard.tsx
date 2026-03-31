@@ -222,12 +222,7 @@ export default function CrawledArticlesList({ searchParams }: {
     }, [source]);
 
     React.useEffect(() => {
-        // Debug: confirms the realtime effect is mounted for this page.
-        // eslint-disable-next-line no-console
-        console.log('[Realtime] crawledArticlesCard effect mount');
 
-        // If Supabase emits multiple events for the same change burst, throttle
-        // so we don't spam the API.
         let lastRefetchAt = 0;
         const throttleMs = 500;
 
@@ -235,13 +230,6 @@ export default function CrawledArticlesList({ searchParams }: {
             const now = Date.now();
             if (now - lastRefetchAt < throttleMs) return;
             lastRefetchAt = now;
-
-            // eslint-disable-next-line no-console
-            console.log('[Realtime] crawled_articles change:', {
-                eventType: payload?.eventType,
-                table: payload?.table,
-                id: payload?.new?.id ?? payload?.old?.id,
-            });
 
             const isCrawledArticlesQuery = (q: { queryKey?: unknown }) => {
                 return Array.isArray(q.queryKey) && q.queryKey[0] === 'crawledArticles';
@@ -270,8 +258,7 @@ export default function CrawledArticlesList({ searchParams }: {
                 refetchFromRealtime
             )
             .subscribe((status, err) => {
-                // eslint-disable-next-line no-console
-                console.log('[Realtime] crawled_articles channel status:', status, err ?? null);
+                // no-op: subscription is used only to keep the realtime listeners alive
             });
 
         return () => {
