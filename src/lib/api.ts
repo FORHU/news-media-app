@@ -95,4 +95,31 @@ export const articlesApi = {
     }
     return res.json();
   },
+
+  async getGeneratedArticles(params: {
+    q?: string;
+    page: number;
+    limit: number;
+    category?: string;
+  }): Promise<{
+    articles: Article[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  }> {
+    const searchParams = new URLSearchParams();
+    if (params.q) searchParams.append("q", params.q);
+    if (params.category) searchParams.append("category", params.category);
+    searchParams.append("page", params.page.toString());
+    searchParams.append("limit", params.limit.toString());
+
+    const res = await fetch(`/api/admin/generatedArticles?${searchParams.toString()}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error("Failed to fetch generated articles");
+    return res.json();
+  },
 };
