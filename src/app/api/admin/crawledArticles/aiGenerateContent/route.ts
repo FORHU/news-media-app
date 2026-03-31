@@ -31,8 +31,11 @@ function extractTitleAndContent(
 }
 
 export async function POST(req: NextRequest) {
+  let articleId: string | undefined;
   try {
-    const { articleId } = await req.json();
+    const body = await req.json();
+    articleId = body.articleId;
+
     if (!articleId) {
       return NextResponse.json({ error: "articleId is required" }, { status: 400 });
     }
@@ -62,6 +65,19 @@ export async function POST(req: NextRequest) {
     if (!chatRes.ok) throw new Error("AI generation service error during chat");
     const { response } = await chatRes.json();
 
+    // Check for OpenAI/AI service errors that might be returned as strings in the 'response' field
+    if (typeof response === "string" && (
+      response.includes("Error code:") || 
+      response.includes("insufficient_quota") ||
+      response.includes("exceeded your current quota")
+    )) {
+      throw new Error(`AI Provider Error: ${response}`);
+    }
+
+    if (!response || response.trim().length === 0) {
+      throw new Error("AI Service returned an empty response.");
+    }
+
     const { title, content } = extractTitleAndContent(response, rawArticle.title);
 
     const user =
@@ -90,6 +106,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(contentArticle);
   } catch (error: unknown) {
     console.error("AI Generation failed:", error);
+    
+    // Attempt to mark raw article as failed
+    if (articleId) {
+      try {
+        await prisma.rawArticle.update({
+          where: { id: articleId },
+          data: { status: "failed" },
+        });
+      } catch (dbError) {
+        console.error("Failed to update raw article status to failed:", dbError);
+      }
+    }
+
     const message =
       error instanceof Error ? error.message : "Internal Server Error";
     return NextResponse.json({ error: message }, { status: 500 });
