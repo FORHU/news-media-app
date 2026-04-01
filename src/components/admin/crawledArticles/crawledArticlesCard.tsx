@@ -24,6 +24,7 @@ import { MappedRawArticle, CrawledArticlesResponse } from '@/lib/types';
 import { Variants } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as ShadCalendar } from '@/components/ui/calendar';
 
@@ -373,15 +374,16 @@ export default function CrawledArticlesList({ searchParams }: {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                    <select
-                        value={sourceDraft}
-                        onChange={(e) => setSourceDraft(e.target.value)}
-                        className="h-12 px-4 rounded-2xl bg-gray-50/50 border border-gray-100 text-sm font-semibold text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
-                    >
-                        {sources.map(s => (
-                            <option key={s} value={s}>{s}</option>
-                        ))}
-                    </select>
+                    <Select value={sourceDraft || 'All Sources'} onValueChange={setSourceDraft}>
+                        <SelectTrigger className="h-12 w-[180px] rounded-2xl bg-gray-50/50 border-gray-100 text-sm font-semibold text-gray-900 focus-visible:ring-orange-500/20">
+                            <SelectValue placeholder="All Sources" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                            {sources.map(s => (
+                                <SelectItem key={s} value={s}>{s}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
 
                     <Popover>
                         <PopoverTrigger asChild>

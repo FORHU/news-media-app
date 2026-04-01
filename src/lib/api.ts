@@ -133,4 +133,12 @@ export const articlesApi = {
     }
     return res.json();
   },
+
+  async getCategories(): Promise<{ id: string; name: string }[]> {
+    const res = await fetch("/api/categories", {
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error("Failed to fetch categories");
+    return res.json();
+  },
 };

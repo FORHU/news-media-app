@@ -27,6 +27,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as ShadCalendar } from '@/components/ui/calendar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import CreateArticleModal from '@/components/admin/generatedContent/createArticleModal';
 
 import { StoryImage } from '@/components/StoryImage';
 
@@ -202,14 +204,15 @@ export default function GeneratedArticlesList({ searchParams }: {
 
     const [searchDraft, setSearchDraft] = React.useState(searchQuery);
     const [categoryDraft, setCategoryDraft] = React.useState(category);
-
-    React.useEffect(() => {
-        setSearchDraft(searchQuery);
-    }, [searchQuery]);
+    const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false);
 
     React.useEffect(() => {
         setCategoryDraft(category);
     }, [category]);
+
+    React.useEffect(() => {
+        setSearchDraft(searchQuery);
+    }, [searchQuery]);
 
     React.useEffect(() => {
         const t = setTimeout(() => {
@@ -271,26 +274,28 @@ export default function GeneratedArticlesList({ searchParams }: {
                     />
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3">
-                    <select
-                        value={categoryDraft}
-                        onChange={(e) => setCategoryDraft(e.target.value)}
-                        className="h-12 px-4 rounded-2xl bg-gray-50/50 border border-gray-100 text-sm font-semibold text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
-                    >
-                        <option value="All Types">All Types</option>
-                        <option value="News">News</option>
-                        <option value="Opinion">Opinion</option>
-                        <option value="Lifestyle">Lifestyle</option>
-                        <option value="Technology">Technology</option>
-                        <option value="Environment">Environment</option>
-                        <option value="World News">World News</option>
-                    </select>
+                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                    <Select value={categoryDraft || 'All Types'} onValueChange={setCategoryDraft}>
+                        <SelectTrigger className="h-12 w-[180px] rounded-2xl bg-gray-50/50 border-gray-100 text-sm font-semibold text-gray-900 focus-visible:ring-orange-500/20">
+                            <SelectValue placeholder="All Types" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                            <SelectItem value="All Types">All Types</SelectItem>
+                            <SelectItem value="News">News</SelectItem>
+                            <SelectItem value="Opinion">Opinion</SelectItem>
+                            <SelectItem value="Lifestyle">Lifestyle</SelectItem>
+                            <SelectItem value="Technology">Technology</SelectItem>
+                            <SelectItem value="Environment">Environment</SelectItem>
+                            <SelectItem value="World News">World News</SelectItem>
+                        </SelectContent>
+                    </Select>
 
                     <Button
                         type="button"
+                        onClick={() => setIsCreateModalOpen(true)}
                         className="h-12 px-8 rounded-2xl bg-[#ff4500] hover:bg-orange-600 text-white font-bold text-sm shadow-lg shadow-orange-500/20 transition-all"
                     >
-                        + Create Manual
+                        + Create Article
                     </Button>
 
                     {(searchDraft || (categoryDraft && categoryDraft !== 'All Types')) && (
@@ -356,6 +361,11 @@ export default function GeneratedArticlesList({ searchParams }: {
                     onPageChange={setPage}
                 />
             )}
+
+            <CreateArticleModal 
+                open={isCreateModalOpen} 
+                onOpenChange={setIsCreateModalOpen} 
+            />
         </div>
     );
 }
