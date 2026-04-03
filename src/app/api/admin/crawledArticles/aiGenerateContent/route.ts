@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
+const GENERATION_PROMPT_MAX_LEN = 4000;
+
 // Handles title extraction from the AI response.
 function extractTitleAndContent(
   responseText: string | null | undefined,
@@ -35,6 +37,11 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     articleId = body.articleId;
+    const rawGenerationPrompt =
+      typeof body.generationPrompt === "string" ? body.generationPrompt : "";
+    const generationPrompt = rawGenerationPrompt
+      .trim()
+      .slice(0, GENERATION_PROMPT_MAX_LEN);
 
     if (!articleId) {
       return NextResponse.json({ error: "articleId is required" }, { status: 400 });
@@ -60,6 +67,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         user_input: `[NewsLetter] ${articleId}`,
         session_id,
+        generation_prompt: generationPrompt,
       }),
     });
     if (!chatRes.ok) throw new Error("AI generation service error during chat");

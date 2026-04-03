@@ -27,21 +27,38 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as ShadCalendar } from '@/components/ui/calendar';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 
 interface CrawledArticleCardProps {
     article: MappedRawArticle;
     variants: Variants;
 }
 
+const GENERATION_PROMPT_MAX_LEN = 4000;
+
 export function CrawledArticleCard({ article, variants }: CrawledArticleCardProps) {
     const isGenerated = !!article.contentArticle;
     const publishDate = article.publishDate || article.createdAt;
 
+    const [promptDialogOpen, setPromptDialogOpen] = React.useState(false);
+    const [generationPrompt, setGenerationPrompt] = React.useState('');
+
     const queryClient = useQueryClient();
     const mutation = useMutation({
-        mutationFn: () => articlesApi.generateAiContent(article.id),
+        mutationFn: (prompt: string) =>
+            articlesApi.generateAiContent(article.id, prompt),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['crawledArticles'] });
+            setPromptDialogOpen(false);
+            setGenerationPrompt('');
         },
     });
 
@@ -50,6 +67,7 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
     const imageUrl = typeof rawImage === 'string' ? rawImage.trim() : '';
 
     return (
+        <>
         <MotionDiv
             variants={variants}
             whileHover={{ y: -4, scale: 1.005 }}
@@ -136,7 +154,10 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
             <div className="w-full md:w-auto flex flex-col gap-2 flex-shrink-0 self-stretch md:self-center justify-center">
                 <button
                     type="button"
-                    onClick={() => mutation.mutate()}
+                    onClick={() => {
+                        setGenerationPrompt('');
+                        setPromptDialogOpen(true);
+                    }}
                     disabled={isGenerated || mutation.isPending}
                     className={`flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-sm shadow-lg transition-all group/btn ${isGenerated || mutation.isPending
                             ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
@@ -154,6 +175,69 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
                 </button>
             </div>
         </MotionDiv>
+
+        <Dialog
+            open={promptDialogOpen}
+            onOpenChange={(open) => {
+                setPromptDialogOpen(open);
+                if (!open && !mutation.isPending) setGenerationPrompt('');
+            }}
+        >
+            <DialogContent className="sm:max-w-lg rounded-3xl border-gray-100">
+                <DialogHeader>
+                    <DialogTitle className="text-xl font-extrabold tracking-tight">
+                        Generate article
+                    </DialogTitle>
+                    <DialogDescription className="text-gray-500 font-medium">
+                        Add instructions for tone, angle, length, or audience. Leave blank to use the default behavior.
+                    </DialogDescription>
+                </DialogHeader>
+                <Textarea
+                    value={generationPrompt}
+                    onChange={(e) =>
+                        setGenerationPrompt(
+                            e.target.value.slice(0, GENERATION_PROMPT_MAX_LEN)
+                        )
+                    }
+                    placeholder="e.g. Lead with the policy impact, keep it under 400 words, neutral AP style…"
+                    className="min-h-[140px] rounded-2xl border-gray-200 text-sm focus-visible:ring-orange-500/20"
+                    disabled={mutation.isPending}
+                />
+                <p className="text-xs text-gray-400 tabular-nums">
+                    {generationPrompt.length} / {GENERATION_PROMPT_MAX_LEN}
+                </p>
+                <DialogFooter className="gap-2 sm:gap-2">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="rounded-2xl"
+                        disabled={mutation.isPending}
+                        onClick={() => setPromptDialogOpen(false)}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        type="button"
+                        className="rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md hover:opacity-95"
+                        disabled={mutation.isPending}
+                        onClick={() => mutation.mutate(generationPrompt)}
+                    >
+                        {mutation.isPending ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                Generating…
+                            </>
+                        ) : (
+                            <>
+                                <Zap className="w-4 h-4 mr-2" />
+                                Generate
+                            </>
+                        )}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+        </>
     );
 }
 

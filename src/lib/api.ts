@@ -81,11 +81,19 @@ export const articlesApi = {
     return res.json();
   },
 
-  async generateAiContent(articleId: string): Promise<unknown> {
+  async generateAiContent(
+    articleId: string,
+    generationPrompt?: string
+  ): Promise<unknown> {
+    const trimmed =
+      typeof generationPrompt === "string" ? generationPrompt.trim() : "";
     const res = await fetch("/api/admin/crawledArticles/aiGenerateContent", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ articleId }),
+      body: JSON.stringify({
+        articleId,
+        ...(trimmed.length > 0 ? { generationPrompt: trimmed } : {}),
+      }),
     });
     if (!res.ok) {
       const error = await res.json().catch(() => ({}));
