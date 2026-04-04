@@ -36,6 +36,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import ReadRawArticleModal from './readRawArticleModal';
 
 interface CrawledArticleCardProps {
     article: MappedRawArticle;
@@ -49,6 +50,7 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
     const publishDate = article.publishDate || article.createdAt;
 
     const [promptDialogOpen, setPromptDialogOpen] = React.useState(false);
+    const [readModalOpen, setReadModalOpen] = React.useState(false);
     const [generationPrompt, setGenerationPrompt] = React.useState('');
 
     const queryClient = useQueryClient();
@@ -98,9 +100,15 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
             {/* Article Content Information */}
             <div className="flex-1 space-y-4">
                 <div className="space-y-2">
-                    <h3 className="text-xl md:text-2xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors line-clamp-2 leading-tight">
-                        {article.title}
-                    </h3>
+                    <button
+                        type="button"
+                        onClick={() => setReadModalOpen(true)}
+                        className="text-left group/title focus:outline-none"
+                    >
+                        <h3 className="text-xl md:text-2xl font-bold text-gray-900 group-hover/title:text-orange-600 transition-colors line-clamp-2 leading-tight">
+                            {article.title}
+                        </h3>
+                    </button>
                     <p className="text-gray-500 text-sm line-clamp-2 font-medium leading-relaxed max-w-2xl">
                         {article.content || "No excerpt available for this article. Review the source content for full details."}
                     </p>
@@ -237,6 +245,12 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+
+        <ReadRawArticleModal
+            article={article}
+            open={readModalOpen}
+            onOpenChange={setReadModalOpen}
+        />
         </>
     );
 }
