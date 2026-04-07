@@ -56,9 +56,9 @@ export default function ReadGeneratedArticle({
                 className="w-[95vw] sm:max-w-[800px] max-h-[90vh] p-0 overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] border-none bg-white shadow-2xl flex flex-col"
             >
                 {/* Header with AI/Admin Aesthetic */}
-                <div className="relative bg-gray-900 px-6 sm:px-8 py-8 sm:py-10 overflow-hidden flex-shrink-0">
-                    {/* Background Glow */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[100px] -mr-32 -mt-32" />
+                <div className="relative bg-gray-900 px-6 sm:px-8 py-8 sm:py-10 overflow-hidden flex-shrink-0 isolation-auto">
+                    {/* Background Glow - Reduced blur for performance */}
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[60px] -mr-32 -mt-32 pointer-events-none" />
 
                     <button
                         onClick={() => onOpenChange(false)}
@@ -95,9 +95,9 @@ export default function ReadGeneratedArticle({
                     </div>
                 </div>
 
-                {/* Content Area */}
-                <div className="px-4 sm:px-8 py-6 sm:py-8 space-y-6 overflow-y-auto custom-scrollbar bg-gray-50/30 flex-1 min-h-0">
-                    <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-gray-100 shadow-sm leading-relaxed text-gray-800 text-base sm:text-lg whitespace-pre-wrap font-medium">
+                {/* Content Area - Optimized for smooth scrolling with GPU acceleration */}
+                <div className="px-4 sm:px-8 py-6 sm:py-8 space-y-6 overflow-y-auto overscroll-contain flex-1 min-h-0 bg-gray-50/30 will-change-transform [-webkit-overflow-scrolling:touch]">
+                    <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-gray-100 shadow-sm leading-relaxed text-gray-800 text-base sm:text-lg whitespace-pre-wrap font-medium contain-paint">
                         {article.content || (
                             <div className="flex flex-col items-center justify-center py-20 text-gray-400 italic">
                                 <Zap className="w-12 h-12 mb-4 opacity-20" />

@@ -52,6 +52,7 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
     const [promptDialogOpen, setPromptDialogOpen] = React.useState(false);
     const [readModalOpen, setReadModalOpen] = React.useState(false);
     const [generationPrompt, setGenerationPrompt] = React.useState('');
+    const [generationError, setGenerationError] = React.useState<string | null>(null);
 
     const queryClient = useQueryClient();
     const mutation = useMutation({
@@ -61,7 +62,11 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
             queryClient.invalidateQueries({ queryKey: ['crawledArticles'] });
             setPromptDialogOpen(false);
             setGenerationPrompt('');
+            setGenerationError(null);
         },
+        onError: (err: any) => {
+            setGenerationError(err.message || 'Failed to generate content. Please try again.');
+        }
     });
 
     // Normalize image URL to avoid passing empty strings to next/image
@@ -164,6 +169,7 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
                     type="button"
                     onClick={() => {
                         setGenerationPrompt('');
+                        setGenerationError(null);
                         setPromptDialogOpen(true);
                     }}
                     disabled={isGenerated || mutation.isPending}
@@ -188,7 +194,10 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
             open={promptDialogOpen}
             onOpenChange={(open) => {
                 setPromptDialogOpen(open);
-                if (!open && !mutation.isPending) setGenerationPrompt('');
+                if (!open && !mutation.isPending) {
+                    setGenerationPrompt('');
+                    setGenerationError(null);
+                }
             }}
         >
             <DialogContent className="sm:max-w-lg rounded-3xl border-gray-100">
@@ -211,9 +220,16 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
                     className="min-h-[140px] rounded-2xl border-gray-200 text-sm focus-visible:ring-orange-500/20"
                     disabled={mutation.isPending}
                 />
-                <p className="text-xs text-gray-400 tabular-nums">
-                    {generationPrompt.length} / {GENERATION_PROMPT_MAX_LEN}
-                </p>
+                <div className="space-y-1">
+                    <p className="text-xs text-gray-400 tabular-nums">
+                        {generationPrompt.length} / {GENERATION_PROMPT_MAX_LEN}
+                    </p>
+                    {generationError && (
+                        <div className="p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-xs font-semibold animate-in fade-in slide-in-from-top-1">
+                            {generationError}
+                        </div>
+                    )}
+                </div>
                 <DialogFooter className="gap-2 sm:gap-2">
                     <Button
                         type="button"
