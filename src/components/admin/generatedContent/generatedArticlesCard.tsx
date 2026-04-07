@@ -29,6 +29,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar as ShadCalendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import CreateArticleModal from '@/components/admin/generatedContent/createArticleModal';
+import ReadGeneratedArticle from '@/components/admin/generatedContent/readGeneratedArticle';
 
 import { StoryImage } from '@/components/StoryImage';
 
@@ -52,6 +53,8 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
     const queryClient = useQueryClient();
     const isPublished = article.status === 'published';
     const publishDate = article.publishDate || article.createdAt;
+
+    const [isReadModalOpen, setIsReadModalOpen] = React.useState(false);
 
     const publishMutation = useMutation({
         mutationFn: () => articlesApi.publishArticle(article.id),
@@ -88,11 +91,15 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
             {/* Article Content Information */}
             <div className="flex-1 space-y-4">
                 <div className="space-y-2">
-                    <div className="flex items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={() => setIsReadModalOpen(true)}
+                        className="text-left group/title focus:outline-none"
+                    >
                         <h3 className="text-xl md:text-2xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors line-clamp-1 leading-tight">
                             {article.title}
                         </h3>
-                    </div>
+                    </button>
                     <p className="text-gray-500 text-sm line-clamp-2 font-medium leading-relaxed max-w-2xl">
                         {article.content || "No content available for this generated article. Review and edit before publication."}
                     </p>
@@ -133,6 +140,15 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
             <div className="w-full md:w-auto flex flex-col sm:flex-row md:flex-col gap-2 flex-shrink-0 self-stretch md:self-center justify-center">
                 <button
                     type="button"
+                    onClick={() => setIsReadModalOpen(true)}
+                    className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-sm bg-gray-50 text-gray-700 hover:bg-gray-100 transition-all group/read"
+                >
+                    <Newspaper className="w-5 h-5 text-gray-400 group-hover/read:text-gray-900 transition-colors" />
+                    Read
+                </button>
+
+                <button
+                    type="button"
                     onClick={() => publishMutation.mutate()}
                     disabled={isPublished || publishMutation.isPending}
                     className={`flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-sm shadow-lg transition-all group/btn ${isPublished
@@ -147,6 +163,12 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                     )}
                     {isPublished ? 'Published' : publishMutation.isPending ? 'Publishing...' : 'Publish Article'}
                 </button>
+
+                <ReadGeneratedArticle
+                    article={article}
+                    open={isReadModalOpen}
+                    onOpenChange={setIsReadModalOpen}
+                />
             </div>
         </MotionDiv>
     );

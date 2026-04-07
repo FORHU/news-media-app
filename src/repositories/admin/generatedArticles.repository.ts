@@ -18,6 +18,17 @@ type ContentArticleSupabase = {
   status: string;
   category: { category_name: string } | null;
   user: { first_name: string; last_name: string } | null;
+  rawArticle: {
+    id: string;
+    title: string;
+    content: string | null;
+    image_url: string | null;
+    publish_date: string | null;
+    created_at: string;
+    status: string;
+    category: { category_name: string } | null;
+    crawledUrl: { url: string } | null;
+  } | null;
 };
 
 export const generatedArticlesRepository = {
@@ -33,7 +44,12 @@ export const generatedArticlesRepository = {
         `
           *,
           category:categories(*),
-          user:users(*)
+          user:users(*),
+          rawArticle:raw_articles(
+            *,
+            category:categories(*),
+            crawledUrl:crawled_urls(*)
+          )
         `,
         { count: "exact" }
       );

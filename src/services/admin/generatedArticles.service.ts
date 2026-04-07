@@ -45,6 +45,21 @@ export const generatedArticlesService = {
           firstName: article.user?.first_name || "",
           lastName: article.user?.last_name || "",
         },
+        rawArticle: article.rawArticle ? {
+          id: article.rawArticle.id || "",
+          title: article.rawArticle.title || "",
+          content: article.rawArticle.content || "",
+          imageUrl: article.rawArticle.image_url || "",
+          publishDate: article.rawArticle.publish_date || article.rawArticle.created_at,
+          createdAt: article.rawArticle.created_at,
+          status: article.rawArticle.status,
+          category: {
+            categoryName: article.rawArticle.category?.category_name || "Uncategorized",
+          },
+          crawledUrl: {
+            url: article.rawArticle.crawledUrl?.url || "",
+          },
+        } : null,
       };
     });
 
