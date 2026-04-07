@@ -35,8 +35,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
 import ReadRawArticleModal from './readRawArticleModal';
+import GenerateArticleModal from './generateArticleModal';
 
 interface CrawledArticleCardProps {
     article: MappedRawArticle;
@@ -51,7 +51,6 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
 
     const [promptDialogOpen, setPromptDialogOpen] = React.useState(false);
     const [readModalOpen, setReadModalOpen] = React.useState(false);
-    const [generationPrompt, setGenerationPrompt] = React.useState('');
     const [generationError, setGenerationError] = React.useState<string | null>(null);
 
     const queryClient = useQueryClient();
@@ -60,8 +59,6 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
             articlesApi.generateAiContent(article.id, prompt),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['crawledArticles'] });
-            setPromptDialogOpen(false);
-            setGenerationPrompt('');
             setGenerationError(null);
         },
         onError: (err: any) => {
@@ -168,7 +165,6 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
                 <button
                     type="button"
                     onClick={() => {
-                        setGenerationPrompt('');
                         setGenerationError(null);
                         setPromptDialogOpen(true);
                     }}
@@ -187,80 +183,20 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
                     )}
                     {mutation.isPending ? 'Generating...' : isGenerated ? 'Generated' : 'Generate'}
                 </button>
+                {generationError && (
+                    <p className="text-[10px] font-black text-red-500 text-center animate-in fade-in slide-in-from-top-1 px-1 max-w-[140px] mx-auto uppercase tracking-tighter leading-tight">
+                        {generationError}
+                    </p>
+                )}
             </div>
         </MotionDiv>
 
-        <Dialog
+        <GenerateArticleModal
             open={promptDialogOpen}
-            onOpenChange={(open) => {
-                setPromptDialogOpen(open);
-                if (!open && !mutation.isPending) {
-                    setGenerationPrompt('');
-                    setGenerationError(null);
-                }
-            }}
-        >
-            <DialogContent className="sm:max-w-lg rounded-3xl border-gray-100">
-                <DialogHeader>
-                    <DialogTitle className="text-xl font-extrabold tracking-tight">
-                        Generate article
-                    </DialogTitle>
-                    <DialogDescription className="text-gray-500 font-medium">
-                        Add instructions for tone, angle, length, or audience. Leave blank to use the default behavior.
-                    </DialogDescription>
-                </DialogHeader>
-                <Textarea
-                    value={generationPrompt}
-                    onChange={(e) =>
-                        setGenerationPrompt(
-                            e.target.value.slice(0, GENERATION_PROMPT_MAX_LEN)
-                        )
-                    }
-                    placeholder="e.g. Lead with the policy impact, keep it under 400 words, neutral AP style…"
-                    className="min-h-[140px] rounded-2xl border-gray-200 text-sm focus-visible:ring-orange-500/20"
-                    disabled={mutation.isPending}
-                />
-                <div className="space-y-1">
-                    <p className="text-xs text-gray-400 tabular-nums">
-                        {generationPrompt.length} / {GENERATION_PROMPT_MAX_LEN}
-                    </p>
-                    {generationError && (
-                        <div className="p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-xs font-semibold animate-in fade-in slide-in-from-top-1">
-                            {generationError}
-                        </div>
-                    )}
-                </div>
-                <DialogFooter className="gap-2 sm:gap-2">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        className="rounded-2xl"
-                        disabled={mutation.isPending}
-                        onClick={() => setPromptDialogOpen(false)}
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        type="button"
-                        className="rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md hover:opacity-95"
-                        disabled={mutation.isPending}
-                        onClick={() => mutation.mutate(generationPrompt)}
-                    >
-                        {mutation.isPending ? (
-                            <>
-                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                Generating…
-                            </>
-                        ) : (
-                            <>
-                                <Zap className="w-4 h-4 mr-2" />
-                                Generate
-                            </>
-                        )}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+            onOpenChange={setPromptDialogOpen}
+            onGenerate={(prompt) => mutation.mutate(prompt)}
+            isPending={mutation.isPending}
+        />
 
         <ReadRawArticleModal
             article={article}

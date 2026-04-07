@@ -3,20 +3,25 @@ import { prisma } from "@/lib/db";
 import { resolveEnglishCategoryId } from "@/lib/categoryMapping";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 300; // Allow up to 5 minutes on Vercel Pro/Enterprise
+
+// Safety truncation to avoid token limit errors
+function truncateContent(text: string, limit: number = 12000): string {
+  if (!text) return "";
+  if (text.length <= limit) return text;
+  return text.substring(0, limit) + "... [Truncated due to length]";
+}
+
 //AI persona/instruction
 function getAiSystemInstruction(categories: string[]) {
   return `
 [FORMATTING RULES]:
-- LANGUAGE: You MUST output in English.
-- STRUCTURE: Use ONLY these tags:
+- STRUCTURE: Use ONLY these tags for your response:
   <title>Headline</title>
   <category>One choice from: [${categories.join(", ")}]</category>
   <content>The article paragraphs</content>
-- STYLE: Use 2-3 sentences per paragraph. Use double newlines (\\n\\n) between paragraphs.
-- TONE: Adopt the tone of a professional writer (clear, engaging, and objective).
-- FORBIDDEN: Do not use intro phrases like "Certainly!" or "Here is the article". 
-- FORBIDDEN WORDS: Do not use AI-cliches: "tapestry", "delve", "unlocking", "moreover", "furthermore", "in conclusion".
-- BAN: No markdown, no bolding, and no non-English characters in the output.
+- RULES: No intro phrases, no markdown, and no AI-clichés.
+- OUTPUT: Write the content inside the tags in the language requested by the user.
 `;
 }
 
@@ -70,19 +75,31 @@ export async function POST(req: NextRequest) {
     const categoryNames = dbCategories.map(c => c.categoryName);
     const instruction = getAiSystemInstruction(categoryNames);
 
+    const truncatedInput = truncateContent(rawArticle.content || "No content provided.");
     const aiPayload = {
-      user_input: `[SOURCE ARTICLE]:\n${rawArticle.content || "No content provided."}\n\n[FORMATTING RULES]:\n${instruction}\n\n[FINAL TASK]:\n${customPrompt || "Translate this article into English and rewrite it professionally."
-        }\n\nCRITICAL: Your entire output MUST strictly follow the language requested in the [FINAL TASK] above. If no specific language was requested, you MUST output in English.`,
+      user_input: `
+[SOURCE ARTICLE]:
+${truncatedInput}
+
+[SYSTEM INSTRUCTIONS]:
+${instruction}
+
+[USER REQUEST / FINAL TASK]:
+${customPrompt || "Translate to English and rewrite professionally."}
+
+CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUCTIONS.
+`,
       session_id,
       persona_prefix: "NewsLetter",
       raw_article_id: articleId,
-      document_context: rawArticle.content,
+      document_context: truncatedInput,
     };
 
-    console.log("[AI Generate] Sending Payload:", JSON.stringify(aiPayload, null, 2));
+    console.log("[AI Generate] Sending Payload (Truncated if necessary):", JSON.stringify({ ...aiPayload, user_input: aiPayload.user_input.substring(0, 500) + "..." }, null, 2));
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 60000); // 60s timeout
+    const timeoutCount = 180000; // 180s
+    const timeout = setTimeout(() => controller.abort(), timeoutCount);
 
     let title = "";
     let content = "";
@@ -99,8 +116,10 @@ export async function POST(req: NextRequest) {
       clearTimeout(timeout);
 
       if (!chatRes.ok) {
-        console.error("[AI Generate] Error Status:", chatRes.status);
-        throw new Error(`AI generation service error (Status: ${chatRes.status})`);
+        const errorData = await chatRes.json().catch(() => ({}));
+        console.error("[AI Generate] Error Status:", chatRes.status, errorData);
+        const errorMsg = errorData?.detail || errorData?.error || `AI service reported an error (Status: ${chatRes.status})`;
+        throw new Error(errorMsg);
       }
 
       const { response } = await chatRes.json();
@@ -158,9 +177,15 @@ export async function POST(req: NextRequest) {
       }
 
       const isTimeout = error.name === "AbortError";
-      const message = isTimeout
-        ? "AI generation request timed out after 60s. The AI service may be under heavy load."
-        : (error.message || "Failed to generate AI content");
+      const errorMsg = error.message?.toLowerCase() || "";
+      const isTokenLimit = errorMsg.includes("token") || errorMsg.includes("limit") || errorMsg.includes("too long");
+
+      let message = error.message || "Failed to generate AI content";
+      if (isTimeout) {
+        message = "AI generation request timed out after 3 minutes. The article might be too large or the service is under heavy load.";
+      } else if (isTokenLimit) {
+        message = "The article is too long for the AI model to process. Try a shorter custom prompt or smaller article.";
+      }
 
       return NextResponse.json({ error: message }, { status: isTimeout ? 504 : 500 });
     }
