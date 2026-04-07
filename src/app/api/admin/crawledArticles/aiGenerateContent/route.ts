@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { resolveEnglishCategoryId } from "@/lib/categoryMapping";
 
 export const dynamic = "force-dynamic";
-
+//AI persona/instruction
 function getAiSystemInstruction(categories: string[]) {
   return `
 [FORMATTING RULES]:
@@ -71,9 +71,8 @@ export async function POST(req: NextRequest) {
     const instruction = getAiSystemInstruction(categoryNames);
 
     const aiPayload = {
-      user_input: `[SOURCE ARTICLE]:\n${rawArticle.content || "No content provided."}\n\n[FORMATTING RULES]:\n${instruction}\n\n[FINAL TASK]:\n${
-        customPrompt || "Translate this article into English and rewrite it professionally."
-      }\n\nCRITICAL: Your entire output MUST strictly follow the language requested in the [FINAL TASK] above. If no specific language was requested, you MUST output in English.`,
+      user_input: `[SOURCE ARTICLE]:\n${rawArticle.content || "No content provided."}\n\n[FORMATTING RULES]:\n${instruction}\n\n[FINAL TASK]:\n${customPrompt || "Translate this article into English and rewrite it professionally."
+        }\n\nCRITICAL: Your entire output MUST strictly follow the language requested in the [FINAL TASK] above. If no specific language was requested, you MUST output in English.`,
       session_id,
       persona_prefix: "NewsLetter",
       raw_article_id: articleId,
@@ -149,7 +148,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(contentArticle);
     } catch (error: any) {
       clearTimeout(timeout);
-      
+
       // Update status to failed only if it was a real attempt
       if (articleId) {
         await prisma.rawArticle.update({
@@ -159,10 +158,10 @@ export async function POST(req: NextRequest) {
       }
 
       const isTimeout = error.name === "AbortError";
-      const message = isTimeout 
-        ? "AI generation request timed out after 60s. The AI service may be under heavy load." 
+      const message = isTimeout
+        ? "AI generation request timed out after 60s. The AI service may be under heavy load."
         : (error.message || "Failed to generate AI content");
-      
+
       return NextResponse.json({ error: message }, { status: isTimeout ? 504 : 500 });
     }
   } catch (error: any) {
