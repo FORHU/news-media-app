@@ -249,6 +249,71 @@ export default function GeneratedArticlesList({ searchParams }: {
         setQueryParams({ category: categoryDraft || null });
     }, [categoryDraft, category, setQueryParams]);
 
+    React.useEffect(() => {
+        // Debug: confirms the realtime effect is mounted for this page.
+        // eslint-disable-next-line no-console
+        console.log('[Realtime] generatedArticlesCard effect mount');
+
+        // If Supabase emits multiple events for the same change burst, throttle
+        // so we don't spam the API.
+        let lastRefetchAt = 0;
+        const throttleMs = 500;
+
+        const refetchFromRealtime = (payload?: any) => {
+            const now = Date.now();
+            if (now - lastRefetchAt < throttleMs) return;
+            lastRefetchAt = now;
+
+            // eslint-disable-next-line no-console
+            console.log('[Realtime] generated_articles change:', {
+                eventType: payload?.eventType,
+                table: payload?.table,
+                id: payload?.new?.id ?? payload?.old?.id,
+            });
+
+            const isGeneratedArticlesQuery = (q: { queryKey?: unknown }) => {
+                return Array.isArray(q.queryKey) && q.queryKey[0] === 'generatedArticles';
+            };
+
+            queryClient.invalidateQueries({
+                predicate: isGeneratedArticlesQuery,
+            });
+
+            void queryClient.refetchQueries({
+                predicate: isGeneratedArticlesQuery,
+                type: 'active',
+            });
+        };
+
+        const channel = supabase
+            .channel('realtime:generated_articles')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'raw_articles' },
+                refetchFromRealtime
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'content_articles' },
+                refetchFromRealtime
+            )
+            .subscribe((status, err) => {
+                // eslint-disable-next-line no-console
+                console.log('[Realtime] generated_articles channel status:', status, err ?? null);
+                if (status === 'SUBSCRIBED') {
+                    void queryClient.refetchQueries({
+                        predicate: (q) =>
+                            Array.isArray(q.queryKey) && q.queryKey[0] === 'generatedArticles',
+                        type: 'active',
+                    });
+                }
+            });
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [queryClient]);
+
     const containerVariants: Variants = {
         hidden: { opacity: 0 },
         visible: {

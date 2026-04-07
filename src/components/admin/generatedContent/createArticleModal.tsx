@@ -3,7 +3,6 @@
 import React from "react";
 import { 
     Zap, 
-    Link, 
     Upload, 
     FileText, 
     Image as ImageIcon, 
@@ -35,11 +34,17 @@ export default function CreateArticleModal({
     open,
     onOpenChange,
 }: CreateArticleModalProps) {
+    const [activeTab, setActiveTab] = React.useState<"manual" | "youtube">("manual");
     const [topic, setTopic] = React.useState("");
     const [selectedCategory, setSelectedCategory] = React.useState<string>("");
-    const [sourceUrl, setSourceUrl] = React.useState("");
     const [files, setFiles] = React.useState<File[]>([]);
     const [isGenerating, setIsGenerating] = React.useState(false);
+    const [youtubeUrl, setYoutubeUrl] = React.useState("");
+    const [isTranscribing, setIsTranscribing] = React.useState(false);
+    const [youtubeVideoId, setYoutubeVideoId] = React.useState("");
+    const [youtubeTranscript, setYoutubeTranscript] = React.useState("");
+    const [youtubePrompt, setYoutubePrompt] = React.useState("");
+    const [transcriptError, setTranscriptError] = React.useState<string | null>(null);
 
     // Fetch categories
     const { data: categories, isLoading: isLoadingCategories } = useQuery({
@@ -62,6 +67,43 @@ export default function CreateArticleModal({
         // Logic will be added later
         setIsGenerating(true);
         setTimeout(() => setIsGenerating(false), 2000); // Simulate UI only
+    };
+
+    const handleTranscribeYoutube = async () => {
+        const trimmedUrl = youtubeUrl.trim();
+        if (!trimmedUrl) {
+            setTranscriptError("Please enter a YouTube URL.");
+            return;
+        }
+
+        setIsTranscribing(true);
+        setTranscriptError(null);
+
+        try {
+            const baseUrl = (process.env.NEXT_PUBLIC_TRANSCRIPT_API_URL || "http://localhost:8000").replace(/\/$/, "");
+            const res = await fetch(`${baseUrl}/transcript`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ url: trimmedUrl }),
+            });
+
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                const message = typeof data?.detail === "string"
+                    ? data.detail
+                    : "Failed to transcribe YouTube video.";
+                throw new Error(message);
+            }
+
+            setYoutubeVideoId(typeof data?.video_id === "string" ? data.video_id : "");
+            setYoutubeTranscript(typeof data?.transcript === "string" ? data.transcript : "");
+        } catch (err: any) {
+            setTranscriptError(err?.message || "Failed to transcribe YouTube video.");
+            setYoutubeVideoId("");
+            setYoutubeTranscript("");
+        } finally {
+            setIsTranscribing(false);
+        }
     };
 
     const getFileIcon = (fileName: string) => {
@@ -103,6 +145,33 @@ export default function CreateArticleModal({
                 </div>
 
                 <div className="px-8 py-8 space-y-8 max-h-[65vh] overflow-y-auto custom-scrollbar">
+                    <div className="flex items-center gap-2 rounded-2xl bg-gray-50 p-1.5 border border-gray-100">
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab("manual")}
+                            className={`flex-1 h-10 rounded-xl text-sm font-black tracking-wide transition-all ${
+                                activeTab === "manual"
+                                    ? "bg-white text-gray-900 shadow-sm"
+                                    : "text-gray-500 hover:text-gray-900"
+                            }`}
+                        >
+                            Manual Generation
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab("youtube")}
+                            className={`flex-1 h-10 rounded-xl text-sm font-black tracking-wide transition-all ${
+                                activeTab === "youtube"
+                                    ? "bg-white text-gray-900 shadow-sm"
+                                    : "text-gray-500 hover:text-gray-900"
+                            }`}
+                        >
+                            YouTube Generation
+                        </button>
+                    </div>
+
+                    {activeTab === "manual" ? (
+                    <>
                     {/* Step 1: Article Context */}
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
@@ -141,20 +210,6 @@ export default function CreateArticleModal({
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                </div>
-                            </div>
-
-                            {/* URL Upload */}
-                            <div className="space-y-2">
-                                <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Source URL</span>
-                                <div className="relative">
-                                    <Link className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                    <Input
-                                        placeholder="Paste a reference URL..."
-                                        value={sourceUrl}
-                                        onChange={(e) => setSourceUrl(e.target.value)}
-                                        className="h-12 pl-10 rounded-xl bg-gray-50 border-gray-100 text-sm font-bold placeholder:text-gray-400 focus-visible:ring-orange-500/20 focus-visible:border-orange-200 shadow-sm"
-                                    />
                                 </div>
                             </div>
                         </div>
@@ -211,6 +266,88 @@ export default function CreateArticleModal({
                             </AnimatePresence>
                         </div>
                     </div>
+                    </>
+                    ) : (
+                    <div className="space-y-6">
+                        <div className="space-y-2">
+                            <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">YouTube URL</span>
+                            <div className="relative">
+                                <Input
+                                    placeholder="https://www.youtube.com/watch?v=..."
+                                    value={youtubeUrl}
+                                    onChange={(e) => setYoutubeUrl(e.target.value)}
+                                    className="h-12 pr-[150px] rounded-xl bg-gray-50 border-gray-100 text-sm font-bold placeholder:text-gray-400 focus-visible:ring-orange-500/20 focus-visible:border-orange-200 shadow-sm"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={handleTranscribeYoutube}
+                                    disabled={isTranscribing}
+                                    className="absolute right-1 top-1/2 -translate-y-1/2 h-10 rounded-lg font-bold border-gray-200 bg-white"
+                                >
+                                    {isTranscribing ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                            Transcribing...
+                                        </>
+                                    ) : (
+                                        "Transcribe"
+                                    )}
+                                </Button>
+                            </div>
+                        </div>
+
+                        {youtubeVideoId && (
+                            <div className="text-xs font-bold text-gray-500">
+                                Video ID: <span className="text-gray-900">{youtubeVideoId}</span>
+                            </div>
+                        )}
+
+                        {transcriptError && (
+                            <div className="p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-xs font-semibold">
+                                {transcriptError}
+                            </div>
+                        )}
+
+                        <div className="space-y-2">
+                            <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Transcribed Content</span>
+                            <textarea
+                                value={youtubeTranscript}
+                                onChange={(e) => setYoutubeTranscript(e.target.value)}
+                                placeholder="Transcript will appear here after transcribing."
+                                className="w-full min-h-[260px] rounded-2xl bg-gray-50 border border-gray-100 p-4 text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-200 resize-y"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Prompt</span>
+                            <textarea
+                                value={youtubePrompt}
+                                onChange={(e) => setYoutubePrompt(e.target.value)}
+                                placeholder="Add writing instructions for the generated article (tone, length, key points, audience)."
+                                className="w-full min-h-[120px] rounded-2xl bg-gray-50 border border-gray-100 p-4 text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-200 resize-y"
+                            />
+                        </div>
+
+                        <div className="flex items-center justify-end gap-3 pt-1">
+                            <Button
+                                type="button"
+                                onClick={handleGenerate}
+                                disabled={isGenerating || isTranscribing || !youtubeTranscript.trim()}
+                                className="h-12 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold shadow-lg shadow-orange-500/20 hover:opacity-95"
+                            >
+                                {isGenerating ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                        Generating...
+                                    </>
+                                ) : (
+                                    "Generate from Transcript"
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+                    )}
                 </div>
 
                 {/* Footer with Premium Button */}
@@ -224,23 +361,25 @@ export default function CreateArticleModal({
                             Discard
                         </Button>
                     </div>
-                    <Button
-                        onClick={handleGenerate}
-                        disabled={isGenerating}
-                        className="flex-1 max-w-[200px] h-14 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-black text-base shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 transition-all"
-                    >
-                        {isGenerating ? (
-                            <div className="flex items-center gap-2">
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                                <span>Generating...</span>
-                            </div>
-                        ) : (
-                            <div className="flex items-center gap-2">
-                                <Zap className="w-5 h-5 fill-white" />
-                                <span>Generate</span>
-                            </div>
-                        )}
-                    </Button>
+                    {activeTab === "manual" && (
+                        <Button
+                            onClick={handleGenerate}
+                            disabled={isGenerating}
+                            className="flex-1 max-w-[200px] h-14 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-black text-base shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 transition-all"
+                        >
+                            {isGenerating ? (
+                                <div className="flex items-center gap-2">
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    <span>Generating...</span>
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-2">
+                                    <Zap className="w-5 h-5 fill-white" />
+                                    <span>Generate</span>
+                                </div>
+                            )}
+                        </Button>
+                    )}
                 </DialogFooter>
             </DialogContent>
         </Dialog>
