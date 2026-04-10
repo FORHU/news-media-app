@@ -13,24 +13,23 @@ function truncateContent(text: string, limit: number = 12000): string {
 }
 
 //AI persona/instruction
-function getAiSystemInstruction(categories: string[]) {
+function getAiSystemInstruction() {
   return `
 [FORMATTING RULES]:
 - STRUCTURE: Use ONLY these tags for your response:
   <title>Headline</title>
-  <category>One choice from: [${categories.join(", ")}]</category>
   <content>The article paragraphs</content>
 - RULES: No intro phrases, no markdown, and no AI-clichés.
 - OUTPUT: Write the content inside the tags in the language requested by the user.
 `;
 }
 
-// Handles title extraction from the AI response.
+// Handles data extraction from the AI response.
 function extractArticleData(
   responseText: string | null | undefined,
   rawTitle: string
 ) {
-  if (!responseText) return { title: rawTitle, categoryName: null, content: "" };
+  if (!responseText) return { title: rawTitle, content: "" };
 
   const extractTag = (tag: string) => {
     // Robustly find tags even if AI adds bolding or spaces: e.g. **<title>**
@@ -40,10 +39,9 @@ function extractArticleData(
   };
 
   const title = extractTag("title") || rawTitle;
-  const categoryName = extractTag("category");
   const content = extractTag("content") || "";
 
-  return { title, categoryName, content };
+  return { title, content };
 }
 
 export async function POST(req: NextRequest) {
@@ -51,6 +49,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     articleId = body.articleId;
+    const categoryId = body.categoryId;
     const customPrompt = typeof body.generationPrompt === "string" ? body.generationPrompt.trim() : "";
 
     if (!articleId) {
@@ -71,9 +70,7 @@ export async function POST(req: NextRequest) {
     if (!sessionRes.ok) throw new Error("Could not connect to AI service (session-id)");
     const { session_id } = await sessionRes.json();
 
-    const dbCategories = await prisma.category.findMany();
-    const categoryNames = dbCategories.map(c => c.categoryName);
-    const instruction = getAiSystemInstruction(categoryNames);
+    const instruction = getAiSystemInstruction();
 
     const truncatedInput = truncateContent(rawArticle.content || "No content provided.");
     const aiPayload = {
@@ -103,7 +100,7 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
 
     let title = "";
     let content = "";
-    let resolvedCategoryId = rawArticle.categoryId;
+    let resolvedCategoryId = categoryId || rawArticle.categoryId;
 
     try {
       const chatRes = await fetch(`${baseUrl}/chat`, {
@@ -129,17 +126,6 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
       const extracted = extractArticleData(response, rawArticle.title);
       title = extracted.title;
       content = extracted.content;
-
-      // Resolve Category mapping
-      const categoryName = extracted.categoryName;
-      if (categoryName) {
-        const matchedCategory = dbCategories.find(
-          c => c.categoryName.toLowerCase() === categoryName.toLowerCase()
-        );
-        if (matchedCategory) {
-          resolvedCategoryId = matchedCategory.id;
-        }
-      }
 
       const user =
         (await prisma.user.findUnique({ where: { email: "admin@newsmedia.app" } })) ||

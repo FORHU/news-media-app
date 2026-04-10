@@ -83,7 +83,8 @@ export const articlesApi = {
 
   async generateAiContent(
     articleId: string,
-    generationPrompt?: string
+    generationPrompt?: string,
+    categoryId?: string
   ): Promise<unknown> {
     const trimmed =
       typeof generationPrompt === "string" ? generationPrompt.trim() : "";
@@ -93,12 +94,35 @@ export const articlesApi = {
       body: JSON.stringify({
         articleId,
         ...(trimmed.length > 0 ? { generationPrompt: trimmed } : {}),
+        ...(categoryId ? { categoryId } : {}),
       }),
     });
     if (!res.ok) {
       const error = await res.json().catch(() => ({}));
       throw new Error(
         typeof error.error === "string" ? error.error : "Failed to generate AI content"
+      );
+    }
+    return res.json();
+  },
+
+  async generateManualArticle(params: {
+    topic?: string;
+    categoryId?: string;
+    content?: string;
+    prompt?: string;
+    fileContent?: string;
+    imageUrl?: string;
+  }): Promise<unknown> {
+    const res = await fetch("/api/admin/generatedArticles/createManualArticle", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(params),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(
+        typeof error.error === "string" ? error.error : "Failed to generate manual article"
       );
     }
     return res.json();
