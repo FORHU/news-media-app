@@ -32,6 +32,7 @@ import CreateArticleModal from '@/components/admin/generatedContent/createArticl
 import ReadGeneratedArticle from '@/components/admin/generatedContent/readGeneratedArticle';
 
 import { StoryImage } from '@/components/StoryImage';
+import { CATEGORY_HIERARCHY } from '@/lib/taxonomy';
 
 // Mock response type for now, as it might be added to types.ts later
 interface GeneratedArticlesResponse {
@@ -363,17 +364,23 @@ export default function GeneratedArticlesList({ searchParams }: {
 
                 <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
                     <Select value={categoryDraft || 'All Types'} onValueChange={setCategoryDraft}>
-                        <SelectTrigger className="h-12 w-[180px] rounded-2xl bg-gray-50/50 border-gray-100 text-sm font-semibold text-gray-900 focus-visible:ring-orange-500/20">
-                            <SelectValue placeholder="All Types" />
+                        <SelectTrigger className="h-12 w-[220px] rounded-2xl bg-gray-50/50 border-gray-100 text-sm font-semibold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm transition-all">
+                            <SelectValue placeholder="All Categories" />
                         </SelectTrigger>
-                        <SelectContent className="max-h-[300px]">
-                            <SelectItem value="All Types">All Types</SelectItem>
-                            <SelectItem value="News">News</SelectItem>
-                            <SelectItem value="Opinion">Opinion</SelectItem>
-                            <SelectItem value="Lifestyle">Lifestyle</SelectItem>
-                            <SelectItem value="Technology">Technology</SelectItem>
-                            <SelectItem value="Environment">Environment</SelectItem>
-                            <SelectItem value="World News">World News</SelectItem>
+                        <SelectContent className="max-h-[400px]">
+                            <SelectItem value="All Types">All Categories</SelectItem>
+                            {CATEGORY_HIERARCHY.map((group) => (
+                                <React.Fragment key={group.label}>
+                                    <SelectItem value={group.label} className="font-bold text-orange-600">
+                                        {group.label} (All)
+                                    </SelectItem>
+                                    {group.subcategories.map((sub) => (
+                                        <SelectItem key={sub} value={sub} className="pl-6 font-medium">
+                                            {sub}
+                                        </SelectItem>
+                                    ))}
+                                </React.Fragment>
+                            ))}
                         </SelectContent>
                     </Select>
 

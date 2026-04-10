@@ -59,7 +59,7 @@ export const generatedArticlesRepository = {
     }
 
     if (category && category !== "All Types") {
-      query = query.filter("category.category_name", "ilike", `%${category}%`);
+      query = query.filter("category.category_name", "eq", category);
     }
 
     const { data, error, count } = await query

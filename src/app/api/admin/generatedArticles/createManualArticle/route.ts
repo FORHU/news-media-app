@@ -24,12 +24,11 @@ function truncateContent(text: string, limit: number = 12000): string {
 }
 
 // AI persona/instruction
-function getAiSystemInstruction(categories: string[]) {
+function getAiSystemInstruction() {
   return `
 [FORMATTING RULES]:
 - STRUCTURE: Use ONLY these tags for your response:
   <title>Headline</title>
-  <category>One choice from: [${categories.join(", ")}]</category>
   <content>The article paragraphs</content>
 - RULES: No intro phrases, no markdown, and no AI-clichés.
 - OUTPUT: Write the content inside the tags in English unless otherwise requested.
@@ -41,7 +40,7 @@ function extractArticleData(
   responseText: string | null | undefined,
   fallbackTitle: string
 ) {
-  if (!responseText) return { title: fallbackTitle, categoryName: null, content: "" };
+  if (!responseText) return { title: fallbackTitle, content: "" };
 
   const extractTag = (tag: string) => {
     const regex = new RegExp(`(?:\\*+)?<${tag}>(?:\\*+)?([\\s\\S]*?)(?:\\*+)?</${tag}>(?:\\*+)?`, "i");
@@ -50,10 +49,9 @@ function extractArticleData(
   };
 
   const title = extractTag("title") || fallbackTitle;
-  const categoryName = extractTag("category");
   const content = extractTag("content") || "";
 
-  return { title, categoryName, content };
+  return { title, content };
 }
 
 export async function POST(req: NextRequest) {
@@ -84,9 +82,7 @@ export async function POST(req: NextRequest) {
     if (!sessionRes.ok) throw new Error("Could not connect to AI service (session-id)");
     const { session_id } = await sessionRes.json();
 
-    const dbCategories = await prisma.category.findMany();
-    const categoryNames = dbCategories.map(c => c.categoryName);
-    const instruction = getAiSystemInstruction(categoryNames);
+    const instruction = getAiSystemInstruction();
 
     const materialsText = [
       rawContent,
@@ -150,18 +146,6 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
         throw new Error("AI failed to generate a complete article. Please refine your prompt or materials and try again.");
       }
 
-      // Resolve Category
-      let resolvedCategoryId = categoryId;
-      const categoryName = extracted.categoryName;
-      if (categoryName) {
-        const matchedCategory = dbCategories.find(
-          c => c.categoryName.toLowerCase() === categoryName.toLowerCase()
-        );
-        if (matchedCategory) {
-          resolvedCategoryId = matchedCategory.id;
-        }
-      }
-
       const user =
         (await prisma.user.findUnique({ where: { email: "admin@newsmedia.app" } })) ||
         (await prisma.user.findFirst());
@@ -175,7 +159,7 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
           imageUrl: imageUrl || null,
           status: "pending",
           usersId: user.id,
-          categoryId: resolvedCategoryId,
+          categoryId: categoryId,
           publishDate: new Date(),
         },
       });
