@@ -32,7 +32,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
-import { CATEGORY_HIERARCHY } from "@/lib/taxonomy";
+import { CATEGORY_HIERARCHY } from "@/lib/categories";
 
 interface CreateArticleModalProps {
     open: boolean;

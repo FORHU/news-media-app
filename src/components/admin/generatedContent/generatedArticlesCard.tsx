@@ -32,7 +32,7 @@ import CreateArticleModal from '@/components/admin/generatedContent/createArticl
 import ReadGeneratedArticle from '@/components/admin/generatedContent/readGeneratedArticle';
 
 import { StoryImage } from '@/components/StoryImage';
-import { CATEGORY_HIERARCHY } from '@/lib/taxonomy';
+import { CATEGORY_HIERARCHY } from '@/lib/categories';
 
 // Mock response type for now, as it might be added to types.ts later
 interface GeneratedArticlesResponse {

@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/select';
 import { useQuery } from '@tanstack/react-query';
 import { articlesApi } from '@/lib/api';
-import { CATEGORY_HIERARCHY } from '@/lib/taxonomy';
+import { CATEGORY_HIERARCHY } from '@/lib/categories';
 
 interface GenerateArticleModalProps {
     open: boolean;

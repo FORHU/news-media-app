@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { CATEGORY_HIERARCHY } from "@/lib/taxonomy";
+import { CATEGORY_HIERARCHY } from "@/lib/categories";
 
 function categoryHref(categoryName: string) {
   return `/?category=${encodeURIComponent(categoryName)}`;

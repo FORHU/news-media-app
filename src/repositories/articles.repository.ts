@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import type { Article } from "@/lib/types";
-import { CATEGORY_HIERARCHY } from "@/lib/taxonomy";
+import { CATEGORY_HIERARCHY } from "@/lib/categories";
 import { Prisma } from "@/generated/prisma/client";
 
 export const articlesRepository = {
