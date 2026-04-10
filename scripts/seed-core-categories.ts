@@ -20,27 +20,27 @@ const CORE_CATEGORIES = [
 
 async function main() {
   console.log("Seeding core English categories...");
-  
+
   for (const name of CORE_CATEGORIES) {
     const existing = await prisma.category.findFirst({
-        where: {
-            categoryName: {
-                equals: name,
-                mode: 'insensitive'
-            }
+      where: {
+        categoryName: {
+          equals: name,
+          mode: 'insensitive'
         }
+      }
     });
 
     if (existing) {
-        if (existing.categoryName !== name) {
-            console.log(`Updating ${existing.categoryName} -> ${name}`);
-            await prisma.category.update({
-                where: { id: existing.id },
-                data: { categoryName: name }
-            });
-        } else {
-            console.log(`Category exists: ${name}`);
-        }
+      if (existing.categoryName !== name) {
+        console.log(`Updating ${existing.categoryName} -> ${name}`);
+        await prisma.category.update({
+          where: { id: existing.id },
+          data: { categoryName: name }
+        });
+      } else {
+        console.log(`Category exists: ${name}`);
+      }
     } else {
       console.log(`Creating category: ${name}`);
       await prisma.category.create({
@@ -48,7 +48,7 @@ async function main() {
       });
     }
   }
-  
+
   console.log("Seeding complete.");
 }
 
