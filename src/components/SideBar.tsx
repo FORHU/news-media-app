@@ -22,6 +22,7 @@ const CATEGORY_STRUCTURE = [
     { name: "Latest News", link: "/", subcategories: [] },
     ...CATEGORY_HIERARCHY.map(group => ({
         name: group.label,
+        link: categoryHref(group.label),
         subcategories: group.subcategories.map(sub => ({
             name: sub,
             link: categoryHref(sub)
