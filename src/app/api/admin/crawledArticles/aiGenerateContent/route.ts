@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { resolveEnglishCategoryId } from "@/lib/categoryMapping";
+import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // Allow up to 5 minutes on Vercel Pro/Enterprise
+
+const RequestSchema = z.object({
+  articleId: z.string().min(1, "articleId is required"),
+  categoryId: z.string().min(1, "categoryId is required"),
+  generationPrompt: z.string().optional().or(z.literal("")),
+});
 
 // Safety truncation to avoid token limit errors
 function truncateContent(text: string, limit: number = 12000): string {
@@ -47,14 +53,23 @@ function extractArticleData(
 export async function POST(req: NextRequest) {
   let articleId: string | undefined;
   try {
-    const body = await req.json();
-    articleId = body.articleId;
-    const categoryId = body.categoryId;
-    const customPrompt = typeof body.generationPrompt === "string" ? body.generationPrompt.trim() : "";
+    const json = await req.json();
+    const result = RequestSchema.safeParse(json);
 
-    if (!articleId) {
-      return NextResponse.json({ error: "articleId is required" }, { status: 400 });
+    if (!result.success) {
+      return NextResponse.json({ 
+        error: "Validation failed", 
+        details: result.error.issues.map(e => e.message).join(", ") 
+      }, { status: 400 });
     }
+
+    const { 
+      articleId: bodyArticleId, 
+      categoryId, 
+      generationPrompt: customPrompt 
+    } = result.data;
+    
+    articleId = bodyArticleId;
 
     const baseUrl = (process.env.GENERATE_CONTENT_API || "").replace(/\/$/, "");
     if (!baseUrl) throw new Error("GENERATE_CONTENT_API is not configured");
@@ -100,7 +115,7 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
 
     let title = "";
     let content = "";
-    let resolvedCategoryId = categoryId || rawArticle.categoryId;
+    let resolvedCategoryId = categoryId;
 
     try {
       const chatRes = await fetch(`${baseUrl}/chat`, {
@@ -126,6 +141,10 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
       const extracted = extractArticleData(response, rawArticle.title);
       title = extracted.title;
       content = extracted.content;
+
+      if (!content || content.length < 50) {
+        throw new Error("AI failed to generate a complete article. Please refine your custom prompt and try again.");
+      }
 
       const user =
         (await prisma.user.findUnique({ where: { email: "admin@newsmedia.app" } })) ||

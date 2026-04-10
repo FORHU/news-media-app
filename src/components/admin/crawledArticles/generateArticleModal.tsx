@@ -45,6 +45,7 @@ export default function GenerateArticleModal({
     const [generationPrompt, setGenerationPrompt] = React.useState('');
     const [selectedCategory, setSelectedCategory] = React.useState<string>('');
     const [error, setError] = React.useState<string | null>(null);
+    const [fieldErrors, setFieldErrors] = React.useState<{ category?: string }>({});
 
     // Reset when opening
     React.useEffect(() => {
@@ -52,8 +53,14 @@ export default function GenerateArticleModal({
             setGenerationPrompt('');
             setSelectedCategory('');
             setError(null);
+            setFieldErrors({});
         }
     }, [open]);
+
+    const handleCategoryChange = (val: string) => {
+        setSelectedCategory(val);
+        setFieldErrors(prev => ({ ...prev, category: undefined }));
+    };
 
     // Fetch categories
     const { data: categories, isLoading: isLoadingCategories } = useQuery({
@@ -72,7 +79,7 @@ export default function GenerateArticleModal({
 
     const handleGenerate = () => {
         if (!selectedCategory) {
-            setError("Please select a category first.");
+            setFieldErrors({ category: "Please select a category first" });
             return;
         }
         onGenerate(generationPrompt, selectedCategory);
@@ -119,28 +126,35 @@ export default function GenerateArticleModal({
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
                             <span className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 text-orange-600 font-black text-xs">01</span>
-                            <label className="text-sm font-black uppercase tracking-widest text-gray-900">Select Category</label>
+                            <label className="text-sm font-black uppercase tracking-widest text-gray-900">Select Category <span className="text-red-500">*</span></label>
                         </div>
                         
-                        <Select value={selectedCategory} onValueChange={setSelectedCategory} disabled={isLoadingCategories}>
-                            <SelectTrigger className="w-full h-14 rounded-2xl bg-gray-50 border-gray-100 text-base font-bold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm">
-                                <SelectValue placeholder="Which category does this belong to?" />
-                            </SelectTrigger>
-                            <SelectContent className="max-h-[400px]">
-                                {groupedCategories.map((group) => (
-                                    <SelectGroup key={group.label}>
-                                        <SelectLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ff4500] px-4 py-2 mt-2 border-b border-gray-50">
-                                            {group.label}
-                                        </SelectLabel>
-                                        {group.items.map((cat) => (
-                                            <SelectItem key={cat.id} value={cat.id} className="pl-6 font-semibold">
-                                                {cat.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectGroup>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <div className="space-y-2">
+                            <Select value={selectedCategory} onValueChange={handleCategoryChange} disabled={isLoadingCategories}>
+                                <SelectTrigger className={`w-full h-14 rounded-2xl bg-gray-50 text-base font-bold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm transition-all ${
+                                    fieldErrors.category ? "border-red-500 bg-red-50/30" : "border-gray-100"
+                                }`}>
+                                    <SelectValue placeholder="Which category does this belong to?" />
+                                </SelectTrigger>
+                                <SelectContent className="max-h-[400px]">
+                                    {groupedCategories.map((group) => (
+                                        <SelectGroup key={group.label}>
+                                            <SelectLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ff4500] px-4 py-2 mt-2 border-b border-gray-50">
+                                                {group.label}
+                                            </SelectLabel>
+                                            {group.items.map((cat) => (
+                                                <SelectItem key={cat.id} value={cat.id} className="pl-6 font-semibold">
+                                                    {cat.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectGroup>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {fieldErrors.category && (
+                                <p className="text-[10px] font-black text-red-500 uppercase tracking-widest ml-1 animate-in fade-in slide-in-from-top-1">{fieldErrors.category}</p>
+                            )}
+                        </div>
                     </div>
 
                     {/* Writing Instructions */}
