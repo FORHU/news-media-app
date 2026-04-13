@@ -43,7 +43,7 @@ function getAiSystemInstruction(isYoutube: boolean) {
 [FORMATTING RULES]:
 - STRUCTURE: Use ONLY these tags for your response:
   <title>WRITE A CATCHY HEADLINE HERE</title>
-  <content>WRITE THE FULL ARTICLE BODY HERE</content>
+  <content>The article paragraphs...</content>
 
 [WRITING CONSTRAINTS]:
 1. ${specializedGuidance}
@@ -53,6 +53,7 @@ function getAiSystemInstruction(isYoutube: boolean) {
 5. JOURNALISTIC TONE: Focus on facts and implications. Do NOT use flowery language or AI-typical filler words.
 6. NO MARKDOWN: Do not use bold, italics, or lists unless it is part of the provided source materials.
 7. HEADLINE: The headline must be punchy and news-worthy, not generic.
+8. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use double newlines (\\n\\n) between each paragraph for absolute clarity.
 
 [OUTPUT]: Write strictly in English unless otherwise requested.
 `;
