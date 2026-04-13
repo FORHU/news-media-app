@@ -64,6 +64,28 @@ export default function CreateArticleModal({
     const [isProcessingFiles, setIsProcessingFiles] = React.useState(false);
     const [uploadProgress, setUploadProgress] = React.useState<number | null>(null);
 
+    const resetForm = React.useCallback(() => {
+        setTopic("");
+        setYoutubeTranscript("");
+        setYoutubeUrl("");
+        setFiles([]);
+        setUploadProgress(null);
+        setFieldErrors({});
+        setError(null);
+        setIsProcessingFiles(false);
+        setYoutubeVideoId("");
+        setYoutubePrompt("");
+        setSelectedCategory("");
+        setTranscriptError(null);
+    }, []);
+
+    // Reset form when modal closes
+    React.useEffect(() => {
+        if (!open) {
+            resetForm();
+        }
+    }, [open, resetForm]);
+
     const queryClient = useQueryClient();
 
     const handleCategoryChange = (val: string) => {
@@ -95,17 +117,12 @@ export default function CreateArticleModal({
             prompt?: string;
             fileContent?: string;
             imageUrl?: string;
+            type?: "manual" | "youtube";
         }) => articlesApi.generateManualArticle(params),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['generatedArticles'] });
             onOpenChange(false);
-            // Reset form
-            setTopic("");
-            setYoutubeTranscript("");
-            setYoutubeUrl("");
-            setFiles([]);
-            setUploadProgress(null);
-            setFieldErrors({});
+            // resetForm will be called by the useEffect hook
         },
         onError: (err: any) => {
             setError(err.message || "Failed to generate article.");
@@ -193,17 +210,22 @@ export default function CreateArticleModal({
 
                 // Upload first image if exists
                 if (imageFiles.length > 0) {
-                    uploadedImageUrl = await uploadFileToSupabase(imageFiles[0]) || "";
+                    const result = await uploadFileToSupabase(imageFiles[0]);
+                    if (!result) {
+                        throw new Error("Failed to upload image. Please try again.");
+                    }
+                    uploadedImageUrl = result;
                 }
 
                 mutation.mutate({
                     topic,
                     categoryId: selectedCategory,
                     fileContent: combinedFileContent,
-                    imageUrl: uploadedImageUrl
+                    imageUrl: uploadedImageUrl,
+                    type: "manual",
                 });
             } catch (err: any) {
-                setError("Failed to process local files: " + err.message);
+                setError(err.message || "Failed to process local files.");
                 setIsProcessingFiles(false);
             }
         } else {
@@ -221,6 +243,7 @@ export default function CreateArticleModal({
                 content: youtubeTranscript,
                 prompt: youtubePrompt,
                 categoryId: selectedCategory,
+                type: "youtube",
             });
         }
     };

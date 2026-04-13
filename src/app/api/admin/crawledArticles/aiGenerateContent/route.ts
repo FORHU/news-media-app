@@ -24,8 +24,9 @@ function getAiSystemInstruction() {
 [FORMATTING RULES]:
 - STRUCTURE: Use ONLY these tags for your response:
   <title>Headline</title>
-  <content>The article paragraphs</content>
+  <content>The article paragraphs...</content>
 - RULES: No intro phrases, no markdown, and no AI-clichés.
+- PARAGRAPHS: Divide the content into 3-5 distinct paragraphs. Use double newlines (\\n\\n) between each paragraph.
 - OUTPUT: Write the content inside the tags in the language requested by the user.
 `;
 }

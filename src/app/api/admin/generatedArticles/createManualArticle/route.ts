@@ -12,8 +12,14 @@ const RequestSchema = z.object({
   prompt: z.string().optional(),
   fileContent: z.string().optional(),
   imageUrl: z.string().url().optional().or(z.literal("")),
-}).refine(data => data.topic || data.content || data.fileContent, {
-  message: "At least one of topic, content, or fileContent must be provided"
+  type: z.enum(["manual", "youtube"]).optional(),
+}).refine(data => {
+  const hasTopic = data.topic && data.topic.trim().length > 0;
+  const hasContent = data.content && data.content.trim().length > 0;
+  const hasFileContent = data.fileContent && data.fileContent.trim().length > 0;
+  return hasTopic || hasContent || hasFileContent;
+}, {
+  message: "Insufficient information provided. Please provide a topic, content, or materials."
 });
 
 // Safety truncation to avoid token limit errors
@@ -24,14 +30,32 @@ function truncateContent(text: string, limit: number = 12000): string {
 }
 
 // AI persona/instruction
-function getAiSystemInstruction() {
+function getAiSystemInstruction(isYoutube: boolean) {
+  const specializedGuidance = isYoutube 
+    ? "The following content is a VIDEO TRANSCRIPT. Your primary task is to 'de-noise' it by removing verbal fillers, repetitive spoken phrases, and conversational 'ums/ahs'. Convert the transcription into a formal news narrative while preserving all factual information and quotes."
+    : "The following content consists of TOPIC NOTES and SOURCE MATERIALS. Your task is to synthesize these materials into a cohesive, structured, and expanded news article.";
+
   return `
+[PERSONA]:
+- You are a senior investigative journalist and professional news editor.
+- Your writing style is objective, authoritative, and concise.
+
 [FORMATTING RULES]:
 - STRUCTURE: Use ONLY these tags for your response:
-  <title>Headline</title>
-  <content>The article paragraphs</content>
-- RULES: No intro phrases, no markdown, and no AI-clichés.
-- OUTPUT: Write the content inside the tags in English unless otherwise requested.
+  <title>WRITE A CATCHY HEADLINE HERE</title>
+  <content>The article paragraphs...</content>
+
+[WRITING CONSTRAINTS]:
+1. ${specializedGuidance}
+2. NO CONCLUDING SUMMARIES: Never start a paragraph with "In summary", "In conclusion", "Overall", or "Ultimately".
+3. NO TRANSITIONAL CLICHÉS: Avoid "It is important to note", "In today's fast-paced world", or "Furthermore" at the start of sentences.
+4. NO INTRO PHRASES: Do not include "Here is the article" or any meta-commentary.
+5. JOURNALISTIC TONE: Focus on facts and implications. Do NOT use flowery language or AI-typical filler words.
+6. NO MARKDOWN: Do not use bold, italics, or lists unless it is part of the provided source materials.
+7. HEADLINE: The headline must be punchy and news-worthy, not generic.
+8. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use double newlines (\\n\\n) between each paragraph for absolute clarity.
+
+[OUTPUT]: Write strictly in English unless otherwise requested.
 `;
 }
 
@@ -48,8 +72,21 @@ function extractArticleData(
     return match ? match[1].trim() : null;
   };
 
-  const title = extractTag("title") || fallbackTitle;
+  let title = extractTag("title") || fallbackTitle;
   const content = extractTag("content") || "";
+
+  // Sanity check for generic placeholders
+  const genericPlaceholders = [
+    "headline",
+    "write a catchy headline here",
+    "your catchy headline here",
+    "title here",
+    "article headline"
+  ];
+
+  if (genericPlaceholders.some(p => title.toLowerCase() === p.toLowerCase())) {
+    title = fallbackTitle;
+  }
 
   return { title, content };
 }
@@ -60,20 +97,30 @@ export async function POST(req: NextRequest) {
     const result = RequestSchema.safeParse(json);
 
     if (!result.success) {
-      return NextResponse.json({ 
-        error: "Validation failed", 
-        details: result.error.issues.map(e => e.message).join(", ") 
+      return NextResponse.json({
+        error: "Validation failed",
+        details: result.error.issues.map(e => e.message).join(", ")
       }, { status: 400 });
     }
 
-    const { 
-      topic, 
-      categoryId, 
-      content: rawContent, 
+    const {
+      topic,
+      categoryId,
+      content: rawContent,
       prompt: customPrompt,
       fileContent,
-      imageUrl
+      imageUrl,
+      type: requestType
     } = result.data;
+
+    // Verify category exists
+    const category = await prisma.category.findUnique({
+      where: { id: categoryId }
+    });
+
+    if (!category) {
+      return NextResponse.json({ error: "Selected category does not exist." }, { status: 400 });
+    }
 
     const baseUrl = (process.env.GENERATE_CONTENT_API || "").replace(/\/$/, "");
     if (!baseUrl) throw new Error("GENERATE_CONTENT_API is not configured");
@@ -82,7 +129,8 @@ export async function POST(req: NextRequest) {
     if (!sessionRes.ok) throw new Error("Could not connect to AI service (session-id)");
     const { session_id } = await sessionRes.json();
 
-    const instruction = getAiSystemInstruction();
+    const isYoutube = requestType === "youtube" || topic === "YouTube Video Article";
+    const instruction = getAiSystemInstruction(isYoutube);
 
     const materialsText = [
       rawContent,
