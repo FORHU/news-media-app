@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { NewsletterServiceError } from "@/services/newsletter/NewsletterServiceError";
 
-export type OtpData = {
+type OtpData = {
   otpCode: string;
   expiresAt: Date;
   attempts: number;

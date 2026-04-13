@@ -14,13 +14,7 @@ export type Article = Prisma.ContentArticleGetPayload<{
   };
 }>;
 
-export type RawArticle = Prisma.RawArticleGetPayload<{
-  include: {
-    category: true;
-    crawledUrl: true;
-    contentArticle: { select: { id: true } };
-  };
-}>;
+
 
 export interface MappedRawArticle {
   id: string;

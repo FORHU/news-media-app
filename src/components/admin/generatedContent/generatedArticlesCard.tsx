@@ -153,8 +153,8 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                     onClick={() => publishMutation.mutate()}
                     disabled={isPublished || publishMutation.isPending}
                     className={`flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-sm shadow-lg transition-all group/btn ${isPublished
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
-                            : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98]'
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
+                        : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98]'
                         }`}
                 >
                     {publishMutation.isPending ? (
@@ -456,9 +456,9 @@ export default function GeneratedArticlesList({ searchParams }: {
                 />
             )}
 
-            <CreateArticleModal 
-                open={isCreateModalOpen} 
-                onOpenChange={setIsCreateModalOpen} 
+            <CreateArticleModal
+                open={isCreateModalOpen}
+                onOpenChange={setIsCreateModalOpen}
             />
         </div>
     );

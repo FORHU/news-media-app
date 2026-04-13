@@ -20,4 +20,3 @@ export const generatedArticlesQuerySchema = z.object({
     .default(10),
 });
 
-export type GeneratedArticlesQueryInput = z.infer<typeof generatedArticlesQuerySchema>;

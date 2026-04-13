@@ -61,7 +61,7 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
             queryClient.invalidateQueries({ queryKey: ['crawledArticles'] });
             setGenerationError(null);
         },
-        onError: (err: any) => {
+        onError: (err: Error) => {
             setGenerationError(err.message || 'Failed to generate content. Please try again.');
         }
     });
@@ -299,7 +299,7 @@ export default function CrawledArticlesList({ searchParams }: {
         let lastRefetchAt = 0;
         const throttleMs = 500;
 
-        const refetchFromRealtime = (payload?: any) => {
+        const refetchFromRealtime = () => {
             const now = Date.now();
             if (now - lastRefetchAt < throttleMs) return;
             lastRefetchAt = now;

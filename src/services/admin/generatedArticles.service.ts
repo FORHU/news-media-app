@@ -3,7 +3,7 @@ import {
   type FetchGeneratedArticlesParams,
 } from "@/repositories/admin/generatedArticles.repository";
 
-export type GetGeneratedArticlesParams = {
+type GetGeneratedArticlesParams = {
   q: string;
   page: number;
   limit: number;

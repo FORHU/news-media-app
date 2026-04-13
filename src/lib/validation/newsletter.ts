@@ -9,7 +9,6 @@ export const newsletterSubscribeSchema = z.object({
     .email("Please enter a valid email address"),
 });
 
-export type NewsletterSubscribeInput = z.infer<typeof newsletterSubscribeSchema>;
 
 export const newsletterVerifyOtpSchema = z.object({
   email: z
@@ -29,4 +28,3 @@ export const newsletterVerifyOtpSchema = z.object({
     .default([]),
 });
 
-export type NewsletterVerifyOtpInput = z.infer<typeof newsletterVerifyOtpSchema>;
