@@ -28,7 +28,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as ShadCalendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import CreateArticleModal from '@/components/admin/generatedContent/createArticleModal';
+import CreateArticleModal from '@/components/admin/generatedContent/CreateArticleModal/createArticleModal';
 import ReadGeneratedArticle from '@/components/admin/generatedContent/readGeneratedArticle';
 
 import { StoryImage } from '@/components/StoryImage';
