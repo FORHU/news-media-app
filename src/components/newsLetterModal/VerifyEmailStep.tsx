@@ -60,7 +60,7 @@ export function VerifyEmailStep({
         Please check your email
       </h3>
       <p className="text-xs sm:text-base text-gray-600 mb-4 sm:mb-8 font-sans">
-        We've sent a code to{" "}
+        We&apos;ve sent a code to{" "}
         <strong className="text-gray-900">{email}</strong>
       </p>
       <form onSubmit={onSubmit}>
@@ -116,7 +116,7 @@ export function VerifyEmailStep({
           </p>
         ) : (
           <p className="text-xs sm:text-sm text-gray-600 font-sans">
-            Didn't receive an email?{" "}
+            Didn&apos;t receive an email?{" "}
             <button
               type="button"
               onClick={onResend}

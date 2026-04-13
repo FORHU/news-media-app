@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { X, Upload, FileText, Image as ImageIcon, File as FileIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export function getFileIcon(fileName: string) {
+function getFileIcon(fileName: string) {
     const ext = fileName.split('.').pop()?.toLowerCase();
     if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext || '')) return <ImageIcon className="w-4 h-4 text-orange-500" />;
     if (['pdf'].includes(ext || '')) return <FileIcon className="w-4 h-4 text-red-500" />;

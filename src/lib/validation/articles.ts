@@ -21,11 +21,7 @@ export const articlesQuerySchema = z.object({
     ),
 });
 
-export type ArticlesQueryInput = z.infer<typeof articlesQuerySchema>;
-
 /** API: article by id path param */
 export const articleIdParamSchema = z.object({
   id: z.string().trim().min(1, "Article id is required").max(100),
 });
-
-export type ArticleIdParamInput = z.infer<typeof articleIdParamSchema>;

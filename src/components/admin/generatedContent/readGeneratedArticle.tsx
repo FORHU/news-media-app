@@ -47,7 +47,7 @@ export default function ReadGeneratedArticle({
 
     const publishDate = article.publishDate || article.createdAt;
     const authorName = article.user ? `${article.user.firstName}` : 'System';
-    const originalUrl = (article as any).rawArticle?.crawledUrl?.url;
+    const originalUrl = article.rawArticle?.crawledUrl?.url;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
