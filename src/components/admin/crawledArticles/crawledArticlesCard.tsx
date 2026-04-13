@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { div as MotionDiv } from 'framer-motion/client';
 import Pagination from '@/components/admin/pagination';
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { articlesApi } from '@/lib/api';
 import { supabase } from '@/lib/supabaseClient';
@@ -300,6 +301,7 @@ export default function CrawledArticlesList({ searchParams }: {
         const throttleMs = 500;
 
         const refetchFromRealtime = () => {
+
             const now = Date.now();
             if (now - lastRefetchAt < throttleMs) return;
             lastRefetchAt = now;
