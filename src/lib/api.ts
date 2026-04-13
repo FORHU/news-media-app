@@ -173,4 +173,17 @@ export const articlesApi = {
     if (!res.ok) throw new Error("Failed to fetch categories");
     return res.json();
   },
+
+  async transcribeYoutube(url: string): Promise<{ video_id: string; transcript: string }> {
+    const res = await fetch("/api/admin/generatedArticles/transcript", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to transcribe YouTube video.");
+    }
+    return res.json();
+  },
 };

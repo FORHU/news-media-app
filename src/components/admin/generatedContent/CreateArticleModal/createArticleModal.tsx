@@ -33,6 +33,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { CATEGORY_HIERARCHY } from "@/lib/categories";
+import YoutubeGenerationTab from "./YoutubeGenerationTab";
+import { ManualArticleContext, ManualMaterialsUpload } from "./ManualGenerationTab";
 
 interface CreateArticleModalProps {
     open: boolean;
@@ -234,23 +236,9 @@ export default function CreateArticleModal({
         setTranscriptError(null);
 
         try {
-            const baseUrl = (process.env.NEXT_PUBLIC_TRANSCRIPT_API_URL || "http://localhost:8000").replace(/\/$/, "");
-            const res = await fetch(`${baseUrl}/transcript`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ url: trimmedUrl }),
-            });
-
-            const data = await res.json().catch(() => ({}));
-            if (!res.ok) {
-                const message = typeof data?.detail === "string"
-                    ? data.detail
-                    : "Failed to transcribe YouTube video.";
-                throw new Error(message);
-            }
-
-            setYoutubeVideoId(typeof data?.video_id === "string" ? data.video_id : "");
-            setYoutubeTranscript(typeof data?.transcript === "string" ? data.transcript : "");
+            const data = await articlesApi.transcribeYoutube(trimmedUrl);
+            setYoutubeVideoId(data.video_id || "");
+            setYoutubeTranscript(data.transcript || "");
         } catch (err: any) {
             setTranscriptError(err?.message || "Failed to transcribe YouTube video.");
             setYoutubeVideoId("");
@@ -260,13 +248,6 @@ export default function CreateArticleModal({
         }
     };
 
-    const getFileIcon = (fileName: string) => {
-        const ext = fileName.split('.').pop()?.toLowerCase();
-        if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext || '')) return <ImageIcon className="w-4 h-4 text-orange-500" />;
-        if (['pdf'].includes(ext || '')) return <File className="w-4 h-4 text-red-500" />;
-        if (['txt'].includes(ext || '')) return <FileText className="w-4 h-4 text-blue-500" />;
-        return <File className="w-4 h-4 text-gray-500" />;
-    };
     const isGenerating = mutation.isPending;
 
     // Filter categories into groups - strictly matching landing page structure
@@ -338,96 +319,21 @@ export default function CreateArticleModal({
                     </div>
 
                     {activeTab === "manual" ? (
-                        <>
-                            {/* Step 1: Article Context */}
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 text-orange-600 font-black text-xs">01</span>
-                                        <label className="text-sm font-black uppercase tracking-widest text-gray-900">Article Context</label>
-                                    </div>
-                                </div>
-                                <Input
-                                    placeholder="What should the article be about? (e.g. Future of EV in 2026)"
-                                    value={topic}
-                                    onChange={(e) => handleTopicChange(e.target.value)}
-                                    className={`h-14 rounded-2xl bg-gray-50 text-base font-medium focus-visible:ring-orange-500/20 transition-all ${
-                                        fieldErrors.topic ? "border-red-500 bg-red-50/30" : "border-gray-100"
-                                    }`}
-                                />
-                                {fieldErrors.topic && (
-                                    <p className="text-[10px] font-black text-red-500 uppercase tracking-widest ml-1 animate-in fade-in slide-in-from-top-1">{fieldErrors.topic}</p>
-                                )}
-                            </div>
-                        </>
+                        <ManualArticleContext topic={topic} handleTopicChange={handleTopicChange} fieldErrors={fieldErrors} />
                     ) : (
-                        <div className="space-y-6">
-                            {/* YouTube fields... no changes to URL input needed unless desired */}
-                            <div className="space-y-2">
-                                <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">YouTube URL</span>
-                                <div className="relative">
-                                    <Input
-                                        placeholder="https://www.youtube.com/watch?v=..."
-                                        value={youtubeUrl}
-                                        onChange={(e) => setYoutubeUrl(e.target.value)}
-                                        className="h-12 pr-[150px] rounded-xl bg-gray-50 border-gray-100 text-sm font-bold placeholder:text-gray-400 focus-visible:ring-orange-500/20 focus-visible:border-orange-200 shadow-sm"
-                                    />
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={handleTranscribeYoutube}
-                                        disabled={isTranscribing}
-                                        className="absolute right-1 top-1/2 -translate-y-1/2 h-10 rounded-lg font-bold border-gray-200 bg-white"
-                                    >
-                                        {isTranscribing ? (
-                                            <>
-                                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                                Transcribing...
-                                            </>
-                                        ) : (
-                                            "Transcribe"
-                                        )}
-                                    </Button>
-                                </div>
-                            </div>
-
-                            {youtubeVideoId && (
-                                <div className="text-xs font-bold text-gray-500">
-                                    Video ID: <span className="text-gray-900">{youtubeVideoId}</span>
-                                </div>
-                            )}
-
-                            {transcriptError && (
-                                <div className="p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-xs font-semibold">
-                                    {transcriptError}
-                                </div>
-                            )}
-
-                            <div className="space-y-2">
-                                <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Transcribed Content</span>
-                                <textarea
-                                    value={youtubeTranscript}
-                                    onChange={(e) => handleTranscriptChange(e.target.value)}
-                                    placeholder="Transcript will appear here after transcribing."
-                                    className={`w-full min-h-[200px] rounded-2xl bg-gray-50 p-4 text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 resize-y transition-all ${
-                                        fieldErrors.transcript ? "border-red-500 ring-red-500/10" : "border-gray-100"
-                                    }`}
-                                />
-                                {fieldErrors.transcript && (
-                                    <p className="text-[10px] font-black text-red-500 uppercase tracking-widest ml-1 animate-in fade-in slide-in-from-top-1">{fieldErrors.transcript}</p>
-                                )}
-                            </div>
-
-                            <div className="space-y-2">
-                                <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Prompt</span>
-                                <textarea
-                                    value={youtubePrompt}
-                                    onChange={(e) => setYoutubePrompt(e.target.value)}
-                                    placeholder="Add writing instructions for the generated article (tone, length, key points, audience)."
-                                    className="w-full min-h-[100px] rounded-2xl bg-gray-50 border border-gray-100 p-4 text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-200 resize-y"
-                                />
-                            </div>
-                        </div>
+                        <YoutubeGenerationTab
+                            youtubeUrl={youtubeUrl}
+                            setYoutubeUrl={setYoutubeUrl}
+                            handleTranscribeYoutube={handleTranscribeYoutube}
+                            isTranscribing={isTranscribing}
+                            youtubeVideoId={youtubeVideoId}
+                            transcriptError={transcriptError}
+                            youtubeTranscript={youtubeTranscript}
+                            handleTranscriptChange={handleTranscriptChange}
+                            fieldErrors={fieldErrors}
+                            youtubePrompt={youtubePrompt}
+                            setYoutubePrompt={setYoutubePrompt}
+                        />
                     )}
 
                     {/* Step 2: Configuration - Shared */}
@@ -471,57 +377,7 @@ export default function CreateArticleModal({
                         </div>
 
                         {activeTab === "manual" && (
-                            /* File Upload Area */
-                            <div className="space-y-4">
-                                <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Materials (PDF, TXT, IMAGES)</span>
-                                <div
-                                    className="relative group border-2 border-dashed border-gray-200 rounded-3xl p-8 transition-all hover:bg-orange-50/50 hover:border-orange-200 flex flex-col items-center justify-center gap-3 cursor-pointer overflow-hidden shadow-sm"
-                                    onClick={() => document.getElementById('file-upload')?.click()}
-                                >
-                                    <input
-                                        id="file-upload"
-                                        type="file"
-                                        multiple
-                                        accept=".pdf,.txt,image/*"
-                                        className="hidden"
-                                        onChange={handleFileChange}
-                                    />
-                                    <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center group-hover:scale-110 group-hover:bg-orange-100 transition-all duration-500">
-                                        <Upload className="w-6 h-6 text-gray-400 group-hover:text-orange-500" />
-                                    </div>
-                                    <div className="text-center">
-                                        <p className="text-sm font-bold text-gray-900">Click or drag to upload</p>
-                                        <p className="text-xs text-gray-400 font-medium mt-1">Enhance generation with your own documents</p>
-                                    </div>
-                                </div>
-
-                                {/* File List */}
-                                <AnimatePresence>
-                                    {files.length > 0 && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, scale: 0.95 }}
-                                            className="grid grid-cols-1 sm:grid-cols-2 gap-3"
-                                        >
-                                            {files.map((file, idx) => (
-                                                <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100 group shadow-sm">
-                                                    <div className="flex items-center gap-3 truncate">
-                                                        {getFileIcon(file.name)}
-                                                        <span className="text-xs font-bold text-gray-700 truncate">{file.name}</span>
-                                                    </div>
-                                                    <button
-                                                        onClick={(e) => { e.stopPropagation(); removeFile(idx); }}
-                                                        className="p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all"
-                                                    >
-                                                        <X className="w-3.5 h-3.5" />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
+                            <ManualMaterialsUpload files={files} handleFileChange={handleFileChange} removeFile={removeFile} />
                         )}
                     </div>
                 </div>
