@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { dehydrate } from "@tanstack/react-query";
 import { notFound } from "next/navigation";
@@ -7,7 +8,9 @@ import {
   articlesService,
   ArticlesServiceError,
 } from "@/services/articles.service";
+import { DEFAULT_OG_IMAGE, DEFAULT_SEO } from "@/config/site";
 import ArticlePageClient from "./ArticlePageClient";
+
 export const revalidate = 300;
 
 export async function generateStaticParams() {
@@ -15,6 +18,71 @@ export async function generateStaticParams() {
   return articles.map((article) => ({
     id: article.id,
   }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const articleId = id?.trim() ?? "";
+
+  if (!articleId) {
+    return {
+      title: DEFAULT_SEO.title,
+      description: DEFAULT_SEO.description,
+    };
+  }
+
+  try {
+    const article = await articlesService.getArticleById(articleId);
+    const title = article.title ?? DEFAULT_SEO.title;
+    const rawDescription = article.content ?? DEFAULT_SEO.description;
+    const description = rawDescription
+      .slice(0, 155)
+      .replace(/\s+/g, " ")
+      .trim();
+    const ogImage = (article as any).imageUrl ?? DEFAULT_OG_IMAGE;
+    const url = `/article/${articleId}`;
+
+    return {
+      title,
+      description,
+      alternates: {
+        canonical: url,
+      },
+      openGraph: {
+        title,
+        description,
+        url,
+        type: "article",
+        images: [
+          {
+            url: ogImage,
+            width: 1200,
+            height: 630,
+            alt: title,
+          },
+        ],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        images: [ogImage],
+      },
+    };
+  } catch {
+    const url = `/article/${articleId}`;
+    return {
+      title: DEFAULT_SEO.title,
+      description: DEFAULT_SEO.description,
+      alternates: {
+        canonical: url,
+      },
+    };
+  }
 }
 
 export default async function ArticlePage({

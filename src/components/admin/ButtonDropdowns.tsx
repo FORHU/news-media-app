@@ -61,8 +61,8 @@ export default function ButtonDropdowns({
 
             {/* Dropdown Menu */}
             {isOpen && (
-                <div className="absolute top-full right-0 mt-2 w-full min-w-[160px] bg-white border border-gray-100 rounded-2xl shadow-xl z-[100] overflow-hidden animate-in fade-in zoom-in duration-200 origin-top">
-                    <div className="py-1">
+                <div className="relative mt-2 w-full min-w-[200px] bg-white border border-gray-100 rounded-2xl shadow-xl z-[100] overflow-hidden animate-in fade-in zoom-in duration-200 origin-top">
+                    <div className="py-1 max-h-[350px] overflow-y-auto custom-scrollbar">
                         {formattedOptions.map((option) => (
                             <button
                                 key={option.value}

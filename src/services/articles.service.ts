@@ -15,6 +15,7 @@ export const articlesService = {
     limit?: number;
     search?: string | null;
     category?: string | null;
+    status?: string | null;
   }) {
     const rawLimit = params.limit ?? 50;
     const safeLimit = Math.min(rawLimit || 50, 100);
@@ -23,6 +24,7 @@ export const articlesService = {
       limit: safeLimit,
       search: params.search ?? null,
       category: params.category ?? null,
+      status: params.status ?? null,
     });
   },
 

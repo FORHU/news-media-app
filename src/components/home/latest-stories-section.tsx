@@ -30,42 +30,7 @@ function truncateContent(content: string | null, maxLength = 120): string {
   return plain.length <= maxLength ? plain : plain.slice(0, maxLength) + "…";
 }
 
-function getFallbackImage(title: string) {
-  const colors = ['#6366f1', '#a855f7', '#ec4899', '#f43f5e', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6'];
-  const color = colors[Math.abs(title.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)) % colors.length];
-  const svg = `
-    <svg width="400" height="200" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
-      <rect width="100%" height="100%" fill="${color}" />
-      <foreignObject x="20" y="20" width="360" height="160">
-        <div xmlns="http://www.w3.org/1999/xhtml" style="height:100%; display:flex; align-items:center; justify-content:center; text-align:center; color:white; font-family:sans-serif; font-size:18px; font-weight:bold; line-height:1.2; overflow:hidden;">
-          ${title}
-        </div>
-      </foreignObject>
-    </svg>
-  `.trim().replace(/\n/g, '').replace(/"/g, "'");
-  return `data:image/svg+xml;base64,${btoa(svg)}`;
-}
-
-function StoryImage({ src, alt, width, height, className }: { src: string; alt: string; width?: number; height?: number; className?: string }) {
-  const [imgSrc, setImgSrc] = useState(src);
-  const fallback = getFallbackImage(alt);
-  
-  useEffect(() => {
-    setImgSrc(src || fallback);
-  }, [src, fallback]);
-
-  return (
-    <Image
-      src={imgSrc || fallback}
-      alt={alt}
-      width={width}
-      height={height}
-      className={className}
-      onError={() => setImgSrc(fallback)}
-    />
-  );
-}
-
+import { StoryImage } from "@/components/StoryImage";
 import { useEffect } from "react";
 
 export function LatestStoriesSection({
@@ -141,11 +106,12 @@ export function LatestStoriesSection({
             >
               <div className="relative w-28 sm:w-40 h-20 sm:h-28 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                 <StoryImage
-                  src={article.imageUrl ?? `https://placehold.co/400x200/e5e7eb/9ca3af?text=${encodeURIComponent(article.title.slice(0, 20))}`}
+                  src={article.imageUrl}
                   alt={article.title}
                   width={400}
                   height={200}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  variant="thumbnail"
                 />
               </div>
               <div className="flex-1 min-w-0">
