@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { dehydrate } from "@tanstack/react-query";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createQueryClient } from "@/lib/react-query";
 import { Hydrate } from "@/components/react-query/Hydrate";
 import {
@@ -16,7 +16,7 @@ export const revalidate = 300;
 export async function generateStaticParams() {
   const articles = await articlesService.getArticles({ limit: 100 });
   return articles.map((article) => ({
-    id: article.id,
+    id: article.slug ?? article.id,
   }));
 }
 
@@ -36,7 +36,7 @@ export async function generateMetadata({
   }
 
   try {
-    const article = await articlesService.getArticleById(articleId);
+    const article = await articlesService.getArticleBySlugOrId(articleId);
     const title = article.title ?? DEFAULT_SEO.title;
     const rawDescription = article.content ?? DEFAULT_SEO.description;
     const description = rawDescription
@@ -44,7 +44,8 @@ export async function generateMetadata({
       .replace(/\s+/g, " ")
       .trim();
     const ogImage = (article as any).imageUrl ?? DEFAULT_OG_IMAGE;
-    const url = `/article/${articleId}`;
+    const canonicalSlug = article.slug ?? article.id;
+    const url = `/article/${canonicalSlug}`;
 
     return {
       title,
@@ -100,8 +101,15 @@ export default async function ArticlePage({
   const queryClient = createQueryClient();
 
   try {
-    const article = await articlesService.getArticleById(articleId);
-    queryClient.setQueryData(["article", articleId], article);
+    const article = await articlesService.getArticleBySlugOrId(articleId);
+    const canonicalSlug = article.slug ?? article.id;
+
+    // Keep old id links working but redirect to canonical slug URLs.
+    if (articleId !== canonicalSlug) {
+      redirect(`/article/${canonicalSlug}`);
+    }
+
+    queryClient.setQueryData(["article", canonicalSlug], article);
   } catch (error) {
     if (error instanceof ArticlesServiceError && error.status === 404) {
       notFound();

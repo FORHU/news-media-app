@@ -100,8 +100,8 @@ export function LatestStoriesSection({
           {(searchQuery ? articles : latestStories).map((article) => (
             <ArticleLink
               key={article.id}
-              articleId={article.id}
-              href={`/article/${article.id}`}
+              articleIdentifier={article.slug ?? article.id}
+              href={`/article/${article.slug ?? article.id}`}
               className="group cursor-pointer flex flex-row gap-4 pb-6 border-b border-gray-200 hover:bg-gray-50 transition-colors rounded-lg p-2 sm:p-3"
             >
               <div className="relative w-28 sm:w-40 h-20 sm:h-28 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">

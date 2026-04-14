@@ -38,6 +38,7 @@ model ContentArticle {
   categoryId      String                   @map("category_id")
   rawArticleId    String?                  @unique @map("raw_article_id")
   title           String
+  slug            String?                  @unique
   publishDate     DateTime?                @map("publish_date")
   imageUrl        String?                  @map("image_url")
   content         String

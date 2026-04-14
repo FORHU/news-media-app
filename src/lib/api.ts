@@ -29,8 +29,8 @@ export const articlesApi = {
     return res.json();
   },
 
-  async getArticle(id: string): Promise<Article> {
-    const res = await fetch(`/api/articles/${id}`);
+  async getArticle(identifier: string): Promise<Article> {
+    const res = await fetch(`/api/articles/${identifier}`);
     if (!res.ok) throw new Error("Failed to fetch article");
     return res.json();
   },

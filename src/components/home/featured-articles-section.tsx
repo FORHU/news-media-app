@@ -39,8 +39,8 @@ export function FeaturedArticlesSection({
       {articles.map((article) => (
         <ArticleLink
           key={article.id}
-          articleId={article.id}
-          href={`/article/${article.id}`}
+          articleIdentifier={article.slug ?? article.id}
+          href={`/article/${article.slug ?? article.id}`}
           className="group cursor-pointer bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 block"
         >
           <div className="relative h-32 bg-gray-200 overflow-hidden">

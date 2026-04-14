@@ -41,8 +41,8 @@ export function TrendingProductsSection({
         {articles.map((product) => (
           <ArticleLink
             key={product.id}
-            articleId={product.id}
-            href={`/article/${product.id}`}
+            articleIdentifier={product.slug ?? product.id}
+            href={`/article/${product.slug ?? product.id}`}
             className="group cursor-pointer bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 block"
           >
             <div className="relative h-48 bg-gray-200 overflow-hidden">

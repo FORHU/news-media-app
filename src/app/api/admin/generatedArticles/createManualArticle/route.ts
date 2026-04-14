@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { generateUniqueArticleSlug } from "@/lib/slug";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -200,15 +201,19 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
 
       if (!user) throw new Error("No system user found for attribution");
 
+      const publishDate = new Date();
+      const slug = await generateUniqueArticleSlug(prisma, title, publishDate);
+
       const contentArticle = await prisma.contentArticle.create({
         data: {
           title,
+          slug,
           content,
           imageUrl: imageUrl || null,
           status: "pending",
           usersId: user.id,
           categoryId: categoryId,
-          publishDate: new Date(),
+          publishDate,
         },
       });
 
