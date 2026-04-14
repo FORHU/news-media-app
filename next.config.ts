@@ -3,6 +3,13 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
+  // Turbopack on Windows can panic (os error 80) when creating junctions into native/Prisma deps.
+  serverExternalPackages: [
+    "pg",
+    "@prisma/adapter-pg",
+    "@prisma/client",
+    "prisma",
+  ],
   images: {
     remotePatterns: [
       {

@@ -80,4 +80,111 @@ export const articlesApi = {
     }
     return res.json();
   },
+
+  async generateAiContent(
+    articleId: string,
+    generationPrompt?: string,
+    categoryId?: string
+  ): Promise<unknown> {
+    const trimmed =
+      typeof generationPrompt === "string" ? generationPrompt.trim() : "";
+    const res = await fetch("/api/admin/crawledArticles/aiGenerateContent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        articleId,
+        ...(trimmed.length > 0 ? { generationPrompt: trimmed } : {}),
+        ...(categoryId ? { categoryId } : {}),
+      }),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(
+        typeof error.error === "string" ? error.error : "Failed to generate AI content"
+      );
+    }
+    return res.json();
+  },
+
+  async generateManualArticle(params: {
+    topic?: string;
+    categoryId?: string;
+    content?: string;
+    prompt?: string;
+    fileContent?: string;
+    imageUrl?: string;
+    type?: "manual" | "youtube";
+  }): Promise<unknown> {
+    const res = await fetch("/api/admin/generatedArticles/createManualArticle", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(params),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(
+        typeof error.error === "string" ? error.error : "Failed to generate manual article"
+      );
+    }
+    return res.json();
+  },
+
+  async getGeneratedArticles(params: {
+    q?: string;
+    page: number;
+    limit: number;
+    category?: string;
+  }): Promise<{
+    articles: Article[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  }> {
+    const searchParams = new URLSearchParams();
+    if (params.q) searchParams.append("q", params.q);
+    if (params.category) searchParams.append("category", params.category);
+    searchParams.append("page", params.page.toString());
+    searchParams.append("limit", params.limit.toString());
+
+    const res = await fetch(`/api/admin/generatedArticles?${searchParams.toString()}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error("Failed to fetch generated articles");
+    return res.json();
+  },
+
+  async publishArticle(id: string): Promise<{ success: boolean; message: string }> {
+    const res = await fetch(`/api/admin/generatedArticles/${id}/publish`, {
+      method: "POST",
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to publish article");
+    }
+    return res.json();
+  },
+
+  async getCategories(): Promise<{ id: string; name: string }[]> {
+    const res = await fetch("/api/categories", {
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error("Failed to fetch categories");
+    return res.json();
+  },
+
+  async transcribeYoutube(url: string): Promise<{ video_id: string; transcript: string }> {
+    const res = await fetch("/api/admin/generatedArticles/transcript", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to transcribe YouTube video.");
+    }
+    return res.json();
+  },
 };

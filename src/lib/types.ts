@@ -2,16 +2,19 @@ import type { Prisma } from "@/generated/prisma/client";
 
 // Infer Article type directly from Prisma ContentArticle with category include
 export type Article = Prisma.ContentArticleGetPayload<{
-  include: { category: true };
-}>;
-
-export type RawArticle = Prisma.RawArticleGetPayload<{
   include: {
     category: true;
-    crawledUrl: true;
-    contentArticle: { select: { id: true } };
+    user: { select: { firstName: true; lastName: true } };
+    rawArticle: {
+      include: {
+        category: true;
+        crawledUrl: true;
+      };
+    };
   };
 }>;
+
+
 
 export interface MappedRawArticle {
   id: string;

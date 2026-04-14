@@ -6,63 +6,31 @@ import { usePathname } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+import { CATEGORY_HIERARCHY } from "@/lib/categories";
+
 function categoryHref(categoryName: string) {
   return `/?category=${encodeURIComponent(categoryName)}`;
 }
 
-const NAV_LINKS = [
+interface NavLink {
+  href: string;
+  label: string;
+  subcategories?: {
+    label: string;
+    href: string;
+  }[];
+}
+
+const NAV_LINKS: NavLink[] = [
   { href: "/", label: "Latest News" },
-  {
-    href: "/",
-    label: "News & Current Events",
-    subcategories: [
-      { label: "World News", href: categoryHref("World News") },
-      { label: "Local Updates", href: categoryHref("Local Updates") },
-    ]
-  },
-  {
-    href: "/",
-    label: "Business & Technology",
-    subcategories: [
-      { label: "Markets", href: categoryHref("Markets") },
-      { label: "Startups", href: categoryHref("Startups") },
-      { label: "AI & Innovation", href: categoryHref("AI & Innovation") },
-    ]
-  },
-  {
-    href: "/",
-    label: "Lifestyle",
-    subcategories: [
-      { label: "Health & Wellness", href: categoryHref("Health & Wellness") },
-      { label: "Travel", href: categoryHref("Travel") },
-    ]
-  },
-  {
-    href: "/",
-    label: "Entertainment & Sports",
-    subcategories: [
-      { label: "Entertainment & Culture", href: categoryHref("Entertainment & Culture") },
-      { label: "Sports & Fitness", href: categoryHref("Sports & Fitness") },
-      { label: "Automotive", href: categoryHref("Automotive") },
-    ]
-  },
-  {
-    href: "/",
-    label: "Personal Growth",
-    subcategories: [
-      { label: "Education & Learning", href: categoryHref("Education & Learning") },
-      { label: "Personal Development", href: categoryHref("Personal Development") },
-    ]
-  },
-  {
-    href: "/",
-    label: "Opinion & Creative",
-    subcategories: [
-      { label: "Editorials/Opinions", href: categoryHref("Editorials/Opinions") },
-      { label: "Creative Writing", href: categoryHref("Creative Writing") },
-      { label: "DIY and How to", href: categoryHref("DIY and How to") },
-    ]
-  },
+  ...CATEGORY_HIERARCHY.map(group => ({
+    href: categoryHref(group.label),
+    label: group.label,
+    subcategories: group.subcategories.map(sub => ({
+      label: sub,
+      href: categoryHref(sub)
+    }))
+  }))
 ];
 
 export function NavBar() {

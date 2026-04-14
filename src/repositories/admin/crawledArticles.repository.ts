@@ -29,17 +29,17 @@ export const crawledArticlesRepository = {
   }> {
     const { source, from, to, q, offset, limit } = params;
 
+    const isSourceFilter = source && source !== "All Sources";
+    const select = `
+      *,
+      category:categories(*),
+      crawledUrl:crawled_urls${isSourceFilter ? "!inner" : ""}(*),
+      contentArticle:content_articles(id)
+    `;
+
     let query = supabase
       .from("raw_articles")
-      .select(
-        `
-          *,
-          category:categories(*),
-          crawledUrl:crawled_urls(*),
-          contentArticle:content_articles(id)
-        `,
-        { count: "exact" }
-      );
+      .select(select, { count: "exact" });
 
     if (from) {
       query = query.gte("created_at", from);
@@ -66,14 +66,23 @@ export const crawledArticlesRepository = {
     }
 
     return {
-      data: (data as RawArticleSupabase[]) || [],
+      data: (data as unknown as RawArticleSupabase[]) || [],
       count: count || 0,
     };
   },
 
   async fetchCrawledSources(): Promise<string[]> {
-    const { data } = await supabase.from("crawled_urls").select("url");
-    return (data || []).map((s: { url: string }) => s.url);
+    // Only fetch sources from the associated crawled_urls table
+    const { data } = await supabase
+      .from("raw_articles")
+      .select(`crawledUrl:crawled_urls(url)`);
+
+    return (data || [])
+      .map((item: { crawledUrl: { url: string } | { url: string }[] | null }) => {
+        const cu = item.crawledUrl;
+        return Array.isArray(cu) ? cu[0]?.url : cu?.url;
+      })
+      .filter((url): url is string => typeof url === "string");
   },
 };
 

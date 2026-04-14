@@ -349,7 +349,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
 
                     <div className="pt-4 sm:pt-6 border-t border-gray-200">
                       <h3 className="text-xs sm:text-sm font-semibold text-gray-900 mb-3 sm:mb-4 font-sans">
-                        What you'll get
+                        What you&apos;ll get
                       </h3>
                       <ul className="space-y-2 sm:space-y-3">
                         {[
@@ -436,7 +436,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                       Subscription Successful
                     </h3>
                     <p className="text-xs sm:text-base text-gray-600 mb-6 sm:mb-8 font-sans">
-                      You're now subscribed to our newsletter
+                      You&apos;re now subscribed to our newsletter
                     </p>
 
                     <button

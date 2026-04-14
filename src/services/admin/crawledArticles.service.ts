@@ -5,13 +5,13 @@ import {
 
 const CRAWL_API_URL = process.env.CRAWL_API_URL;
 
-export type CrawledArticlesDatePreset =
+type CrawledArticlesDatePreset =
   | "All Time"
   | "Today"
   | "Last 7 Days"
   | "This Month";
 
-export type GetCrawledArticlesParams = {
+type GetCrawledArticlesParams = {
   source: string;
   date: CrawledArticlesDatePreset;
   from?: string;
@@ -21,7 +21,7 @@ export type GetCrawledArticlesParams = {
   limit: number;
 };
 
-export type TriggerCrawlParams = {
+type TriggerCrawlParams = {
   urls: string[];
   start_date?: string;
   end_date?: string;

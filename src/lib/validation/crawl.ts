@@ -17,14 +17,10 @@ export const crawlJobsQuerySchema = z.object({
     .default(10),
 });
 
-export type CrawlJobsQueryInput = z.infer<typeof crawlJobsQuerySchema>;
-
 /** API: stop crawl job body */
 export const crawlJobsStopBodySchema = z.object({
   job_id: z.string().trim().min(1, "job_id is required"),
 });
-
-export type CrawlJobsStopBodyInput = z.infer<typeof crawlJobsStopBodySchema>;
 
 /** API: trigger crawl body (optional dates/max) */
 export const crawlTriggerBodySchema = z
@@ -51,8 +47,6 @@ export const crawlTriggerBodySchema = z
     },
     { message: "Start date must be before or equal to end date", path: ["end_date"] }
   );
-
-export type CrawlTriggerBodyInput = z.infer<typeof crawlTriggerBodySchema>;
 
 const CRAWLED_ARTICLES_DATE_PRESETS = ["All Time", "Today", "Last 7 Days", "This Month"] as const;
 
@@ -99,8 +93,6 @@ export const crawledArticlesQuerySchema = z
     }
   });
 
-export type CrawledArticlesQueryInput = z.infer<typeof crawledArticlesQuerySchema>;
-
 export const crawlConfigurationSchema = z
   .object({
     urls: z
@@ -127,5 +119,4 @@ export const crawlConfigurationSchema = z
     }
   );
 
-export type CrawlConfigurationInput = z.infer<typeof crawlConfigurationSchema>;
 

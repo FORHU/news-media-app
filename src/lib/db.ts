@@ -13,8 +13,8 @@ function createPrisma(): PrismaClient {
   if (!connectionString) {
     throw new Error("DATABASE_URL is not set");
   }
-
-  const adapter = new PrismaPg({ connectionString, max: 1 });
+  //TO DO: set max to 5 or 10 after switching from supabase session pooler to transaction pooler.
+  const adapter = new PrismaPg({ connectionString, max: 5 });
   return new PrismaClient({ adapter });
 }
 

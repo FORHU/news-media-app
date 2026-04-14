@@ -16,53 +16,18 @@ function categoryHref(categoryName: string) {
     return `/?category=${encodeURIComponent(categoryName)}`;
 }
 
+import { CATEGORY_HIERARCHY } from "@/lib/categories";
+
 const CATEGORY_STRUCTURE = [
     { name: "Latest News", link: "/", subcategories: [] },
-    {
-        name: "News & Current Events",
-        subcategories: [
-            { name: "World News", link: categoryHref("World News") },
-            { name: "Local Updates", link: categoryHref("Local Updates") },
-        ],
-    },
-    {
-        name: "Business & Technology",
-        subcategories: [
-            { name: "Markets", link: categoryHref("Markets") },
-            { name: "Startups", link: categoryHref("Startups") },
-            { name: "AI & Innovation", link: categoryHref("AI & Innovation") },
-        ],
-    },
-    {
-        name: "Lifestyle",
-        subcategories: [
-            { name: "Health & Wellness", link: categoryHref("Health & Wellness") },
-            { name: "Travel", link: categoryHref("Travel") },
-        ],
-    },
-    {
-        name: "Entertainment & Sports",
-        subcategories: [
-            { name: "Entertainment & Culture", link: categoryHref("Entertainment & Culture") },
-            { name: "Sports & Fitness", link: categoryHref("Sports & Fitness") },
-            { name: "Automotive", link: categoryHref("Automotive") },
-        ],
-    },
-    {
-        name: "Personal Growth",
-        subcategories: [
-            { name: "Education & Learning", link: categoryHref("Education & Learning") },
-            { name: "Personal Development", link: categoryHref("Personal Development") },
-        ],
-    },
-    {
-        name: "Opinion & Creative",
-        subcategories: [
-            { name: "Editorials/Opinions", link: categoryHref("Editorials/Opinions") },
-            { name: "Creative Writing", link: categoryHref("Creative Writing") },
-            { name: "DIY and How to", link: categoryHref("DIY and How to") },
-        ],
-    },
+    ...CATEGORY_HIERARCHY.map(group => ({
+        name: group.label,
+        link: categoryHref(group.label),
+        subcategories: group.subcategories.map(sub => ({
+            name: sub,
+            link: categoryHref(sub)
+        }))
+    }))
 ];
 
 export function SideBar({ isOpen, onClose, onOpenNewsletter }: SideBarProps) {

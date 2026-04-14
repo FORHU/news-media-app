@@ -14,7 +14,8 @@ import {
 } from 'lucide-react';
 import { div as MotionDiv } from 'framer-motion/client';
 import Pagination from '@/components/admin/pagination';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { articlesApi } from '@/lib/api';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
@@ -24,23 +25,54 @@ import { MappedRawArticle, CrawledArticlesResponse } from '@/lib/types';
 import { Variants } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as ShadCalendar } from '@/components/ui/calendar';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import ReadRawArticleModal from './readRawArticleModal';
+import GenerateArticleModal from './generateArticleModal';
 
 interface CrawledArticleCardProps {
     article: MappedRawArticle;
     variants: Variants;
 }
 
+const GENERATION_PROMPT_MAX_LEN = 4000;
+
 export function CrawledArticleCard({ article, variants }: CrawledArticleCardProps) {
     const isGenerated = !!article.contentArticle;
     const publishDate = article.publishDate || article.createdAt;
+
+    const [promptDialogOpen, setPromptDialogOpen] = React.useState(false);
+    const [readModalOpen, setReadModalOpen] = React.useState(false);
+    const [generationError, setGenerationError] = React.useState<string | null>(null);
+
+    const queryClient = useQueryClient();
+    const mutation = useMutation({
+        mutationFn: ({ prompt, categoryId }: { prompt: string; categoryId: string }) =>
+            articlesApi.generateAiContent(article.id, prompt, categoryId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['crawledArticles'] });
+            setGenerationError(null);
+        },
+        onError: (err: Error) => {
+            setGenerationError(err.message || 'Failed to generate content. Please try again.');
+        }
+    });
 
     // Normalize image URL to avoid passing empty strings to next/image
     const rawImage = article.imageUrl ?? '';
     const imageUrl = typeof rawImage === 'string' ? rawImage.trim() : '';
 
     return (
+        <>
         <MotionDiv
             variants={variants}
             whileHover={{ y: -4, scale: 1.005 }}
@@ -71,9 +103,15 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
             {/* Article Content Information */}
             <div className="flex-1 space-y-4">
                 <div className="space-y-2">
-                    <h3 className="text-xl md:text-2xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors line-clamp-2 leading-tight">
-                        {article.title}
-                    </h3>
+                    <button
+                        type="button"
+                        onClick={() => setReadModalOpen(true)}
+                        className="text-left group/title focus:outline-none"
+                    >
+                        <h3 className="text-xl md:text-2xl font-bold text-gray-900 group-hover/title:text-orange-600 transition-colors line-clamp-2 leading-tight">
+                            {article.title}
+                        </h3>
+                    </button>
                     <p className="text-gray-500 text-sm line-clamp-2 font-medium leading-relaxed max-w-2xl">
                         {article.content || "No excerpt available for this article. Review the source content for full details."}
                     </p>
@@ -125,12 +163,48 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
 
             {/* Action Buttons */}
             <div className="w-full md:w-auto flex flex-col gap-2 flex-shrink-0 self-stretch md:self-center justify-center">
-                <button className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl font-bold text-sm shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all group/btn">
-                    <Zap className="w-5 h-5 group-hover:animate-pulse" />
-                    Generate
+                <button
+                    type="button"
+                    onClick={() => {
+                        setGenerationError(null);
+                        setPromptDialogOpen(true);
+                    }}
+                    disabled={isGenerated || mutation.isPending}
+                    className={`flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-sm shadow-lg transition-all group/btn ${isGenerated || mutation.isPending
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
+                            : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98]'
+                        }`}
+                >
+                    {mutation.isPending ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : isGenerated ? (
+                        <Check className="w-5 h-5" />
+                    ) : (
+                        <Zap className="w-5 h-5 group-hover:animate-pulse" />
+                    )}
+                    {mutation.isPending ? 'Generating...' : isGenerated ? 'Generated' : 'Generate'}
                 </button>
+                {generationError && (
+                    <p className="text-[10px] font-black text-red-500 text-center animate-in fade-in slide-in-from-top-1 px-1 max-w-[140px] mx-auto uppercase tracking-tighter leading-tight">
+                        {generationError}
+                    </p>
+                )}
             </div>
         </MotionDiv>
+
+        <GenerateArticleModal
+            open={promptDialogOpen}
+            onOpenChange={setPromptDialogOpen}
+            onGenerate={(prompt, categoryId) => mutation.mutate({ prompt, categoryId })}
+            isPending={mutation.isPending}
+        />
+
+        <ReadRawArticleModal
+            article={article}
+            open={readModalOpen}
+            onOpenChange={setReadModalOpen}
+        />
+        </>
     );
 }
 
@@ -226,7 +300,8 @@ export default function CrawledArticlesList({ searchParams }: {
         let lastRefetchAt = 0;
         const throttleMs = 500;
 
-        const refetchFromRealtime = (payload?: any) => {
+        const refetchFromRealtime = () => {
+
             const now = Date.now();
             if (now - lastRefetchAt < throttleMs) return;
             lastRefetchAt = now;
@@ -338,15 +413,16 @@ export default function CrawledArticlesList({ searchParams }: {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                    <select
-                        value={sourceDraft}
-                        onChange={(e) => setSourceDraft(e.target.value)}
-                        className="h-12 px-4 rounded-2xl bg-gray-50/50 border border-gray-100 text-sm font-semibold text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
-                    >
-                        {sources.map(s => (
-                            <option key={s} value={s}>{s}</option>
-                        ))}
-                    </select>
+                    <Select value={sourceDraft || 'All Sources'} onValueChange={setSourceDraft}>
+                        <SelectTrigger className="h-12 w-[180px] rounded-2xl bg-gray-50/50 border-gray-100 text-sm font-semibold text-gray-900 focus-visible:ring-orange-500/20">
+                            <SelectValue placeholder="All Sources" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                            {sources.map(s => (
+                                <SelectItem key={s} value={s}>{s}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
 
                     <Popover>
                         <PopoverTrigger asChild>
