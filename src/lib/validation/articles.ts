@@ -25,3 +25,8 @@ export const articlesQuerySchema = z.object({
 export const articleIdParamSchema = z.object({
   id: z.string().trim().min(1, "Article id is required").max(100),
 });
+
+/** API: article by slug or id path param */
+export const articleIdentifierParamSchema = z.object({
+  id: z.string().trim().min(1, "Article identifier is required").max(200),
+});

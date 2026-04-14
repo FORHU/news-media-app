@@ -72,5 +72,28 @@ export const articlesRepository = {
       include: { category: true },
     })) as Article | null;
   },
+
+  async findBySlug(slug: string): Promise<Article | null> {
+    try {
+      return (await prisma.contentArticle.findFirst({
+        where: { slug },
+        include: { category: true },
+      })) as Article | null;
+    } catch {
+      // Temporary compatibility fallback when Prisma client
+      // has not been regenerated with the slug field yet.
+      console.warn("Slug lookup unavailable in Prisma client. Falling back to id lookup.");
+      return null;
+    }
+  },
+
+  async findBySlugOrId(identifier: string): Promise<Article | null> {
+    const bySlug = await this.findBySlug(identifier);
+    if (bySlug) {
+      return bySlug;
+    }
+
+    return this.findById(identifier);
+  },
 };
 

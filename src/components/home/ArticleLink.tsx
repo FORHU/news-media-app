@@ -6,13 +6,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
 
 interface ArticleLinkProps extends LinkProps {
-    articleId: string;
+    articleIdentifier: string;
     children: React.ReactNode;
     className?: string;
 }
 
 export function ArticleLink({
-    articleId,
+    articleIdentifier,
     children,
     className,
     ...props
@@ -20,10 +20,10 @@ export function ArticleLink({
     const queryClient = useQueryClient();
 
     const handleMouseEnter = () => {
-        if (articleId) {
+        if (articleIdentifier) {
             void queryClient.prefetchQuery({
-                queryKey: ["article", articleId],
-                queryFn: () => articlesApi.getArticle(articleId),
+                queryKey: ["article", articleIdentifier],
+                queryFn: () => articlesApi.getArticle(articleIdentifier),
                 staleTime: 5 * 60 * 1000,
             });
         }

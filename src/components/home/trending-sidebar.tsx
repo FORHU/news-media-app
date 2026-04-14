@@ -26,8 +26,8 @@ export function TrendingSidebar({ articles }: TrendingSidebarProps) {
           {articles.map((article, index) => (
             <ArticleLink
               key={article.id}
-              articleId={article.id}
-              href={`/article/${article.id}`}
+              articleIdentifier={article.slug ?? article.id}
+              href={`/article/${article.slug ?? article.id}`}
               className="group cursor-pointer flex gap-3 hover:bg-gray-50 transition-colors rounded-lg p-2 -m-2 block"
             >
               <div className="flex-shrink-0">

@@ -40,5 +40,18 @@ export const articlesService = {
 
     return article;
   },
+
+  async getArticleBySlugOrId(identifier: string) {
+    if (!identifier || typeof identifier !== "string") {
+      throw new ArticlesServiceError("Invalid identifier", 400);
+    }
+
+    const article = await articlesRepository.findBySlugOrId(identifier);
+    if (!article) {
+      throw new ArticlesServiceError("Not found", 404);
+    }
+
+    return article;
+  },
 };
 
