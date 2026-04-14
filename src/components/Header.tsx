@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search, Menu, Mail, User, Loader2 } from "lucide-react";
@@ -13,7 +13,7 @@ interface HeaderProps {
   onOpenNewsletter?: () => void;
 }
 
-export function Header({ onOpenNewsletter }: HeaderProps) {
+function HeaderContent({ onOpenNewsletter }: HeaderProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
@@ -257,5 +257,73 @@ export function Header({ onOpenNewsletter }: HeaderProps) {
         />
       </div>
     </header>
+  );
+}
+
+function HeaderFallback({ onOpenNewsletter }: HeaderProps) {
+  return (
+    <header className="sticky top-0 z-[60] bg-white border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center h-14 md:h-16 gap-2 sm:gap-4">
+          {/* Left: Hamburger + Search Icon (Mobile) / Search Form (Desktop) */}
+          <div className="flex items-center gap-1 sm:gap-3 flex-1 min-w-0">
+            <div className="p-2 text-gray-600 rounded-lg shrink-0">
+              <Menu className="w-5 h-5" />
+            </div>
+
+            {/* Desktop Search Skeleton */}
+            <div className="hidden md:block flex-1 max-w-[280px] relative search-container">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="search"
+                  placeholder="Search articles..."
+                  className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-gray-400 outline-none"
+                  disabled
+                />
+              </div>
+            </div>
+
+            {/* Mobile Search Icon Skeleton */}
+            <div className="md:hidden p-2 text-gray-600 rounded-lg shrink-0">
+              <Search className="w-5 h-5" />
+            </div>
+          </div>
+
+          {/* Center Column: NewsIcon logo */}
+          <div className="flex-none flex justify-center px-2">
+            <Link
+              href="/"
+              className="text-xl sm:text-2xl font-bold text-[#FF4500] tracking-tight shrink-0 whitespace-nowrap"
+            >
+              NEWSICONS
+            </Link>
+          </div>
+
+          {/* Right Column: NEWSLETTER + Profile */}
+          <div className="flex items-center gap-1 sm:gap-3 flex-1 justify-end min-w-0">
+            <button
+              type="button"
+              onClick={() => onOpenNewsletter?.()}
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm font-medium text-white bg-black shrink-0"
+            >
+              <Mail className="w-4 h-4" />
+              <span className="hidden sm:inline">NEWSLETTER</span>
+            </button>
+            <div className="p-2 text-gray-600 rounded-lg shrink-0">
+              <User className="w-5 h-5" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+export function Header({ onOpenNewsletter }: HeaderProps) {
+  return (
+    <Suspense fallback={<HeaderFallback onOpenNewsletter={onOpenNewsletter} />}>
+      <HeaderContent onOpenNewsletter={onOpenNewsletter} />
+    </Suspense>
   );
 }
