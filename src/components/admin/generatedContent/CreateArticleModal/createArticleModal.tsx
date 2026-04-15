@@ -117,6 +117,7 @@ export default function CreateArticleModal({
             prompt?: string;
             fileContent?: string;
             imageUrl?: string;
+            youtubeUrl?: string;
             type?: "manual" | "youtube";
         }) => articlesApi.generateManualArticle(params),
         onSuccess: () => {
@@ -243,6 +244,7 @@ export default function CreateArticleModal({
                 content: youtubeTranscript,
                 prompt: youtubePrompt,
                 categoryId: selectedCategory,
+                youtubeUrl: youtubeUrl,
                 type: "youtube",
             });
         }
@@ -274,12 +276,20 @@ export default function CreateArticleModal({
     const isGenerating = mutation.isPending;
 
     // Filter categories into groups - strictly matching landing page structure
-    const groupedCategories = CATEGORY_HIERARCHY.map(group => ({
-        label: group.label,
-        items: categories?.filter(cat =>
+    const groupedCategories = CATEGORY_HIERARCHY.map(group => {
+        const matchingCats = categories?.filter(cat =>
             group.subcategories.some(sub => sub.toLowerCase() === cat.name.toLowerCase())
-        ) ?? []
-    })).filter(group => group.items.length > 0);
+        ) ?? [];
+        
+        const uniqueItems = Array.from(
+            new Map(matchingCats.map(cat => [cat.name.toLowerCase(), cat])).values()
+        );
+
+        return {
+            label: group.label,
+            items: uniqueItems
+        };
+    }).filter(group => group.items.length > 0);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

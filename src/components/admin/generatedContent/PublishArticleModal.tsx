@@ -135,15 +135,22 @@ export default function PublishArticleModal({
         queryFn: () => articlesApi.getCategories(),
     });
 
-    const groupedCategories = CATEGORY_HIERARCHY.map((group) => ({
-        label: group.label,
-        items:
-            categories?.filter((cat) =>
-                group.subcategories.some(
-                    (sub) => sub.toLowerCase() === cat.name.toLowerCase()
-                )
-            ) ?? [],
-    })).filter((g) => g.items.length > 0);
+    const groupedCategories = CATEGORY_HIERARCHY.map((group) => {
+        const matchingCats = categories?.filter((cat) =>
+            group.subcategories.some(
+                (sub) => sub.toLowerCase() === cat.name.toLowerCase()
+            )
+        ) ?? [];
+        
+        const uniqueItems = Array.from(
+            new Map(matchingCats.map(cat => [cat.name.toLowerCase(), cat])).values()
+        );
+
+        return {
+            label: group.label,
+            items: uniqueItems
+        };
+    }).filter((g) => g.items.length > 0);
 
     // ── image pick ──
     const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];

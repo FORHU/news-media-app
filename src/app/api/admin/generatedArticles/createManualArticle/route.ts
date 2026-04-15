@@ -13,6 +13,7 @@ const RequestSchema = z.object({
   prompt: z.string().optional(),
   fileContent: z.string().optional(),
   imageUrl: z.string().url().optional().or(z.literal("")),
+  youtubeUrl: z.string().url().optional().or(z.literal("")),
   type: z.enum(["manual", "youtube"]).optional(),
 }).refine(data => {
   const hasTopic = data.topic && data.topic.trim().length > 0;
@@ -111,6 +112,7 @@ export async function POST(req: NextRequest) {
       prompt: customPrompt,
       fileContent,
       imageUrl,
+      youtubeUrl,
       type: requestType
     } = result.data;
 
@@ -214,6 +216,7 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
           usersId: user.id,
           categoryId: categoryId,
           publishDate,
+          youtubeUrl: youtubeUrl || null,
         },
       });
 
