@@ -156,6 +156,29 @@ export const articlesApi = {
     return res.json();
   },
 
+  async updateArticle(
+    id: string,
+    data: {
+      title?: string;
+      content?: string;
+      categoryId?: string;
+      imageUrl?: string | null;
+      youtubeUrl?: string | null;
+      publish?: boolean;
+    }
+  ): Promise<unknown> {
+    const res = await fetch(`/api/admin/generatedArticles/${id}/publish`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to update article");
+    }
+    return res.json();
+  },
+
   async publishArticle(id: string): Promise<{ success: boolean; message: string }> {
     const res = await fetch(`/api/admin/generatedArticles/${id}/publish`, {
       method: "POST",
