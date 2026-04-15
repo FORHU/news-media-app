@@ -2,126 +2,114 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { CATEGORY_HIERARCHY } from "@/lib/categories";
+import { FLAT_NEWS_CATEGORIES } from "@/lib/categories";
 
 function categoryHref(categoryName: string) {
   return `/?category=${encodeURIComponent(categoryName)}`;
 }
 
-interface NavLink {
-  href: string;
-  label: string;
-  subcategories?: {
-    label: string;
-    href: string;
-  }[];
-}
+const VISIBLE_CATEGORY_COUNT = 8;
 
-const NAV_LINKS: NavLink[] = [
-  { href: "/", label: "Latest News" },
-  ...CATEGORY_HIERARCHY.map(group => ({
-    href: categoryHref(group.label),
-    label: group.label,
-    subcategories: group.subcategories.map(sub => ({
-      label: sub,
-      href: categoryHref(sub)
-    }))
-  }))
-];
+const PRIMARY_CATEGORIES = FLAT_NEWS_CATEGORIES.slice(0, VISIBLE_CATEGORY_COUNT);
+const OVERFLOW_CATEGORIES = FLAT_NEWS_CATEGORIES.slice(VISIBLE_CATEGORY_COUNT);
 
 export function NavBar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const isHome = pathname === "/";
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const selectedCategory = searchParams.get("category");
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (!target.closest("nav")) setActiveDropdown(null);
+      if (!target.closest("nav")) setIsMoreOpen(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const toggleDropdown = (label: string, hasSub: boolean) => {
-    if (!hasSub) return;
-    setActiveDropdown((prev) => (prev === label ? null : label));
-  };
-
   return (
     <nav className="hidden md:block bg-black relative z-50">
       <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
         <ul className="flex flex-wrap items-center justify-start lg:justify-center gap-x-1 gap-y-0 py-0">
-          {NAV_LINKS.map(({ href, label, subcategories }) => {
-            const isLatestNews = label === "Latest News" && isHome;
-            const hasSub = subcategories && subcategories.length > 0;
+          <li className="relative flex items-center">
+            <Link
+              href="/"
+              className={`flex items-center gap-1 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${isHome && !selectedCategory
+                ? "text-[#ff4500] border-[#ff4500]"
+                : "text-white border-transparent hover:text-[#ff4500]"
+                }`}
+            >
+              Latest News
+            </Link>
+          </li>
 
+          {PRIMARY_CATEGORIES.map((categoryName) => {
+            const isActive = selectedCategory === categoryName;
             return (
-              <li
-                key={label}
-                className="relative group flex items-center"
-                onMouseEnter={() => hasSub && setActiveDropdown(label)}
-                onMouseLeave={() => setActiveDropdown(null)}
-              >
-                {hasSub ? (
-                  <button
-                    type="button"
-                    onClick={() => toggleDropdown(label, hasSub)}
-                    className={`flex items-center gap-1 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors w-full text-left ${isLatestNews
-                      ? "text-[#ff4500] border-[#ff4500]"
-                      : "text-white border-transparent hover:text-[#ff4500]"
-                      }`}
-                  >
-                    {label}
-                    <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${activeDropdown === label ? "rotate-180" : ""}`} />
-                  </button>
-                ) : (
-                  <Link
-                    href={href}
-                    className={`flex items-center gap-1 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${isLatestNews
-                      ? "text-[#ff4500] border-[#ff4500]"
-                      : "text-white border-transparent hover:text-[#ff4500]"
-                      }`}
-                  >
-                    {label}
-                  </Link>
-                )}
-
-                {/* Desktop Dropdown */}
-                {hasSub && (
-                  <AnimatePresence>
-                    {activeDropdown === label && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute left-1/2 -translate-x-1/2 top-full w-56 bg-white shadow-xl rounded-b-lg overflow-hidden border border-gray-100 py-2 pt-0 z-[100]"
-                      >
-                        <ul className="flex flex-col">
-                          {subcategories.map((sub) => (
-                            <li key={sub.label}>
-                              <Link
-                                href={sub.href}
-                                className="block px-6 py-3 text-sm text-gray-700 hover:bg-[#ff4500]/5 hover:text-[#ff4500] transition-colors border-l-4 border-transparent hover:border-[#ff4500]"
-                              >
-                                {sub.label}
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                )}
+              <li key={categoryName} className="relative flex items-center">
+                <Link
+                  href={categoryHref(categoryName)}
+                  className={`flex items-center gap-1 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${isActive
+                    ? "text-[#ff4500] border-[#ff4500]"
+                    : "text-white border-transparent hover:text-[#ff4500]"
+                    }`}
+                >
+                  {categoryName}
+                </Link>
               </li>
             );
           })}
+
+          {OVERFLOW_CATEGORIES.length > 0 && (
+            <li
+              className="relative group flex items-center"
+              onMouseEnter={() => setIsMoreOpen(true)}
+              onMouseLeave={() => setIsMoreOpen(false)}
+            >
+              <button
+                type="button"
+                onClick={() => setIsMoreOpen((prev) => !prev)}
+                className={`flex items-center gap-1 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors w-full text-left ${selectedCategory && OVERFLOW_CATEGORIES.includes(selectedCategory)
+                  ? "text-[#ff4500] border-[#ff4500]"
+                  : "text-white border-transparent hover:text-[#ff4500]"
+                  }`}
+              >
+                More
+                <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isMoreOpen ? "rotate-180" : ""}`} />
+              </button>
+
+              <AnimatePresence>
+                {isMoreOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute left-1/2 -translate-x-1/2 top-full w-56 bg-white shadow-xl rounded-b-lg overflow-hidden border border-gray-100 py-2 pt-0 z-[100]"
+                  >
+                    <ul className="flex flex-col">
+                      {OVERFLOW_CATEGORIES.map((categoryName) => (
+                        <li key={categoryName}>
+                          <Link
+                            href={categoryHref(categoryName)}
+                            className="block px-6 py-3 text-sm text-gray-700 hover:bg-[#ff4500]/5 hover:text-[#ff4500] transition-colors border-l-4 border-transparent hover:border-[#ff4500]"
+                          >
+                            {categoryName}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </li>
+          )}
         </ul>
       </div>
     </nav>

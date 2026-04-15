@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
-import { X, ChevronRight, Mail } from "lucide-react";
+import { X, Mail } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RemoveScroll } from "react-remove-scroll";
 
@@ -16,29 +15,17 @@ function categoryHref(categoryName: string) {
     return `/?category=${encodeURIComponent(categoryName)}`;
 }
 
-import { CATEGORY_HIERARCHY } from "@/lib/categories";
+import { FLAT_NEWS_CATEGORIES } from "@/lib/categories";
 
-const CATEGORY_STRUCTURE = [
-    { name: "Latest News", link: "/", subcategories: [] },
-    ...CATEGORY_HIERARCHY.map(group => ({
-        name: group.label,
-        link: categoryHref(group.label),
-        subcategories: group.subcategories.map(sub => ({
-            name: sub,
-            link: categoryHref(sub)
-        }))
-    }))
+const CATEGORY_LINKS = [
+    { name: "Latest News", link: "/" },
+    ...FLAT_NEWS_CATEGORIES.map((categoryName) => ({
+        name: categoryName,
+        link: categoryHref(categoryName),
+    })),
 ];
 
 export function SideBar({ isOpen, onClose, onOpenNewsletter }: SideBarProps) {
-    const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
-
-    const toggleCategory = (name: string) => {
-        setExpandedCategories((prev) =>
-            prev.includes(name) ? prev.filter((c) => c !== name) : [...prev, name]
-        );
-    };
-
     const handlePlaceholderClick = (e: React.MouseEvent) => {
         e.preventDefault();
     };
@@ -81,55 +68,15 @@ export function SideBar({ isOpen, onClose, onOpenNewsletter }: SideBarProps) {
                             {/* Navigation Links - Scrollable */}
                             <div className="flex-1 overflow-y-auto scrollbar-hide pt-2">
                                 <nav className="pb-8">
-                                    {CATEGORY_STRUCTURE.map((category, index) => (
-                                        <div key={index}>
-                                            {category.subcategories.length === 0 ? (
-                                                <Link
-                                                    href={category.link!}
-                                                    onClick={onClose}
-                                                    className="block px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg text-gray-900 hover:bg-[#ff4500]/5 hover:text-[#ff4500] transition-all font-semibold"
-                                                >
-                                                    {category.name}
-                                                </Link>
-                                            ) : (
-                                                <>
-                                                    <button
-                                                        onClick={() => toggleCategory(category.name)}
-                                                        className="w-full flex items-center justify-between px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg text-gray-900 hover:bg-[#ff4500]/5 hover:text-[#ff4500] transition-all font-bold text-left"
-                                                    >
-                                                        <span>{category.name}</span>
-                                                        <motion.div
-                                                            animate={{ rotate: expandedCategories.includes(category.name) ? 90 : 0 }}
-                                                            transition={{ duration: 0.2 }}
-                                                        >
-                                                            <ChevronRight className="w-5 h-5 text-gray-400" />
-                                                        </motion.div>
-                                                    </button>
-
-                                                    <AnimatePresence mode="wait">
-                                                        {expandedCategories.includes(category.name) && (
-                                                            <motion.div
-                                                                initial={{ height: 0, opacity: 0 }}
-                                                                animate={{ height: "auto", opacity: 1 }}
-                                                                exit={{ height: 0, opacity: 0 }}
-                                                                transition={{ duration: 0.25, ease: "easeInOut" }}
-                                                                className="bg-gray-50 overflow-hidden"
-                                                            >
-                                                                {category.subcategories.map((sub, subIndex) => (
-                                                                    <Link
-                                                                        key={subIndex}
-                                                                        href={sub.link}
-                                                                        onClick={onClose}
-                                                                        className="block px-6 sm:px-8 py-2 sm:py-3 pl-10 sm:pl-14 text-sm sm:text-base text-gray-700 hover:bg-[#ff4500]/10 hover:text-[#ff4500] transition-all"
-                                                                    >
-                                                                        {sub.name}
-                                                                    </Link>
-                                                                ))}
-                                                            </motion.div>
-                                                        )}
-                                                    </AnimatePresence>
-                                                </>
-                                            )}
+                                    {CATEGORY_LINKS.map((category) => (
+                                        <div key={category.name}>
+                                            <Link
+                                                href={category.link}
+                                                onClick={onClose}
+                                                className="block px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg text-gray-900 hover:bg-[#ff4500]/5 hover:text-[#ff4500] transition-all font-semibold"
+                                            >
+                                                {category.name}
+                                            </Link>
                                         </div>
                                     ))}
                                 </nav>
