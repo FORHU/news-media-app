@@ -24,3 +24,11 @@ export const CATEGORY_HIERARCHY = [
         subcategories: ["Editorials/Opinions", "Creative Writing", "DIY and How to"]
     }
 ];
+
+export const FLAT_NEWS_CATEGORIES = Array.from(
+    new Set(
+        CATEGORY_HIERARCHY.flatMap((group) =>
+            group.subcategories.length > 0 ? group.subcategories : [group.label]
+        )
+    )
+);
