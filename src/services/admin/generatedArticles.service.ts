@@ -35,6 +35,7 @@ export const generatedArticlesService = {
         title: article.title,
         content: article.content,
         imageUrl,
+        youtubeUrl: article.youtube_url,
         publishDate: article.publish_date,
         createdAt: article.created_at,
         status: article.status,

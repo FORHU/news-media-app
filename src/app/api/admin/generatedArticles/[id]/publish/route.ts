@@ -7,12 +7,19 @@ import { z } from "zod";
 export const dynamic = "force-dynamic";
 
 // ─── Schema for the pre-publish editor PATCH ──────────────────────────────────
+const YOUTUBE_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
+
 const UpdateSchema = z.object({
-  title: z.string().min(1, "Headline is required").optional(),
-  content: z.string().min(1, "Article content is required").optional(),
+  title: z.string().trim().min(1, "Headline is required").optional(),
+  content: z.string().trim().min(1, "Article content is required").optional(),
   categoryId: z.string().min(1, "Category is required").optional(),
   imageUrl: z.string().url("Invalid image URL format").optional().nullable().or(z.literal("")),
-  youtubeUrl: z.string().url("Invalid YouTube URL format").optional().nullable().or(z.literal("")),
+  youtubeUrl: z.string()
+    .url("Invalid URL format")
+    .regex(YOUTUBE_REGEX, "Must be a valid YouTube URL")
+    .optional()
+    .nullable()
+    .or(z.literal("")),
   publish: z.boolean().optional(),
 });
 

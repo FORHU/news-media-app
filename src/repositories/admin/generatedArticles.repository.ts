@@ -13,20 +13,22 @@ type ContentArticleSupabase = {
   title: string;
   content: string;
   image_url: string | null;
+  youtube_url: string | null;
   publish_date: string | null;
   created_at: string;
   status: string;
-  category: { category_name: string } | null;
+  category: { id: string; category_name: string } | null;
   user: { first_name: string; last_name: string } | null;
   rawArticle: {
     id: string;
     title: string;
     content: string | null;
     image_url: string | null;
+    youtube_url: string | null;
     publish_date: string | null;
     created_at: string;
     status: string;
-    category: { category_name: string } | null;
+    category: { id: string; category_name: string } | null;
     crawledUrl: { url: string } | null;
   } | null;
 };

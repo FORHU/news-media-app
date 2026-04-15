@@ -146,12 +146,43 @@ export default function PublishArticleModal({
     })).filter((g) => g.items.length > 0);
 
     // ── image pick ──
+    const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
+
+        // Reset previous image-related errors
+        if (fieldErrors.imageUrl) setFieldErrors(prev => ({ ...prev, imageUrl: "" }));
+
+        // Validate type
+        if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+            setFieldErrors(prev => ({ 
+                ...prev, 
+                imageUrl: "Invalid file type. Please upload a JPEG, PNG, or WebP image." 
+            }));
+            if (fileInputRef.current) fileInputRef.current.value = "";
+            return;
+        }
+
+        // Validate size
+        if (file.size > MAX_FILE_SIZE) {
+            setFieldErrors(prev => ({ 
+                ...prev, 
+                imageUrl: "File is too large. Maximum size allowed is 5MB." 
+            }));
+            if (fileInputRef.current) fileInputRef.current.value = "";
+            return;
+        }
+
         setImageFile(file);
         const reader = new FileReader();
-        reader.onload = (ev) => setImagePreview(ev.target?.result as string);
+        reader.onprogress = () => setIsUploadingImage(true);
+        reader.onload = (ev) => {
+            setImagePreview(ev.target?.result as string);
+            setIsUploadingImage(false);
+        };
         reader.readAsDataURL(file);
     };
 
@@ -203,7 +234,7 @@ export default function PublishArticleModal({
                 content: content.trim(),
                 categoryId,
                 youtubeUrl: youtubeUrl.trim() || null,
-                ...(finalImageUrl !== undefined ? { imageUrl: finalImageUrl } : {}),
+                imageUrl: finalImageUrl,
                 publish,
             });
         },
@@ -409,7 +440,7 @@ export default function PublishArticleModal({
                                 ref={fileInputRef}
                                 id="publish-modal-image-upload"
                                 type="file"
-                                accept="image/*"
+                                accept=".jpg,.jpeg,.png,.webp"
                                 className="hidden"
                                 onChange={handleImageChange}
                             />
@@ -441,26 +472,41 @@ export default function PublishArticleModal({
                                     : "No image — default will be used"}
                             </span>
                         </div>
+                        {fieldErrors.imageUrl && (
+                            <p className="mt-2 text-xs text-red-500 font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                <AlertCircle className="w-3 h-3" />
+                                {fieldErrors.imageUrl}
+                            </p>
+                        )}
                     </div>
 
                     {/* ── YOUTUBE URL (Optional) ── */}
-                    <div>
-                        <SectionLabel
-                            icon={<Youtube className="w-4 h-4" />}
-                            label="YouTube Video (Optional)"
-                        />
-                        <Input
-                            id="publish-modal-youtube"
-                            value={youtubeUrl}
-                            onChange={(e) => {
-                                setYoutubeUrl(e.target.value);
-                                if (fieldErrors.youtubeUrl) setFieldErrors(prev => ({ ...prev, youtubeUrl: "" }));
-                            }}
-                            placeholder="https://www.youtube.com/watch?v=..."
-                            className={`h-12 rounded-xl bg-white border-gray-200 text-sm font-medium focus-visible:ring-orange-500/20 focus-visible:border-orange-300 shadow-sm ${
-                                fieldErrors.youtubeUrl ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/10" : ""
-                            }`}
-                        />
+                    <div className="space-y-4 p-5 rounded-2xl bg-white border border-gray-100 shadow-sm transition-all hover:shadow-md">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
+                                <Youtube className="w-4 h-4 text-red-600" />
+                            </div>
+                            <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">
+                                YouTube Video (Optional)
+                            </label>
+                        </div>
+
+                        <div className="relative group">
+                            <Input
+                                value={youtubeUrl}
+                                onChange={(e) => {
+                                    setYoutubeUrl(e.target.value);
+                                    if (fieldErrors.youtubeUrl) {
+                                        setFieldErrors((prev) => ({ ...prev, youtubeUrl: "" }));
+                                    }
+                                }}
+                                placeholder="https://www.youtube.com/watch?v=..."
+                                className={`h-12 bg-gray-50 border-gray-100 rounded-xl pl-4 pr-10 text-sm font-semibold focus-visible:ring-red-500/20 transition-all ${
+                                    fieldErrors.youtubeUrl ? "border-red-500 bg-red-50/30" : ""
+                                }`}
+                            />
+                            <Youtube className={`absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${youtubeId ? 'text-red-500' : 'text-gray-300'}`} />
+                        </div>
 
                         {/* live embed preview */}
                         {youtubeId && !fieldErrors.youtubeUrl && (
