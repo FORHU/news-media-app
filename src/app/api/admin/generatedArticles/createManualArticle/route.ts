@@ -211,7 +211,7 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
           title,
           slug,
           content,
-          imageUrl: imageUrl || null,
+          imageUrl:null,
           status: "pending",
           usersId: user.id,
           categoryId: categoryId,

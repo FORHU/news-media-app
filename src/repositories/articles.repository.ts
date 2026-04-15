@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/db";
 import type { Article } from "@/lib/types";
-import { CATEGORY_HIERARCHY } from "@/lib/categories";
 import { Prisma } from "@/generated/prisma/client";
 
 export const articlesRepository = {
@@ -29,24 +28,9 @@ export const articlesRepository = {
     }
 
     if (category) {
-      // Check if this is a parent category from our taxonomy
-      const parentCategory = CATEGORY_HIERARCHY.find(group => group.label === category);
-      
-      if (parentCategory) {
-        // If it's a parent, include all its subcategories
-        and.push({
-          category: {
-            categoryName: {
-              in: [parentCategory.label, ...parentCategory.subcategories]
-            }
-          }
-        });
-      } else {
-        // Otherwise, filter by the specific name
-        and.push({
-          category: { categoryName: category },
-        });
-      }
+      and.push({
+        category: { categoryName: category },
+      });
     }
 
     if (status) {

@@ -20,21 +20,12 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectLabel,
-    SelectTrigger,
-    SelectValue
-} from "@/components/ui/select";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
-import { CATEGORY_HIERARCHY } from "@/lib/categories";
 import YoutubeGenerationTab from "./YoutubeGenerationTab";
 import { ManualArticleContext, ManualMaterialsUpload } from "./ManualGenerationTab";
+import CategorySelectWithOther from "@/components/admin/shared/CategorySelectWithOther";
 
 interface CreateArticleModalProps {
     open: boolean;
@@ -275,22 +266,6 @@ export default function CreateArticleModal({
 
     const isGenerating = mutation.isPending;
 
-    // Filter categories into groups - strictly matching landing page structure
-    const groupedCategories = CATEGORY_HIERARCHY.map(group => {
-        const matchingCats = categories?.filter(cat =>
-            group.subcategories.some(sub => sub.toLowerCase() === cat.name.toLowerCase())
-        ) ?? [];
-        
-        const uniqueItems = Array.from(
-            new Map(matchingCats.map(cat => [cat.name.toLowerCase(), cat])).values()
-        );
-
-        return {
-            label: group.label,
-            items: uniqueItems
-        };
-    }).filter(group => group.items.length > 0);
-
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
@@ -381,27 +356,18 @@ export default function CreateArticleModal({
                             <div className="space-y-2">
                                 <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Category <span className="text-red-500">*</span></span>
                                 <div className="relative">
-                                    <Select value={selectedCategory} onValueChange={handleCategoryChange} disabled={isLoadingCategories}>
-                                        <SelectTrigger className={`w-full h-12 rounded-xl bg-gray-50 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm transition-all ${
+                                    <CategorySelectWithOther
+                                        value={selectedCategory}
+                                        onValueChange={handleCategoryChange}
+                                        categories={categories ?? []}
+                                        isLoading={isLoadingCategories}
+                                        placeholder="Select Category"
+                                        triggerClassName={`w-full h-12 rounded-xl bg-gray-50 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm transition-all ${
                                             fieldErrors.category ? "border-red-500 bg-red-50/30" : "border-gray-100"
-                                        }`}>
-                                            <SelectValue placeholder="Select Category" />
-                                        </SelectTrigger>
-                                        <SelectContent className="max-h-[400px]">
-                                            {groupedCategories.map((group) => (
-                                                <SelectGroup key={group.label}>
-                                                    <SelectLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ff4500] px-4 py-2 mt-2 border-b border-gray-50">
-                                                        {group.label}
-                                                    </SelectLabel>
-                                                    {group.items.map((cat) => (
-                                                        <SelectItem key={cat.id} value={cat.id} className="pl-6 font-semibold">
-                                                            {cat.name}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectGroup>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                        }`}
+                                        contentClassName="max-h-[400px]"
+                                        error={fieldErrors.category}
+                                    />
                                     {fieldErrors.category && (
                                         <p className="text-[10px] font-black text-red-500 uppercase tracking-widest ml-1 mt-2 animate-in fade-in slide-in-from-top-1">{fieldErrors.category}</p>
                                     )}

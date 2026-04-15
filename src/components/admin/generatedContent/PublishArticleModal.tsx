@@ -23,20 +23,11 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectLabel,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
 import { Article } from "@/lib/types";
-import { CATEGORY_HIERARCHY } from "@/lib/categories";
 import { StoryImage } from "@/components/StoryImage";
+import CategorySelectWithOther from "@/components/admin/shared/CategorySelectWithOther";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -134,23 +125,6 @@ export default function PublishArticleModal({
         queryKey: ["categories"],
         queryFn: () => articlesApi.getCategories(),
     });
-
-    const groupedCategories = CATEGORY_HIERARCHY.map((group) => {
-        const matchingCats = categories?.filter((cat) =>
-            group.subcategories.some(
-                (sub) => sub.toLowerCase() === cat.name.toLowerCase()
-            )
-        ) ?? [];
-        
-        const uniqueItems = Array.from(
-            new Map(matchingCats.map(cat => [cat.name.toLowerCase(), cat])).values()
-        );
-
-        return {
-            label: group.label,
-            items: uniqueItems
-        };
-    }).filter((g) => g.items.length > 0);
 
     // ── image pick ──
     const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -356,41 +330,21 @@ export default function PublishArticleModal({
                     {/* ── CATEGORY ── */}
                     <div>
                         <SectionLabel icon={<Tag className="w-4 h-4" />} label="Category" />
-                        <Select
+                        <CategorySelectWithOther
                             value={categoryId}
                             onValueChange={(val) => {
                                 setCategoryId(val);
                                 if (fieldErrors.categoryId) setFieldErrors(prev => ({ ...prev, categoryId: "" }));
                             }}
-                            disabled={isLoadingCategories}
-                        >
-                            <SelectTrigger
-                                id="publish-modal-category"
-                                className={`h-12 w-full rounded-xl bg-white border-gray-200 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm ${
-                                    fieldErrors.categoryId ? "border-red-500 focus-visible:ring-red-500/10" : ""
-                                }`}
-                            >
-                                <SelectValue placeholder="Select Category" />
-                            </SelectTrigger>
-                            <SelectContent className="max-h-[380px]">
-                                {groupedCategories.map((group) => (
-                                    <SelectGroup key={group.label}>
-                                        <SelectLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500 px-4 py-2 mt-1 border-b border-gray-50">
-                                            {group.label}
-                                        </SelectLabel>
-                                        {group.items.map((cat) => (
-                                            <SelectItem
-                                                key={cat.id}
-                                                value={cat.id}
-                                                className="pl-6 font-semibold"
-                                            >
-                                                {cat.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectGroup>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                            categories={categories ?? []}
+                            isLoading={isLoadingCategories}
+                            placeholder="Select Category"
+                            triggerClassName={`h-12 w-full rounded-xl bg-white border-gray-200 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm ${
+                                fieldErrors.categoryId ? "border-red-500 focus-visible:ring-red-500/10" : ""
+                            }`}
+                            contentClassName="max-h-[380px]"
+                            error={fieldErrors.categoryId}
+                        />
                         {fieldErrors.categoryId && (
                             <p className="mt-1.5 text-xs text-red-500 font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
                                 <AlertCircle className="w-3 h-3" />
