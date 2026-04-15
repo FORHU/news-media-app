@@ -113,6 +113,7 @@ export const articlesApi = {
     prompt?: string;
     fileContent?: string;
     imageUrl?: string;
+    youtubeUrl?: string;
     type?: "manual" | "youtube";
   }): Promise<unknown> {
     const res = await fetch("/api/admin/generatedArticles/createManualArticle", {
