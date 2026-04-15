@@ -5,8 +5,8 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-import { FLAT_NEWS_CATEGORIES } from "@/lib/categories";
+import { useQuery } from "@tanstack/react-query";
+import { articlesApi } from "@/lib/api";
 
 function categoryHref(categoryName: string) {
   return `/?category=${encodeURIComponent(categoryName)}`;
@@ -14,15 +14,21 @@ function categoryHref(categoryName: string) {
 
 const VISIBLE_CATEGORY_COUNT = 8;
 
-const PRIMARY_CATEGORIES = FLAT_NEWS_CATEGORIES.slice(0, VISIBLE_CATEGORY_COUNT);
-const OVERFLOW_CATEGORIES = FLAT_NEWS_CATEGORIES.slice(VISIBLE_CATEGORY_COUNT);
-
 export function NavBar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isHome = pathname === "/";
   const selectedCategory = searchParams.get("category");
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const { data: categories = [] } = useQuery({
+    queryKey: ["categories"],
+    queryFn: () => articlesApi.getCategories(),
+  });
+  const categoryNames = Array.from(
+    new Set(categories.map((cat) => cat.name.trim()).filter(Boolean))
+  );
+  const primaryCategories = categoryNames.slice(0, VISIBLE_CATEGORY_COUNT);
+  const overflowCategories = categoryNames.slice(VISIBLE_CATEGORY_COUNT);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -49,7 +55,7 @@ export function NavBar() {
             </Link>
           </li>
 
-          {PRIMARY_CATEGORIES.map((categoryName) => {
+          {primaryCategories.map((categoryName) => {
             const isActive = selectedCategory === categoryName;
             return (
               <li key={categoryName} className="relative flex items-center">
@@ -66,7 +72,7 @@ export function NavBar() {
             );
           })}
 
-          {OVERFLOW_CATEGORIES.length > 0 && (
+          {overflowCategories.length > 0 && (
             <li
               className="relative group flex items-center"
               onMouseEnter={() => setIsMoreOpen(true)}
@@ -75,7 +81,7 @@ export function NavBar() {
               <button
                 type="button"
                 onClick={() => setIsMoreOpen((prev) => !prev)}
-                className={`flex items-center gap-1 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors w-full text-left ${selectedCategory && OVERFLOW_CATEGORIES.includes(selectedCategory)
+                className={`flex items-center gap-1 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors w-full text-left ${selectedCategory && overflowCategories.includes(selectedCategory)
                   ? "text-[#ff4500] border-[#ff4500]"
                   : "text-white border-transparent hover:text-[#ff4500]"
                   }`}
@@ -94,7 +100,7 @@ export function NavBar() {
                     className="absolute left-1/2 -translate-x-1/2 top-full w-56 bg-white shadow-xl rounded-b-lg overflow-hidden border border-gray-100 py-2 pt-0 z-[100]"
                   >
                     <ul className="flex flex-col">
-                      {OVERFLOW_CATEGORIES.map((categoryName) => (
+                      {overflowCategories.map((categoryName) => (
                         <li key={categoryName}>
                           <Link
                             href={categoryHref(categoryName)}

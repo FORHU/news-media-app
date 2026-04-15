@@ -199,6 +199,22 @@ export const articlesApi = {
     return res.json();
   },
 
+  async createCategory(name: string): Promise<{ id: string; name: string }> {
+    const trimmed = name.trim();
+    const res = await fetch("/api/categories", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: trimmed }),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(
+        typeof error.error === "string" ? error.error : "Failed to create category"
+      );
+    }
+    return res.json();
+  },
+
   async transcribeYoutube(url: string): Promise<{ video_id: string; transcript: string }> {
     const res = await fetch("/api/admin/generatedArticles/transcript", {
       method: "POST",

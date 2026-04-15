@@ -39,13 +39,15 @@ export const generatedArticlesRepository = {
     count: number;
   }> {
     const { q, offset, limit, category } = params;
+    const hasCategoryFilter = Boolean(category && category !== "All Types");
+    const categoryJoin = hasCategoryFilter ? "categories!inner(*)" : "categories(*)";
 
     let query = supabase
       .from("content_articles")
       .select(
         `
           *,
-          category:categories(*),
+          category:${categoryJoin},
           user:users(*),
           rawArticle:raw_articles(
             *,
@@ -60,7 +62,7 @@ export const generatedArticlesRepository = {
       query = query.or(`title.ilike.%${q}%,content.ilike.%${q}%`);
     }
 
-    if (category && category !== "All Types") {
+    if (hasCategoryFilter) {
       query = query.filter("category.category_name", "eq", category);
     }
 

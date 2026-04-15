@@ -4,6 +4,8 @@ import Link from "next/link";
 import { X, Mail } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RemoveScroll } from "react-remove-scroll";
+import { useQuery } from "@tanstack/react-query";
+import { articlesApi } from "@/lib/api";
 
 interface SideBarProps {
     isOpen: boolean;
@@ -15,17 +17,19 @@ function categoryHref(categoryName: string) {
     return `/?category=${encodeURIComponent(categoryName)}`;
 }
 
-import { FLAT_NEWS_CATEGORIES } from "@/lib/categories";
-
-const CATEGORY_LINKS = [
-    { name: "Latest News", link: "/" },
-    ...FLAT_NEWS_CATEGORIES.map((categoryName) => ({
-        name: categoryName,
-        link: categoryHref(categoryName),
-    })),
-];
-
 export function SideBar({ isOpen, onClose, onOpenNewsletter }: SideBarProps) {
+    const { data: categories = [] } = useQuery({
+        queryKey: ["categories"],
+        queryFn: () => articlesApi.getCategories(),
+    });
+    const categoryLinks = [
+        { name: "Latest News", link: "/" },
+        ...Array.from(new Set(categories.map((cat) => cat.name.trim()).filter(Boolean))).map((categoryName) => ({
+            name: categoryName,
+            link: categoryHref(categoryName),
+        })),
+    ];
+
     const handlePlaceholderClick = (e: React.MouseEvent) => {
         e.preventDefault();
     };
@@ -68,7 +72,7 @@ export function SideBar({ isOpen, onClose, onOpenNewsletter }: SideBarProps) {
                             {/* Navigation Links - Scrollable */}
                             <div className="flex-1 overflow-y-auto scrollbar-hide pt-2">
                                 <nav className="pb-8">
-                                    {CATEGORY_LINKS.map((category) => (
+                                    {categoryLinks.map((category) => (
                                         <div key={category.name}>
                                             <Link
                                                 href={category.link}

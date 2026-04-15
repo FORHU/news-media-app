@@ -33,7 +33,6 @@ import ReadGeneratedArticle from '@/components/admin/generatedContent/readGenera
 import PublishArticleModal from '@/components/admin/generatedContent/PublishArticleModal';
 
 import { StoryImage } from '@/components/StoryImage';
-import { CATEGORY_HIERARCHY } from '@/lib/categories';
 
 // Mock response type for now, as it might be added to types.ts later
 interface GeneratedArticlesResponse {
@@ -45,6 +44,8 @@ interface GeneratedArticlesResponse {
         totalPages: number;
     };
 }
+
+const ALL_CATEGORIES_VALUE = '__all_categories__';
 
 interface GeneratedArticleCardProps {
     article: Article;
@@ -192,6 +193,10 @@ export default function GeneratedArticlesList({ searchParams }: {
             category: category || undefined
         }),
         placeholderData: (prev) => prev,
+    });
+    const { data: categories } = useQuery({
+        queryKey: ['categories'],
+        queryFn: () => articlesApi.getCategories(),
     });
 
     const articles = data?.articles || [];
@@ -356,23 +361,21 @@ export default function GeneratedArticlesList({ searchParams }: {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                    <Select value={categoryDraft || 'All Types'} onValueChange={setCategoryDraft}>
+                    <Select
+                        value={categoryDraft || ALL_CATEGORIES_VALUE}
+                        onValueChange={(value) =>
+                            setCategoryDraft(value === ALL_CATEGORIES_VALUE ? '' : value)
+                        }
+                    >
                         <SelectTrigger className="h-12 w-[220px] rounded-2xl bg-gray-50/50 border-gray-100 text-sm font-semibold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm transition-all">
                             <SelectValue placeholder="All Categories" />
                         </SelectTrigger>
                         <SelectContent className="max-h-[400px]">
-                            <SelectItem value="All Types">All Categories</SelectItem>
-                            {CATEGORY_HIERARCHY.map((group) => (
-                                <React.Fragment key={group.label}>
-                                    <SelectItem value={group.label} className="font-bold text-orange-600">
-                                        {group.label} (All)
-                                    </SelectItem>
-                                    {group.subcategories.map((sub) => (
-                                        <SelectItem key={sub} value={sub} className="pl-6 font-medium">
-                                            {sub}
-                                        </SelectItem>
-                                    ))}
-                                </React.Fragment>
+                            <SelectItem value={ALL_CATEGORIES_VALUE}>All Categories</SelectItem>
+                            {(categories ?? []).map((cat) => (
+                                <SelectItem key={cat.id} value={cat.name} className="font-medium">
+                                    {cat.name}
+                                </SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
@@ -385,7 +388,7 @@ export default function GeneratedArticlesList({ searchParams }: {
                         + Create Article
                     </Button>
 
-                    {(searchDraft || (categoryDraft && categoryDraft !== 'All Types')) && (
+                    {(searchDraft || categoryDraft) && (
                         <Button
                             type="button"
                             variant="link"
@@ -393,7 +396,7 @@ export default function GeneratedArticlesList({ searchParams }: {
                             className="px-0 text-xs font-black uppercase tracking-widest text-[#ff4500] hover:text-orange-600"
                             onClick={() => {
                                 setSearchDraft('');
-                                setCategoryDraft('All Types');
+                                setCategoryDraft('');
                                 setQueryParams({ q: null, category: null });
                             }}
                         >
