@@ -39,6 +39,7 @@ export const generatedArticlesService = {
         createdAt: article.created_at,
         status: article.status,
         category: {
+          id: article.category?.id || "",
           categoryName: article.category?.category_name || "Uncategorized",
         },
         user: {

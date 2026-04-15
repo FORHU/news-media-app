@@ -1,57 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { generateUniqueArticleSlug } from "@/lib/slug";
-import { generatedArticlesService } from "@/services/admin/generatedArticles.service";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
-// ─── Schema for the pre-publish editor PATCH ──────────────────────────────────
 const UpdateSchema = z.object({
-  title: z.string().min(1, "Headline is required").optional(),
-  content: z.string().min(1, "Article content is required").optional(),
+  title: z.string().min(1, "Title is required").optional(),
+  content: z.string().min(1, "Content is required").optional(),
   categoryId: z.string().min(1, "Category is required").optional(),
-  imageUrl: z.string().url("Invalid image URL format").optional().nullable().or(z.literal("")),
-  youtubeUrl: z.string().url("Invalid YouTube URL format").optional().nullable().or(z.literal("")),
+  imageUrl: z.string().url().optional().nullable().or(z.literal("")),
+  youtubeUrl: z.string().url().optional().nullable().or(z.literal("")),
   publish: z.boolean().optional(),
 });
 
-// ─── POST – legacy publish (no body required) ──────────────────────────────────
-export async function POST(
-  req: NextRequest,
-  props: { params: Promise<{ id: string }> }
-) {
-  const { id } = await props.params;
-
-  if (!id) {
-    return NextResponse.json({ error: "Missing article ID" }, { status: 400 });
-  }
-
-  try {
-    await generatedArticlesService.publishArticle(id);
-    return NextResponse.json({ success: true, message: "Article published successfully" });
-  } catch (error) {
-    console.error("Error publishing article:", error);
-    return NextResponse.json(
-      { error: "Failed to publish article" },
-      { status: 500 }
-    );
-  }
-}
-
-// ─── PATCH – update fields and/or publish ─────────────────────────────────────
 export async function PATCH(
   req: NextRequest,
-  props: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await props.params;
-
-  if (!id) {
-    return NextResponse.json({ error: "Missing article ID" }, { status: 400 });
-  }
-
   try {
-    const existing = await prisma.contentArticle.findUnique({ where: { id } });
+    const { id } = params;
+
+    const existing = await prisma.contentArticle.findUnique({
+      where: { id },
+    });
 
     if (!existing) {
       return NextResponse.json({ error: "Article not found" }, { status: 404 });
@@ -62,17 +34,14 @@ export async function PATCH(
 
     if (!result.success) {
       return NextResponse.json(
-        {
-          error: "Validation failed",
-          details: result.error.issues.map((e) => e.message).join(", "),
-        },
+        { error: "Validation failed", details: result.error.issues.map((e) => e.message).join(", ") },
         { status: 400 }
       );
     }
 
     const { title, content, categoryId, imageUrl, youtubeUrl, publish } = result.data;
 
-    // Verify category exists if changing
+    // If category is changing, verify it exists
     if (categoryId) {
       const cat = await prisma.category.findUnique({ where: { id: categoryId } });
       if (!cat) {
@@ -80,7 +49,7 @@ export async function PATCH(
       }
     }
 
-    // Regenerate slug only if title actually changed
+    // Regenerate slug only if title changes
     let newSlug = existing.slug;
     if (title && title !== existing.title) {
       const publishDate = existing.publishDate ?? new Date();
@@ -111,7 +80,7 @@ export async function PATCH(
 
     return NextResponse.json(updated);
   } catch (error: any) {
-    console.error("[PATCH publish/route] Error:", error);
+    console.error("[PATCH Article] Error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

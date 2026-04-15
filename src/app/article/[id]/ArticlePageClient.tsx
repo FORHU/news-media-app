@@ -78,6 +78,11 @@ export default function ArticlePageClient({ articleId }: { articleId: string }) 
     year: "numeric",
   });
 
+  const youtubeUrl = (article as any).youtubeUrl;
+  const youtubeId = youtubeUrl ? (
+    youtubeUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/) || []
+  )[1] : null;
+
   return (
     <div
       className={
@@ -108,17 +113,30 @@ export default function ArticlePageClient({ articleId }: { articleId: string }) 
                   {article.title}
                 </h1>
                 <p className="text-gray-500">{formattedDate}</p>
-                <div className="mt-6 rounded-xl overflow-hidden bg-gray-200 relative aspect-video">
-                  <StoryImage
-                    src={article.imageUrl}
-                    alt={article.title}
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 80vw"
-                    priority
-                    className="object-cover"
-                    variant="hero"
-                  />
-                </div>
+
+                {youtubeId ? (
+                  <div className="mt-6 rounded-xl overflow-hidden bg-black aspect-video shadow-lg">
+                    <iframe
+                      src={`https://www.youtube.com/embed/${youtubeId}`}
+                      title="YouTube video player"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="w-full h-full border-0"
+                    />
+                  </div>
+                ) : (
+                  <div className="mt-6 rounded-xl overflow-hidden bg-gray-200 relative aspect-video">
+                    <StoryImage
+                      src={article.imageUrl}
+                      alt={article.title}
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 80vw"
+                      priority
+                      className="object-cover"
+                      variant="hero"
+                    />
+                  </div>
+                )}
               </header>
               <div className="mt-8 text-gray-700 leading-relaxed whitespace-pre-wrap">
                 {article.content}

@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { div as MotionDiv } from 'framer-motion/client';
 import Pagination from '@/components/admin/pagination';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { articlesApi } from '@/lib/api';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
@@ -30,6 +30,7 @@ import { Calendar as ShadCalendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import CreateArticleModal from '@/components/admin/generatedContent/CreateArticleModal/createArticleModal';
 import ReadGeneratedArticle from '@/components/admin/generatedContent/readGeneratedArticle';
+import PublishArticleModal from '@/components/admin/generatedContent/PublishArticleModal';
 
 import { StoryImage } from '@/components/StoryImage';
 import { CATEGORY_HIERARCHY } from '@/lib/categories';
@@ -51,21 +52,11 @@ interface GeneratedArticleCardProps {
 }
 
 export function GeneratedArticleCard({ article, variants }: GeneratedArticleCardProps) {
-    const queryClient = useQueryClient();
     const isPublished = article.status === 'published';
     const publishDate = article.publishDate || article.createdAt;
 
     const [isReadModalOpen, setIsReadModalOpen] = React.useState(false);
-
-    const publishMutation = useMutation({
-        mutationFn: () => articlesApi.publishArticle(article.id),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['generatedArticles'] });
-        },
-        onError: (error: Error) => {
-            alert(`Failed to publish: ${error.message}`);
-        }
-    });
+    const [isPublishModalOpen, setIsPublishModalOpen] = React.useState(false);
 
     return (
         <MotionDiv
@@ -150,25 +141,27 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
 
                 <button
                     type="button"
-                    onClick={() => publishMutation.mutate()}
-                    disabled={isPublished || publishMutation.isPending}
+                    onClick={() => setIsPublishModalOpen(true)}
+                    disabled={isPublished}
                     className={`flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-sm shadow-lg transition-all group/btn ${isPublished
                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
                         : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98]'
                         }`}
                 >
-                    {publishMutation.isPending ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                        <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                    )}
-                    {isPublished ? 'Published' : publishMutation.isPending ? 'Publishing...' : 'Publish Article'}
+                    <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                    {isPublished ? 'Published' : 'Publish Article'}
                 </button>
 
                 <ReadGeneratedArticle
                     article={article}
                     open={isReadModalOpen}
                     onOpenChange={setIsReadModalOpen}
+                />
+
+                <PublishArticleModal
+                    article={article}
+                    open={isPublishModalOpen}
+                    onOpenChange={setIsPublishModalOpen}
                 />
             </div>
         </MotionDiv>
