@@ -65,6 +65,7 @@ export async function PATCH(
     }
 
     const json = await req.json();
+    console.log("[PATCH /publish] Received body:", JSON.stringify(json, null, 2));
     const result = UpdateSchema.safeParse(json);
 
     if (!result.success) {

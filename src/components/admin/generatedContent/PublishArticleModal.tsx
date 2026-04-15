@@ -217,7 +217,6 @@ export default function PublishArticleModal({
             setSuccessMsg(null);
 
             let finalImageUrl: string | null | undefined = undefined;
-
             if (imageFile) {
                 setIsUploadingImage(true);
                 try {
@@ -227,6 +226,9 @@ export default function PublishArticleModal({
                 } finally {
                     setIsUploadingImage(false);
                 }
+            } else if (imagePreview === null) {
+                // User explicitly removed the image
+                finalImageUrl = null;
             }
 
             return articlesApi.updateArticle(article.id, {
@@ -304,6 +306,20 @@ export default function PublishArticleModal({
                         <div className="flex items-start gap-3 p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm font-semibold animate-in fade-in slide-in-from-top-2">
                             <Check className="w-4 h-4 mt-0.5 flex-shrink-0" />
                             {successMsg}
+                        </div>
+                    )}
+
+                    {/* error banner */}
+                    {error && (
+                        <div className="flex items-start gap-3 p-4 rounded-2xl bg-red-50 border border-red-100 text-red-700 text-sm font-semibold animate-in fade-in slide-in-from-top-2">
+                            <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1">
+                                <p className="font-bold">Execution Failed</p>
+                                <p className="text-xs opacity-80 mt-0.5">{error}</p>
+                            </div>
+                            <button onClick={() => setError(null)} className="p-1 hover:bg-red-100 rounded-lg transition-colors">
+                                <X className="w-4 h-4" />
+                            </button>
                         </div>
                     )}
 
