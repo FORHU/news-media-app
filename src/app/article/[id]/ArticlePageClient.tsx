@@ -78,10 +78,21 @@ export default function ArticlePageClient({ articleId }: { articleId: string }) 
     year: "numeric",
   });
 
-  const youtubeUrl = (article as any).youtubeUrl;
-  const youtubeId = youtubeUrl ? (
-    youtubeUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/) || []
-  )[1] : null;
+  const youtubeUrl = article.youtubeUrl;
+  const youtubeId = youtubeUrl
+    ? (youtubeUrl.match(
+        /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/
+      ) || [])[1] ?? null
+    : null;
+
+  // Split content into paragraphs so we can insert the YouTube embed mid-article
+  const paragraphs = article.content
+    .split(/\n+/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  const midpoint = Math.ceil(paragraphs.length / 2);
+  const firstHalf = paragraphs.slice(0, midpoint).join("\n\n");
+  const secondHalf = paragraphs.slice(midpoint).join("\n\n");
 
   return (
     <div
@@ -95,7 +106,9 @@ export default function ArticlePageClient({ articleId }: { articleId: string }) 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <button
           type="button"
-          onClick={() => window.history.length > 1 ? router.back() : router.push('/')}
+          onClick={() =>
+            window.history.length > 1 ? router.back() : router.push("/")
+          }
           className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#ff4500] mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -105,6 +118,7 @@ export default function ArticlePageClient({ articleId }: { articleId: string }) 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <article>
+              {/* ── Header: category, title, date ── */}
               <header>
                 <span className="inline-block px-2 py-0.5 bg-[#ff4500] text-white rounded text-xs font-semibold uppercase mb-4">
                   {article.category.categoryName}
@@ -113,34 +127,45 @@ export default function ArticlePageClient({ articleId }: { articleId: string }) 
                   {article.title}
                 </h1>
                 <p className="text-gray-500">{formattedDate}</p>
-
-                {youtubeId ? (
-                  <div className="mt-6 rounded-xl overflow-hidden bg-black aspect-video shadow-lg">
-                    <iframe
-                      src={`https://www.youtube.com/embed/${youtubeId}`}
-                      title="YouTube video player"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      className="w-full h-full border-0"
-                    />
-                  </div>
-                ) : (
-                  <div className="mt-6 rounded-xl overflow-hidden bg-gray-200 relative aspect-video">
-                    <StoryImage
-                      src={article.imageUrl}
-                      alt={article.title}
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 80vw"
-                      priority
-                      className="object-cover"
-                      variant="hero"
-                    />
-                  </div>
-                )}
               </header>
-              <div className="mt-8 text-gray-700 leading-relaxed whitespace-pre-wrap">
-                {article.content}
+
+              {/* ── Hero image — always shown at the top ── */}
+              <div className="mt-6 rounded-xl overflow-hidden bg-gray-200 relative aspect-video shadow-sm">
+                <StoryImage
+                  src={article.imageUrl}
+                  alt={article.title}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 80vw"
+                  priority
+                  className="object-cover"
+                  variant="hero"
+                />
               </div>
+
+              {/* ── Article content — first half ── */}
+              <div className="mt-8 text-gray-700 leading-relaxed whitespace-pre-wrap">
+                {firstHalf}
+              </div>
+
+              {/* ── YouTube embed — mid-article, only when available ── */}
+              {youtubeId && (
+                <div className="my-8 rounded-xl overflow-hidden bg-black aspect-video shadow-lg">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${youtubeId}`}
+                    title="YouTube video player"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full border-0"
+                  />
+                </div>
+              )}
+
+              {/* ── Article content — second half ── */}
+              {secondHalf && (
+                <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  {secondHalf}
+                </div>
+              )}
             </article>
           </div>
 
