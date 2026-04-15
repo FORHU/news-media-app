@@ -216,7 +216,8 @@ export default function PublishArticleModal({
             setError(null);
             setSuccessMsg(null);
 
-            let finalImageUrl: string | null | undefined = undefined;
+            let finalImageUrl = article.imageUrl ?? null; // Start with current image
+            
             if (imageFile) {
                 setIsUploadingImage(true);
                 try {
@@ -226,8 +227,7 @@ export default function PublishArticleModal({
                 } finally {
                     setIsUploadingImage(false);
                 }
-            } else if (imagePreview === null) {
-                // User explicitly removed the image
+            } else if (imagePreview === null && !article.imageUrl) {
                 finalImageUrl = null;
             }
 
@@ -236,7 +236,7 @@ export default function PublishArticleModal({
                 content: content.trim(),
                 categoryId,
                 youtubeUrl: youtubeUrl.trim() || null,
-                imageUrl: finalImageUrl,
+                imageUrl: finalImageUrl || null, // Always send string or null like youtubeUrl
                 publish,
             });
         },
