@@ -116,7 +116,7 @@ export const articlesApi = {
     youtubeUrl?: string;
     type?: "manual" | "youtube";
   }): Promise<unknown> {
-    const res = await fetch("/api/admin/generatedArticles/createManualArticle", {
+    const res = await fetch("/api/admin/generatedArticles/createManualYoutubeUrlArticle", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(params),
