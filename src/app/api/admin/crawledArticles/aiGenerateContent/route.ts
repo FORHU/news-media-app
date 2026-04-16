@@ -21,8 +21,8 @@ function truncateContent(text: string, limit: number = 12000): string {
 
 // AI persona/instruction
 function getAiSystemInstruction(sourceUrl?: string) {
-  const creditInstruction = sourceUrl 
-    ? `\n9. SOURCE CREDITING: You MUST end the article with exactly one line: "Source: ${sourceUrl}". This line must be inside the <content> tag, separated from the last paragraph by two newlines.`
+  const creditInstruction = sourceUrl
+    ? `\n9. SOURCE CREDITING: You MUST end the article with exactly one line: "Reference: ${sourceUrl}". This line must be inside the <content> tag and separated from the last paragraph by exactly two newlines (an empty line between them).`
     : "";
 
   return `
@@ -42,7 +42,7 @@ function getAiSystemInstruction(sourceUrl?: string) {
 4. JOURNALISTIC TONE: Focus on facts and implications. Do NOT use flowery language or AI-typical filler words.
 5. NO MARKDOWN: Do not use bold, italics, or lists.
 6. HEADLINE: The headline must be punchy and news-worthy.
-7. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use double newlines (\\n\\n) between each paragraph.
+7. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use exactly two newlines (an empty line) between each paragraph for consistent spacing.
 8. OUTPUT: Write strictly in English unless otherwise requested.${creditInstruction}
 `;
 }
@@ -87,18 +87,18 @@ export async function POST(req: NextRequest) {
     const result = RequestSchema.safeParse(json);
 
     if (!result.success) {
-      return NextResponse.json({ 
-        error: "Validation failed", 
-        details: result.error.issues.map(e => e.message).join(", ") 
+      return NextResponse.json({
+        error: "Validation failed",
+        details: result.error.issues.map(e => e.message).join(", ")
       }, { status: 400 });
     }
 
-    const { 
-      articleId: bodyArticleId, 
-      categoryId, 
-      generationPrompt: customPrompt 
+    const {
+      articleId: bodyArticleId,
+      categoryId,
+      generationPrompt: customPrompt
     } = result.data;
-    
+
     articleId = bodyArticleId;
 
     const baseUrl = (process.env.GENERATE_CONTENT_API || "").replace(/\/$/, "");

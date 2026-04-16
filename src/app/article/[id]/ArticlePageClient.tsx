@@ -90,9 +90,13 @@ export default function ArticlePageClient({ articleId }: { articleId: string }) 
     .split(/\n+/)
     .map((p) => p.trim())
     .filter(Boolean);
-  const midpoint = Math.ceil(paragraphs.length / 2);
+
+  // If there's no YouTube video, we don't need to split the content.
+  // This prevents the "glued paragraph" issue between the first and second half containers.
+  const hasYoutube = Boolean(youtubeId);
+  const midpoint = hasYoutube ? Math.ceil(paragraphs.length / 2) : paragraphs.length;
   const firstHalf = paragraphs.slice(0, midpoint).join("\n\n");
-  const secondHalf = paragraphs.slice(midpoint).join("\n\n");
+  const secondHalf = hasYoutube ? paragraphs.slice(midpoint).join("\n\n") : "";
 
   return (
     <div

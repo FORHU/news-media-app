@@ -38,7 +38,7 @@ function getAiSystemInstruction(isYoutube: boolean, youtubeUrl?: string) {
     : "The following content consists of TOPIC NOTES and SOURCE MATERIALS. Your task is to synthesize these materials into a cohesive, structured, and expanded news article.";
 
   const creditInstruction = (isYoutube && youtubeUrl)
-    ? `\n9. SOURCE CREDITING: You MUST end the article with exactly one line: "Source: ${youtubeUrl}". This line must be inside the <content> tag, separated from the last paragraph by two newlines.`
+    ? `\n9. SOURCE CREDITING: You MUST end the article with exactly one line: "Source: ${youtubeUrl}". This line must be inside the <content> tag and separated from the last paragraph by exactly two newlines (an empty line between them).`
     : "";
 
   return `
@@ -59,7 +59,7 @@ function getAiSystemInstruction(isYoutube: boolean, youtubeUrl?: string) {
 5. JOURNALISTIC TONE: Focus on facts and implications. Do NOT use flowery language or AI-typical filler words.
 6. NO MARKDOWN: Do not use bold, italics, or lists unless it is part of the provided source materials.
 7. HEADLINE: The headline must be punchy and news-worthy, not generic.
-8. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use double newlines (\\n\\n) between each paragraph for absolute clarity.
+8. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use exactly two newlines (an empty line) between each paragraph for consistent spacing.
 9. OUTPUT: Write strictly in English unless otherwise requested.${creditInstruction}
 `;
 }
