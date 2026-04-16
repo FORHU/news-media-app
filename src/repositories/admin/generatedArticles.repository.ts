@@ -13,20 +13,22 @@ type ContentArticleSupabase = {
   title: string;
   content: string;
   image_url: string | null;
+  youtube_url: string | null;
   publish_date: string | null;
   created_at: string;
   status: string;
-  category: { category_name: string } | null;
+  category: { id: string; category_name: string } | null;
   user: { first_name: string; last_name: string } | null;
   rawArticle: {
     id: string;
     title: string;
     content: string | null;
     image_url: string | null;
+    youtube_url: string | null;
     publish_date: string | null;
     created_at: string;
     status: string;
-    category: { category_name: string } | null;
+    category: { id: string; category_name: string } | null;
     crawledUrl: { url: string } | null;
   } | null;
 };
@@ -37,13 +39,15 @@ export const generatedArticlesRepository = {
     count: number;
   }> {
     const { q, offset, limit, category } = params;
+    const hasCategoryFilter = Boolean(category && category !== "All Types");
+    const categoryJoin = hasCategoryFilter ? "categories!inner(*)" : "categories(*)";
 
     let query = supabase
       .from("content_articles")
       .select(
         `
           *,
-          category:categories(*),
+          category:${categoryJoin},
           user:users(*),
           rawArticle:raw_articles(
             *,
@@ -58,7 +62,7 @@ export const generatedArticlesRepository = {
       query = query.or(`title.ilike.%${q}%,content.ilike.%${q}%`);
     }
 
-    if (category && category !== "All Types") {
+    if (hasCategoryFilter) {
       query = query.filter("category.category_name", "eq", category);
     }
 

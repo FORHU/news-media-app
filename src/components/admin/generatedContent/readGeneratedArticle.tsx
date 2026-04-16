@@ -97,6 +97,29 @@ export default function ReadGeneratedArticle({
 
                 {/* Content Area - Optimized for smooth scrolling with GPU acceleration */}
                 <div className="px-4 sm:px-8 py-6 sm:py-8 space-y-6 overflow-y-auto overscroll-contain flex-1 min-h-0 bg-gray-50/30 will-change-transform [-webkit-overflow-scrolling:touch]">
+                    
+                    {/* YouTube Embed if available */}
+                    {(() => {
+                        const youtubeUrl = (article as any).youtubeUrl;
+                        const youtubeId = youtubeUrl ? (
+                            youtubeUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/) || []
+                        )[1] : null;
+
+                        if (!youtubeId) return null;
+
+                        return (
+                            <div className="rounded-2xl overflow-hidden bg-black aspect-video shadow-md mb-6">
+                                <iframe
+                                    src={`https://www.youtube.com/embed/${youtubeId}`}
+                                    title="YouTube video player"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                    className="w-full h-full border-0"
+                                />
+                            </div>
+                        );
+                    })()}
+
                     <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-gray-100 shadow-sm leading-relaxed text-gray-800 text-base sm:text-lg whitespace-pre-wrap font-medium contain-paint">
                         {article.content || (
                             <div className="flex flex-col items-center justify-center py-20 text-gray-400 italic">

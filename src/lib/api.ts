@@ -29,8 +29,8 @@ export const articlesApi = {
     return res.json();
   },
 
-  async getArticle(id: string): Promise<Article> {
-    const res = await fetch(`/api/articles/${id}`);
+  async getArticle(identifier: string): Promise<Article> {
+    const res = await fetch(`/api/articles/${identifier}`);
     if (!res.ok) throw new Error("Failed to fetch article");
     return res.json();
   },
@@ -113,9 +113,10 @@ export const articlesApi = {
     prompt?: string;
     fileContent?: string;
     imageUrl?: string;
+    youtubeUrl?: string;
     type?: "manual" | "youtube";
   }): Promise<unknown> {
-    const res = await fetch("/api/admin/generatedArticles/createManualArticle", {
+    const res = await fetch("/api/admin/generatedArticles/createManualYoutubeUrlArticle", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(params),
@@ -156,6 +157,29 @@ export const articlesApi = {
     return res.json();
   },
 
+  async updateArticle(
+    id: string,
+    data: {
+      title?: string;
+      content?: string;
+      categoryId?: string;
+      imageUrl?: string | null;
+      youtubeUrl?: string | null;
+      publish?: boolean;
+    }
+  ): Promise<unknown> {
+    const res = await fetch(`/api/admin/generatedArticles/${id}/publish`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to update article");
+    }
+    return res.json();
+  },
+
   async publishArticle(id: string): Promise<{ success: boolean; message: string }> {
     const res = await fetch(`/api/admin/generatedArticles/${id}/publish`, {
       method: "POST",
@@ -172,6 +196,22 @@ export const articlesApi = {
       cache: "no-store",
     });
     if (!res.ok) throw new Error("Failed to fetch categories");
+    return res.json();
+  },
+
+  async createCategory(name: string): Promise<{ id: string; name: string }> {
+    const trimmed = name.trim();
+    const res = await fetch("/api/categories", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: trimmed }),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(
+        typeof error.error === "string" ? error.error : "Failed to create category"
+      );
+    }
     return res.json();
   },
 

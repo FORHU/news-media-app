@@ -94,8 +94,8 @@ export function HeroSection({ articles }: HeroSectionProps) {
                     }}
                   >
                     <ArticleLink
-                      articleId={article.id}
-                      href={`/article/${article.id}`}
+                      articleIdentifier={article.slug ?? article.id}
+                      href={`/article/${article.slug ?? article.id}`}
                       className="block h-full bg-white"
                     >
                       <div className="grid grid-cols-1 md:grid-cols-2 h-full min-h-0">

@@ -7,4 +7,7 @@ export default {
   migrations: {
     path: "prisma/migrations",
   },
+  datasource: {
+    url: process.env.DATABASE_URL,
+  },
 };

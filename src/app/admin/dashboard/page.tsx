@@ -1,29 +1,10 @@
 import React from 'react';
 import {
-    FileText,
-    Globe,
-    Link as LinkIcon,
-    TrendingUp,
     Activity,
-    Clock,
-    ArrowUpRight
+    Clock
 } from 'lucide-react';
-
-const StatCard = ({ title, value, icon, color, description }: any) => (
-    <div className="bg-white p-5 md:p-8 rounded-2xl md:rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all group">
-        <div className="flex justify-between items-start mb-4">
-            <div className={`p-3 md:p-4 rounded-xl md:rounded-2xl ${color} shadow-sm transition-all group-hover:shadow-md`}>
-                {React.cloneElement(icon, { className: `w-5 h-5 md:w-6 md:h-6 text-white` })}
-            </div>
-            <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5 text-gray-300 group-hover:text-gray-900 transition-colors" />
-        </div>
-        <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] mb-1">{title}</p>
-            <h3 className="text-2xl md:text-4xl font-extrabold text-gray-900 leading-tight">{value}</h3>
-            {description && <p className="text-[10px] md:text-xs text-gray-500 mt-2 font-medium">{description}</p>}
-        </div>
-    </div>
-);
+import DashboardStatsGrid from '@/components/admin/dashboard/DashboardStatsGrid';
+import SystemStatusLiveClock from '@/components/admin/dashboard/SystemStatusLiveClock';
 
 export default function DashboardPage() {
     return (
@@ -38,37 +19,8 @@ export default function DashboardPage() {
                 <p className="text-sm md:text-base text-gray-500 font-medium">Real-time performance and metrics</p>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard
-                    title="Generated Articles"
-                    value="0"
-                    description="+0 from last week"
-                    icon={<FileText />}
-                    color="bg-blue-600"
-                />
-                <StatCard
-                    title="Crawled Articles"
-                    value="0"
-                    description="+0 from today"
-                    icon={<Globe />}
-                    color="bg-green-600"
-                />
-                <StatCard
-                    title="Crawled URLs"
-                    value="0"
-                    description="Across 0 sources"
-                    icon={<LinkIcon />}
-                    color="bg-purple-600"
-                />
-                <StatCard
-                    title="Active Crawlers"
-                    value="0"
-                    description="System health: 100%"
-                    icon={<TrendingUp />}
-                    color="bg-[#ff4500]"
-                />
-            </div>
+            {/* Real-time Polling Stats Grid Component */}
+            <DashboardStatsGrid />
 
             {/* Lower Section */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -113,7 +65,7 @@ export default function DashboardPage() {
                     <div className="mt-8 md:mt-auto pt-4 md:pt-8 relative z-10">
                         <div className="p-3 md:p-4 bg-gray-50 rounded-xl md:rounded-2xl border border-gray-100 transition-colors group-hover:bg-orange-50/30">
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Last Update</p>
-                            <p className="text-xs md:text-sm font-bold text-gray-700">{new Date().toLocaleTimeString()}</p>
+                            <SystemStatusLiveClock />
                         </div>
                     </div>
 
@@ -124,4 +76,5 @@ export default function DashboardPage() {
         </div>
     );
 }
+
 

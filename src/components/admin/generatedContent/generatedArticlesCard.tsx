@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { div as MotionDiv } from 'framer-motion/client';
 import Pagination from '@/components/admin/pagination';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { articlesApi } from '@/lib/api';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
@@ -30,9 +30,9 @@ import { Calendar as ShadCalendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import CreateArticleModal from '@/components/admin/generatedContent/CreateArticleModal/createArticleModal';
 import ReadGeneratedArticle from '@/components/admin/generatedContent/readGeneratedArticle';
+import PublishArticleModal from '@/components/admin/generatedContent/PublishArticleModal';
 
 import { StoryImage } from '@/components/StoryImage';
-import { CATEGORY_HIERARCHY } from '@/lib/categories';
 
 // Mock response type for now, as it might be added to types.ts later
 interface GeneratedArticlesResponse {
@@ -45,27 +45,19 @@ interface GeneratedArticlesResponse {
     };
 }
 
+const ALL_CATEGORIES_VALUE = '__all_categories__';
+
 interface GeneratedArticleCardProps {
     article: Article;
     variants: Variants;
 }
 
 export function GeneratedArticleCard({ article, variants }: GeneratedArticleCardProps) {
-    const queryClient = useQueryClient();
     const isPublished = article.status === 'published';
     const publishDate = article.publishDate || article.createdAt;
 
     const [isReadModalOpen, setIsReadModalOpen] = React.useState(false);
-
-    const publishMutation = useMutation({
-        mutationFn: () => articlesApi.publishArticle(article.id),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['generatedArticles'] });
-        },
-        onError: (error: Error) => {
-            alert(`Failed to publish: ${error.message}`);
-        }
-    });
+    const [isPublishModalOpen, setIsPublishModalOpen] = React.useState(false);
 
     return (
         <MotionDiv
@@ -150,25 +142,27 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
 
                 <button
                     type="button"
-                    onClick={() => publishMutation.mutate()}
-                    disabled={isPublished || publishMutation.isPending}
+                    onClick={() => setIsPublishModalOpen(true)}
+                    disabled={isPublished}
                     className={`flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-sm shadow-lg transition-all group/btn ${isPublished
                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
                         : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98]'
                         }`}
                 >
-                    {publishMutation.isPending ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                        <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                    )}
-                    {isPublished ? 'Published' : publishMutation.isPending ? 'Publishing...' : 'Publish Article'}
+                    <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                    {isPublished ? 'Published' : 'Publish Article'}
                 </button>
 
                 <ReadGeneratedArticle
                     article={article}
                     open={isReadModalOpen}
                     onOpenChange={setIsReadModalOpen}
+                />
+
+                <PublishArticleModal
+                    article={article}
+                    open={isPublishModalOpen}
+                    onOpenChange={setIsPublishModalOpen}
                 />
             </div>
         </MotionDiv>
@@ -199,6 +193,10 @@ export default function GeneratedArticlesList({ searchParams }: {
             category: category || undefined
         }),
         placeholderData: (prev) => prev,
+    });
+    const { data: categories } = useQuery({
+        queryKey: ['categories'],
+        queryFn: () => articlesApi.getCategories(),
     });
 
     const articles = data?.articles || [];
@@ -363,23 +361,21 @@ export default function GeneratedArticlesList({ searchParams }: {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                    <Select value={categoryDraft || 'All Types'} onValueChange={setCategoryDraft}>
+                    <Select
+                        value={categoryDraft || ALL_CATEGORIES_VALUE}
+                        onValueChange={(value) =>
+                            setCategoryDraft(value === ALL_CATEGORIES_VALUE ? '' : value)
+                        }
+                    >
                         <SelectTrigger className="h-12 w-[220px] rounded-2xl bg-gray-50/50 border-gray-100 text-sm font-semibold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm transition-all">
                             <SelectValue placeholder="All Categories" />
                         </SelectTrigger>
                         <SelectContent className="max-h-[400px]">
-                            <SelectItem value="All Types">All Categories</SelectItem>
-                            {CATEGORY_HIERARCHY.map((group) => (
-                                <React.Fragment key={group.label}>
-                                    <SelectItem value={group.label} className="font-bold text-orange-600">
-                                        {group.label} (All)
-                                    </SelectItem>
-                                    {group.subcategories.map((sub) => (
-                                        <SelectItem key={sub} value={sub} className="pl-6 font-medium">
-                                            {sub}
-                                        </SelectItem>
-                                    ))}
-                                </React.Fragment>
+                            <SelectItem value={ALL_CATEGORIES_VALUE}>All Categories</SelectItem>
+                            {(categories ?? []).map((cat) => (
+                                <SelectItem key={cat.id} value={cat.name} className="font-medium">
+                                    {cat.name}
+                                </SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
@@ -392,7 +388,7 @@ export default function GeneratedArticlesList({ searchParams }: {
                         + Create Article
                     </Button>
 
-                    {(searchDraft || (categoryDraft && categoryDraft !== 'All Types')) && (
+                    {(searchDraft || categoryDraft) && (
                         <Button
                             type="button"
                             variant="link"
@@ -400,7 +396,7 @@ export default function GeneratedArticlesList({ searchParams }: {
                             className="px-0 text-xs font-black uppercase tracking-widest text-[#ff4500] hover:text-orange-600"
                             onClick={() => {
                                 setSearchDraft('');
-                                setCategoryDraft('All Types');
+                                setCategoryDraft('');
                                 setQueryParams({ q: null, category: null });
                             }}
                         >

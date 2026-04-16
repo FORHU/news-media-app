@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { generateUniqueArticleSlug } from "@/lib/slug";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -18,25 +19,40 @@ function truncateContent(text: string, limit: number = 12000): string {
   return text.substring(0, limit) + "... [Truncated due to length]";
 }
 
-//AI persona/instruction
-function getAiSystemInstruction() {
+// AI persona/instruction
+function getAiSystemInstruction(sourceUrl?: string) {
+  const creditInstruction = sourceUrl
+    ? `\n9. SOURCE CREDITING: You MUST end the article with exactly one line: "Reference: ${sourceUrl}". This line must be inside the <content> tag and separated from the last paragraph by exactly two newlines (an empty line between them).`
+    : "";
+
   return `
+[PERSONA]:
+- You are a senior investigative journalist and professional news editor.
+- Your writing style is objective, authoritative, and concise.
+
 [FORMATTING RULES]:
 - STRUCTURE: Use ONLY these tags for your response:
   <title>Headline</title>
   <content>The article paragraphs...</content>
-- RULES: No intro phrases, no markdown, and no AI-clichés.
-- PARAGRAPHS: Divide the content into 3-5 distinct paragraphs. Use double newlines (\\n\\n) between each paragraph.
-- OUTPUT: Write the content inside the tags in the language requested by the user.
+
+[WRITING CONSTRAINTS]:
+1. NO CONCLUDING SUMMARIES: Never start a paragraph with "In summary", "In conclusion", "Overall", or "Ultimately".
+2. NO TRANSITIONAL CLICHÉS: Avoid "It is important to note", "In today's fast-paced world", or "Furthermore" at the start of sentences.
+3. NO INTRO PHRASES: Do not include "Here is the article" or any meta-commentary.
+4. JOURNALISTIC TONE: Focus on facts and implications. Do NOT use flowery language or AI-typical filler words.
+5. NO MARKDOWN: Do not use bold, italics, or lists.
+6. HEADLINE: The headline must be punchy and news-worthy.
+7. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use exactly two newlines (an empty line) between each paragraph for consistent spacing.
+8. OUTPUT: Write strictly in English unless otherwise requested.${creditInstruction}
 `;
 }
 
 // Handles data extraction from the AI response.
 function extractArticleData(
   responseText: string | null | undefined,
-  rawTitle: string
+  fallbackTitle: string
 ) {
-  if (!responseText) return { title: rawTitle, content: "" };
+  if (!responseText) return { title: fallbackTitle, content: "" };
 
   const extractTag = (tag: string) => {
     // Robustly find tags even if AI adds bolding or spaces: e.g. **<title>**
@@ -45,8 +61,21 @@ function extractArticleData(
     return match ? match[1].trim() : null;
   };
 
-  const title = extractTag("title") || rawTitle;
+  let title = extractTag("title") || fallbackTitle;
   const content = extractTag("content") || "";
+
+  // Sanity check for generic placeholders
+  const genericPlaceholders = [
+    "headline",
+    "write a catchy headline here",
+    "your catchy headline here",
+    "title here",
+    "article headline"
+  ];
+
+  if (genericPlaceholders.some(p => title.toLowerCase() === p.toLowerCase())) {
+    title = fallbackTitle;
+  }
 
   return { title, content };
 }
@@ -58,18 +87,18 @@ export async function POST(req: NextRequest) {
     const result = RequestSchema.safeParse(json);
 
     if (!result.success) {
-      return NextResponse.json({ 
-        error: "Validation failed", 
-        details: result.error.issues.map(e => e.message).join(", ") 
+      return NextResponse.json({
+        error: "Validation failed",
+        details: result.error.issues.map(e => e.message).join(", ")
       }, { status: 400 });
     }
 
-    const { 
-      articleId: bodyArticleId, 
-      categoryId, 
-      generationPrompt: customPrompt 
+    const {
+      articleId: bodyArticleId,
+      categoryId,
+      generationPrompt: customPrompt
     } = result.data;
-    
+
     articleId = bodyArticleId;
 
     const baseUrl = (process.env.GENERATE_CONTENT_API || "").replace(/\/$/, "");
@@ -77,6 +106,7 @@ export async function POST(req: NextRequest) {
 
     const rawArticle = await prisma.rawArticle.findUnique({
       where: { id: articleId },
+      include: { crawledUrl: true }
     });
     if (!rawArticle) {
       return NextResponse.json({ error: "Article not found" }, { status: 404 });
@@ -86,7 +116,7 @@ export async function POST(req: NextRequest) {
     if (!sessionRes.ok) throw new Error("Could not connect to AI service (session-id)");
     const { session_id } = await sessionRes.json();
 
-    const instruction = getAiSystemInstruction();
+    const instruction = getAiSystemInstruction(rawArticle.crawledUrl?.url);
 
     const truncatedInput = truncateContent(rawArticle.content || "No content provided.");
     const aiPayload = {
@@ -153,15 +183,19 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
 
       if (!user) throw new Error("No system user found for attribution");
 
+      const publishDate = new Date();
+      const slug = await generateUniqueArticleSlug(prisma, title, publishDate);
+
       const contentArticle = await prisma.contentArticle.create({
         data: {
           title,
+          slug,
           content,
           status: "pending",
           usersId: user.id,
           categoryId: resolvedCategoryId,
           rawArticleId: rawArticle.id,
-          publishDate: new Date(),
+          publishDate,
         },
       });
 

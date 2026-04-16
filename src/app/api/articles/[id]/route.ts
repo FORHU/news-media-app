@@ -4,7 +4,7 @@ import {
   articlesService,
   ArticlesServiceError,
 } from "@/services/articles.service";
-import { articleIdParamSchema } from "@/lib/validation/articles";
+import { articleIdentifierParamSchema } from "@/lib/validation/articles";
 
 export async function GET(
   _request: NextRequest,
@@ -12,7 +12,7 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  const parsed = articleIdParamSchema.safeParse({ id });
+  const parsed = articleIdentifierParamSchema.safeParse({ id });
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid path parameter", details: parsed.error.flatten() },
@@ -21,7 +21,7 @@ export async function GET(
   }
 
   try {
-    const article = await articlesService.getArticleById(parsed.data.id);
+    const article = await articlesService.getArticleBySlugOrId(parsed.data.id);
     return NextResponse.json(article);
   } catch (error) {
     if (error instanceof ArticlesServiceError) {

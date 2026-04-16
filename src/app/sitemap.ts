@@ -15,7 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const articles = await articlesService.getArticles({ limit: 100 });
 
   const articlePages: MetadataRoute.Sitemap = articles.map((article) => ({
-    url: `${SITE_URL}/article/${article.id}`,
+    url: `${SITE_URL}/article/${article.slug ?? article.id}`,
     lastModified: article.updatedAt ?? article.createdAt ?? new Date(),
     changeFrequency: "weekly",
     priority: 0.8,
