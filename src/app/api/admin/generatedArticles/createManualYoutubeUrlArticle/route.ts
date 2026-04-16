@@ -32,10 +32,14 @@ function truncateContent(text: string, limit: number = 12000): string {
 }
 
 // AI persona/instruction
-function getAiSystemInstruction(isYoutube: boolean) {
+function getAiSystemInstruction(isYoutube: boolean, youtubeUrl?: string) {
   const specializedGuidance = isYoutube 
     ? "The following content is a VIDEO TRANSCRIPT. Your primary task is to 'de-noise' it by removing verbal fillers, repetitive spoken phrases, and conversational 'ums/ahs'. Convert the transcription into a formal news narrative while preserving all factual information and quotes."
     : "The following content consists of TOPIC NOTES and SOURCE MATERIALS. Your task is to synthesize these materials into a cohesive, structured, and expanded news article.";
+
+  const creditInstruction = (isYoutube && youtubeUrl)
+    ? `\n9. SOURCE CREDITING: You MUST end the article with exactly one line: "Source: ${youtubeUrl}". This line must be inside the <content> tag and separated from the last paragraph by exactly two newlines (an empty line between them).`
+    : "";
 
   return `
 [PERSONA]:
@@ -55,9 +59,8 @@ function getAiSystemInstruction(isYoutube: boolean) {
 5. JOURNALISTIC TONE: Focus on facts and implications. Do NOT use flowery language or AI-typical filler words.
 6. NO MARKDOWN: Do not use bold, italics, or lists unless it is part of the provided source materials.
 7. HEADLINE: The headline must be punchy and news-worthy, not generic.
-8. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use double newlines (\\n\\n) between each paragraph for absolute clarity.
-
-[OUTPUT]: Write strictly in English unless otherwise requested.
+8. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use exactly two newlines (an empty line) between each paragraph for consistent spacing.
+9. OUTPUT: Write strictly in English unless otherwise requested.${creditInstruction}
 `;
 }
 
@@ -133,7 +136,7 @@ export async function POST(req: NextRequest) {
     const { session_id } = await sessionRes.json();
 
     const isYoutube = requestType === "youtube" || topic === "YouTube Video Article";
-    const instruction = getAiSystemInstruction(isYoutube);
+    const instruction = getAiSystemInstruction(isYoutube, youtubeUrl);
 
     const materialsText = [
       rawContent,
