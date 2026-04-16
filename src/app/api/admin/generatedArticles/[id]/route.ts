@@ -16,10 +16,10 @@ const UpdateSchema = z.object({
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const existing = await prisma.contentArticle.findUnique({
       where: { id },
