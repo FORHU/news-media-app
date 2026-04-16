@@ -9,7 +9,6 @@ import {
     LogOut,
     ChevronLeft,
     ChevronRight,
-    Home,
     X
 } from 'lucide-react';
 import Link from 'next/link';
@@ -35,6 +34,7 @@ export default function AdminSidebar({
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
+        await fetch('/api/admin/auth/logout', { method: 'POST' });
         router.push('/admin/login');
     };
 

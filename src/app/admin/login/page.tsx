@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, FormEvent, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { LogIn, Home } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
@@ -13,6 +13,7 @@ export default function LoginPage() {
     }, []);
 
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
@@ -43,7 +44,47 @@ export default function LoginPage() {
             return;
         }
 
-        router.push('/admin/dashboard');
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData.session?.access_token;
+
+        if (!accessToken) {
+            console.error('[LoginPage] Missing access token after sign-in', {
+                hasSession: Boolean(sessionData.session),
+            });
+            setError('Unable to validate admin access. Please try again.');
+            await supabase.auth.signOut();
+            return;
+        }
+
+        console.log('[LoginPage] Calling /api/admin/auth/session', {
+            tokenPreview: `${accessToken.slice(0, 12)}...`,
+            tokenLength: accessToken.length,
+        });
+
+        const roleCheckResponse = await fetch('/api/admin/auth/session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accessToken }),
+        });
+
+        const roleCheckPayload = await roleCheckResponse
+            .json()
+            .catch(() => ({ error: 'Non-JSON response from /api/admin/auth/session' }));
+
+        console.log('[LoginPage] /api/admin/auth/session result', {
+            status: roleCheckResponse.status,
+            ok: roleCheckResponse.ok,
+            payload: roleCheckPayload,
+        });
+
+        if (!roleCheckResponse.ok) {
+            setError('Access denied. Your account is not an admin.');
+            await supabase.auth.signOut();
+            return;
+        }
+
+        const redirectTo = searchParams.get('redirectTo');
+        router.push(redirectTo || '/admin/dashboard');
     };
 
     return (
