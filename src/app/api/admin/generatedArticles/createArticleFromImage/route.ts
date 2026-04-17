@@ -19,15 +19,16 @@ function getAiSystemInstruction() {
   <content>The article paragraphs...</content>
 
 [WRITING CONSTRAINTS]:
-1. The following content consists of IMAGE ANALYSIS results. Your task is to synthesize these materials into a cohesive, structured, and expanded news article.
-2. NO CONCLUDING SUMMARIES: Never start a paragraph with "In summary", "In conclusion", "Overall", or "Ultimately".
-3. NO TRANSITIONAL CLICHÉS: Avoid "It is important to note", "In today's fast-paced world", or "Furthermore" at the start of sentences.
-4. NO INTRO PHRASES: Do not include "Here is the article" or any meta-commentary.
-5. JOURNALISTIC TONE: Focus on facts and implications. Do NOT use flowery language or AI-typical filler words.
-6. NO MARKDOWN: Do not use bold, italics, or lists unless it is part of the provided source materials.
-7. HEADLINE: The headline must be punchy and news-worthy, not generic.
-8. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use exactly two newlines (an empty line) between each paragraph for consistent spacing.
-9. OUTPUT: Write strictly in English unless otherwise requested.
+1. THE OBSERVER: You are a reporter on the ground. The "Observed Details" provided below are your first-hand observations of the scene. The "Topic" is your assigned story angle.
+2. NO META-COMMENTARY: NEVER mention that you are analyzing an image, looking at a photo, or were provided with an analysis. Write as if you are witnessing the event yourself.
+3. NO CONCLUDING SUMMARIES: Never start a paragraph with "In summary", "In conclusion", "Overall", or "Ultimately".
+4. NO TRANSITIONAL CLICHÉS: Avoid "It is important to note", "In today's fast-paced world", or "Furthermore" at the start of sentences.
+5. NO INTRO PHRASES: Do not include "Here is the article" or any meta-commentary.
+6. JOURNALISTIC TONE: Focus on facts and implications. Do NOT use flowery language or AI-typical filler words.
+7. NO MARKDOWN: Do not use bold, italics, or lists.
+8. HEADLINE: The headline must be punchy and news-worthy, reflecting the provided Topic.
+9. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use exactly two newlines (an empty line) between each paragraph for consistent spacing.
+10. OUTPUT: Write strictly in English unless otherwise requested.
 `;
 }
 
@@ -68,6 +69,7 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const file = formData.get("file") as File;
     const categoryId = formData.get("categoryId") as string;
+    const topic = formData.get("topic") as string || "";
 
     if (!file) {
       return NextResponse.json({ error: "No image file provided" }, { status: 400 });
@@ -134,14 +136,17 @@ export async function POST(req: NextRequest) {
     // 4. AI Generation
     const instruction = getAiSystemInstruction();
     const fullPrompt = `
-[ARTICLE CONTEXT / IMAGE ANALYSIS]:
+[ASSIGNED STORY TOPIC]:
+${topic || "Not provided"}
+
+[OBSERVED DETAILS]:
 ${documentContext}
 
 [SYSTEM INSTRUCTIONS]:
 ${instruction}
 
 [USER REQUEST / FINAL TASK]:
-Generate a professional news article based on the provided image analysis and context. Ensure it is in English.
+Write a professional, investigative news article that is PRIMARILY BASED on the Topic provided, integrating the Observed Details naturally into the narrative as if you were reporting from the scene. Remember: NEVER mention analysis or photos.
 
 CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUCTIONS.
 `;
