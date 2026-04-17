@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
 import { categoriesService } from "@/services/categories.service";
-import { z } from "zod";
-
-const createCategorySchema = z.object({
-  name: z.string().trim().min(1, "Category name is required").max(80, "Category name is too long"),
-});
+import { createCategorySchema } from "@/lib/validation/category";
 
 export async function GET() {
   try {
@@ -28,8 +24,14 @@ export async function POST(req: Request) {
     }
     const category = await categoriesService.createCategory(parsed.data.name);
     return NextResponse.json(category, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Create category API error:", error);
+    
+    // Check if it's our custom validation error
+    if (error instanceof Error && error.message.includes("already exists")) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
+    
     return NextResponse.json({ error: "Failed to create category" }, { status: 500 });
   }
 }

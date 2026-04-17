@@ -158,8 +158,23 @@ export default function CreateArticleModal({
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
-            const newFiles = Array.from(e.target.files);
-            setFiles(prev => [...prev, ...newFiles]);
+            const incomingFiles = Array.from(e.target.files);
+            
+            setFiles(prev => {
+                const newImages = incomingFiles.filter(f => f.type.startsWith('image/'));
+                const newOthers = incomingFiles.filter(f => !f.type.startsWith('image/'));
+                
+                // For the manual tab image, we only want one.
+                // If new images are uploaded, take the last one and replace existing ones.
+                if (newImages.length > 0) {
+                    const latestImage = newImages[newImages.length - 1];
+                    const existingNonImages = prev.filter(f => !f.type.startsWith('image/'));
+                    return [...existingNonImages, ...newOthers, latestImage];
+                }
+                
+                return [...prev, ...newOthers];
+            });
+            
             setFieldErrors(prev => ({ ...prev, topic: undefined }));
         }
     };

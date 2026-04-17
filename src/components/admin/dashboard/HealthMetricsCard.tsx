@@ -27,7 +27,11 @@ const MetricRow = ({ label, value, total = 100, icon, color, delay = 0 }: Metric
       <div className="flex justify-between items-end">
         <div className="flex items-center gap-2">
           <div className={`p-1.5 rounded-lg bg-gray-50 text-gray-500`}>
-            {React.cloneElement(icon as React.ReactElement, { className: 'w-3.5 h-3.5' })}
+            {React.isValidElement(icon) 
+              ? React.cloneElement(icon as React.ReactElement<{ className?: string }>, { 
+                  className: 'w-3.5 h-3.5' 
+                }) 
+              : icon}
           </div>
           <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">{label}</span>
         </div>
