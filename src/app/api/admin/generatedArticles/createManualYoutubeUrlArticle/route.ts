@@ -32,15 +32,7 @@ function truncateContent(text: string, limit: number = 12000): string {
 }
 
 // AI persona/instruction
-function getAiSystemInstruction(isYoutube: boolean, youtubeUrl?: string) {
-  const specializedGuidance = isYoutube 
-    ? "The following content is a VIDEO TRANSCRIPT. Your primary task is to 'de-noise' it by removing verbal fillers, repetitive spoken phrases, and conversational 'ums/ahs'. Convert the transcription into a formal news narrative while preserving all factual information and quotes."
-    : "The following content consists of TOPIC NOTES and SOURCE MATERIALS. Your task is to synthesize these materials into a cohesive, structured, and expanded news article.";
-
-  const creditInstruction = (isYoutube && youtubeUrl)
-    ? `\n9. SOURCE CREDITING: You MUST end the article with exactly one line: "Source: ${youtubeUrl}". This line must be inside the <content> tag and separated from the last paragraph by exactly two newlines (an empty line between them).`
-    : "";
-
+function getAiSystemInstruction(isYoutube: boolean = false, youtubeUrl: string = "") {
   return `
 [PERSONA]:
 - You are a senior investigative journalist and professional news editor.
@@ -52,15 +44,17 @@ function getAiSystemInstruction(isYoutube: boolean, youtubeUrl?: string) {
   <content>The article paragraphs...</content>
 
 [WRITING CONSTRAINTS]:
-1. ${specializedGuidance}
-2. NO CONCLUDING SUMMARIES: Never start a paragraph with "In summary", "In conclusion", "Overall", or "Ultimately".
-3. NO TRANSITIONAL CLICHÉS: Avoid "It is important to note", "In today's fast-paced world", or "Furthermore" at the start of sentences.
-4. NO INTRO PHRASES: Do not include "Here is the article" or any meta-commentary.
-5. JOURNALISTIC TONE: Focus on facts and implications. Do NOT use flowery language or AI-typical filler words.
-6. NO MARKDOWN: Do not use bold, italics, or lists unless it is part of the provided source materials.
-7. HEADLINE: The headline must be punchy and news-worthy, not generic.
-8. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use exactly two newlines (an empty line) between each paragraph for consistent spacing.
-9. OUTPUT: Write strictly in English unless otherwise requested.${creditInstruction}
+1. THE OBSERVER: You are a reporter on the ground. The "Observed Details" provided below are your first-hand observations of the scene. The "Topic" is your assigned story angle.
+2. NO META-COMMENTARY: NEVER mention that you are analyzing an image, looking at a photo, or were provided with an analysis. Write as if you are witnessing the event yourself.
+3. NO CONCLUDING SUMMARIES: Never start a paragraph with "In summary", "In conclusion", "Overall", or "Ultimately".
+4. NO TRANSITIONAL CLICHÉS: Avoid "It is important to note", "In today's fast-paced world", or "Furthermore" at the start of sentences.
+5. NO INTRO PHRASES: Do not include "Here is the article" or any meta-commentary.
+6. JOURNALISTIC TONE: Focus on facts and implications. Do NOT use flowery language or AI-typical filler words.
+7. NO MARKDOWN: Do not use bold, italics, or lists.
+8. HEADLINE: The headline must be punchy and news-worthy, reflecting the provided Topic.
+9. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use exactly two newlines (an empty line) between each paragraph for consistent spacing.
+10. OUTPUT: Write strictly in English unless otherwise requested.
+${isYoutube ? `11. YOUTUBE CONTEXT: This article is based on a video at ${youtubeUrl}. Summarize the key points while maintaining the journalistic persona.` : ""}
 `;
 }
 
@@ -182,17 +176,18 @@ export async function POST(req: NextRequest) {
 
     // Construct the manual prompt
     const fullPrompt = `
-[ARTICLE CONTEXT / TOPIC]:
+[ASSIGNED STORY TOPIC]:
 ${topic || "Not provided"}
 
 [SOURCE MATERIALS]:
 ${truncatedInput}
+${documentContext !== "No additional content provided." ? `\n[OBSERVED DETAILS]:\n${documentContext}` : ""}
 
 [SYSTEM INSTRUCTIONS]:
 ${instruction}
 
 [USER REQUEST / FINAL TASK]:
-${customPrompt || "Generate a professional news article based on the provided context and materials. Ensure it is in English."}
+Write a professional, investigative news article that is PRIMARILY BASED on the Topic provided, integrating the Observed Details naturally into the narrative as if you were reporting from the scene. Remember: NEVER mention analysis or photos.
 
 CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUCTIONS.
 `;

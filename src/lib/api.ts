@@ -130,10 +130,11 @@ export const articlesApi = {
     return res.json();
   },
 
-  async createArticleFromImage(file: File, categoryId: string): Promise<unknown> {
+  async createArticleFromImage(file: File, categoryId: string, topic: string): Promise<unknown> {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("categoryId", categoryId);
+    formData.append("topic", topic);
 
     const res = await fetch("/api/admin/generatedArticles/createArticleFromImage", {
       method: "POST",
