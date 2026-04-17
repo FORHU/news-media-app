@@ -9,7 +9,8 @@ import {
     LogOut,
     ChevronLeft,
     ChevronRight,
-    X
+    X,
+    Users
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -43,6 +44,7 @@ export default function AdminSidebar({
         { id: 'generated', label: 'Generated Articles', icon: FileText, href: '/admin/dashboard/generated' },
         { id: 'urls', label: 'Crawl URLs', icon: LinkIcon, href: '/admin/dashboard/urls' },
         { id: 'crawled', label: 'Crawled Articles', icon: Database, href: '/admin/dashboard/crawled' },
+        { id: 'accounts', label: 'Accounts', icon: Users, href: '/admin/dashboard/accounts' },
     ];
 
     return (
