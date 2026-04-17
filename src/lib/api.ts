@@ -154,6 +154,7 @@ export const articlesApi = {
     page: number;
     limit: number;
     category?: string;
+    status?: string;
   }): Promise<{
     articles: Article[];
     pagination: {
@@ -166,6 +167,7 @@ export const articlesApi = {
     const searchParams = new URLSearchParams();
     if (params.q) searchParams.append("q", params.q);
     if (params.category) searchParams.append("category", params.category);
+    if (params.status) searchParams.append("status", params.status);
     searchParams.append("page", params.page.toString());
     searchParams.append("limit", params.limit.toString());
 
@@ -206,6 +208,19 @@ export const articlesApi = {
     if (!res.ok) {
       const error = await res.json().catch(() => ({}));
       throw new Error(error.error || "Failed to publish article");
+    }
+    return res.json();
+  },
+
+  async unpublishArticle(id: string): Promise<unknown> {
+    const res = await fetch(`/api/admin/generatedArticles/${id}/publish`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ publish: false }),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to unpublish article");
     }
     return res.json();
   },

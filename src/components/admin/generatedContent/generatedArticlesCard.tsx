@@ -11,7 +11,8 @@ import {
     Search,
     Newspaper,
     Loader2,
-    Send
+    Send,
+    EyeOff
 } from 'lucide-react';
 import { div as MotionDiv } from 'framer-motion/client';
 import Pagination from '@/components/admin/pagination';
@@ -33,6 +34,7 @@ import ReadGeneratedArticle from '@/components/admin/generatedContent/readGenera
 import PublishArticleModal from '@/components/admin/generatedContent/PublishArticleModal';
 
 import { StoryImage } from '@/components/StoryImage';
+import ConfirmationModal from '@/components/admin/shared/ConfirmationModal';
 
 // Mock response type for now, as it might be added to types.ts later
 interface GeneratedArticlesResponse {
@@ -46,6 +48,7 @@ interface GeneratedArticlesResponse {
 }
 
 const ALL_CATEGORIES_VALUE = '__all_categories__';
+const ALL_STATUS_VALUE = '__all_status__';
 
 interface GeneratedArticleCardProps {
     article: Article;
@@ -58,6 +61,29 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
 
     const [isReadModalOpen, setIsReadModalOpen] = React.useState(false);
     const [isPublishModalOpen, setIsPublishModalOpen] = React.useState(false);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = React.useState(false);
+    const [isUnpublishing, setIsUnpublishing] = React.useState(false);
+    const queryClient = useQueryClient();
+
+    const handleUnpublishClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsConfirmModalOpen(true);
+    };
+
+    const handleUnpublishConfirm = async () => {
+        setIsUnpublishing(true);
+        try {
+            await articlesApi.unpublishArticle(article.id);
+            // Realtime should handle it, but we invalidate for immediate feedback
+            queryClient.invalidateQueries({ queryKey: ['generatedArticles'] });
+            setIsConfirmModalOpen(false);
+        } catch (error) {
+            console.error('Failed to unpublish article:', error);
+            alert('Failed to unpublish article. Please try again.');
+        } finally {
+            setIsUnpublishing(false);
+        }
+    };
 
     return (
         <MotionDiv
@@ -140,18 +166,30 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                     Read
                 </button>
 
-                <button
-                    type="button"
-                    onClick={() => setIsPublishModalOpen(true)}
-                    disabled={isPublished}
-                    className={`flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-sm shadow-lg transition-all group/btn ${isPublished
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
-                        : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98]'
-                        }`}
-                >
-                    <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                    {isPublished ? 'Published' : 'Publish Article'}
-                </button>
+                {isPublished ? (
+                    <button
+                        type="button"
+                        onClick={handleUnpublishClick}
+                        disabled={isUnpublishing}
+                        className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-sm bg-red-50 text-red-600 hover:bg-red-100 hover:scale-[1.02] active:scale-[0.98] shadow-sm transition-all group/btn disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {isUnpublishing ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                            <EyeOff className="w-5 h-5 text-red-400 group-hover/btn:text-red-600 transition-colors" />
+                        )}
+                        Unpublish Article
+                    </button>
+                ) : (
+                    <button
+                        type="button"
+                        onClick={() => setIsPublishModalOpen(true)}
+                        className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-sm bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all group/btn"
+                    >
+                        <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                        Publish Article
+                    </button>
+                )}
 
                 <ReadGeneratedArticle
                     article={article}
@@ -164,13 +202,24 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                     open={isPublishModalOpen}
                     onOpenChange={setIsPublishModalOpen}
                 />
+
+                <ConfirmationModal 
+                    isOpen={isConfirmModalOpen}
+                    onOpenChange={setIsConfirmModalOpen}
+                    onConfirm={handleUnpublishConfirm}
+                    title="Unpublish Article?"
+                    description="This will remove the article from the public site and move it back to pending status. You can edit and republish it later."
+                    confirmText="Yes, Unpublish"
+                    variant="warning"
+                    isLoading={isUnpublishing}
+                />
             </div>
         </MotionDiv>
     );
 }
 
 export default function GeneratedArticlesList({ searchParams }: {
-    searchParams: { q?: string; page?: string; date?: string; category?: string }
+    searchParams: { q?: string; page?: string; date?: string; category?: string; status?: string }
 }) {
     const router = useRouter();
     const pathname = usePathname();
@@ -180,17 +229,19 @@ export default function GeneratedArticlesList({ searchParams }: {
     const searchQuery = urlSearchParams.get('q') || searchParams.q || '';
     const date = urlSearchParams.get('date') || searchParams.date || '';
     const category = urlSearchParams.get('category') || searchParams.category || '';
+    const status = urlSearchParams.get('status') || searchParams.status || '';
     const currentPage = parseInt(urlSearchParams.get('page') || searchParams.page || '1');
     const limit = 10;
 
     // Use the new API for fetching generated articles
     const { data, isLoading, isError } = useQuery<GeneratedArticlesResponse>({
-        queryKey: ['generatedArticles', { searchQuery, currentPage, category, date }],
+        queryKey: ['generatedArticles', { searchQuery, currentPage, category, date, status }],
         queryFn: () => articlesApi.getGeneratedArticles({
             page: currentPage,
             limit,
             q: searchQuery,
-            category: category || undefined
+            category: category || undefined,
+            status: status || undefined
         }),
         placeholderData: (prev) => prev,
     });
@@ -225,11 +276,16 @@ export default function GeneratedArticlesList({ searchParams }: {
 
     const [searchDraft, setSearchDraft] = React.useState(searchQuery);
     const [categoryDraft, setCategoryDraft] = React.useState(category);
+    const [statusDraft, setStatusDraft] = React.useState(status);
     const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false);
 
     React.useEffect(() => {
         setCategoryDraft(category);
     }, [category]);
+
+    React.useEffect(() => {
+        setStatusDraft(status);
+    }, [status]);
 
     React.useEffect(() => {
         setSearchDraft(searchQuery);
@@ -247,6 +303,11 @@ export default function GeneratedArticlesList({ searchParams }: {
         if (categoryDraft === category) return;
         setQueryParams({ category: categoryDraft || null });
     }, [categoryDraft, category, setQueryParams]);
+
+    React.useEffect(() => {
+        if (statusDraft === status) return;
+        setQueryParams({ status: statusDraft || null });
+    }, [statusDraft, status, setQueryParams]);
 
     React.useEffect(() => {
         // Debug: confirms the realtime effect is mounted for this page.
@@ -367,7 +428,7 @@ export default function GeneratedArticlesList({ searchParams }: {
                             setCategoryDraft(value === ALL_CATEGORIES_VALUE ? '' : value)
                         }
                     >
-                        <SelectTrigger className="h-12 w-[220px] rounded-2xl bg-gray-50/50 border-gray-100 text-sm font-semibold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm transition-all">
+                        <SelectTrigger className="h-12 w-[180px] rounded-2xl bg-gray-50/50 border-gray-100 text-sm font-semibold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm transition-all">
                             <SelectValue placeholder="All Categories" />
                         </SelectTrigger>
                         <SelectContent className="max-h-[400px]">
@@ -380,6 +441,22 @@ export default function GeneratedArticlesList({ searchParams }: {
                         </SelectContent>
                     </Select>
 
+                    <Select
+                        value={statusDraft || ALL_STATUS_VALUE}
+                        onValueChange={(value) =>
+                            setStatusDraft(value === ALL_STATUS_VALUE ? '' : value)
+                        }
+                    >
+                        <SelectTrigger className="h-12 w-[160px] rounded-2xl bg-gray-50/50 border-gray-100 text-sm font-semibold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm transition-all">
+                            <SelectValue placeholder="All Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value={ALL_STATUS_VALUE}>All Status</SelectItem>
+                            <SelectItem value="Published" className="font-medium">Published</SelectItem>
+                            <SelectItem value="Pending" className="font-medium">Pending</SelectItem>
+                        </SelectContent>
+                    </Select>
+
                     <Button
                         type="button"
                         onClick={() => setIsCreateModalOpen(true)}
@@ -388,7 +465,7 @@ export default function GeneratedArticlesList({ searchParams }: {
                         + Create Article
                     </Button>
 
-                    {(searchDraft || categoryDraft) && (
+                    {(searchDraft || categoryDraft || statusDraft) && (
                         <Button
                             type="button"
                             variant="link"
@@ -397,7 +474,8 @@ export default function GeneratedArticlesList({ searchParams }: {
                             onClick={() => {
                                 setSearchDraft('');
                                 setCategoryDraft('');
-                                setQueryParams({ q: null, category: null });
+                                setStatusDraft('');
+                                setQueryParams({ q: null, category: null, status: null });
                             }}
                         >
                             Clear
