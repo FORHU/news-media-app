@@ -130,6 +130,24 @@ export const articlesApi = {
     return res.json();
   },
 
+  async createArticleFromImage(file: File, categoryId: string): Promise<unknown> {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("categoryId", categoryId);
+
+    const res = await fetch("/api/admin/generatedArticles/createArticleFromImage", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to generate article from image");
+    }
+
+    return res.json();
+  },
+
   async getGeneratedArticles(params: {
     q?: string;
     page: number;
@@ -227,4 +245,20 @@ export const articlesApi = {
     }
     return res.json();
   },
+
+
+  async getUploadUrl(filename: string, contentType: string): Promise<{ url: string; key: string }> {
+    const res = await fetch("/api/admin/upload-presigned", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ filename, contentType }),
+    });
+
+    if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.error || "Failed to get upload URL");
+    }
+    return res.json();
+  },
+
 };

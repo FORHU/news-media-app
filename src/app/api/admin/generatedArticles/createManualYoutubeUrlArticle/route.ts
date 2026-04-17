@@ -138,6 +138,41 @@ export async function POST(req: NextRequest) {
     const isYoutube = requestType === "youtube" || topic === "YouTube Video Article";
     const instruction = getAiSystemInstruction(isYoutube, youtubeUrl);
 
+    let documentContext = "No additional content provided.";
+
+    // If an image is provided, ensure it is analyzed first
+    if (imageUrl && !isYoutube) {
+      try {
+        console.log("[Manual AI Generate] Triggering analysis for:", imageUrl);
+        // Extract filename from URL/Key
+        const s3Key = imageUrl.split(process.env.NEXT_PUBLIC_CLOUDFRONT_URL || "").pop()?.replace(/^\//, "") || imageUrl;
+        const filename = s3Key.split("/").pop() || "image.jpg";
+
+        const analyzeRes = await fetch(`${baseUrl}/api/legal/analyze-document`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            s3_key: s3Key,
+            filename: filename,
+            session_id: session_id
+          }),
+        });
+
+        if (analyzeRes.ok) {
+          const analysisResult = await analyzeRes.json();
+          // If the result is a plain string, we use it directly. 
+          // If it's an object, we look for a text property.
+          documentContext = typeof analysisResult === 'string' ? analysisResult : JSON.stringify(analysisResult);
+          console.log("[Manual AI Generate] Analysis successful, length:", documentContext.length);
+        } else {
+          const analyzeError = await analyzeRes.json().catch(() => ({}));
+          console.error("[Manual AI Generate] Analysis failed:", analyzeError);
+        }
+      } catch (err) {
+        console.error("[Manual AI Generate] Analysis trigger error:", err);
+      }
+    }
+
     const materialsText = [
       rawContent,
       fileContent ? `[FILE MATERIALS]:\n${fileContent}` : null
@@ -146,8 +181,7 @@ export async function POST(req: NextRequest) {
     const truncatedInput = truncateContent(materialsText || "No additional content provided.");
 
     // Construct the manual prompt
-    const aiPayload = {
-      user_input: `
+    const fullPrompt = `
 [ARTICLE CONTEXT / TOPIC]:
 ${topic || "Not provided"}
 
@@ -161,10 +195,14 @@ ${instruction}
 ${customPrompt || "Generate a professional news article based on the provided context and materials. Ensure it is in English."}
 
 CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUCTIONS.
-`,
-      session_id,
+`;
+
+    const aiPayload = {
+      user_input: fullPrompt,
+      session_id: session_id,
       persona_prefix: "NewsLetter",
-      document_context: truncatedInput,
+      document_context: documentContext,
+      image_context: imageUrl || ""
     };
 
     console.log("[Manual AI Generate] Sending Payload (Truncated):", JSON.stringify({ ...aiPayload, user_input: aiPayload.user_input.substring(0, 500) + "..." }, null, 2));
@@ -214,7 +252,7 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
           title,
           slug,
           content,
-          imageUrl:null,
+          imageUrl: imageUrl || null,
           status: "pending",
           usersId: user.id,
           categoryId: categoryId,
