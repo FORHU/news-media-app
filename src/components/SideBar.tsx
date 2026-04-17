@@ -4,8 +4,10 @@ import Link from "next/link";
 import { X, Mail } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RemoveScroll } from "react-remove-scroll";
-import { useQuery } from "@tanstack/react-query";
-import { articlesApi } from "@/lib/api";
+import {
+    CORE_CATEGORIES,
+    HOME_CATEGORY_LABEL,
+} from "@/config/categories";
 
 interface SideBarProps {
     isOpen: boolean;
@@ -18,13 +20,9 @@ function categoryHref(categoryName: string) {
 }
 
 export function SideBar({ isOpen, onClose, onOpenNewsletter }: SideBarProps) {
-    const { data: categories = [] } = useQuery({
-        queryKey: ["categories"],
-        queryFn: () => articlesApi.getCategories(),
-    });
     const categoryLinks = [
-        { name: "Latest News", link: "/" },
-        ...Array.from(new Set(categories.map((cat) => cat.name.trim()).filter(Boolean))).map((categoryName) => ({
+        { name: HOME_CATEGORY_LABEL, link: "/" },
+        ...CORE_CATEGORIES.map((categoryName) => ({
             name: categoryName,
             link: categoryHref(categoryName),
         })),
