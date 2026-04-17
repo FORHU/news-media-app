@@ -67,6 +67,7 @@ export const generatedArticlesRepository = {
     }
 
     const { data, error, count } = await query
+      .order("publish_date", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 

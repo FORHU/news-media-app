@@ -51,7 +51,10 @@ export const articlesRepository = {
         and.length > 0
           ? { AND: and }
           : undefined,
-      orderBy: { createdAt: "desc" },
+      orderBy: [
+        { publishDate: { sort: "desc", nulls: "last" } },
+        { createdAt: "desc" }
+      ],
       include: { category: true },
     }) as Promise<Article[]>;
   },
