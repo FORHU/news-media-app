@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, FormEvent, useEffect } from 'react';
+import { useState, FormEvent, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { LogIn, Home } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { adminLoginSchema } from '@/lib/validation/login';
 
-export default function LoginPage() {
+function LoginContent() {
     useEffect(() => {
         document.title = "Admin Login | FORHU";
     }, []);
@@ -20,6 +20,7 @@ export default function LoginPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+        // ... same logic
         e.preventDefault();
         setError(null);
 
@@ -48,33 +49,15 @@ export default function LoginPage() {
         const accessToken = sessionData.session?.access_token;
 
         if (!accessToken) {
-            console.error('[LoginPage] Missing access token after sign-in', {
-                hasSession: Boolean(sessionData.session),
-            });
             setError('Unable to validate admin access. Please try again.');
             await supabase.auth.signOut();
             return;
         }
 
-        console.log('[LoginPage] Calling /api/admin/auth/session', {
-            tokenPreview: `${accessToken.slice(0, 12)}...`,
-            tokenLength: accessToken.length,
-        });
-
         const roleCheckResponse = await fetch('/api/admin/auth/session', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ accessToken }),
-        });
-
-        const roleCheckPayload = await roleCheckResponse
-            .json()
-            .catch(() => ({ error: 'Non-JSON response from /api/admin/auth/session' }));
-
-        console.log('[LoginPage] /api/admin/auth/session result', {
-            status: roleCheckResponse.status,
-            ok: roleCheckResponse.ok,
-            payload: roleCheckPayload,
         });
 
         if (!roleCheckResponse.ok) {
@@ -89,7 +72,6 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen bg-white flex items-center justify-center px-4">
-
             <Link
                 href="/"
                 className="fixed top-6 left-6 flex items-center gap-2 text-gray-700 hover:text-[#ff4500] transition-colors"
@@ -99,7 +81,6 @@ export default function LoginPage() {
             </Link>
 
             <div className="w-full max-w-md">
-
                 <div className="text-center mb-8">
                     <h1 className="text-4xl font-bold text-gray-900 mb-2">FORHU</h1>
                     <p className="text-gray-600">Admin Portal</p>
@@ -109,7 +90,6 @@ export default function LoginPage() {
                     <h2 className="text-2xl font-bold text-gray-900 mb-6">Sign In</h2>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
-
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                                 Admin email
@@ -158,6 +138,18 @@ export default function LoginPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-white flex items-center justify-center">
+                <div className="animate-pulse text-gray-400 font-medium">Loading Portal...</div>
+            </div>
+        }>
+            <LoginContent />
+        </Suspense>
     );
 }
 

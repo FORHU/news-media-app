@@ -57,43 +57,73 @@ export function ManualMaterialsUpload({
         <div className="space-y-4">
             <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Materials (PDF, TXT, IMAGES)</span>
             <div
-                className="relative group border-2 border-dashed border-gray-200 rounded-3xl p-8 transition-all hover:bg-orange-50/50 hover:border-orange-200 flex flex-col items-center justify-center gap-3 cursor-pointer overflow-hidden shadow-sm"
-                onClick={() => document.getElementById('file-upload')?.click()}
+                className="relative group border-2 border-dashed border-gray-200 rounded-3xl transition-all hover:bg-orange-50/50 hover:border-orange-200 flex flex-col items-center justify-center gap-3 cursor-pointer overflow-hidden shadow-sm min-h-[160px]"
+                onClick={() => !files.some(f => f.type.startsWith('image/')) && document.getElementById('file-upload')?.click()}
             >
                 <input
                     id="file-upload"
                     type="file"
-                    multiple
-                    accept=".pdf,.txt,image/*"
+                    accept="image/*,.pdf,.txt"
                     className="hidden"
                     onChange={handleFileChange}
                 />
-                <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center group-hover:scale-110 group-hover:bg-orange-100 transition-all duration-500">
-                    <Upload className="w-6 h-6 text-gray-400 group-hover:text-orange-500" />
-                </div>
-                <div className="text-center">
-                    <p className="text-sm font-bold text-gray-900">Click or drag to upload</p>
-                    <p className="text-xs text-gray-400 font-medium mt-1">Enhance generation with your own documents</p>
-                </div>
+                
+                {files.find(f => f.type.startsWith('image/')) ? (
+                    <div className="absolute inset-0 w-full h-full animate-in fade-in zoom-in duration-300">
+                        <img 
+                            src={URL.createObjectURL(files.find(f => f.type.startsWith('image/'))!)} 
+                            alt="Preview" 
+                            className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                            <Button 
+                                variant="secondary" 
+                                size="sm" 
+                                className="rounded-full font-bold bg-white/20 backdrop-blur-md border-white/20 text-white hover:bg-white/40"
+                                onClick={(e) => { e.stopPropagation(); document.getElementById('file-upload')?.click(); }}
+                            >
+                                Change Image
+                            </Button>
+                            <Button 
+                                variant="destructive" 
+                                size="sm" 
+                                className="rounded-full font-bold shadow-lg"
+                                onClick={(e) => { e.stopPropagation(); removeFile(files.findIndex(f => f.type.startsWith('image/'))); }}
+                            >
+                                <X className="w-4 h-4 mr-1" /> Remove
+                            </Button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center justify-center p-8">
+                        <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center group-hover:scale-110 group-hover:bg-orange-100 transition-all duration-500">
+                            <Upload className="w-6 h-6 text-gray-400 group-hover:text-orange-500" />
+                        </div>
+                        <div className="text-center">
+                            <p className="text-sm font-bold text-gray-900">Click or drag image here</p>
+                            <p className="text-xs text-gray-400 font-medium mt-1">Only 1 image allowed for generation</p>
+                        </div>
+                    </div>
+                )}
             </div>
 
-            {/* File List */}
+            {/* Non-image File List */}
             <AnimatePresence>
-                {files.length > 0 && (
+                {files.filter(f => !f.type.startsWith('image/')).length > 0 && (
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         className="grid grid-cols-1 sm:grid-cols-2 gap-3"
                     >
-                        {files.map((file, idx) => (
+                        {files.filter(f => !f.type.startsWith('image/')).map((file, idx) => (
                             <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100 group shadow-sm">
                                 <div className="flex items-center gap-3 truncate">
                                     {getFileIcon(file.name)}
                                     <span className="text-xs font-bold text-gray-700 truncate">{file.name}</span>
                                 </div>
                                 <button
-                                    onClick={(e) => { e.stopPropagation(); removeFile(idx); }}
+                                    onClick={(e) => { e.stopPropagation(); removeFile(files.indexOf(file)); }}
                                     className="p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all"
                                 >
                                     <X className="w-3.5 h-3.5" />

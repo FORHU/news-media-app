@@ -4,6 +4,7 @@ import React from "react";
 import { Loader2, Plus } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
+import { createCategorySchema } from "@/lib/validation/category";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -75,11 +76,17 @@ export default function CategorySelectWithOther({
 
   const handleCreateCategory = () => {
     const trimmed = newCategoryName.trim();
-    if (!trimmed) {
-      setLocalError("Please enter a category name.");
+    
+    // Pre-flight validation using shared Zod schema
+    const result = createCategorySchema.safeParse({ name: trimmed });
+    
+    if (!result.success) {
+      setLocalError(result.error.issues[0].message);
       return;
     }
-    createCategoryMutation.mutate(trimmed);
+    
+    // If validation passes, we use the transformed name (e.g. capitalized)
+    createCategoryMutation.mutate(result.data.name);
   };
 
   if (isOtherMode) {
