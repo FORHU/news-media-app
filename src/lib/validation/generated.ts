@@ -3,6 +3,7 @@ import { z } from "zod";
 /** API: generated articles list query params */
 export const generatedArticlesQuerySchema = z.object({
   category: z.string().optional().default("All Types"),
+  status: z.string().optional().default("All Status"),
   q: z.string().optional().default(""),
   page: z
     .preprocess(

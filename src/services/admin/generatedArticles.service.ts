@@ -8,6 +8,7 @@ type GetGeneratedArticlesParams = {
   page: number;
   limit: number;
   category?: string;
+  status?: string;
 };
 
 export const generatedArticlesService = {
@@ -19,6 +20,7 @@ export const generatedArticlesService = {
       offset,
       limit: params.limit,
       category: params.category,
+      status: params.status,
     };
 
     const { data, count } = await generatedArticlesRepository.fetchGeneratedArticles(repositoryParams);
@@ -78,5 +80,9 @@ export const generatedArticlesService = {
 
   async publishArticle(id: string) {
     return generatedArticlesRepository.updateStatus(id, "published");
+  },
+
+  async unpublishArticle(id: string) {
+    return generatedArticlesRepository.updateStatus(id, "pending");
   },
 };

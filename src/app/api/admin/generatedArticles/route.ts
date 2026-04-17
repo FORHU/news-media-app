@@ -9,6 +9,7 @@ export async function GET(req: NextRequest) {
 
   const parsed = generatedArticlesQuerySchema.safeParse({
     category: searchParams.get("category") ?? undefined,
+    status: searchParams.get("status") ?? undefined,
     q: searchParams.get("q") ?? undefined,
     page: searchParams.get("page") ?? undefined,
     limit: searchParams.get("limit") ?? undefined,

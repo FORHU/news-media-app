@@ -102,9 +102,11 @@ export async function PATCH(
     if (imageUrl !== undefined) updateData.imageUrl = imageUrl || null;
     if (youtubeUrl !== undefined) updateData.youtubeUrl = youtubeUrl || null;
     if (newSlug !== existing.slug) updateData.slug = newSlug;
-    if (publish) {
-      updateData.status = "published";
-      updateData.publishDate = existing.publishDate ?? new Date();
+    if (publish !== undefined) {
+      updateData.status = publish ? "published" : "pending";
+      if (publish) {
+        updateData.publishDate = existing.publishDate ?? new Date();
+      }
     }
 
     const updated = await prisma.contentArticle.update({

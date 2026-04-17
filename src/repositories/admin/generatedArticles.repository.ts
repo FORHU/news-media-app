@@ -6,6 +6,7 @@ export type FetchGeneratedArticlesParams = {
   offset: number;
   limit: number;
   category?: string;
+  status?: string;
 };
 
 type ContentArticleSupabase = {
@@ -64,6 +65,10 @@ export const generatedArticlesRepository = {
 
     if (hasCategoryFilter) {
       query = query.filter("category.category_name", "eq", category);
+    }
+
+    if (params.status && params.status !== "All Status") {
+      query = query.filter("status", "eq", params.status.toLowerCase());
     }
 
     const { data, error, count } = await query
