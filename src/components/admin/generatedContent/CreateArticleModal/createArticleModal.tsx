@@ -131,26 +131,27 @@ export default function CreateArticleModal({
         });
     };
 
-    const uploadFileToSupabase = async (file: File): Promise<string | null> => {
+    const uploadFileWithPresignedUrl = async (file: File): Promise<string | null> => {
         try {
-            const { supabase } = await import("@/lib/supabaseClient");
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Math.random()}-${Date.now()}.${fileExt}`;
-            const filePath = `article-materials/${fileName}`;
+            // 1. Get presigned URL
+            const { url, key } = await articlesApi.getUploadUrl(file.name, file.type);
+            
+            // 2. Upload directly to S3
+            const uploadRes = await fetch(url, {
+                method: "PUT",
+                body: file,
+                headers: {
+                    "Content-Type": file.type,
+                },
+            });
 
-            const { data, error: uploadError } = await supabase.storage
-                .from('articles') // Assuming "articles" bucket exists
-                .upload(filePath, file);
+            if (!uploadRes.ok) throw new Error("Failed to upload to S3 via presigned URL");
 
-            if (uploadError) throw uploadError;
-
-            const { data: { publicUrl } } = supabase.storage
-                .from('articles')
-                .getPublicUrl(filePath);
-
-            return publicUrl;
+            // 3. Return the key/URL (we'll use the cloudfront URL + key)
+            const cloudfrontUrl = (process.env.NEXT_PUBLIC_CLOUDFRONT_URL || "").replace(/\/$/, "");
+            return cloudfrontUrl ? `${cloudfrontUrl}/${key}` : key;
         } catch (err) {
-            console.error("Upload error:", err);
+            console.error("Presigned Upload error:", err);
             return null;
         }
     };
@@ -202,7 +203,7 @@ export default function CreateArticleModal({
 
                 // Upload first image if exists
                 if (imageFiles.length > 0) {
-                    const result = await uploadFileToSupabase(imageFiles[0]);
+                    const result = await uploadFileWithPresignedUrl(imageFiles[0]);
                     if (!result) {
                         throw new Error("Failed to upload image. Please try again.");
                     }

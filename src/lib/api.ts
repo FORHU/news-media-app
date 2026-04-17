@@ -227,4 +227,49 @@ export const articlesApi = {
     }
     return res.json();
   },
+
+  async uploadFile(file: File): Promise<{ url: string }> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch("/api/admin/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to upload file");
+    }
+
+    return res.json();
+  },
+
+  async getUploadUrl(filename: string, contentType: string): Promise<{ url: string; key: string }> {
+    const res = await fetch("/api/admin/upload-presigned", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ filename, contentType }),
+    });
+
+    if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.error || "Failed to get upload URL");
+    }
+    return res.json();
+  },
+
+  async analyzeDocument(s3Key: string, filename: string, sessionId: string): Promise<any> {
+    const res = await fetch("/api/admin/analyze-document", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ s3_key: s3Key, filename, session_id: sessionId }),
+    });
+
+    if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.error || "Failed to analyze document");
+    }
+    return res.json();
+  },
 };

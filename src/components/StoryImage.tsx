@@ -98,6 +98,7 @@ export function StoryImage({
       priority={priority}
       sizes={sizes}
       className={className}
+      unoptimized={true}
       onError={() => {
         setError(true);
       }}
