@@ -1,38 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { uploadToS3 } from "@/lib/s3";
 import { generateUniqueArticleSlug } from "@/lib/slug";
-import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-const RequestSchema = z.object({
-  topic: z.string().optional(),
-  categoryId: z.string().min(1, "Category is required"),
-  content: z.string().optional(),
-  prompt: z.string().optional(),
-  fileContent: z.string().optional(),
-  imageUrl: z.string().url().optional().or(z.literal("")),
-  youtubeUrl: z.string().url().optional().or(z.literal("")),
-  type: z.enum(["manual", "youtube"]).optional(),
-}).refine(data => {
-  const hasTopic = data.topic && data.topic.trim().length > 0;
-  const hasContent = data.content && data.content.trim().length > 0;
-  const hasFileContent = data.fileContent && data.fileContent.trim().length > 0;
-  return hasTopic || hasContent || hasFileContent;
-}, {
-  message: "Insufficient information provided. Please provide a topic, content, or materials."
-});
-
-// Safety truncation to avoid token limit errors
-function truncateContent(text: string, limit: number = 12000): string {
-  if (!text) return "";
-  if (text.length <= limit) return text;
-  return text.substring(0, limit) + "... [Truncated due to length]";
-}
-
 // AI persona/instruction
-function getAiSystemInstruction(isYoutube: boolean = false, youtubeUrl: string = "") {
+function getAiSystemInstruction() {
   return `
 [PERSONA]:
 - You are a senior investigative journalist and professional news editor.
@@ -54,7 +29,6 @@ function getAiSystemInstruction(isYoutube: boolean = false, youtubeUrl: string =
 8. HEADLINE: The headline must be punchy and news-worthy, reflecting the provided Topic.
 9. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use exactly two newlines (an empty line) between each paragraph for consistent spacing.
 10. OUTPUT: Write strictly in English unless otherwise requested.
-${isYoutube ? `11. YOUTUBE CONTEXT: This article is based on a video at ${youtubeUrl}. Summarize the key points while maintaining the journalistic persona.` : ""}
 `;
 }
 
@@ -92,26 +66,24 @@ function extractArticleData(
 
 export async function POST(req: NextRequest) {
   try {
-    const json = await req.json();
-    const result = RequestSchema.safeParse(json);
+    const formData = await req.formData();
+    const file = formData.get("file") as File;
+    const categoryId = formData.get("categoryId") as string;
+    const topic = formData.get("topic") as string || "";
 
-    if (!result.success) {
-      return NextResponse.json({
-        error: "Validation failed",
-        details: result.error.issues.map(e => e.message).join(", ")
-      }, { status: 400 });
+    if (!file) {
+      return NextResponse.json({ error: "No image file provided" }, { status: 400 });
     }
 
-    const {
-      topic,
-      categoryId,
-      content: rawContent,
-      prompt: customPrompt,
-      fileContent,
-      imageUrl,
-      youtubeUrl,
-      type: requestType
-    } = result.data;
+    if (!categoryId) {
+      return NextResponse.json({ error: "Category ID is required" }, { status: 400 });
+    }
+
+    // 1. Upload to S3
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const contentType = file.type || "application/octet-stream";
+    const fileName = file.name;
+    const imageUrl = await uploadToS3(buffer, fileName, contentType);
 
     // Verify category exists
     const category = await prisma.category.findUnique({
@@ -125,63 +97,50 @@ export async function POST(req: NextRequest) {
     const baseUrl = (process.env.GENERATE_CONTENT_API || "").replace(/\/$/, "");
     if (!baseUrl) throw new Error("GENERATE_CONTENT_API is not configured");
 
+    // 2. Get FastAPI Session
     const sessionRes = await fetch(`${baseUrl}/session-id`);
     if (!sessionRes.ok) throw new Error("Could not connect to AI service (session-id)");
     const { session_id } = await sessionRes.json();
 
-    const isYoutube = requestType === "youtube" || topic === "YouTube Video Article";
-    const instruction = getAiSystemInstruction(isYoutube, youtubeUrl);
+    // 3. Document Analysis via FastAPI
+    // Extract S3 Key from URL
+    const s3Key = imageUrl.split(process.env.NEXT_PUBLIC_CLOUDFRONT_URL || "").pop()?.replace(/^\//, "") || imageUrl;
+    const analysisFilename = s3Key.split("/").pop() || "image.jpg";
 
     let documentContext = "No additional content provided.";
+    try {
+      console.log("[Create from Image] Triggering analysis for:", imageUrl);
+      const analyzeRes = await fetch(`${baseUrl}/api/legal/analyze-document`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          s3_key: s3Key,
+          filename: analysisFilename,
+          session_id: session_id
+        }),
+      });
 
-    // If an image is provided, ensure it is analyzed first
-    if (imageUrl && !isYoutube) {
-      try {
-        console.log("[Manual AI Generate] Triggering analysis for:", imageUrl);
-        // Extract filename from URL/Key
-        const s3Key = imageUrl.split(process.env.NEXT_PUBLIC_CLOUDFRONT_URL || "").pop()?.replace(/^\//, "") || imageUrl;
-        const filename = s3Key.split("/").pop() || "image.jpg";
-
-        const analyzeRes = await fetch(`${baseUrl}/api/legal/analyze-document`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            s3_key: s3Key,
-            filename: filename,
-            session_id: session_id
-          }),
-        });
-
-        if (analyzeRes.ok) {
-          const analysisResult = await analyzeRes.json();
-          // If the result is a plain string, we use it directly. 
-          // If it's an object, we look for a text property.
-          documentContext = typeof analysisResult === 'string' ? analysisResult : JSON.stringify(analysisResult);
-          console.log("[Manual AI Generate] Analysis successful, length:", documentContext.length);
-        } else {
-          const analyzeError = await analyzeRes.json().catch(() => ({}));
-          console.error("[Manual AI Generate] Analysis failed:", analyzeError);
-        }
-      } catch (err) {
-        console.error("[Manual AI Generate] Analysis trigger error:", err);
+      if (analyzeRes.ok) {
+        const analysisResult = await analyzeRes.json();
+        documentContext = typeof analysisResult === 'string' ? analysisResult : JSON.stringify(analysisResult);
+        console.log("[Create from Image] Analysis successful, length:", documentContext.length);
+      } else {
+        const analyzeError = await analyzeRes.json().catch(() => ({}));
+        console.error("[Create from Image] Analysis failed:", analyzeError);
+        // We continue even if analysis fails, though article quality will suffer
       }
+    } catch (err) {
+      console.error("[Create from Image] Analysis trigger error:", err);
     }
 
-    const materialsText = [
-      rawContent,
-      fileContent ? `[FILE MATERIALS]:\n${fileContent}` : null
-    ].filter(Boolean).join("\n\n");
-
-    const truncatedInput = truncateContent(materialsText || "No additional content provided.");
-
-    // Construct the manual prompt
+    // 4. AI Generation
+    const instruction = getAiSystemInstruction();
     const fullPrompt = `
 [ASSIGNED STORY TOPIC]:
 ${topic || "Not provided"}
 
-[SOURCE MATERIALS]:
-${truncatedInput}
-${documentContext !== "No additional content provided." ? `\n[OBSERVED DETAILS]:\n${documentContext}` : ""}
+[OBSERVED DETAILS]:
+${documentContext}
 
 [SYSTEM INSTRUCTIONS]:
 ${instruction}
@@ -197,10 +156,10 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
       session_id: session_id,
       persona_prefix: "NewsLetter",
       document_context: documentContext,
-      image_context: imageUrl || ""
+      image_context: imageUrl
     };
 
-    console.log("[Manual AI Generate] Sending Payload (Truncated):", JSON.stringify({ ...aiPayload, user_input: aiPayload.user_input.substring(0, 500) + "..." }, null, 2));
+    console.log("[Create from Image] Sending Payload to AI...");
 
     const controller = new AbortController();
     const timeoutCount = 180000; // 180s
@@ -218,21 +177,21 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
 
       if (!chatRes.ok) {
         const errorData = await chatRes.json().catch(() => ({}));
-        console.error("[Manual AI Generate] Error Status:", chatRes.status, errorData);
         throw new Error(errorData?.detail || `AI service reported an error (Status: ${chatRes.status})`);
       }
 
       const { response } = await chatRes.json();
       if (!response) throw new Error("AI service returned empty response");
 
-      const extracted = extractArticleData(response, topic || "New Article");
+      const extracted = extractArticleData(response, "New Article from Image");
       const title = extracted.title;
       const content = extracted.content;
 
       if (!content || content.length < 50) {
-        throw new Error("AI failed to generate a complete article. Please refine your prompt or materials and try again.");
+        throw new Error("AI failed to generate a complete article. Please try again with a clearer image.");
       }
 
+      // 5. Database Save
       const user =
         (await prisma.user.findUnique({ where: { email: "admin@newsmedia.app" } })) ||
         (await prisma.user.findFirst());
@@ -247,12 +206,11 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
           title,
           slug,
           content,
-          imageUrl: imageUrl || null,
+          imageUrl,
           status: "pending",
           usersId: user.id,
           categoryId: categoryId,
           publishDate,
-          youtubeUrl: youtubeUrl || null,
         },
       });
 
@@ -266,7 +224,7 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
       );
     }
   } catch (error: any) {
-    console.error("Manual AI Generation error:", error);
-    return NextResponse.json({ error: "Invalid request or server error" }, { status: 400 });
+    console.error("Create Article from Image error:", error);
+    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
   }
 }

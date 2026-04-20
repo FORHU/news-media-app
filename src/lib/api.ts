@@ -130,11 +130,31 @@ export const articlesApi = {
     return res.json();
   },
 
+  async createArticleFromImage(file: File, categoryId: string, topic: string): Promise<unknown> {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("categoryId", categoryId);
+    formData.append("topic", topic);
+
+    const res = await fetch("/api/admin/generatedArticles/createArticleFromImage", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to generate article from image");
+    }
+
+    return res.json();
+  },
+
   async getGeneratedArticles(params: {
     q?: string;
     page: number;
     limit: number;
     category?: string;
+    status?: string;
   }): Promise<{
     articles: Article[];
     pagination: {
@@ -147,6 +167,7 @@ export const articlesApi = {
     const searchParams = new URLSearchParams();
     if (params.q) searchParams.append("q", params.q);
     if (params.category) searchParams.append("category", params.category);
+    if (params.status) searchParams.append("status", params.status);
     searchParams.append("page", params.page.toString());
     searchParams.append("limit", params.limit.toString());
 
@@ -191,6 +212,19 @@ export const articlesApi = {
     return res.json();
   },
 
+  async unpublishArticle(id: string): Promise<unknown> {
+    const res = await fetch(`/api/admin/generatedArticles/${id}/publish`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ publish: false }),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to unpublish article");
+    }
+    return res.json();
+  },
+
   async getCategories(): Promise<{ id: string; name: string }[]> {
     const res = await fetch("/api/categories", {
       cache: "no-store",
@@ -227,4 +261,20 @@ export const articlesApi = {
     }
     return res.json();
   },
+
+
+  async getUploadUrl(filename: string, contentType: string): Promise<{ url: string; key: string }> {
+    const res = await fetch("/api/admin/upload-presigned", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ filename, contentType }),
+    });
+
+    if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.error || "Failed to get upload URL");
+    }
+    return res.json();
+  },
+
 };

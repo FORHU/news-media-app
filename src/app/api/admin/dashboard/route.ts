@@ -47,6 +47,24 @@ export async function GET() {
             }
         });
 
+        // Recent Activity (Latest 5 of each)
+        const recentGenerated = await prisma.contentArticle.findMany({
+            take: 5,
+            orderBy: { createdAt: "desc" },
+            include: { category: true }
+        });
+
+        const recentCrawled = await prisma.rawArticle.findMany({
+            take: 5,
+            orderBy: { createdAt: "desc" },
+            include: { category: true }
+        });
+
+        // Queue Details
+        const pendingArticlesCount = await prisma.rawArticle.count({
+            where: { status: "pending" }
+        });
+
         const stats = {
             generatedArticles: {
                 total: totalGeneratedArticles,
@@ -61,7 +79,30 @@ export async function GET() {
             },
             activeCrawlers: {
                 total: activeCrawlers
-            }
+            },
+            queueStatus: {
+                pendingAI: pendingArticlesCount,
+                activeCrawls: activeCrawlers,
+                totalToday: crawledTodayCount + generatedLastWeekCount // Approximation for "today"
+            },
+            recentActivity: [
+                ...recentGenerated.map(a => ({
+                    id: a.id,
+                    type: "GENERATION",
+                    title: a.title,
+                    timestamp: a.createdAt,
+                    status: "completed",
+                    category: a.category?.categoryName
+                })),
+                ...recentCrawled.map(a => ({
+                    id: a.id,
+                    type: "CRAWL",
+                    title: a.title,
+                    timestamp: a.createdAt,
+                    status: "completed",
+                    category: a.category?.categoryName
+                }))
+            ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 10)
         };
 
         return NextResponse.json(stats);

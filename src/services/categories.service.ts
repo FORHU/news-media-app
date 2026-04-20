@@ -10,6 +10,12 @@ export const categoriesService = {
     if (!normalized) {
       throw new Error("Category name is required");
     }
+
+    const existing = await categoriesRepository.findCategoryByName(normalized);
+    if (existing) {
+      throw new Error(`Category "${normalized}" already exists.`);
+    }
+
     const category = await categoriesRepository.createOrGetCategoryByName(normalized);
     return { id: String(category.id), name: category.categoryName };
   },

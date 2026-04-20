@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import type { Article } from "@/lib/types";
 import { Prisma } from "@/generated/prisma/client";
+import { getCategoryFilterVariants } from "@/config/categories";
 
 export const articlesRepository = {
   async findMany(params: {
@@ -28,8 +29,13 @@ export const articlesRepository = {
     }
 
     if (category) {
+      const categoryVariants = getCategoryFilterVariants(category);
       and.push({
-        category: { categoryName: category },
+        OR: categoryVariants.map((name) => ({
+          category: {
+            categoryName: { equals: name, mode: "insensitive" },
+          },
+        })),
       });
     }
 
@@ -45,7 +51,10 @@ export const articlesRepository = {
         and.length > 0
           ? { AND: and }
           : undefined,
-      orderBy: { createdAt: "desc" },
+      orderBy: [
+        { publishDate: { sort: "desc", nulls: "last" } },
+        { createdAt: "desc" }
+      ],
       include: { category: true },
     }) as Promise<Article[]>;
   },
