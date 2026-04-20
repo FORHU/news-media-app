@@ -53,7 +53,7 @@ function getAiSystemInstruction(isYoutube: boolean = false, youtubeUrl: string =
 7. NO MARKDOWN: Do not use bold, italics, or lists.
 8. HEADLINE: The headline must be punchy and news-worthy, reflecting the provided Topic.
 9. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use exactly two newlines (an empty line) between each paragraph for consistent spacing.
-10. OUTPUT: Write strictly in English unless otherwise requested.
+10. LANGUAGE: By default, you MUST write the article in the SAME LANGUAGE as the provided [SOURCE MATERIALS] (e.g., if the transcript or content is in Korean, write the article in Korean). HOWEVER, if the [ADDITIONAL USER COMMAND / PROMPT] explicitly commands a different language (e.g., "write in English"), you MUST follow that command and generate the article in the requested language.
 ${isYoutube ? `11. YOUTUBE CONTEXT: This article is based on a video at ${youtubeUrl}. Summarize the key points while maintaining the journalistic persona.` : ""}
 `;
 }
@@ -189,7 +189,9 @@ ${instruction}
 [USER REQUEST / FINAL TASK]:
 Write a professional, investigative news article that is PRIMARILY BASED on the Topic provided, integrating the Observed Details naturally into the narrative as if you were reporting from the scene. Remember: NEVER mention analysis or photos.
 
-CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUCTIONS.
+${customPrompt ? `[ADDITIONAL USER COMMAND / PROMPT]:\n${customPrompt}\n` : ""}
+
+CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUCTIONS. Pay absolute attention to the language requested in the [ADDITIONAL USER COMMAND / PROMPT] if one is provided.
 `;
 
     const aiPayload = {
