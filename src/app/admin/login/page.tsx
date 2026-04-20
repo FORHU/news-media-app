@@ -16,45 +16,67 @@ function LoginContent() {
     const searchParams = useSearchParams();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState<string | null>(null);
+    const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string; general?: string }>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-        // ... same logic
         e.preventDefault();
-        setError(null);
+        setFieldErrors({});
 
+        // 1. Zod Validation
         const parsed = adminLoginSchema.safeParse({ email, password });
         if (!parsed.success) {
-            const firstError = parsed.error.issues[0]?.message ?? 'Invalid input.';
-            setError(firstError);
+            const errors: Record<string, string> = {};
+            parsed.error.issues.forEach((issue) => {
+                if (issue.path[0]) {
+                    errors[issue.path[0] as string] = issue.message;
+                }
+            });
+            setFieldErrors(errors);
             return;
         }
 
         setIsSubmitting(true);
 
         try {
+            // 2. Pre-check: Verify email in database
+            const verifyResponse = await fetch('/api/admin/auth/verify-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email }),
+            });
+
+            if (!verifyResponse.ok) {
+                // If 403 (Forbidden) or 404/others, it means non-admin or non-existent
+                if (verifyResponse.status === 403) {
+                    router.replace('/');
+                    return;
+                }
+                setFieldErrors({ general: 'Verification service unavailable. Please try again.' });
+                return;
+            }
+
+            // 3. Supabase Auth
             const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
                 email,
                 password,
             });
 
             if (signInError) {
-                setError(signInError.message || 'Invalid email or password.');
+                // Since email was verified, this is likely an invalid password
+                setFieldErrors({ password: 'The password you entered is incorrect.' });
                 return;
             }
 
-            // Use the session returned directly from signInWithPassword — calling
-            // getSession() right after can race against localStorage hydration and
-            // return null even on a successful sign-in.
             const accessToken = signInData.session?.access_token;
 
             if (!accessToken) {
-                setError('Unable to validate admin access. Please try again.');
+                setFieldErrors({ general: 'Unable to validate admin access. Please try again.' });
                 await supabase.auth.signOut();
                 return;
             }
 
+            // 4. Final Session Check (Sets Cookies)
             const roleCheckResponse = await fetch('/api/admin/auth/session', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -62,13 +84,20 @@ function LoginContent() {
             });
 
             if (!roleCheckResponse.ok) {
-                setError('Access denied. Your account is not an admin.');
                 await supabase.auth.signOut();
+                if (roleCheckResponse.status === 403) {
+                    router.replace('/');
+                    return;
+                }
+                setFieldErrors({ general: 'Access denied. Your account is not an admin.' });
                 return;
             }
 
             const redirectTo = searchParams.get('redirectTo');
             router.push(redirectTo || '/admin/dashboard');
+        } catch (err) {
+            console.error('Login error:', err);
+            setFieldErrors({ general: 'An unexpected error occurred. Please try again.' });
         } finally {
             setIsSubmitting(false);
         }
@@ -103,10 +132,14 @@ function LoginContent() {
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                required
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff4500] focus:border-transparent outline-none text-gray-900"
+                                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#ff4500] focus:border-transparent outline-none text-gray-900 ${
+                                    fieldErrors.email ? 'border-red-500' : 'border-gray-300'
+                                }`}
                                 placeholder="admin@example.com"
                             />
+                            {fieldErrors.email && (
+                                <p className="mt-1 text-xs text-red-600 font-medium">{fieldErrors.email}</p>
+                            )}
                         </div>
 
                         <div>
@@ -118,15 +151,19 @@ function LoginContent() {
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                required
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff4500] focus:border-transparent outline-none text-gray-900"
+                                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#ff4500] focus:border-transparent outline-none text-gray-900 ${
+                                    fieldErrors.password ? 'border-red-500' : 'border-gray-300'
+                                }`}
                                 placeholder="Your admin password"
                             />
+                            {fieldErrors.password && (
+                                <p className="mt-1 text-xs text-red-600 font-medium">{fieldErrors.password}</p>
+                            )}
                         </div>
 
-                        {error && (
-                            <div className="text-sm text-red-600">
-                                {error}
+                        {fieldErrors.general && (
+                            <div className="text-sm text-red-600 bg-red-50 p-2 rounded border border-red-100">
+                                {fieldErrors.general}
                             </div>
                         )}
 
