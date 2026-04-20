@@ -85,18 +85,18 @@ export default function ArticlePageClient({ articleId }: { articleId: string }) 
       ) || [])[1] ?? null
     : null;
 
-  // Split content into paragraphs so we can insert the YouTube embed mid-article
+  const hasYoutube = Boolean(youtubeId);
+
+  // Prepare paragraphs for splitting and full content
   const paragraphs = article.content
     .split(/\n+/)
     .map((p) => p.trim())
     .filter(Boolean);
 
-  // If there's no YouTube video, we don't need to split the content.
-  // This prevents the "glued paragraph" issue between the first and second half containers.
-  const hasYoutube = Boolean(youtubeId);
-  const midpoint = hasYoutube ? Math.ceil(paragraphs.length / 2) : paragraphs.length;
+  const fullContent = paragraphs.join("\n\n");
+  const midpoint = Math.ceil(paragraphs.length / 2);
   const firstHalf = paragraphs.slice(0, midpoint).join("\n\n");
-  const secondHalf = hasYoutube ? paragraphs.slice(midpoint).join("\n\n") : "";
+  const secondHalf = paragraphs.slice(midpoint).join("\n\n");
 
   return (
     <div
@@ -133,42 +133,63 @@ export default function ArticlePageClient({ articleId }: { articleId: string }) 
                 <p className="text-gray-500">{formattedDate}</p>
               </header>
 
-              {/* ── Hero image — always shown at the top ── */}
-              <div className="mt-6 rounded-xl overflow-hidden bg-gray-200 relative aspect-video shadow-sm">
-                <StoryImage
-                  src={article.imageUrl}
-                  alt={article.title}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 80vw"
-                  priority
-                  className="object-cover"
-                  variant="hero"
-                />
-              </div>
+              {hasYoutube ? (
+                <>
+                  {/* YouTube Embed at the top */}
+                  <div className="mt-6 mb-8 rounded-xl overflow-hidden bg-black aspect-video shadow-lg">
+                    <iframe
+                      src={`https://www.youtube.com/embed/${youtubeId}`}
+                      title="YouTube video player"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="w-full h-full border-0"
+                    />
+                  </div>
 
-              {/* ── Article content — first half ── */}
-              <div className="mt-8 text-gray-700 leading-relaxed whitespace-pre-wrap">
-                {firstHalf}
-              </div>
+                  {/* Article content — first half */}
+                  <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                    {firstHalf}
+                  </div>
 
-              {/* ── YouTube embed — mid-article, only when available ── */}
-              {youtubeId && (
-                <div className="my-8 rounded-xl overflow-hidden bg-black aspect-video shadow-lg">
-                  <iframe
-                    src={`https://www.youtube.com/embed/${youtubeId}`}
-                    title="YouTube video player"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="w-full h-full border-0"
-                  />
-                </div>
-              )}
+                  {/* Hero image — inside the article (unconditionally rendered for fallback support) */}
+                  <div className="my-8 rounded-xl overflow-hidden bg-gray-200 relative aspect-video shadow-sm">
+                    <StoryImage
+                      src={article.imageUrl}
+                      alt={article.title}
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 80vw"
+                      className="object-cover"
+                      variant="hero"
+                    />
+                  </div>
 
-              {/* ── Article content — second half ── */}
-              {secondHalf && (
-                <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                  {secondHalf}
-                </div>
+                  {/* Article content — second half */}
+                  {secondHalf && (
+                    <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      {secondHalf}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  {/* Hero image — at the top for standard articles */}
+                  <div className="mt-6 rounded-xl overflow-hidden bg-gray-200 relative aspect-video shadow-sm">
+                    <StoryImage
+                      src={article.imageUrl}
+                      alt={article.title}
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 80vw"
+                      priority
+                      className="object-cover"
+                      variant="hero"
+                    />
+                  </div>
+
+                  {/* Article content — full */}
+                  <div className="mt-8 text-gray-700 leading-relaxed whitespace-pre-wrap">
+                    {fullContent}
+                  </div>
+                </>
               )}
             </article>
           </div>
