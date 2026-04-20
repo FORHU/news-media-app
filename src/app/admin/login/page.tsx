@@ -33,41 +33,45 @@ function LoginContent() {
 
         setIsSubmitting(true);
 
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        });
+        try {
+            const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
 
-        setIsSubmitting(false);
+            if (signInError) {
+                setError(signInError.message || 'Invalid email or password.');
+                return;
+            }
 
-        if (signInError) {
-            setError(signInError.message || 'Invalid email or password.');
-            return;
+            // Use the session returned directly from signInWithPassword — calling
+            // getSession() right after can race against localStorage hydration and
+            // return null even on a successful sign-in.
+            const accessToken = signInData.session?.access_token;
+
+            if (!accessToken) {
+                setError('Unable to validate admin access. Please try again.');
+                await supabase.auth.signOut();
+                return;
+            }
+
+            const roleCheckResponse = await fetch('/api/admin/auth/session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ accessToken }),
+            });
+
+            if (!roleCheckResponse.ok) {
+                setError('Access denied. Your account is not an admin.');
+                await supabase.auth.signOut();
+                return;
+            }
+
+            const redirectTo = searchParams.get('redirectTo');
+            router.push(redirectTo || '/admin/dashboard');
+        } finally {
+            setIsSubmitting(false);
         }
-
-        const { data: sessionData } = await supabase.auth.getSession();
-        const accessToken = sessionData.session?.access_token;
-
-        if (!accessToken) {
-            setError('Unable to validate admin access. Please try again.');
-            await supabase.auth.signOut();
-            return;
-        }
-
-        const roleCheckResponse = await fetch('/api/admin/auth/session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ accessToken }),
-        });
-
-        if (!roleCheckResponse.ok) {
-            setError('Access denied. Your account is not an admin.');
-            await supabase.auth.signOut();
-            return;
-        }
-
-        const redirectTo = searchParams.get('redirectTo');
-        router.push(redirectTo || '/admin/dashboard');
     };
 
     return (
