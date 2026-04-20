@@ -8,6 +8,7 @@ import { ArticleLink } from "@/components/home/ArticleLink";
 import { motion, AnimatePresence } from "framer-motion";
 import { StoryImage } from "@/components/StoryImage";
 import type { Article } from "@/lib/types";
+import { normalizeCategoryName } from "@/lib/categoryDisplay";
 
 interface HeroSectionProps {
   articles: Article[];
@@ -56,7 +57,9 @@ export function HeroSection({ articles }: HeroSectionProps) {
     setPage([page + newDirection, newDirection]);
   };
 
-  const categoryLabel = article.category.categoryName.toUpperCase().replace(/\s+/g, " ");
+  const categoryLabel = normalizeCategoryName(article.category?.categoryName)
+    ?.toUpperCase()
+    .replace(/\s+/g, " ");
 
   return (
     <section className="bg-white border-b border-gray-200">
@@ -110,9 +113,11 @@ export function HeroSection({ articles }: HeroSectionProps) {
                             className="object-cover transition-transform duration-700 group-hover:scale-105"
                             variant="hero"
                           />
-                          <span className="absolute top-3 left-3 px-2 py-1 bg-[#ff4500] text-white text-xs font-bold uppercase rounded z-10">
-                            {categoryLabel}
-                          </span>
+                          {categoryLabel ? (
+                            <span className="absolute top-3 left-3 px-2 py-1 bg-[#ff4500] text-white text-xs font-bold uppercase rounded z-10">
+                              {categoryLabel}
+                            </span>
+                          ) : null}
                         </div>
 
                         {/* Content side */}

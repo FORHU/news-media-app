@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Article } from '@/lib/types';
 import { format } from 'date-fns';
+import { normalizeCategoryName } from '@/lib/categoryDisplay';
 
 interface ReadGeneratedArticleProps {
     article: Article | null;
@@ -78,7 +79,9 @@ export default function ReadGeneratedArticle({
                             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                                 <div className="flex items-center gap-2 text-gray-400 text-[10px] sm:text-xs md:text-sm font-bold">
                                     <Tag className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-400" />
-                                    <span>{article.category?.categoryName ?? 'Uncategorized'}</span>
+                                    {normalizeCategoryName(article.category?.categoryName) ? (
+                                        <span>{normalizeCategoryName(article.category?.categoryName)}</span>
+                                    ) : null}
                                 </div>
                                 <div className="flex items-center gap-2 text-gray-400 text-[10px] sm:text-xs md:text-sm font-bold">
                                     <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-400" />

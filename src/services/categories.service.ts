@@ -1,9 +1,12 @@
 import { categoriesRepository } from "@/repositories/categories.repository";
+import { normalizeCategoryName } from "@/lib/categoryDisplay";
 
 export const categoriesService = {
   async getCategories(): Promise<{ id: string; name: string }[]> {
     const categories = await categoriesRepository.getAllCategories();
-    return categories.map((c) => ({ id: String(c.id), name: c.categoryName }));
+    return categories
+      .map((c) => ({ id: String(c.id), name: normalizeCategoryName(c.categoryName) }))
+      .filter((c): c is { id: string; name: string } => Boolean(c.name));
   },
   async createCategory(name: string): Promise<{ id: string; name: string }> {
     const normalized = name.trim();

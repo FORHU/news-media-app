@@ -2,6 +2,7 @@ import {
   generatedArticlesRepository,
   type FetchGeneratedArticlesParams,
 } from "@/repositories/admin/generatedArticles.repository";
+import { normalizeCategoryName } from "@/lib/categoryDisplay";
 
 type GetGeneratedArticlesParams = {
   q: string;
@@ -43,7 +44,7 @@ export const generatedArticlesService = {
         status: article.status,
         category: {
           id: article.category?.id || "",
-          categoryName: article.category?.category_name || "Uncategorized",
+          categoryName: normalizeCategoryName(article.category?.category_name) || "",
         },
         user: {
           firstName: article.user?.first_name || "",
@@ -58,7 +59,7 @@ export const generatedArticlesService = {
           createdAt: article.rawArticle.created_at,
           status: article.rawArticle.status,
           category: {
-            categoryName: article.rawArticle.category?.category_name || "Uncategorized",
+            categoryName: normalizeCategoryName(article.rawArticle.category?.category_name) || "",
           },
           crawledUrl: {
             url: article.rawArticle.crawledUrl?.url || "",

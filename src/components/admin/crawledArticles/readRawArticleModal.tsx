@@ -22,6 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { MappedRawArticle } from '@/lib/types';
 import { format } from 'date-fns';
+import { normalizeCategoryName } from '@/lib/categoryDisplay';
 
 interface ReadRawArticleModalProps {
     article: MappedRawArticle | null;
@@ -77,7 +78,9 @@ export default function ReadRawArticleModal({
                             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                                 <div className="flex items-center gap-2 text-gray-400 text-[10px] sm:text-xs md:text-sm font-bold">
                                     <Tag className="w-3 h-3 sm:w-4 sm:h-4 text-orange-500" />
-                                    <span>{article.category?.categoryName ?? 'Uncategorized'}</span>
+                                    {normalizeCategoryName(article.category?.categoryName) ? (
+                                        <span>{normalizeCategoryName(article.category?.categoryName)}</span>
+                                    ) : null}
                                 </div>
                                 <div className="flex items-center gap-2 text-gray-400 text-[10px] sm:text-xs md:text-sm font-bold">
                                     <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-orange-500" />

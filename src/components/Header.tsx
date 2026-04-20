@@ -8,6 +8,7 @@ import { SideBar } from "./SideBar";
 import { articlesApi } from "@/lib/api";
 import type { Article } from "@/lib/types";
 import { AnimatePresence, motion } from "framer-motion";
+import { normalizeCategoryName } from "@/lib/categoryDisplay";
 
 interface HeaderProps {
   onOpenNewsletter?: () => void;
@@ -134,7 +135,11 @@ function HeaderContent({ onOpenNewsletter }: HeaderProps) {
                             className="flex flex-col px-4 py-2 hover:bg-gray-50 transition-colors border-b last:border-0 border-gray-50"
                           >
                             <span className="text-sm font-semibold text-gray-900 line-clamp-1">{article.title}</span>
-                            <span className="text-xs text-[#ff4500] uppercase font-bold tracking-wider">{article.category.categoryName}</span>
+                            {normalizeCategoryName(article.category?.categoryName) ? (
+                              <span className="text-xs text-[#ff4500] uppercase font-bold tracking-wider">
+                                {normalizeCategoryName(article.category?.categoryName)}
+                              </span>
+                            ) : null}
                           </Link>
                         ))}
                       </div>
@@ -237,7 +242,11 @@ function HeaderContent({ onOpenNewsletter }: HeaderProps) {
                           className="flex flex-col py-3 border-b last:border-0 border-gray-50 active:bg-gray-50"
                         >
                           <span className="text-sm font-semibold text-gray-900 line-clamp-2">{article.title}</span>
-                          <span className="text-[10px] text-[#ff4500] uppercase font-bold tracking-widest">{article.category.categoryName}</span>
+                          {normalizeCategoryName(article.category?.categoryName) ? (
+                            <span className="text-[10px] text-[#ff4500] uppercase font-bold tracking-widest">
+                              {normalizeCategoryName(article.category?.categoryName)}
+                            </span>
+                          ) : null}
                         </Link>
                       ))}
                     </div>

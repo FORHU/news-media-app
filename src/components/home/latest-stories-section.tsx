@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Calendar, Clock } from "lucide-react";
 import { ArticleLink } from "@/components/home/ArticleLink";
 import type { Article } from "@/lib/types";
+import { normalizeCategoryName } from "@/lib/categoryDisplay";
 
 interface LatestStoriesSectionProps {
   articles: Article[];
@@ -116,9 +117,11 @@ export function LatestStoriesSection({
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="inline-block bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-xs font-semibold uppercase">
-                    {article.category.categoryName}
-                  </span>
+                  {normalizeCategoryName(article.category?.categoryName) ? (
+                    <span className="inline-block bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-xs font-semibold uppercase">
+                      {normalizeCategoryName(article.category?.categoryName)}
+                    </span>
+                  ) : null}
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-[#ff4500] transition-colors line-clamp-2">
                   {article.title}
