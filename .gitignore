@@ -49,3 +49,9 @@ next-env.d.ts
 
 # AI Workflow tasks
 /tasks/
+
+# AI Workflow tasks
+/tasks/
+
+#Claude
+CLAUDE.md

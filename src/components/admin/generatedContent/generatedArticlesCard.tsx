@@ -35,6 +35,7 @@ import PublishArticleModal from '@/components/admin/generatedContent/PublishArti
 
 import { StoryImage } from '@/components/StoryImage';
 import ConfirmationModal from '@/components/admin/shared/ConfirmationModal';
+import { normalizeCategoryName } from '@/lib/categoryDisplay';
 
 // Mock response type for now, as it might be added to types.ts later
 interface GeneratedArticlesResponse {
@@ -126,10 +127,14 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
 
                 {/* Meta Badges Row */}
                 <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-full border border-gray-100">
-                        <div className="w-1.5 h-1.5 rounded-full bg-gray-400" />
-                        <span className="text-xs font-bold text-gray-600">{article.category?.categoryName ?? 'Uncategorized'}</span>
-                    </div>
+                    {normalizeCategoryName(article.category?.categoryName) ? (
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-full border border-gray-100">
+                            <div className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                            <span className="text-xs font-bold text-gray-600">
+                                {normalizeCategoryName(article.category?.categoryName)}
+                            </span>
+                        </div>
+                    ) : null}
 
                     {isPublished ? (
                         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-full border border-emerald-100">

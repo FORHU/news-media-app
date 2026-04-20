@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
+import { normalizeCategoryName } from "@/lib/categoryDisplay";
 
 interface FilterStatusBarProps {
   searchQuery: string | null;
@@ -15,6 +16,7 @@ export function FilterStatusBar({
   resultCount,
 }: FilterStatusBarProps) {
   const router = useRouter();
+  const categoryLabel = normalizeCategoryName(categoryName);
 
   const clearFilters = () => {
     router.push("/");
@@ -26,9 +28,9 @@ export function FilterStatusBar({
         <span className="text-sm font-medium text-gray-700">
           Active Filters:
         </span>
-        {categoryName && (
+        {categoryLabel && (
           <span className="px-3 py-1 bg-[#ff4500] text-white rounded-full text-xs font-medium">
-            Category: {categoryName}
+            Category: {categoryLabel}
           </span>
         )}
         {searchQuery && (

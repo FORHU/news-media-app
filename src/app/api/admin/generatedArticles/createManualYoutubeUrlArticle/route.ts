@@ -139,7 +139,7 @@ export async function POST(req: NextRequest) {
       try {
         console.log("[Manual AI Generate] Triggering analysis for:", imageUrl);
         // Extract filename from URL/Key
-        const s3Key = imageUrl.split(process.env.NEXT_PUBLIC_CLOUDFRONT_URL || "").pop()?.replace(/^\//, "") || imageUrl;
+        const s3Key = imageUrl.split(process.env.CLOUDFRONT_URL || "").pop()?.replace(/^\//, "") || imageUrl;
         const filename = s3Key.split("/").pop() || "image.jpg";
 
         const analyzeRes = await fetch(`${baseUrl}/api/legal/analyze-document`, {

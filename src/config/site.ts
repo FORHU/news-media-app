@@ -1,5 +1,5 @@
 export const SITE_URL =
-  (process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.newsicons.com").replace(/\/$/, "");
+  (process.env.SITE_URL || "https://www.newsicons.com").replace(/\/$/, "");
 
 export const DEFAULT_SEO = {
   title: "NewsIcons",

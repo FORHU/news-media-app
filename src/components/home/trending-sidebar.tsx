@@ -1,5 +1,6 @@
 import type { Article } from "@/lib/types";
 import { ArticleLink } from "@/components/home/ArticleLink";
+import { normalizeCategoryName } from "@/lib/categoryDisplay";
 
 interface TrendingSidebarProps {
   articles: Article[];
@@ -36,9 +37,11 @@ export function TrendingSidebar({ articles }: TrendingSidebarProps) {
                 </div>
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-xs text-[#ff4500] font-semibold mb-1 uppercase">
-                  {article.category.categoryName}
-                </div>
+                {normalizeCategoryName(article.category?.categoryName) ? (
+                  <div className="text-xs text-[#ff4500] font-semibold mb-1 uppercase">
+                    {normalizeCategoryName(article.category?.categoryName)}
+                  </div>
+                ) : null}
                 <h3 className="text-sm font-bold text-gray-900 group-hover:text-[#ff4500] transition-colors line-clamp-2 mb-1">
                   {article.title}
                 </h3>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Article } from "@/lib/types";
 import { ArticleLink } from "@/components/home/ArticleLink";
 import Image from "next/image";
+import { normalizeCategoryName } from "@/lib/categoryDisplay";
 
 interface FeaturedArticlesSectionProps {
   articles: Article[];
@@ -57,9 +58,11 @@ export function FeaturedArticlesSection({
             </div>
           </div>
           <div className="p-3">
-            <div className="text-xs text-[#ff4500] font-semibold mb-1 uppercase">
-              {article.category.categoryName}
-            </div>
+            {normalizeCategoryName(article.category?.categoryName) ? (
+              <div className="text-xs text-[#ff4500] font-semibold mb-1 uppercase">
+                {normalizeCategoryName(article.category?.categoryName)}
+              </div>
+            ) : null}
             <h3 className="text-sm font-bold text-gray-900 mb-2 group-hover:text-[#ff4500] transition-colors line-clamp-2">
               {article.title}
             </h3>

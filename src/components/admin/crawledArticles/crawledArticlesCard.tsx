@@ -38,6 +38,7 @@ import {
 } from '@/components/ui/dialog';
 import ReadRawArticleModal from './readRawArticleModal';
 import GenerateArticleModal from './generateArticleModal';
+import { normalizeCategoryName } from '@/lib/categoryDisplay';
 
 interface CrawledArticleCardProps {
     article: MappedRawArticle;
@@ -119,10 +120,14 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
 
                 {/* Meta Badges Row */}
                 <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-full border border-gray-100">
-                        <div className="w-1.5 h-1.5 rounded-full bg-gray-400" />
-                        <span className="text-xs font-bold text-gray-600">{article.category?.categoryName ?? 'Uncategorized'}</span>
-                    </div>
+                    {normalizeCategoryName(article.category?.categoryName) ? (
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-full border border-gray-100">
+                            <div className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                            <span className="text-xs font-bold text-gray-600">
+                                {normalizeCategoryName(article.category?.categoryName)}
+                            </span>
+                        </div>
+                    ) : null}
 
                     {isGenerated ? (
                         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-full border border-emerald-100">

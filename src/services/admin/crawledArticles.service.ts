@@ -2,6 +2,7 @@ import {
   crawledArticlesRepository,
   type FetchCrawledArticlesParams,
 } from "@/repositories/admin/crawledArticles.repository";
+import { normalizeCategoryName } from "@/lib/categoryDisplay";
 
 const CRAWL_API_URL = process.env.CRAWL_API_URL;
 
@@ -143,7 +144,7 @@ export const crawledArticlesService = {
         createdAt: article.created_at,
         status: article.status,
         category: {
-          categoryName: article.category?.category_name || "Uncategorized",
+          categoryName: normalizeCategoryName(article.category?.category_name) || "",
         },
         crawledUrl: {
           url: article.crawledUrl?.url || "",
