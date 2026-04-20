@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { subDays, subWeeks } from "date-fns";
+import { normalizeCategoryName } from "@/lib/categoryDisplay";
 
 export const dynamic = "force-dynamic";
 
@@ -92,7 +93,7 @@ export async function GET() {
                     title: a.title,
                     timestamp: a.createdAt,
                     status: "completed",
-                    category: a.category?.categoryName
+                    category: normalizeCategoryName(a.category?.categoryName) ?? undefined
                 })),
                 ...recentCrawled.map(a => ({
                     id: a.id,
@@ -100,7 +101,7 @@ export async function GET() {
                     title: a.title,
                     timestamp: a.createdAt,
                     status: "completed",
-                    category: a.category?.categoryName
+                    category: normalizeCategoryName(a.category?.categoryName) ?? undefined
                 }))
             ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 10)
         };

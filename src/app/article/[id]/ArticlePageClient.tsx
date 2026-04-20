@@ -14,6 +14,7 @@ import { TrendingSidebar } from "@/components/home/trending-sidebar";
 import { FeaturedArticlesSection } from "@/components/home/featured-articles-section";
 import { StoryImage } from "@/components/StoryImage";
 import { articlesApi } from "@/lib/api";
+import { normalizeCategoryName } from "@/lib/categoryDisplay";
 
 export default function ArticlePageClient({ articleId }: { articleId: string }) {
   const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
@@ -124,9 +125,11 @@ export default function ArticlePageClient({ articleId }: { articleId: string }) 
             <article>
               {/* ── Header: category, title, date ── */}
               <header>
-                <span className="inline-block px-2 py-0.5 bg-[#ff4500] text-white rounded text-xs font-semibold uppercase mb-4">
-                  {article.category.categoryName}
-                </span>
+                {normalizeCategoryName(article.category?.categoryName) ? (
+                  <span className="inline-block px-2 py-0.5 bg-[#ff4500] text-white rounded text-xs font-semibold uppercase mb-4">
+                    {normalizeCategoryName(article.category?.categoryName)}
+                  </span>
+                ) : null}
                 <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
                   {article.title}
                 </h1>
