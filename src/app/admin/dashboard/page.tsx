@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
     Activity,
     ArrowUpRight
@@ -8,30 +8,25 @@ import {
 import DashboardStatsGrid from '@/components/admin/dashboard/DashboardStatsGrid';
 import ActivityFeed from '@/components/admin/dashboard/ActivityFeed';
 import QueueStatusCard from '@/components/admin/dashboard/HealthMetricsCard';
+import { useQuery } from '@tanstack/react-query';
 
 export default function DashboardPage() {
-    const [data, setData] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
+    const { data, isFetching, isLoading } = useQuery({
+        queryKey: ['adminDashboard'],
+        queryFn: async () => {
+            const res = await fetch('/api/admin/dashboard');
+            if (!res.ok) throw new Error('Failed to load dashboard stats');
+            return res.json();
+        },
+        // Keep cached data when navigating away/back.
+        // With global staleTime=5min, it will not refetch on remount if still fresh.
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+        // Dashboard wants periodic updates while you’re on the page.
+        refetchInterval: 10_000,
+    });
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const res = await fetch('/api/admin/dashboard');
-                if (res.ok) {
-                    const stats = await res.json();
-                    setData(stats);
-                }
-            } catch (error) {
-                console.error("Dashboard fetch error:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-        const interval = setInterval(fetchData, 10000); // Sync with StatsGrid polling
-        return () => clearInterval(interval);
-    }, []);
+    const loading = isLoading && !data;
 
     return (
         <div className="space-y-10 animate-in fade-in duration-700">
@@ -62,7 +57,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Real-time Polling Stats Grid Component */}
-            <DashboardStatsGrid />
+            <DashboardStatsGrid stats={data} loading={loading || isFetching} />
 
             {/* Lower Section: Activity Feed & Health Metrics */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

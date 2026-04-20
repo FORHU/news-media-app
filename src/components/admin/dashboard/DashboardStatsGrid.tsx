@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
     FileText,
     Globe,
@@ -29,33 +29,13 @@ const StatCard = ({ title, value, icon, color, description, loading }: any) => (
     </div>
 );
 
-export default function DashboardStatsGrid() {
-    const [stats, setStats] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchStats = async () => {
-             try {
-                 const res = await fetch('/api/admin/dashboard');
-                 if (res.ok) {
-                     const data = await res.json();
-                     setStats(data);
-                 }
-             } catch (error) {
-                 console.error("Failed to fetch dashboard stats", error);
-             } finally {
-                 setLoading(false);
-             }
-        };
-
-        // Fetch immediately
-        fetchStats();
-
-        // Then poll every 10 seconds for real-time updates
-        const interval = setInterval(fetchStats, 10000);
-
-        return () => clearInterval(interval);
-    }, []);
+export default function DashboardStatsGrid({
+    stats,
+    loading,
+}: {
+    stats: any;
+    loading: boolean;
+}) {
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
