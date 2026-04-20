@@ -1,4 +1,5 @@
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const s3Client = new S3Client({
     region: process.env.AWS_REGION!,
@@ -38,5 +39,29 @@ export async function uploadToS3(file: Buffer, fileName: string, contentType: st
     } catch (error) {
         console.error("S3 Upload Error:", error);
         throw new Error("Failed to upload file to S3");
+    }
+}
+
+/**
+ * Generates a presigned URL for direct client-side upload to S3.
+ */
+export async function getPresignedUploadUrl(fileName: string, contentType: string): Promise<{ url: string; key: string }> {
+    const bucketName = process.env.AWS_S3_BUCKET!;
+    const fileExt = fileName.split('.').pop();
+    const uniqueFileName = `${Math.random().toString(36).substring(2, 15)}-${Date.now()}.${fileExt}`;
+    const key = `uploads/documents/${uniqueFileName}`;
+
+    const command = new PutObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+        ContentType: contentType,
+    });
+
+    try {
+        const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+        return { url, key };
+    } catch (error) {
+        console.error("Presigned URL Error:", error);
+        throw new Error("Failed to generate presigned URL");
     }
 }
