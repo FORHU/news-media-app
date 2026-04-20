@@ -263,7 +263,7 @@ export const articlesApi = {
   },
 
 
-  async getUploadUrl(filename: string, contentType: string): Promise<{ url: string; key: string }> {
+  async getUploadUrl(filename: string, contentType: string): Promise<{ url: string; key: string; fileUrl?: string }> {
     const res = await fetch("/api/admin/upload-presigned", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -271,8 +271,8 @@ export const articlesApi = {
     });
 
     if (!res.ok) {
-        const error = await res.json().catch(() => ({}));
-        throw new Error(error.error || "Failed to get upload URL");
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to get upload URL");
     }
     return res.json();
   },

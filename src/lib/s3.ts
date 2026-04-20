@@ -13,8 +13,8 @@ const s3Client = new S3Client({
  */
 export async function uploadToS3(file: Buffer, fileName: string, contentType: string): Promise<string> {
     const bucketName = process.env.AWS_S3_BUCKET!;
-    const cloudfrontUrl = process.env.NEXT_PUBLIC_CLOUDFRONT_URL?.replace(/\/$/, "");
-    
+    const cloudfrontUrl = process.env.CLOUDFRONT_URL?.replace(/\/$/, "");
+
     // Generate a unique filename to prevent collisions
     const fileExt = fileName.split('.').pop();
     const uniqueFileName = `${Math.random().toString(36).substring(2, 15)}-${Date.now()}.${fileExt}`;

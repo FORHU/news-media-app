@@ -21,11 +21,12 @@ export async function POST(req: NextRequest) {
         }
 
         const data = await res.json();
-        // data should contain { url, s3_key, filename }
+        const cloudfrontUrl = (process.env.CLOUDFRONT_URL || "").replace(/\/$/, "");
         return NextResponse.json({
             url: data.url,
             key: data.s3_key,
-            filename: data.filename
+            filename: data.filename,
+            fileUrl: cloudfrontUrl ? `${cloudfrontUrl}/${data.s3_key}` : data.s3_key
         });
     } catch (error: any) {
         console.error("Upload Presigned URL Error:", error);
