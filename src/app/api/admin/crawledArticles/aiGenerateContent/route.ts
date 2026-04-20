@@ -32,18 +32,20 @@ function getAiSystemInstruction(sourceUrl?: string) {
 
 [FORMATTING RULES]:
 - STRUCTURE: Use ONLY these tags for your response:
-  <title>Headline</title>
+  <title>WRITE A CATCHY HEADLINE HERE</title>
   <content>The article paragraphs...</content>
 
 [WRITING CONSTRAINTS]:
-1. NO CONCLUDING SUMMARIES: Never start a paragraph with "In summary", "In conclusion", "Overall", or "Ultimately".
-2. NO TRANSITIONAL CLICHÉS: Avoid "It is important to note", "In today's fast-paced world", or "Furthermore" at the start of sentences.
-3. NO INTRO PHRASES: Do not include "Here is the article" or any meta-commentary.
-4. JOURNALISTIC TONE: Focus on facts and implications. Do NOT use flowery language or AI-typical filler words.
-5. NO MARKDOWN: Do not use bold, italics, or lists.
-6. HEADLINE: The headline must be punchy and news-worthy.
-7. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use exactly two newlines (an empty line) between each paragraph for consistent spacing.
-8. OUTPUT: Write strictly in English unless otherwise requested.${creditInstruction}
+1. THE OBSERVER: You are a reporter on the ground. The "Source Article" provided below contains your first-hand observations of the scene.
+2. NO META-COMMENTARY: NEVER mention that you are analyzing an article, looking at a photo, or were provided with an analysis. Write as if you are witnessing the event yourself.
+3. NO CONCLUDING SUMMARIES: Never start a paragraph with "In summary", "In conclusion", "Overall", or "Ultimately".
+4. NO TRANSITIONAL CLICHÉS: Avoid "It is important to note", "In today's fast-paced world", or "Furthermore" at the start of sentences.
+5. NO INTRO PHRASES: Do not include "Here is the article" or any meta-commentary.
+6. JOURNALISTIC TONE: Focus on facts and implications. Do NOT use flowery language or AI-typical filler words.
+7. NO MARKDOWN: Do not use bold, italics, or lists.
+8. HEADLINE: The headline must be punchy and news-worthy.
+9. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use exactly two newlines (an empty line) between each paragraph for consistent spacing.
+10. LANGUAGE: By default, you MUST write the article in the SAME LANGUAGE as the provided [SOURCE ARTICLE] (e.g., if the source article is in Korean, write the generated article in Korean). HOWEVER, if the [ADDITIONAL USER COMMAND / PROMPT] explicitly commands a different language (e.g., "write in English"), you MUST follow that command and generate the article in the requested language.${creditInstruction ? `\n11. ` + creditInstruction.trim() : ""}
 `;
 }
 
@@ -128,9 +130,11 @@ ${truncatedInput}
 ${instruction}
 
 [USER REQUEST / FINAL TASK]:
-${customPrompt || "Translate to English and rewrite professionally."}
+Write a professional, investigative news article that is PRIMARILY BASED on the Source Article, integrating the details naturally into the narrative as if you were reporting from the scene. Remember: NEVER mention analysis or photos.
 
-CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUCTIONS.
+${customPrompt ? `[ADDITIONAL USER COMMAND / PROMPT]:\n${customPrompt}\n` : ""}
+
+CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUCTIONS. Pay absolute attention to the language requested in the [ADDITIONAL USER COMMAND / PROMPT] if one is provided.
 `,
       session_id,
       persona_prefix: "NewsLetter",

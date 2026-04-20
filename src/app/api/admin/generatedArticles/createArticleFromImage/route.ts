@@ -28,7 +28,7 @@ function getAiSystemInstruction() {
 7. NO MARKDOWN: Do not use bold, italics, or lists.
 8. HEADLINE: The headline must be punchy and news-worthy, reflecting the provided Topic.
 9. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use exactly two newlines (an empty line) between each paragraph for consistent spacing.
-10. OUTPUT: Write strictly in English unless otherwise requested.
+10. LANGUAGE: By default, you MUST write the article in the SAME LANGUAGE as any text found in the [OBSERVED DETAILS]. HOWEVER, if user explicitly requests a specific language in the [ASSIGNED STORY TOPIC] (e.g., "write in English"), you MUST follow that command and generate the article in the requested language.
 `;
 }
 
