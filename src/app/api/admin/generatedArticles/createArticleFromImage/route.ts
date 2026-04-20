@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
 
     // 3. Document Analysis via FastAPI
     // Extract S3 Key from URL
-    const s3Key = imageUrl.split(process.env.NEXT_PUBLIC_CLOUDFRONT_URL || "").pop()?.replace(/^\//, "") || imageUrl;
+    const s3Key = imageUrl.split(process.env.CLOUDFRONT_URL || "").pop()?.replace(/^\//, "") || imageUrl;
     const analysisFilename = s3Key.split("/").pop() || "image.jpg";
 
     let documentContext = "No additional content provided.";

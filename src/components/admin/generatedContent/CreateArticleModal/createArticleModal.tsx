@@ -134,8 +134,8 @@ export default function CreateArticleModal({
     const uploadFileWithPresignedUrl = async (file: File): Promise<string | null> => {
         try {
             // 1. Get presigned URL
-            const { url, key } = await articlesApi.getUploadUrl(file.name, file.type);
-            
+            const { url, key, fileUrl } = await articlesApi.getUploadUrl(file.name, file.type);
+
             // 2. Upload directly to S3
             const uploadRes = await fetch(url, {
                 method: "PUT",
@@ -147,9 +147,8 @@ export default function CreateArticleModal({
 
             if (!uploadRes.ok) throw new Error("Failed to upload to S3 via presigned URL");
 
-            // 3. Return the key/URL (we'll use the cloudfront URL + key)
-            const cloudfrontUrl = (process.env.NEXT_PUBLIC_CLOUDFRONT_URL || "").replace(/\/$/, "");
-            return cloudfrontUrl ? `${cloudfrontUrl}/${key}` : key;
+            // 3. Return the fileUrl or key
+            return fileUrl || key;
         } catch (err) {
             console.error("Presigned Upload error:", err);
             return null;
@@ -159,11 +158,11 @@ export default function CreateArticleModal({
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const incomingFiles = Array.from(e.target.files);
-            
+
             setFiles(prev => {
                 const newImages = incomingFiles.filter(f => f.type.startsWith('image/'));
                 const newOthers = incomingFiles.filter(f => !f.type.startsWith('image/'));
-                
+
                 // For the manual tab image, we only want one.
                 // If new images are uploaded, take the last one and replace existing ones.
                 if (newImages.length > 0) {
@@ -171,10 +170,10 @@ export default function CreateArticleModal({
                     const existingNonImages = prev.filter(f => !f.type.startsWith('image/'));
                     return [...existingNonImages, ...newOthers, latestImage];
                 }
-                
+
                 return [...prev, ...newOthers];
             });
-            
+
             setFieldErrors(prev => ({ ...prev, topic: undefined }));
         }
     };
@@ -378,9 +377,8 @@ export default function CreateArticleModal({
                                         categories={categories ?? []}
                                         isLoading={isLoadingCategories}
                                         placeholder="Select Category"
-                                        triggerClassName={`w-full h-12 rounded-xl bg-gray-50 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm transition-all ${
-                                            fieldErrors.category ? "border-red-500 bg-red-50/30" : "border-gray-100"
-                                        }`}
+                                        triggerClassName={`w-full h-12 rounded-xl bg-gray-50 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm transition-all ${fieldErrors.category ? "border-red-500 bg-red-50/30" : "border-gray-100"
+                                            }`}
                                         contentClassName="max-h-[400px]"
                                         error={fieldErrors.category}
                                     />
