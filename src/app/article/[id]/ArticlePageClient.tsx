@@ -15,8 +15,16 @@ import { FeaturedArticlesSection } from "@/components/home/featured-articles-sec
 import { StoryImage } from "@/components/StoryImage";
 import { articlesApi } from "@/lib/api";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
+import { AdBanner } from "@/components/AdBanner";
+import type { Article } from "@/lib/types";
 
-export default function ArticlePageClient({ articleId }: { articleId: string }) {
+export default function ArticlePageClient({ 
+  articleId, 
+  initialOtherArticles = [] 
+}: { 
+  articleId: string;
+  initialOtherArticles?: Article[];
+}) {
   const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
   const router = useRouter();
 
@@ -35,10 +43,8 @@ export default function ArticlePageClient({ articleId }: { articleId: string }) 
     enabled: Boolean(articleId),
   });
 
-  const { data: allArticles = [] } = useQuery({
-    queryKey: ["articles"],
-    queryFn: () => articlesApi.getArticles({ limit: 50 }),
-  });
+  // We use the articles provided by the server for consistency
+  const allArticles = initialOtherArticles;
 
   // We remove the full-page loading state to ensure a seamless transition.
   // The article data is populated via SSR hydration.
@@ -154,6 +160,11 @@ export default function ArticlePageClient({ articleId }: { articleId: string }) 
                     {firstHalf}
                   </div>
 
+                  {/* Mid-article Advertisement */}
+                  <div className="my-10">
+                    <AdBanner position="ARTICLE_IN_FEED" />
+                  </div>
+
                   {/* Hero image — inside the article (unconditionally rendered for fallback support) */}
                   <div className="my-8 rounded-xl overflow-hidden bg-gray-200 relative aspect-video shadow-sm">
                     <StoryImage
@@ -197,8 +208,9 @@ export default function ArticlePageClient({ articleId }: { articleId: string }) 
             </article>
           </div>
 
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 space-y-8">
             <TrendingSidebar articles={trendingArticles} />
+            <AdBanner position="ARTICLE_SIDEBAR" />
           </div>
         </div>
 

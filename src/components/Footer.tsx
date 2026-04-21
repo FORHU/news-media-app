@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { AdBanner } from "@/components/AdBanner";
 
 const CATEGORIES = [
     { label: "News & Events", slug: "news-events" },
@@ -27,6 +28,9 @@ interface FooterProps {
 export function Footer({ onOpenNewsletter }: FooterProps) {
     return (
         <footer className="bg-[#1a1a1a] text-white border-t border-gray-800">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-10">
+                <AdBanner position="GLOBAL_FOOTER" />
+            </div>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
                 {/* Main Footer Content */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8 sm:mb-12">
