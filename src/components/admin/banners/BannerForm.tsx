@@ -13,8 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { bannersApi, articlesApi } from "@/lib/api";
-import Image from "next/image";
+import { bannersApi } from "@/lib/api";
+import { bannerSchema } from "@/lib/validation/banners";
 
 interface BannerFormProps {
   open: boolean;
@@ -31,26 +31,41 @@ const POSITIONS = [
 ];
 
 export default function BannerForm({ open, onOpenChange, banner }: BannerFormProps) {
-  const [imageUrl, setImageUrl] = React.useState(banner?.imageUrl || "");
-  const [linkUrl, setLinkUrl] = React.useState(banner?.linkUrl || "");
-  const [altText, setAltText] = React.useState(banner?.altText || "");
-  const [position, setPosition] = React.useState(banner?.position || "");
-  const [isActive, setIsActive] = React.useState(banner?.isActive ?? true);
+  const [imageUrl, setImageUrl] = React.useState<string>(banner?.imageUrl || "");
+  const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
+  const [linkUrl, setLinkUrl] = React.useState<string>(banner?.linkUrl || "");
+  const [altText, setAltText] = React.useState<string>(banner?.altText || "");
+  const [position, setPosition] = React.useState<string>(banner?.position || "");
+  const [isActive, setIsActive] = React.useState<boolean>(banner?.isActive ?? true);
   const [isUploading, setIsUploading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
 
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
     if (open) {
       setImageUrl(banner?.imageUrl || "");
+      setPreviewUrl(null);
       setLinkUrl(banner?.linkUrl || "");
       setAltText(banner?.altText || "");
       setPosition(banner?.position || "");
       setIsActive(banner?.isActive ?? true);
       setError(null);
+      setFieldErrors({});
     }
+    // Only cleanup previewUrls when component unmounts or modal closes
+    return () => {
+      // Note: We'll handle individual revocations inside handleImageUpload
+    };
   }, [open, banner]);
+
+  // Handle final cleanup of any leftover previewUrl on unmount
+  React.useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   const mutation = useMutation({
     mutationFn: (data: any) => {
@@ -68,28 +83,49 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
     },
   });
 
+  const uploadBannerToSupabase = async (file: File): Promise<string> => {
+    const { supabase } = await import("@/lib/supabaseClient");
+    const ext = file.name.split(".").pop() ?? "jpg";
+    const path = `banners/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    
+    // Using the 'articles' bucket which is confirmed to exist
+    const { error: uploadError } = await supabase.storage
+      .from("articles")
+      .upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) throw new Error(uploadError.message);
+
+    const { data: { publicUrl } } = supabase.storage
+      .from("articles")
+      .getPublicUrl(path);
+
+    return publicUrl;
+  };
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Revoke previous local object URL to prevent memory leaks
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+
+    // Instant Preview
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl);
     setIsUploading(true);
     setError(null);
 
     try {
-      const { url, key, fileUrl } = await articlesApi.getUploadUrl(file.name, file.type);
-      
-      const uploadRes = await fetch(url, {
-        method: "PUT",
-        body: file,
-        headers: { "Content-Type": file.type },
-      });
-
-      if (!uploadRes.ok) throw new Error("Upload failed");
-
-      setImageUrl(fileUrl || key);
-    } catch (err) {
+      const publicUrl = await uploadBannerToSupabase(file);
+      setImageUrl(publicUrl);
+    } catch (err: any) {
       console.error("Upload error:", err);
-      setError("Failed to upload image. Please try again.");
+      setError(err.message || "Failed to upload image. Please try again.");
     } finally {
       setIsUploading(false);
     }
@@ -97,18 +133,29 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!imageUrl || !linkUrl || !position) {
-      setError("Please fill in all required fields.");
-      return;
-    }
+    setError(null);
+    setFieldErrors({});
 
-    mutation.mutate({
+    const result = bannerSchema.safeParse({
       imageUrl,
       linkUrl,
       altText,
       position,
       isActive,
     });
+
+    if (!result.success) {
+      const errors: Record<string, string> = {};
+      result.error.issues.forEach((issue) => {
+        if (issue.path[0]) {
+          errors[issue.path[0].toString()] = issue.message;
+        }
+      });
+      setFieldErrors(errors);
+      return;
+    }
+
+    mutation.mutate(result.data);
   };
 
   return (
@@ -123,8 +170,8 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
           </button>
 
           <div className="relative flex items-center gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#ff4500] to-[#ff6b35] flex items-center justify-center shadow-lg shadow-orange-500/20">
-              <ImageIcon className="w-7 h-7 text-white" />
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
+              <ImageIcon className="w-7 h-7 text-white fill-white/20" />
             </div>
             <div className="space-y-1">
               <DialogTitle className="text-2xl font-black text-white tracking-tight">
@@ -148,8 +195,11 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
             {/* Position Select */}
             <div className="space-y-2">
               <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Position <span className="text-red-500">*</span></label>
-              <Select value={position} onValueChange={setPosition}>
-                <SelectTrigger className="h-12 w-full rounded-xl bg-gray-50 border-gray-100 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20">
+              <Select value={position} onValueChange={(val) => {
+                setPosition(val);
+                setFieldErrors(prev => ({ ...prev, position: "" }));
+              }}>
+                <SelectTrigger className={`h-12 w-full rounded-xl bg-gray-50 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 ${fieldErrors.position ? "border-red-500 bg-red-50/30" : "border-gray-100"}`}>
                   <SelectValue placeholder="Select placement position" />
                 </SelectTrigger>
                 <SelectContent>
@@ -160,15 +210,22 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
                   ))}
                 </SelectContent>
               </Select>
+              {fieldErrors.position && (
+                <p className="text-[10px] font-bold text-red-500 ml-1 mt-1 uppercase tracking-wider">{fieldErrors.position}</p>
+              )}
             </div>
 
             {/* Image Upload */}
             <div className="space-y-2">
               <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Banner Image <span className="text-red-500">*</span></label>
               <div className="relative group">
-                {imageUrl ? (
-                  <div className="relative aspect-[3/1] rounded-2xl overflow-hidden bg-gray-100 border-2 border-dashed border-gray-200">
-                    <Image src={imageUrl} alt="Preview" fill className="object-cover" unoptimized />
+                {(previewUrl || (imageUrl && imageUrl.trim() !== "")) ? (
+                  <div className="relative aspect-[21/9] rounded-2xl overflow-hidden shadow-inner bg-gray-50 border border-gray-100">
+                    <img 
+                      src={previewUrl || imageUrl} 
+                      alt={altText || "Banner Preview"} 
+                      className="w-full h-full object-cover animate-in fade-in duration-300" 
+                    />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <label className="cursor-pointer bg-white text-gray-900 px-4 py-2 rounded-xl text-xs font-bold shadow-lg hover:scale-105 transition-transform">
                         Change Image
@@ -177,17 +234,24 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
                     </div>
                   </div>
                 ) : (
-                  <label className="flex flex-col items-center justify-center aspect-[3/1] rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 hover:bg-gray-100 transition-all cursor-pointer group">
+                  <label className="flex flex-col items-center justify-center aspect-[21/9] rounded-2xl bg-[#7c7fff] transition-all cursor-pointer group relative overflow-hidden">
                     {isUploading ? (
-                      <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+                      <div className="flex flex-col items-center gap-3">
+                        <Loader2 className="w-8 h-8 text-white animate-spin" />
+                        <span className="text-xs font-black text-white/80 uppercase tracking-widest">Uploading...</span>
+                      </div>
                     ) : (
-                      <>
-                        <Upload className="w-8 h-8 text-gray-300 group-hover:text-orange-500 transition-colors mb-2" />
-                        <span className="text-xs font-bold text-gray-400 group-hover:text-gray-600">Click to upload banner</span>
-                      </>
+                      <div className="flex flex-col items-center justify-center w-full h-full">
+                        <span className="text-3xl font-black text-white tracking-tighter opacity-90 group-hover:opacity-100 transition-opacity">
+                          BANNER PREVIEW
+                        </span>
+                      </div>
                     )}
                     <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isUploading} />
                   </label>
+                )}
+                {fieldErrors.imageUrl && (
+                  <p className="text-[10px] font-bold text-red-500 ml-1 mt-1 uppercase tracking-wider">{fieldErrors.imageUrl}</p>
                 )}
               </div>
             </div>
@@ -199,11 +263,17 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
                 <Input
                   placeholder="https://example.com/promo"
                   value={linkUrl}
-                  onChange={(e) => setLinkUrl(e.target.value)}
-                  className="h-12 rounded-xl bg-gray-50 border-gray-100 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20"
+                  onChange={(e) => {
+                    setLinkUrl(e.target.value);
+                    setFieldErrors(prev => ({ ...prev, linkUrl: "" }));
+                  }}
+                  className={`h-12 rounded-xl bg-gray-50 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 pr-12 border-gray-100 shadow-sm transition-all ${fieldErrors.linkUrl ? "border-red-500 bg-red-50/30" : ""}`}
                 />
-                <ExternalLink className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                <ExternalLink className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               </div>
+              {fieldErrors.linkUrl && (
+                <p className="text-[10px] font-bold text-red-500 ml-1 mt-1 uppercase tracking-wider">{fieldErrors.linkUrl}</p>
+              )}
             </div>
 
             {/* Alt Text */}
@@ -211,10 +281,16 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
               <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Accessibility Text (Alt)</label>
               <Input
                 placeholder="Brief description of the ad content"
-                value={altText}
-                onChange={(e) => setAltText(e.target.value)}
-                className="h-12 rounded-xl bg-gray-50 border-gray-100 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20"
+                value={altText || ""}
+                onChange={(e) => {
+                  setAltText(e.target.value);
+                  setFieldErrors(prev => ({ ...prev, altText: "" }));
+                }}
+                className={`h-12 rounded-xl bg-gray-50 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 border-gray-100 shadow-sm transition-all ${fieldErrors.altText ? "border-red-500 bg-red-50/30" : ""}`}
               />
+              {fieldErrors.altText && (
+                <p className="text-[10px] font-bold text-red-500 ml-1 mt-1 uppercase tracking-wider">{fieldErrors.altText}</p>
+              )}
             </div>
 
             {/* Status Toggle */}
@@ -231,18 +307,20 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
           </div>
         </form>
 
-        <DialogFooter className="px-8 py-6 bg-gray-50/50 border-t border-gray-100">
-          <Button
-            variant="ghost"
-            onClick={() => onOpenChange(false)}
-            className="rounded-xl font-bold text-gray-500 hover:text-gray-900 hover:bg-gray-100 px-6 h-12"
-          >
-            Cancel
-          </Button>
+        <DialogFooter className="px-8 py-6 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between gap-4">
+          <div className="flex-1 flex justify-start">
+            <Button
+              variant="ghost"
+              onClick={() => onOpenChange(false)}
+              className="rounded-xl font-bold text-gray-500 hover:text-gray-900 hover:bg-gray-100 px-6 h-12"
+            >
+              Cancel
+            </Button>
+          </div>
           <Button
             onClick={handleSubmit}
             disabled={mutation.isPending || isUploading}
-            className="rounded-2xl bg-gradient-to-r from-[#ff4500] to-[#ff6b35] text-white font-black text-base shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all px-8 h-12"
+            className="flex-1 max-w-[200px] h-14 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-black text-base shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all px-8"
           >
             {mutation.isPending ? (
               <Loader2 className="w-5 h-5 animate-spin mr-2" />

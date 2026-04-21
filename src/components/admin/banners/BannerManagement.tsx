@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { StoryImage } from "@/components/StoryImage";
 import BannerForm from "./BannerForm";
 import ConfirmationModal from "@/components/admin/shared/ConfirmationModal";
 
@@ -30,10 +31,12 @@ export default function BannerManagement() {
 
   const queryClient = useQueryClient();
 
-  const { data: banners = [], isLoading, isError } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["banners"],
     queryFn: () => bannersApi.getBanners(),
   });
+
+  const banners = Array.isArray(data) ? data : [];
 
   const toggleMutation = useMutation({
     mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
@@ -52,9 +55,11 @@ export default function BannerManagement() {
     },
   });
 
-  const filteredBanners = banners.filter((b) =>
-    b.position.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    b.linkUrl.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredBanners = (banners || []).filter((b) =>
+    b && (
+      b.position.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      b.linkUrl.toLowerCase().includes(searchQuery.toLowerCase())
+    )
   );
 
   const handleEdit = (banner: any) => {
@@ -136,7 +141,9 @@ export default function BannerManagement() {
           animate="visible"
           className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
-          {filteredBanners.map((banner) => (
+          {filteredBanners.map((banner) => {
+            if (!banner) return null;
+            return (
             <motion.div
               key={banner.id}
               variants={itemVariants}
@@ -145,14 +152,23 @@ export default function BannerManagement() {
                 banner.isActive ? "border-gray-100" : "border-gray-200 bg-gray-50/50 opacity-75"
               }`}
             >
-              <div className="aspect-[3/1] relative overflow-hidden bg-gray-100">
-                <Image
-                  src={banner.imageUrl}
-                  alt={banner.altText || "Banner"}
-                  fill
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
-                  unoptimized
-                />
+              <div className="aspect-[3/1] relative overflow-hidden bg-gray-50 flex-shrink-0">
+                {banner.imageUrl && banner.imageUrl.trim().length > 0 ? (
+                  <StoryImage
+                    src={banner.imageUrl}
+                    alt={banner.altText || "Banner"}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 512px"
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    variant="featured"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-[#7c7fff]">
+                    <span className="text-xl font-black text-white tracking-widest opacity-80 uppercase selection:bg-none">
+                      Banner Preview
+                    </span>
+                  </div>
+                )}
                 {!banner.isActive && (
                   <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-[2px] flex items-center justify-center">
                     <span className="bg-white/10 border border-white/20 text-white px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest">
@@ -218,7 +234,8 @@ export default function BannerManagement() {
                 </div>
               </div>
             </motion.div>
-          ))}
+          );
+          })}
 
           {filteredBanners.length === 0 && (
             <div className="col-span-full py-32 flex flex-col items-center justify-center bg-white rounded-[3rem] border-2 border-dashed border-gray-100">
@@ -237,6 +254,7 @@ export default function BannerManagement() {
       )}
 
       <BannerForm
+        key={isFormOpen ? `banner-form-${selectedBanner?.id || 'new'}` : 'closed'}
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         banner={selectedBanner}
@@ -245,7 +263,11 @@ export default function BannerManagement() {
       <ConfirmationModal
         isOpen={isDeleteModalOpen}
         onOpenChange={setIsDeleteModalOpen}
-        onConfirm={() => deleteMutation.mutate(bannerToDelete.id)}
+        onConfirm={() => {
+          if (bannerToDelete?.id) {
+            deleteMutation.mutate(bannerToDelete.id);
+          }
+        }}
         title="Delete Banner?"
         description="This action cannot be undone. This advertisement will no longer be displayed on your site."
         confirmText="Yes, Delete"

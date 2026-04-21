@@ -60,6 +60,21 @@ export function AdBanner({ position, className = "" }: AdBannerProps) {
 
   const activeBanner = banners[currentIdx];
 
+  // Determine aspect ratio based on position
+  const getAspectRatioClasses = () => {
+    switch (position) {
+      case "HOME_SIDEBAR":
+      case "ARTICLE_SIDEBAR":
+        return "aspect-[4/3] sm:aspect-[4/3] lg:aspect-[4/3]"; // More vertical/rectangular
+      case "ARTICLE_IN_FEED":
+      case "HOME_TOP":
+      case "GLOBAL_FOOTER":
+        return "aspect-[4/1] sm:aspect-[7/1] lg:aspect-[10/1]"; // Leaderboard/Ribbon
+      default:
+        return "aspect-[3/1] sm:aspect-[7/1] lg:aspect-[10/1]";
+    }
+  };
+
   return (
     <div className={`relative overflow-hidden group ${className}`}>
       <AnimatePresence mode="wait">
@@ -69,7 +84,7 @@ export function AdBanner({ position, className = "" }: AdBannerProps) {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
-          className="relative aspect-[3/1] sm:aspect-[7/1] lg:aspect-[10/1] rounded-xl overflow-hidden bg-gray-100 border border-gray-200"
+          className={`relative ${getAspectRatioClasses()} rounded-xl overflow-hidden bg-gray-100 border border-gray-200 transition-all duration-300`}
         >
           <Link
             href={activeBanner.linkUrl}
