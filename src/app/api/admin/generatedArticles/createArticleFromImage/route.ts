@@ -20,7 +20,7 @@ function getAiSystemInstruction() {
 
 [WRITING CONSTRAINTS]:
 1. THE OBSERVER: You are a reporter on the ground. The "Observed Details" provided below are your first-hand observations of the scene. The "Topic" is your assigned story angle.
-2. NO META-COMMENTARY: NEVER mention that you are analyzing an image, looking at a photo, or were provided with an analysis. Write as if you are witnessing the event yourself.
+2. NO META-COMMENTARY OR IMAGE REFERENCES: NEVER mention that you are analyzing an image, looking at a photo, or were provided with an analysis. NEVER use phrases like "The image features", "The photo shows", "Pictured here is", or "This image depicts". Write as if you are witnessing the event yourself and describing real-world subjects directly.
 3. NO CONCLUDING SUMMARIES: Never start a paragraph with "In summary", "In conclusion", "Overall", or "Ultimately".
 4. NO TRANSITIONAL CLICHÉS: Avoid "It is important to note", "In today's fast-paced world", or "Furthermore" at the start of sentences.
 5. NO INTRO PHRASES: Do not include "Here is the article" or any meta-commentary.
@@ -104,7 +104,12 @@ export async function POST(req: NextRequest) {
 
     // 3. Document Analysis via FastAPI
     // Extract S3 Key from URL
-    const s3Key = imageUrl.split(process.env.CLOUDFRONT_URL || "").pop()?.replace(/^\//, "") || imageUrl;
+    let s3Key = imageUrl;
+    try {
+      s3Key = new URL(imageUrl).pathname.slice(1);
+    } catch (e) {
+      console.warn("Invalid URL format for s3Key extraction:", imageUrl);
+    }
     const analysisFilename = s3Key.split("/").pop() || "image.jpg";
 
     let documentContext = "No additional content provided.";
