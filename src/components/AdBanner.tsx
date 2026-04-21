@@ -17,11 +17,16 @@ interface Banner {
 interface AdBannerProps {
   position: string;
   className?: string;
+  initialIndex?: number;
 }
 
-export function AdBanner({ position, className = "" }: AdBannerProps) {
+export function AdBanner({ 
+  position, 
+  className = "", 
+  initialIndex = 0 
+}: AdBannerProps) {
   const [banners, setBanners] = useState<Banner[]>([]);
-  const [currentIdx, setCurrentIdx] = useState(0);
+  const [currentIdx, setCurrentIdx] = useState(0); // Initialized properly after fetch
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,6 +36,10 @@ export function AdBanner({ position, className = "" }: AdBannerProps) {
         if (res.ok) {
           const data = await res.json();
           setBanners(data);
+          // Set initial index based on available banners
+          if (data.length > 0) {
+            setCurrentIdx(initialIndex % data.length);
+          }
         }
       } catch (error) {
         console.error("Failed to fetch banners:", error);
@@ -40,21 +49,19 @@ export function AdBanner({ position, className = "" }: AdBannerProps) {
     }
 
     fetchBanners();
-  }, [position]);
+  }, [position, initialIndex]);
 
   // Rotate banners if there are multiple for the same position
   useEffect(() => {
     if (banners.length > 1) {
       const interval = setInterval(() => {
         setCurrentIdx((prev) => (prev + 1) % banners.length);
-      }, 8000); // Rotate every 8 seconds
+      }, 7000); // 7s for slightly faster, smoother feeling rotation
       return () => clearInterval(interval);
     }
-  }, [banners.length]);
+  }, [banners.length, banners]); // Added banners for safety
 
   if (loading || banners.length === 0) {
-    // Hidden if no ad assigned, preventing layout shift if possible
-    // Could also render a "Advertise here" placeholder if desired
     return null;
   }
 
@@ -65,7 +72,7 @@ export function AdBanner({ position, className = "" }: AdBannerProps) {
     switch (position) {
       case "HOME_SIDEBAR":
       case "ARTICLE_SIDEBAR":
-        return "aspect-[4/3] sm:aspect-[4/3] lg:aspect-[4/3]"; // More vertical/rectangular
+        return "aspect-[3/2] sm:aspect-[3/2] lg:aspect-[3/2]"; // Optimized for stacking
       case "ARTICLE_IN_FEED":
       case "HOME_TOP":
       case "GLOBAL_FOOTER":
@@ -76,21 +83,23 @@ export function AdBanner({ position, className = "" }: AdBannerProps) {
   };
 
   return (
-    <div className={`relative overflow-hidden group ${className}`}>
-      <AnimatePresence mode="wait">
+    <div className={`relative overflow-hidden group rounded-xl border border-gray-200 bg-gray-100 ${getAspectRatioClasses()} ${className}`}>
+      <AnimatePresence initial={false}>
         <motion.div
           key={activeBanner.id}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.5, ease: "easeInOut" }}
-          className={`relative ${getAspectRatioClasses()} rounded-xl overflow-hidden bg-gray-100 border border-gray-200 transition-all duration-300`}
+          initial={{ x: "100%" }}
+          animate={{ x: 0 }}
+          exit={{ x: "-100%" }}
+          transition={{ 
+            x: { type: "spring", stiffness: 300, damping: 30 },
+          }}
+          className="absolute inset-0 w-full h-full"
         >
           <Link
             href={activeBanner.linkUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full h-full"
+            className="block w-full h-full relative"
           >
             <Image
               src={activeBanner.imageUrl}
@@ -106,13 +115,14 @@ export function AdBanner({ position, className = "" }: AdBannerProps) {
                 <ExternalLink className="w-3 h-3" />
               </div>
             </div>
+            
+            {/* Ad Label - Moved inside Link or kept absolute in motion.div */}
+            <div className="absolute top-2 left-2 pointer-events-none z-10">
+              <span className="bg-gray-900/40 backdrop-blur-sm text-[10px] text-white px-2 py-0.5 rounded-md font-medium uppercase tracking-widest border border-white/10">
+                Sponsored
+              </span>
+            </div>
           </Link>
-          {/* Ad Label */}
-          <div className="absolute top-2 left-2 pointer-events-none">
-            <span className="bg-gray-900/40 backdrop-blur-sm text-[10px] text-white px-2 py-0.5 rounded-md font-medium uppercase tracking-widest border border-white/10">
-              Sponsored
-            </span>
-          </div>
         </motion.div>
       </AnimatePresence>
     </div>
