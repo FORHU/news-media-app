@@ -148,6 +148,8 @@ ${instruction}
 [USER REQUEST / FINAL TASK]:
 Write a professional, investigative news article that is PRIMARILY BASED on the Topic provided, integrating the Observed Details naturally into the narrative as if you were reporting from the scene. Remember: NEVER mention analysis or photos.
 
+CRITICAL FACT CHECKING: Every concrete claim (who/what/where/when/how many) must be supported by [OBSERVED DETAILS]. If a detail is not present, omit it.
+
 CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUCTIONS.
 `;
 

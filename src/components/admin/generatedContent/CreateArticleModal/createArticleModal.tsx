@@ -38,6 +38,7 @@ export default function CreateArticleModal({
 }: CreateArticleModalProps) {
     const [activeTab, setActiveTab] = React.useState<"manual" | "youtube">("manual");
     const [topic, setTopic] = React.useState("");
+    const [language, setLanguage] = React.useState("English");
     const [selectedCategory, setSelectedCategory] = React.useState<string>("");
     const [files, setFiles] = React.useState<File[]>([]);
     const [youtubeUrl, setYoutubeUrl] = React.useState("");
@@ -68,6 +69,7 @@ export default function CreateArticleModal({
         setYoutubePrompt("");
         setSelectedCategory("");
         setTranscriptError(null);
+        setLanguage("English");
     }, []);
 
     // Reset form when modal closes
@@ -182,6 +184,11 @@ export default function CreateArticleModal({
         setFiles(prev => prev.filter((_, i) => i !== index));
     };
 
+    const buildLanguageDirective = React.useCallback((selectedLanguage: string) => {
+        const lang = (selectedLanguage || "English").trim() || "English";
+        return `Write the entire article in ${lang}.`;
+    }, []);
+
     const handleGenerate = async () => {
         setError(null);
         const newErrors: typeof fieldErrors = {};
@@ -229,6 +236,7 @@ export default function CreateArticleModal({
                     categoryId: selectedCategory,
                     fileContent: combinedFileContent,
                     imageUrl: uploadedImageUrl,
+                    prompt: buildLanguageDirective(language),
                     type: "manual",
                 });
             } catch (err: any) {
@@ -248,7 +256,7 @@ export default function CreateArticleModal({
             mutation.mutate({
                 topic: "YouTube Video Article",
                 content: youtubeTranscript,
-                prompt: youtubePrompt,
+                prompt: [youtubePrompt?.trim(), buildLanguageDirective(language)].filter(Boolean).join("\n\n"),
                 categoryId: selectedCategory,
                 youtubeUrl: youtubeUrl,
                 type: "youtube",
@@ -342,7 +350,13 @@ export default function CreateArticleModal({
                     </div>
 
                     {activeTab === "manual" ? (
-                        <ManualArticleContext topic={topic} handleTopicChange={handleTopicChange} fieldErrors={fieldErrors} />
+                        <ManualArticleContext
+                            topic={topic}
+                            handleTopicChange={handleTopicChange}
+                            fieldErrors={fieldErrors}
+                            language={language}
+                            setLanguage={setLanguage}
+                        />
                     ) : (
                         <YoutubeGenerationTab
                             youtubeUrl={youtubeUrl}
@@ -356,6 +370,8 @@ export default function CreateArticleModal({
                             fieldErrors={fieldErrors}
                             youtubePrompt={youtubePrompt}
                             setYoutubePrompt={setYoutubePrompt}
+                            language={language}
+                            setLanguage={setLanguage}
                         />
                     )}
 
