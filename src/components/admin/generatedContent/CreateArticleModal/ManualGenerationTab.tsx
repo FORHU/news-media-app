@@ -12,6 +12,23 @@ function getFileIcon(fileName: string) {
     return <FileIcon className="w-4 h-4 text-gray-500" />;
 }
 
+const LANGUAGE_OPTIONS = [
+    "English",
+    "Filipino",
+    "Spanish",
+    "French",
+    "German",
+    "Italian",
+    "Portuguese",
+    "Japanese",
+    "Korean",
+    "Chinese (Simplified)",
+    "Chinese (Traditional)",
+    "Arabic",
+    "Hindi",
+    "Russian",
+] as const;
+
 export function ManualArticleContext({
     topic,
     handleTopicChange,
@@ -43,6 +60,8 @@ export function ManualArticleContext({
         </div>
     );
 }
+
+export { LANGUAGE_OPTIONS };
 
 export function ManualMaterialsUpload({
     files,

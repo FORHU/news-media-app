@@ -9,24 +9,32 @@ export async function POST(req: NextRequest) {
         const baseUrl = (process.env.GENERATE_CONTENT_API || "").replace(/\/$/, "");
         if (!baseUrl) throw new Error("GENERATE_CONTENT_API is not configured");
 
-        const res = await fetch(`${baseUrl}/api/legal/document-upload-url`, {
+        const response = await fetch(`${baseUrl}/api/legal/document-upload-url`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ filename, content_type: contentType }),
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                filename,
+                content_type: contentType
+            })
         });
 
-        if (!res.ok) {
-            const error = await res.json().catch(() => ({}));
-            return NextResponse.json({ error: error.detail || "Failed to get upload URL from AI service" }, { status: res.status });
+        if (!response.ok) {
+            throw new Error(`Failed to get presigned URL from API: ${response.status}`);
         }
 
-        const data = await res.json();
-        const cloudfrontUrl = (process.env.CLOUDFRONT_URL || "").replace(/\/$/, "");
+        const data = await response.json();
+
+        // Use the bare URL (no query params) as the public URL
+        const parsedUrl = new URL(data.url);
+        const fileUrl = `${parsedUrl.origin}${parsedUrl.pathname}`;
+
         return NextResponse.json({
             url: data.url,
             key: data.s3_key,
-            filename: data.filename,
-            fileUrl: cloudfrontUrl ? `${cloudfrontUrl}/${data.s3_key}` : data.s3_key
+            filename: filename,
+            fileUrl: fileUrl
         });
     } catch (error: any) {
         console.error("Upload Presigned URL Error:", error);

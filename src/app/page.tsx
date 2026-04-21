@@ -7,6 +7,7 @@ import { TrendingSidebar } from "@/components/home/trending-sidebar";
 import { FeaturedArticlesSection } from "@/components/home/featured-articles-section";
 import { TrendingProductsSection } from "@/components/home/trending-products-section";
 import { LandingClientWrapper } from "@/components/home/LandingClientWrapper";
+import { AdBanner } from "@/components/AdBanner";
 import { articlesService } from "@/services/articles.service";
 import { DEFAULT_OG_IMAGE, DEFAULT_SEO } from "@/config/site";
 
@@ -64,6 +65,11 @@ export default async function Page(props: {
       <LandingClientWrapper>
         <NavBar />
 
+        {/* Top Ad Banner */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+          <AdBanner position="HOME_TOP" />
+        </div>
+
         {/* Hero Section - Carousel with trending sidebar & recommendations */}
         {!searchQuery && !categoryParam && filteredArticles.length > 0 && (
           <HeroSection articles={filteredArticles.slice(0, 5)} />
@@ -88,8 +94,18 @@ export default async function Page(props: {
               searchQuery={searchQuery || null}
               isLoading={false}
             />
-            <TrendingSidebar articles={filteredArticles.slice(0, 5)} />
+            <div className="space-y-8">
+              <TrendingSidebar articles={filteredArticles.slice(0, 5)} />
+              <AdBanner position="HOME_SIDEBAR" />
+            </div>
           </div>
+
+          {/* In-feed Ad Banner */}
+          {!searchQuery && !categoryParam && (
+            <div className="mb-12">
+              <AdBanner position="ARTICLE_IN_FEED" className="max-w-4xl mx-auto" />
+            </div>
+          )}
 
           {/* Featured Articles Grid */}
           {!searchQuery && !categoryParam && (

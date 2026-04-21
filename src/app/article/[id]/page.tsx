@@ -119,14 +119,22 @@ export default async function ArticlePage({
     // We fall back to client fetching so users still get a usable screen.
   }
 
-  // We only fetch the main article on the server for SEO and initial render.
-  // Secondary content (sidebar/recommendations) will be fetched on the client.
+  // We fetch published articles on the server for sidebar/recommendations
+  // to ensure consistency (e.g. correct categories) and SEO.
+  const allArticles = await articlesService.getArticles({ 
+    limit: 50, 
+    status: "published" 
+  });
+
   const dehydratedState = dehydrate(queryClient);
 
   return (
     <Hydrate state={dehydratedState}>
       <Suspense fallback={<div className="min-h-screen bg-white" />}>
-        <ArticlePageClient articleId={articleId} />
+        <ArticlePageClient 
+          articleId={articleId} 
+          initialOtherArticles={allArticles}
+        />
       </Suspense>
     </Hydrate>
   );

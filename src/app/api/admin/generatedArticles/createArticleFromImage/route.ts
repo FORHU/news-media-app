@@ -20,7 +20,7 @@ function getAiSystemInstruction() {
 
 [WRITING CONSTRAINTS]:
 1. THE OBSERVER: You are a reporter on the ground. The "Observed Details" provided below are your first-hand observations of the scene. The "Topic" is your assigned story angle.
-2. NO META-COMMENTARY: NEVER mention that you are analyzing an image, looking at a photo, or were provided with an analysis. Write as if you are witnessing the event yourself.
+2. NO META-COMMENTARY OR IMAGE REFERENCES: NEVER mention that you are analyzing an image, looking at a photo, or were provided with an analysis. NEVER use phrases like "The image features", "The photo shows", "Pictured here is", or "This image depicts". Write as if you are witnessing the event yourself and describing real-world subjects directly.
 3. NO CONCLUDING SUMMARIES: Never start a paragraph with "In summary", "In conclusion", "Overall", or "Ultimately".
 4. NO TRANSITIONAL CLICHÉS: Avoid "It is important to note", "In today's fast-paced world", or "Furthermore" at the start of sentences.
 5. NO INTRO PHRASES: Do not include "Here is the article" or any meta-commentary.
@@ -28,7 +28,7 @@ function getAiSystemInstruction() {
 7. NO MARKDOWN: Do not use bold, italics, or lists.
 8. HEADLINE: The headline must be punchy and news-worthy, reflecting the provided Topic.
 9. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use exactly two newlines (an empty line) between each paragraph for consistent spacing.
-10. OUTPUT: Write strictly in English unless otherwise requested.
+10. LANGUAGE: By default, you MUST write the article in the SAME LANGUAGE as any text found in the [OBSERVED DETAILS]. HOWEVER, if user explicitly requests a specific language in the [ASSIGNED STORY TOPIC] (e.g., "write in English"), you MUST follow that command and generate the article in the requested language.
 `;
 }
 
@@ -104,7 +104,12 @@ export async function POST(req: NextRequest) {
 
     // 3. Document Analysis via FastAPI
     // Extract S3 Key from URL
-    const s3Key = imageUrl.split(process.env.CLOUDFRONT_URL || "").pop()?.replace(/^\//, "") || imageUrl;
+    let s3Key = imageUrl;
+    try {
+      s3Key = new URL(imageUrl).pathname.slice(1);
+    } catch (e) {
+      console.warn("Invalid URL format for s3Key extraction:", imageUrl);
+    }
     const analysisFilename = s3Key.split("/").pop() || "image.jpg";
 
     let documentContext = "No additional content provided.";
@@ -147,6 +152,8 @@ ${instruction}
 
 [USER REQUEST / FINAL TASK]:
 Write a professional, investigative news article that is PRIMARILY BASED on the Topic provided, integrating the Observed Details naturally into the narrative as if you were reporting from the scene. Remember: NEVER mention analysis or photos.
+
+CRITICAL FACT CHECKING: Every concrete claim (who/what/where/when/how many) must be supported by [OBSERVED DETAILS]. If a detail is not present, omit it.
 
 CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUCTIONS.
 `;
