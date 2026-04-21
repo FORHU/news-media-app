@@ -20,11 +20,18 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import YoutubeGenerationTab from "./YoutubeGenerationTab";
-import { ManualArticleContext, ManualMaterialsUpload } from "./ManualGenerationTab";
+import { LANGUAGE_OPTIONS, ManualArticleContext, ManualMaterialsUpload } from "./ManualGenerationTab";
 import CategorySelectWithOther from "@/components/admin/shared/CategorySelectWithOther";
 
 interface CreateArticleModalProps {
@@ -288,13 +295,50 @@ export default function CreateArticleModal({
     };
 
     const isGenerating = mutation.isPending;
+    const isModalBusy = isGenerating || isProcessingFiles;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
                 showCloseButton={false}
-                className="sm:max-w-[600px] p-0 overflow-hidden rounded-[2.5rem] border-none bg-white shadow-2xl"
+                className="sm:max-w-[840px] p-0 overflow-hidden rounded-[2.5rem] border-none bg-white shadow-2xl"
             >
+                {isModalBusy ? (
+                    <div className="relative min-h-[500px] flex flex-col items-center justify-center gap-6 px-10 py-16 bg-gradient-to-b from-white to-orange-50/40 overflow-hidden">
+                        <div className="absolute inset-0 pointer-events-none opacity-50">
+                            <div className="absolute -top-20 -left-12 w-48 h-48 rounded-full bg-orange-100 blur-3xl" />
+                            <div className="absolute -bottom-20 -right-12 w-52 h-52 rounded-full bg-orange-200/60 blur-3xl" />
+                        </div>
+
+                        <div className="relative w-20 h-20 rounded-3xl bg-white border border-orange-100 shadow-lg flex items-center justify-center">
+                            <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+                        </div>
+
+                        <div className="relative text-center space-y-2">
+                            <h3 className="text-2xl font-black text-gray-900 tracking-tight">Crafting Your Article</h3>
+                            <p className="text-sm font-medium text-gray-600 max-w-md">
+                                We are analyzing your input and generating a polished draft. This can take up to a few seconds.
+                            </p>
+                        </div>
+
+                        <div className="relative w-full max-w-md space-y-4">
+                            <div className="h-2 rounded-full bg-orange-100 overflow-hidden">
+                                <motion.div
+                                    className="h-full bg-gradient-to-r from-orange-400 to-orange-600"
+                                    initial={{ width: "18%" }}
+                                    animate={{ width: ["18%", "52%", "84%", "96%"] }}
+                                    transition={{ duration: 2.8, ease: "easeInOut", repeat: Infinity }}
+                                />
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                                <div className="px-3 py-2 rounded-lg bg-white/90 border border-orange-100 text-center">Uploading</div>
+                                <div className="px-3 py-2 rounded-lg bg-white/90 border border-orange-100 text-center">Analyzing</div>
+                                <div className="px-3 py-2 rounded-lg bg-white/90 border border-orange-100 text-center">Generating</div>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <>
                 {/* Header with vibrant aesthetic */}
                 <div className="relative bg-gray-900 px-8 py-10 overflow-hidden">
                     <button
@@ -350,13 +394,20 @@ export default function CreateArticleModal({
                     </div>
 
                     {activeTab === "manual" ? (
-                        <ManualArticleContext
-                            topic={topic}
-                            handleTopicChange={handleTopicChange}
-                            fieldErrors={fieldErrors}
-                            language={language}
-                            setLanguage={setLanguage}
-                        />
+                        <div className="space-y-8">
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-3">
+                                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-black text-xs">01</span>
+                                    <label className="text-sm font-black uppercase tracking-widest text-gray-900">Materials</label>
+                                </div>
+                                <ManualMaterialsUpload files={files} handleFileChange={handleFileChange} removeFile={removeFile} />
+                            </div>
+                            <ManualArticleContext
+                                topic={topic}
+                                handleTopicChange={handleTopicChange}
+                                fieldErrors={fieldErrors}
+                            />
+                        </div>
                     ) : (
                         <YoutubeGenerationTab
                             youtubeUrl={youtubeUrl}
@@ -403,11 +454,25 @@ export default function CreateArticleModal({
                                     )}
                                 </div>
                             </div>
-                        </div>
 
-                        {activeTab === "manual" && (
-                            <ManualMaterialsUpload files={files} handleFileChange={handleFileChange} removeFile={removeFile} />
-                        )}
+                            {activeTab === "manual" && (
+                                <div className="space-y-2">
+                                    <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Language</span>
+                                    <Select value={language} onValueChange={setLanguage}>
+                                        <SelectTrigger className="h-12 rounded-xl bg-gray-50 border border-gray-100 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm">
+                                            <SelectValue placeholder="English" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {LANGUAGE_OPTIONS.map((lang) => (
+                                                <SelectItem key={lang} value={lang}>
+                                                    {lang}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -425,10 +490,10 @@ export default function CreateArticleModal({
                     </div>
                     <Button
                         onClick={handleGenerate}
-                        disabled={isGenerating || isProcessingFiles || (activeTab === "youtube" && !youtubeTranscript.trim())}
+                            disabled={isModalBusy || (activeTab === "youtube" && !youtubeTranscript.trim())}
                         className="flex-1 max-w-[200px] h-14 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-black text-base shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 transition-all"
                     >
-                        {isGenerating || isProcessingFiles ? (
+                        {isModalBusy ? (
                             <div className="flex items-center gap-2">
                                 <Loader2 className="w-5 h-5 animate-spin" />
                                 <span>{isProcessingFiles && !isGenerating ? 'Processing...' : 'Generating...'}</span>
@@ -441,6 +506,8 @@ export default function CreateArticleModal({
                         )}
                     </Button>
                 </DialogFooter>
+                    </>
+                )}
             </DialogContent>
         </Dialog>
     );
