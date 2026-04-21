@@ -3,6 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X, Upload, FileText, Image as ImageIcon, File as FileIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 function getFileIcon(fileName: string) {
     const ext = fileName.split('.').pop()?.toLowerCase();
@@ -12,14 +19,35 @@ function getFileIcon(fileName: string) {
     return <FileIcon className="w-4 h-4 text-gray-500" />;
 }
 
+const LANGUAGE_OPTIONS = [
+    "English",
+    "Filipino",
+    "Spanish",
+    "French",
+    "German",
+    "Italian",
+    "Portuguese",
+    "Japanese",
+    "Korean",
+    "Chinese (Simplified)",
+    "Chinese (Traditional)",
+    "Arabic",
+    "Hindi",
+    "Russian",
+] as const;
+
 export function ManualArticleContext({
     topic,
     handleTopicChange,
     fieldErrors,
+    language,
+    setLanguage,
 }: {
     topic: string;
     handleTopicChange: (val: string) => void;
     fieldErrors: { topic?: string };
+    language: string;
+    setLanguage: (val: string) => void;
 }) {
     return (
         <div className="space-y-4">
@@ -40,6 +68,22 @@ export function ManualArticleContext({
             {fieldErrors.topic && (
                 <p className="text-[10px] font-black text-red-500 uppercase tracking-widest ml-1 animate-in fade-in slide-in-from-top-1">{fieldErrors.topic}</p>
             )}
+
+            <div className="space-y-2">
+                <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Language</span>
+                <Select value={language} onValueChange={setLanguage}>
+                    <SelectTrigger className="h-12 rounded-xl bg-gray-50 border border-gray-100 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm">
+                        <SelectValue placeholder="English" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {LANGUAGE_OPTIONS.map((lang) => (
+                            <SelectItem key={lang} value={lang}>
+                                {lang}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
         </div>
     );
 }

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPresignedUploadUrl } from "@/lib/s3";
 
 export const dynamic = "force-dynamic";
 
@@ -7,16 +6,35 @@ export async function POST(req: NextRequest) {
     try {
         const { filename, contentType } = await req.json();
 
-        // Generate presigned URL locally using newsicons-dev bucket
-        const { url, key } = await getPresignedUploadUrl(filename, contentType);
+        const baseUrl = (process.env.GENERATE_CONTENT_API || "").replace(/\/$/, "");
+        if (!baseUrl) throw new Error("GENERATE_CONTENT_API is not configured");
 
-        const cloudfrontUrl = (process.env.CLOUDFRONT_URL || "").replace(/\/$/, "");
-        
+        const response = await fetch(`${baseUrl}/api/legal/document-upload-url`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                filename,
+                content_type: contentType
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to get presigned URL from API: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Use the bare URL (no query params) as the public URL
+        const parsedUrl = new URL(data.url);
+        const fileUrl = `${parsedUrl.origin}${parsedUrl.pathname}`;
+
         return NextResponse.json({
-            url: url,
-            key: key,
+            url: data.url,
+            key: data.s3_key,
             filename: filename,
-            fileUrl: cloudfrontUrl ? `${cloudfrontUrl}/${key}` : key
+            fileUrl: fileUrl
         });
     } catch (error: any) {
         console.error("Upload Presigned URL Error:", error);

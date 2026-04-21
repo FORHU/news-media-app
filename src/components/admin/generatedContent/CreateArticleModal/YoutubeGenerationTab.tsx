@@ -2,6 +2,30 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+
+const LANGUAGE_OPTIONS = [
+    "English",
+    "Filipino",
+    "Spanish",
+    "French",
+    "German",
+    "Italian",
+    "Portuguese",
+    "Japanese",
+    "Korean",
+    "Chinese (Simplified)",
+    "Chinese (Traditional)",
+    "Arabic",
+    "Hindi",
+    "Russian",
+] as const;
 
 interface YoutubeGenerationTabProps {
     youtubeUrl: string;
@@ -19,6 +43,8 @@ interface YoutubeGenerationTabProps {
     };
     youtubePrompt: string;
     setYoutubePrompt: (val: string) => void;
+    language: string;
+    setLanguage: (val: string) => void;
 }
 
 export default function YoutubeGenerationTab({
@@ -32,10 +58,28 @@ export default function YoutubeGenerationTab({
     handleTranscriptChange,
     fieldErrors,
     youtubePrompt,
-    setYoutubePrompt
+    setYoutubePrompt,
+    language,
+    setLanguage
 }: YoutubeGenerationTabProps) {
     return (
         <div className="space-y-6">
+            <div className="space-y-2">
+                <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Language</span>
+                <Select value={language} onValueChange={setLanguage}>
+                    <SelectTrigger className="h-12 rounded-xl bg-gray-50 border border-gray-100 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm">
+                        <SelectValue placeholder="English" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {LANGUAGE_OPTIONS.map((lang) => (
+                            <SelectItem key={lang} value={lang}>
+                                {lang}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+
             <div className="space-y-2">
                 <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">YouTube URL</span>
                 <div className="relative">
