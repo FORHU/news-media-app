@@ -101,11 +101,23 @@ export function AdBanner({
             rel="noopener noreferrer"
             className="block w-full h-full relative"
           >
+            {/* Background Blur Layer */}
+            <div className="absolute inset-0 w-full h-full overflow-hidden">
+              <Image
+                src={activeBanner.imageUrl}
+                alt=""
+                fill
+                className="object-cover blur-2xl scale-110 opacity-50"
+                unoptimized
+              />
+            </div>
+
+            {/* Foreground Content Layer */}
             <Image
               src={activeBanner.imageUrl}
               alt={activeBanner.altText || "Advertisement"}
               fill
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
+              className="object-contain relative z-10 transition-transform duration-700 group-hover:scale-[1.02]"
               unoptimized
             />
             {/* Hover overlay hint */}
