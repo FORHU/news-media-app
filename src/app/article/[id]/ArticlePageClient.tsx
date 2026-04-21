@@ -15,6 +15,7 @@ import { FeaturedArticlesSection } from "@/components/home/featured-articles-sec
 import { StoryImage } from "@/components/StoryImage";
 import { articlesApi } from "@/lib/api";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
+import { AdBanner } from "@/components/AdBanner";
 
 export default function ArticlePageClient({ articleId }: { articleId: string }) {
   const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
@@ -154,6 +155,11 @@ export default function ArticlePageClient({ articleId }: { articleId: string }) 
                     {firstHalf}
                   </div>
 
+                  {/* Mid-article Advertisement */}
+                  <div className="my-10">
+                    <AdBanner position="ARTICLE_IN_FEED" />
+                  </div>
+
                   {/* Hero image — inside the article (unconditionally rendered for fallback support) */}
                   <div className="my-8 rounded-xl overflow-hidden bg-gray-200 relative aspect-video shadow-sm">
                     <StoryImage
@@ -197,8 +203,9 @@ export default function ArticlePageClient({ articleId }: { articleId: string }) 
             </article>
           </div>
 
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 space-y-8">
             <TrendingSidebar articles={trendingArticles} />
+            <AdBanner position="ARTICLE_SIDEBAR" />
           </div>
         </div>
 
