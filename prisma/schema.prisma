@@ -174,7 +174,7 @@ model Banner {
   imageUrl  String   @map("image_url")
   linkUrl   String   @map("link_url")
   altText   String?  @map("alt_text")
-  position  String   // e.g., 'HOME_TOP', 'HOME_SIDEBAR', 'ARTICLE_IN_FEED', 'GLOBAL_FOOTER'
+  position  String   // e.g., 'HOME_TOP', 'HOME_SIDEBAR', 'ARTICLE_SIDEBAR', 'GLOBAL_FOOTER'
   isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

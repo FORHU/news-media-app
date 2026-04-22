@@ -73,7 +73,6 @@ export function AdBanner({
       case "HOME_SIDEBAR":
       case "ARTICLE_SIDEBAR":
         return "aspect-[3/2] sm:aspect-[3/2] lg:aspect-[3/2]"; // Optimized for stacking
-      case "ARTICLE_IN_FEED":
       case "HOME_TOP":
       case "GLOBAL_FOOTER":
         return "aspect-[4/1] sm:aspect-[7/1] lg:aspect-[10/1]"; // Leaderboard/Ribbon

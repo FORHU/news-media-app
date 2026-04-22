@@ -114,7 +114,7 @@ export default function ArticlePageClient({
       }
     >
       <Header onOpenNewsletter={() => setIsNewsletterOpen(true)} />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
         <button
           type="button"
           onClick={() =>
@@ -158,11 +158,6 @@ export default function ArticlePageClient({
                   {/* Article content — first half */}
                   <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
                     {firstHalf}
-                  </div>
-
-                  {/* Mid-article Advertisement */}
-                  <div className="my-10">
-                    <AdBanner position="ARTICLE_IN_FEED" />
                   </div>
 
                   {/* Hero image — inside the article (unconditionally rendered for fallback support) */}

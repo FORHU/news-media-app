@@ -25,7 +25,6 @@ interface BannerFormProps {
 const POSITIONS = [
   { value: "HOME_TOP", label: "Homepage Top Banner" },
   { value: "HOME_SIDEBAR", label: "Homepage Sidebar" },
-  { value: "ARTICLE_IN_FEED", label: "Article Mid-Content" },
   { value: "ARTICLE_SIDEBAR", label: "Article Sidebar" },
   { value: "GLOBAL_FOOTER", label: "Global Above-Footer" },
 ];
