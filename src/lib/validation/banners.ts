@@ -3,7 +3,6 @@ import { z } from "zod";
 export const bannerPositions = [
   "HOME_TOP",
   "HOME_SIDEBAR",
-  "ARTICLE_IN_FEED",
   "ARTICLE_SIDEBAR",
   "GLOBAL_FOOTER",
 ] as const;
