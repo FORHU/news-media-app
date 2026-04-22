@@ -10,6 +10,17 @@ import { adminLoginSchema } from '@/lib/validation/login';
 function LoginContent() {
     useEffect(() => {
         document.title = "Admin Login | FORHU";
+        
+        // Clear any stale session/cookie to prevent 400 Bad Request on expired tokens
+        const cleanupSession = async () => {
+            try {
+                await supabase.auth.signOut();
+                await fetch('/api/admin/auth/logout', { method: 'POST' });
+            } catch (err) {
+                console.error("Error clearing session on login mount:", err);
+            }
+        };
+        cleanupSession();
     }, []);
 
     const router = useRouter();
@@ -57,6 +68,8 @@ function LoginContent() {
             }
 
             // 3. Supabase Auth
+            // Ensure any stale session is cleared right before signing in, just in case
+            await supabase.auth.signOut();
             const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
                 email,
                 password,

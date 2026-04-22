@@ -76,7 +76,7 @@ export default async function Page(props: {
         )}
 
         {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
           {/* Filter Status Bar */}
           {(searchQuery || categoryParam) && (
             <FilterStatusBar
@@ -99,13 +99,6 @@ export default async function Page(props: {
               <AdBanner position="HOME_SIDEBAR" />
             </div>
           </div>
-
-          {/* In-feed Ad Banner */}
-          {!searchQuery && !categoryParam && (
-            <div className="mb-12">
-              <AdBanner position="ARTICLE_IN_FEED" className="max-w-4xl mx-auto" />
-            </div>
-          )}
 
           {/* Featured Articles Grid */}
           {!searchQuery && !categoryParam && (
