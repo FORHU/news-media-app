@@ -100,13 +100,6 @@ export default async function Page(props: {
             </div>
           </div>
 
-          {/* In-feed Ad Banner */}
-          {!searchQuery && !categoryParam && (
-            <div className="mb-12">
-              <AdBanner position="ARTICLE_IN_FEED" className="max-w-4xl mx-auto" />
-            </div>
-          )}
-
           {/* Featured Articles Grid */}
           {!searchQuery && !categoryParam && (
             <FeaturedArticlesSection

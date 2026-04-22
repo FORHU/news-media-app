@@ -160,11 +160,6 @@ export default function ArticlePageClient({
                     {firstHalf}
                   </div>
 
-                  {/* Mid-article Advertisement */}
-                  <div className="my-10">
-                    <AdBanner position="ARTICLE_IN_FEED" />
-                  </div>
-
                   {/* Hero image — inside the article (unconditionally rendered for fallback support) */}
                   <div className="my-8 rounded-xl overflow-hidden bg-gray-200 relative aspect-video shadow-sm">
                     <StoryImage
