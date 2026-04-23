@@ -59,21 +59,28 @@ export default function AdminSidebar({
         { id: 'generated', label: 'Generated Articles', icon: FileText, href: '/admin/dashboard/generated' },
         {
             id: 'crawl',
-            label: 'Crawl URLs',
+            label: 'Content Sourcing',
             icon: LinkIcon,
             subSections: [
                 {
-                    label: 'Crawl Articles',
+                    label: 'Web Scraping',
                     items: [
-                        { label: 'Crawl URL', href: '/admin/dashboard/urls' },
-                        { label: 'Crawled Articles', href: '/admin/dashboard/crawled' },
+                        { label: 'Manage Targets', href: '/admin/dashboard/urls' },
+                        { label: 'Raw Articles', href: '/admin/dashboard/crawled' },
                     ]
                 },
                 {
-                    label: 'Crawl X',
+                    label: 'X Monitoring',
                     items: [
-                        { label: 'Crawl X URL', href: '/admin/dashboard/x/urls' },
-                        { label: 'Crawled X Content', href: '/admin/dashboard/x/content' },
+                        { label: 'Manage Handles', href: '/admin/dashboard/x/urls' },
+                        { label: 'Scraped Tweets', href: '/admin/dashboard/x/content' },
+                    ]
+                },
+                {
+                    label: 'YouTube Conversion',
+                    items: [
+                        { label: 'Transcribe', href: '/admin/dashboard/youtube' },
+                        { label: 'Transcribe History', href: '/admin/dashboard/youtube?view=history' },
                     ]
                 }
             ]

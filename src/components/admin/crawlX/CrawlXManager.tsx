@@ -14,7 +14,7 @@ export default function CrawlXManager() {
     <div className="space-y-12 animate-in fade-in duration-500">
       <div className="flex flex-col gap-1">
         <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-          X (Twitter) Crawl Management
+          X Monitoring
         </h1>
         <p className="text-gray-500 font-medium">
           Configure X profiles and keywords to crawl for AI content generation
@@ -29,7 +29,7 @@ export default function CrawlXManager() {
           </div>
           <div>
             <h2 className="text-xl font-bold text-gray-900">
-              X Crawler Configuration
+              Monitoring Configuration
             </h2>
             <p className="text-gray-500 font-medium mt-1">
               Add X handles or search terms to monitor for new content

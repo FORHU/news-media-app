@@ -143,7 +143,7 @@ export default function CrawledXContent() {
         <div className="space-y-8 min-h-screen pb-20">
             <div className="flex flex-col gap-2">
                 <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
-                    Crawled <span className="text-blue-500">X Content</span>
+                    Scraped <span className="text-blue-500">Tweets</span>
                 </h1>
                 <p className="text-gray-500 font-medium text-lg">
                     Monitor and transform X posts into premium news articles.
