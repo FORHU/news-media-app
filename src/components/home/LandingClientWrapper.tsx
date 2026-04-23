@@ -5,11 +5,20 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { NewsletterModal } from "@/components/newsLetterModal/NewsletterModal";
 
-interface LandingClientWrapperProps {
-    children: React.ReactNode;
+interface Banner {
+    id: string;
+    imageUrl: string;
+    linkUrl: string;
+    altText: string | null;
+    position: string;
 }
 
-export function LandingClientWrapper({ children }: LandingClientWrapperProps) {
+interface LandingClientWrapperProps {
+    children: React.ReactNode;
+    footerBanners?: Banner[];
+}
+
+export function LandingClientWrapper({ children, footerBanners }: LandingClientWrapperProps) {
     const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
 
     const openNewsletter = () => setIsNewsletterOpen(true);
@@ -20,10 +29,8 @@ export function LandingClientWrapper({ children }: LandingClientWrapperProps) {
             <Suspense fallback={<div className="h-16 bg-white border-b" />}>
                 <Header onOpenNewsletter={openNewsletter} />
             </Suspense>
-            <Suspense fallback={<div className="min-h-screen bg-white" />}>
-                {children}
-                <Footer onOpenNewsletter={openNewsletter} />
-            </Suspense>
+            {children}
+            <Footer onOpenNewsletter={openNewsletter} footerBanners={footerBanners} />
             <NewsletterModal
                 isOpen={isNewsletterOpen}
                 onClose={closeNewsletter}

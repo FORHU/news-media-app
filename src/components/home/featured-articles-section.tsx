@@ -3,7 +3,6 @@
 import { useState } from "react";
 import type { Article } from "@/lib/types";
 import { ArticleLink } from "@/components/home/ArticleLink";
-import Image from "next/image";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
 
 interface FeaturedArticlesSectionProps {
@@ -25,10 +24,8 @@ function truncateContent(content: string | null, maxLength = 100): string {
   return plain.length <= maxLength ? plain : plain.slice(0, maxLength) + "…";
 }
 
-
-
 import { StoryImage } from "@/components/StoryImage";
-import { useEffect } from "react";
+
 
 export function FeaturedArticlesSection({
   articles,

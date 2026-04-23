@@ -96,9 +96,8 @@ export function StoryImage({
       width={width}
       height={height}
       priority={priority}
-      sizes={sizes}
+      sizes={sizes ?? "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"}
       className={className}
-      unoptimized={true}
       onError={() => {
         setError(true);
       }}

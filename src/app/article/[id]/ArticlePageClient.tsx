@@ -1,15 +1,11 @@
 "use client";
 
-import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
-import { NewsletterModal } from "@/components/newsLetterModal/NewsletterModal";
 import { TrendingSidebar } from "@/components/home/trending-sidebar";
 import { FeaturedArticlesSection } from "@/components/home/featured-articles-section";
 import { StoryImage } from "@/components/StoryImage";
@@ -25,13 +21,8 @@ export default function ArticlePageClient({
   articleId: string;
   initialOtherArticles?: Article[];
 }) {
-  const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
   const router = useRouter();
 
-  // Prefetch the home page so "Back to Home" is instant
-  useEffect(() => {
-    router.prefetch("/");
-  }, [router]);
 
   const {
     data: article,
@@ -51,7 +42,7 @@ export default function ArticlePageClient({
 
   if (isError || !article) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center px-6">
+      <div className="flex items-center justify-center py-32 px-6">
         <div className="text-center max-w-md">
           <p className="text-gray-900 font-semibold mb-2">
             We couldn’t load this article.
@@ -106,15 +97,7 @@ export default function ArticlePageClient({
   const secondHalf = paragraphs.slice(midpoint).join("\n\n");
 
   return (
-    <div
-      className={
-        isNewsletterOpen
-          ? "overflow-hidden h-screen bg-white"
-          : "min-h-screen bg-white"
-      }
-    >
-      <Header onOpenNewsletter={() => setIsNewsletterOpen(true)} />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
         <button
           type="button"
           onClick={() =>
@@ -218,12 +201,5 @@ export default function ArticlePageClient({
           </div>
         )}
       </main>
-      <Footer onOpenNewsletter={() => setIsNewsletterOpen(true)} />
-      <NewsletterModal
-        isOpen={isNewsletterOpen}
-        onClose={() => setIsNewsletterOpen(false)}
-      />
-    </div>
   );
 }
-

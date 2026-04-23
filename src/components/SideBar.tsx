@@ -16,7 +16,7 @@ interface SideBarProps {
 }
 
 function categoryHref(categoryName: string) {
-    return `/?category=${encodeURIComponent(categoryName)}`;
+    return `/search?category=${encodeURIComponent(categoryName)}`;
 }
 
 export function SideBar({ isOpen, onClose, onOpenNewsletter }: SideBarProps) {

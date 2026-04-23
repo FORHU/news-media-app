@@ -1,27 +1,22 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { NavBar } from "@/components/NavBar";
-import { HeroSection } from "@/components/HeroSection";
 import { FilterStatusBar } from "@/components/home/filter-status-bar";
 import { LatestStoriesSection } from "@/components/home/latest-stories-section";
 import { TrendingSidebar } from "@/components/home/trending-sidebar";
-import { FeaturedArticlesSection } from "@/components/home/featured-articles-section";
-import { TrendingProductsSection } from "@/components/home/trending-products-section";
 import { LandingClientWrapper } from "@/components/home/LandingClientWrapper";
 import { AdBanner } from "@/components/AdBanner";
 import { articlesService } from "@/services/articles.service";
 import { bannersService } from "@/services/banners.service";
 import { DEFAULT_OG_IMAGE, DEFAULT_SEO } from "@/config/site";
 
-export const revalidate = 300;
-
 export const metadata: Metadata = {
-  title: "Home",
-  description: DEFAULT_SEO.description,
+  title: "Search Results",
+  description: "Search results for articles.",
   openGraph: {
-    title: "Home",
-    description: DEFAULT_SEO.description,
-    url: "/",
+    title: "Search Results",
+    description: "Search results for articles.",
+    url: "/search",
     type: "website",
     images: [
       {
@@ -34,26 +29,33 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Home",
-    description: DEFAULT_SEO.description,
+    title: "Search Results",
+    description: "Search results for articles.",
     images: [DEFAULT_OG_IMAGE],
   },
   alternates: {
-    canonical: "/",
+    canonical: "/search",
   },
 };
 
-export default async function Page() {
-  // Fetch articles on the server (latest 50 published)
+export default async function SearchPage(props: {
+  searchParams: Promise<{ search?: string; category?: string }>;
+}) {
+  const searchParams = await props.searchParams;
+  const searchQuery = searchParams.search;
+  const categoryParam = searchParams.category;
+
+  // Fetch articles on the server using database-level filtering
   const articles = await articlesService.getArticles({ 
     limit: 50,
+    search: searchQuery,
+    category: categoryParam,
     status: "published"
   });
 
   // Fetch banners server-side so AdBanner components skip their client-side fetch.
   // Errors are swallowed — missing banners are non-critical.
-  const [topBanners, sidebarBanners, footerBanners] = await Promise.all([
-    bannersService.getBanners({ position: "HOME_TOP",      isActive: true }).catch(() => []),
+  const [sidebarBanners, footerBanners] = await Promise.all([
     bannersService.getBanners({ position: "HOME_SIDEBAR",  isActive: true }).catch(() => []),
     bannersService.getBanners({ position: "GLOBAL_FOOTER", isActive: true }).catch(() => []),
   ]);
@@ -67,24 +69,21 @@ export default async function Page() {
           <NavBar />
         </Suspense>
 
-        {/* Top Ad Banner */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-          <AdBanner position="HOME_TOP" initialBanners={topBanners} />
-        </div>
-
-        {/* Hero Section - Carousel with trending sidebar & recommendations */}
-        {articles.length > 0 && (
-          <HeroSection articles={articles.slice(0, 5)} />
-        )}
-
         {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
+          {/* Filter Status Bar */}
+          <FilterStatusBar
+            searchQuery={searchQuery || null}
+            categoryName={categoryParam || null}
+            resultCount={articles.length}
+          />
+
           {/* Two-Column Layout: Latest Stories + Trending Sidebar */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
             <LatestStoriesSection
               articles={articles}
               error={error}
-              searchQuery={null}
+              searchQuery={searchQuery || null}
               isLoading={false}
             />
             <div className="space-y-8">
@@ -92,18 +91,6 @@ export default async function Page() {
               <AdBanner position="HOME_SIDEBAR" initialBanners={sidebarBanners} />
             </div>
           </div>
-
-          {/* Featured Articles Grid */}
-          <FeaturedArticlesSection
-            articles={articles.slice(0, 4)}
-          />
-
-          {/* Trending Products Section */}
-          <TrendingProductsSection
-            articles={articles
-              .filter((a) => a.status === "blog")
-              .slice(0, 4)}
-          />
         </main>
       </LandingClientWrapper>
     </div>

@@ -20,15 +20,24 @@ const COMPANY_LINKS = [
     { label: "Privacy Policy", href: "#" },
 ];
 
-interface FooterProps {
-    onOpenNewsletter?: () => void;
+interface Banner {
+    id: string;
+    imageUrl: string;
+    linkUrl: string;
+    altText: string | null;
+    position: string;
 }
 
-export function Footer({ onOpenNewsletter }: FooterProps) {
+interface FooterProps {
+    onOpenNewsletter?: () => void;
+    footerBanners?: Banner[];
+}
+
+export function Footer({ onOpenNewsletter, footerBanners }: FooterProps) {
     return (
         <>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 mb-2 -mt-4">
-                <AdBanner position="GLOBAL_FOOTER" />
+                <AdBanner position="GLOBAL_FOOTER" initialBanners={footerBanners} />
             </div>
             <footer className="bg-[#1a1a1a] text-white border-t border-gray-800">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
