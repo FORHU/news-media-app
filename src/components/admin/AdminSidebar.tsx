@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     LayoutDashboard,
     FileText,
@@ -29,10 +29,23 @@ export default function AdminSidebar({
     const pathname = usePathname();
     const router = useRouter();
 
-    const user = {
-        name: "Admin User",
-        email: "admin@forhu.com"
-    };
+    // Bug #5 fix: load the real logged-in admin's info from the live Supabase session
+    const [user, setUser] = useState<{ name: string; email: string }>({ name: 'Admin User', email: '' });
+
+    useEffect(() => {
+        const loadUser = async () => {
+            const { data } = await supabase.auth.getUser();
+            if (data.user) {
+                const email = data.user.email ?? '';
+                const name = data.user.user_metadata?.full_name
+                    ?? data.user.user_metadata?.name
+                    ?? email.split('@')[0]
+                    ?? 'Admin User';
+                setUser({ name, email });
+            }
+        };
+        void loadUser();
+    }, []);
 
     const handleLogout = async () => {
         await supabase.auth.signOut();

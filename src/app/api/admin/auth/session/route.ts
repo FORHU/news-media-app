@@ -1,68 +1,70 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { prisma } from "@/lib/db";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export async function POST(request: NextRequest) {
-  try {
-    const { accessToken } = await request.json();
-    console.log("[POST /api/admin/auth/session] Request received", {
-      hasAccessToken: typeof accessToken === "string" && accessToken.length > 0,
-      tokenLength: typeof accessToken === "string" ? accessToken.length : 0,
-    });
+const ADMIN_ROLE_COOKIE = "admin-role";
 
-    if (typeof accessToken !== "string" || accessToken.length === 0) {
-      return NextResponse.json({ error: "Missing access token." }, { status: 400 });
+/**
+ * POST /api/admin/auth/session
+ *
+ * Called immediately after a successful supabase.auth.signInWithPassword()
+ * on the login page. The Supabase SSR browser client has already stored
+ * the session tokens in cookies, so this route reads the current user
+ * directly from those cookies — no accessToken in the body is needed.
+ *
+ * Responsibilities:
+ * 1. Verify there is a valid Supabase session in the cookies.
+ * 2. Confirm the user has the "admin" role in our database.
+ * 3. Set the admin-role=verified httpOnly cookie so the middleware
+ *    can gate admin routes without a DB call on every request.
+ */
+export async function POST(_request: NextRequest) {
+    try {
+        // Read the current user from the Supabase session cookies
+        const supabase = await createSupabaseServerClient();
+        const {
+            data: { user },
+            error: authError,
+        } = await supabase.auth.getUser();
+
+        if (authError || !user?.email) {
+            console.error("[POST /api/admin/auth/session] No valid session in cookies", {
+                authErrorMessage: authError?.message ?? null,
+            });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        // Verify admin role in database
+        const dbUser = await prisma.user.findUnique({
+            where: { email: user.email },
+            select: { role: true },
+        });
+
+        if (!dbUser || dbUser.role !== "admin") {
+            console.warn("[POST /api/admin/auth/session] Role check failed", {
+                email: user.email,
+                dbRole: dbUser?.role ?? null,
+            });
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+
+        // Set the admin-role cookie so the middleware can gate routes without
+        // a DB call on every request. httpOnly prevents XSS access.
+        const response = NextResponse.json({ ok: true });
+        response.cookies.set(ADMIN_ROLE_COOKIE, "verified", {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production",
+            path: "/",
+            maxAge: 60 * 60 * 24, // 24 hours
+        });
+
+        return response;
+    } catch (error) {
+        console.error("[POST /api/admin/auth/session] Error:", error);
+        return NextResponse.json(
+            { error: "Failed to validate admin session." },
+            { status: 500 }
+        );
     }
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceRoleKey) {
-      console.error("[POST /api/admin/auth/session] Missing env", {
-        hasSupabaseUrl: Boolean(supabaseUrl),
-        hasServiceRoleKey: Boolean(supabaseServiceRoleKey),
-      });
-      return NextResponse.json({ error: "Supabase is not configured." }, { status: 500 });
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
-    const { data: authData, error: authError } = await supabase.auth.getUser(accessToken);
-
-    if (authError || !authData.user?.email) {
-      console.error("[POST /api/admin/auth/session] Supabase getUser failed", {
-        authErrorMessage: authError?.message ?? null,
-        authErrorStatus: authError?.status ?? null,
-        hasUser: Boolean(authData.user),
-        email: authData.user?.email ?? null,
-      });
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const dbUser = await prisma.user.findUnique({
-      where: { email: authData.user.email },
-      select: { role: true },
-    });
-
-    if (!dbUser || dbUser.role !== "admin") {
-      console.warn("[POST /api/admin/auth/session] Role check failed", {
-        email: authData.user.email,
-        dbRole: dbUser?.role ?? null,
-      });
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const response = NextResponse.json({ ok: true });
-    response.cookies.set("admin-authenticated", "true", {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 60 * 60 * 24,
-    });
-
-    return response;
-  } catch (error) {
-    console.error("[POST /api/admin/auth/session] Error:", error);
-    return NextResponse.json({ error: "Failed to validate admin session." }, { status: 500 });
-  }
 }
