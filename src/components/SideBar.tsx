@@ -1,12 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { X, Mail } from "lucide-react";
+import { X, Mail, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RemoveScroll } from "react-remove-scroll";
+import { useQuery } from "@tanstack/react-query";
+import { articlesApi } from "@/lib/api";
 import {
     CORE_CATEGORIES,
     HOME_CATEGORY_LABEL,
+    normalizeCategoryKey,
 } from "@/config/categories";
 
 interface SideBarProps {
@@ -16,10 +19,33 @@ interface SideBarProps {
 }
 
 function categoryHref(categoryName: string) {
-    return `/?category=${encodeURIComponent(categoryName)}`;
+    return `/search?category=${encodeURIComponent(categoryName)}`;
 }
 
 export function SideBar({ isOpen, onClose, onOpenNewsletter }: SideBarProps) {
+    const { data: categories = [] } = useQuery({
+        queryKey: ["categories"],
+        queryFn: () => articlesApi.getCategories(),
+    });
+
+    const coreCategoryKeys = new Set(
+        CORE_CATEGORIES.map((category) => normalizeCategoryKey(category))
+    );
+
+    const overflowCategories = Array.from(
+        categories.reduce((acc, cat) => {
+            const name = cat.name.trim();
+            const key = normalizeCategoryKey(name);
+
+            if (!name || !key) return acc;
+            if (key === normalizeCategoryKey(HOME_CATEGORY_LABEL)) return acc;
+            if (coreCategoryKeys.has(key)) return acc;
+            if (!acc.has(key)) acc.set(key, name);
+
+            return acc;
+        }, new Map<string, string>())
+    ).map(([, name]) => name);
+
     const categoryLinks = [
         { name: HOME_CATEGORY_LABEL, link: "/" },
         ...CORE_CATEGORIES.map((categoryName) => ({
@@ -81,6 +107,27 @@ export function SideBar({ isOpen, onClose, onOpenNewsletter }: SideBarProps) {
                                             </Link>
                                         </div>
                                     ))}
+                                    
+                                    {overflowCategories.length > 0 && (
+                                        <details className="group">
+                                            <summary className="flex items-center justify-between px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg text-gray-900 hover:bg-[#ff4500]/5 hover:text-[#ff4500] transition-all font-semibold cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                                                <span>More</span>
+                                                <ChevronDown className="w-5 h-5 text-gray-500 group-hover:text-[#ff4500] transition-transform group-open:rotate-180" />
+                                            </summary>
+                                            <div className="bg-gray-50/50 pb-2">
+                                                {overflowCategories.map((categoryName) => (
+                                                    <Link
+                                                        key={categoryName}
+                                                        href={categoryHref(categoryName)}
+                                                        onClick={onClose}
+                                                        className="block px-10 sm:px-12 py-2 sm:py-3 text-sm sm:text-base text-gray-700 hover:bg-[#ff4500]/5 hover:text-[#ff4500] transition-all font-medium"
+                                                    >
+                                                        {categoryName}
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        </details>
+                                    )}
                                 </nav>
                             </div>
 

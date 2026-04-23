@@ -14,7 +14,7 @@ import {
 } from "@/config/categories";
 
 function categoryHref(categoryName: string) {
-  return `/?category=${encodeURIComponent(categoryName)}`;
+  return `/search?category=${encodeURIComponent(categoryName)}`;
 }
 
 export function NavBar() {
@@ -27,6 +27,8 @@ export function NavBar() {
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
     queryFn: () => articlesApi.getCategories(),
+    staleTime: 5 * 60 * 1000,  // treat as fresh for 5 min — avoids refetch on every nav
+    gcTime:    10 * 60 * 1000, // keep in cache for 10 min
   });
 
   const coreCategoryKeys = new Set(

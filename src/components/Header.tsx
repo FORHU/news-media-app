@@ -75,7 +75,7 @@ function HeaderContent({ onOpenNewsletter }: HeaderProps) {
       params.delete("search");
     }
     const qs = params.toString();
-    router.push(qs ? `/?${qs}` : "/");
+    router.push(qs ? `/search?${qs}` : "/search");
   };
 
   return (
@@ -127,7 +127,7 @@ function HeaderContent({ onOpenNewsletter }: HeaderProps) {
                         {suggestions.map((article) => (
                           <Link
                             key={article.id}
-                            href={`/?search=${article.title}`} // Directing to the article search result for now, or you could navigate to a dedicated article page if it exists
+                            href={`/article/${article.slug ?? article.id}`}
                             onClick={() => {
                               setQuery(article.title);
                               setShowSuggestions(false);
@@ -233,7 +233,7 @@ function HeaderContent({ onOpenNewsletter }: HeaderProps) {
                       {suggestions.map((article) => (
                         <Link
                           key={article.id}
-                          href={`/?search=${article.title}`}
+                          href={`/article/${article.slug ?? article.id}`}
                           onClick={() => {
                             setQuery(article.title);
                             setShowSuggestions(false);

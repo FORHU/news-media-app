@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent, useEffect, Suspense } from 'react';
+import { useState, FormEvent, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { LogIn, Home } from 'lucide-react';
@@ -8,27 +8,15 @@ import { supabase } from '@/lib/supabaseClient';
 import { adminLoginSchema } from '@/lib/validation/login';
 
 function LoginContent() {
-    useEffect(() => {
-        document.title = "Admin Login | FORHU";
-        
-        // Clear any stale session/cookie to prevent 400 Bad Request on expired tokens
-        const cleanupSession = async () => {
-            try {
-                await supabase.auth.signOut();
-                await fetch('/api/admin/auth/logout', { method: 'POST' });
-            } catch (err) {
-                console.error("Error clearing session on login mount:", err);
-            }
-        };
-        cleanupSession();
-    }, []);
-
     const router = useRouter();
     const searchParams = useSearchParams();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string; general?: string }>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // No mount-time cleanup needed: the SSR browser client stores tokens in cookies,
+    // so there is no stale localStorage to clear before login.
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -39,9 +27,7 @@ function LoginContent() {
         if (!parsed.success) {
             const errors: Record<string, string> = {};
             parsed.error.issues.forEach((issue) => {
-                if (issue.path[0]) {
-                    errors[issue.path[0] as string] = issue.message;
-                }
+                if (issue.path[0]) errors[issue.path[0] as string] = issue.message;
             });
             setFieldErrors(errors);
             return;
@@ -50,7 +36,7 @@ function LoginContent() {
         setIsSubmitting(true);
 
         try {
-            // 2. Pre-check: Verify email in database
+            // 2. Pre-check: verify this email belongs to an admin in the database
             const verifyResponse = await fetch('/api/admin/auth/verify-email', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -58,7 +44,6 @@ function LoginContent() {
             });
 
             if (!verifyResponse.ok) {
-                // If 403 (Forbidden) or 404/others, it means non-admin or non-existent
                 if (verifyResponse.status === 403) {
                     router.replace('/');
                     return;
@@ -67,33 +52,31 @@ function LoginContent() {
                 return;
             }
 
-            // 3. Supabase Auth
-            // Ensure any stale session is cleared right before signing in, just in case
-            await supabase.auth.signOut();
-            const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+            // 3. Sign in via Supabase — the SSR browser client automatically stores
+            //    the access + refresh tokens in cookies (not localStorage).
+            const { error: signInError } = await supabase.auth.signInWithPassword({
                 email,
                 password,
             });
 
             if (signInError) {
-                // Since email was verified, this is likely an invalid password
-                setFieldErrors({ password: 'The password you entered is incorrect.' });
+                // Show specific messages for known Supabase error codes
+                const msg = signInError.message?.toLowerCase() ?? '';
+                if (msg.includes('rate') || msg.includes('too many')) {
+                    setFieldErrors({ general: 'Too many login attempts. Please wait a moment and try again.' });
+                } else if (msg.includes('email not confirmed')) {
+                    setFieldErrors({ general: 'This account\'s email has not been confirmed. Please contact your administrator.' });
+                } else {
+                    setFieldErrors({ password: 'The password you entered is incorrect.' });
+                }
                 return;
             }
 
-            const accessToken = signInData.session?.access_token;
-
-            if (!accessToken) {
-                setFieldErrors({ general: 'Unable to validate admin access. Please try again.' });
-                await supabase.auth.signOut();
-                return;
-            }
-
-            // 4. Final Session Check (Sets Cookies)
+            // 4. Server-side role check — the session cookies from step 3 are sent
+            //    automatically, so no accessToken body param is needed.
+            //    On success, the server sets the admin-role=verified httpOnly cookie.
             const roleCheckResponse = await fetch('/api/admin/auth/session', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ accessToken }),
             });
 
             if (!roleCheckResponse.ok) {
@@ -106,8 +89,13 @@ function LoginContent() {
                 return;
             }
 
+            // Validate redirectTo to prevent open redirect attacks.
+            // Only allow internal paths (must start with '/').
             const redirectTo = searchParams.get('redirectTo');
-            router.push(redirectTo || '/admin/dashboard');
+            const safePath = redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//')  
+                ? redirectTo 
+                : '/admin/dashboard';
+            router.push(safePath);
         } catch (err) {
             console.error('Login error:', err);
             setFieldErrors({ general: 'An unexpected error occurred. Please try again.' });
@@ -206,4 +194,3 @@ export default function LoginPage() {
         </Suspense>
     );
 }
-

@@ -1,44 +1,21 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { supabase } from '@/lib/supabaseClient';
 
 export default function DashboardLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
-    const router = useRouter();
-    const [sidebarOpen, setSidebarOpen] = useState(false); // Default to false for mobile first
-    const [isLoading, setIsLoading] = useState(true);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
-        const initDashboard = async () => {
-            const { data, error } = await supabase.auth.getSession();
-
-            if (error || !data.session) {
-                router.push('/admin/login');
-                return;
-            }
-
-            // Sync initial sidebar state without brittle listeners
-            setSidebarOpen(window.matchMedia('(min-width: 1024px)').matches);
-            setIsLoading(false);
-        };
-
-        void initDashboard();
-    }, [router]);
-
-
-    if (isLoading) {
-        return (
-            <div className="min-h-screen bg-white flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-[#ff4500] border-t-transparent rounded-full animate-spin"></div>
-            </div>
-        );
-    }
+        // The middleware already guarantees that any request reaching this layout
+        // is authenticated (valid Supabase session + admin-role cookie).
+        // No client-side session re-check is needed here.
+        setSidebarOpen(window.matchMedia('(min-width: 1024px)').matches);
+    }, []); // empty — only needs to run once on mount to set initial sidebar width
 
     return (
         <AdminLayout
