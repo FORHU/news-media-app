@@ -9,6 +9,7 @@ import {
     LogOut,
     ChevronLeft,
     ChevronRight,
+    ChevronDown,
     X,
     Users,
     Image as ImageIcon
@@ -56,11 +57,45 @@ export default function AdminSidebar({
     const menuItems = [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/admin/dashboard' },
         { id: 'generated', label: 'Generated Articles', icon: FileText, href: '/admin/dashboard/generated' },
-        { id: 'urls', label: 'Crawl URLs', icon: LinkIcon, href: '/admin/dashboard/urls' },
-        { id: 'crawled', label: 'Crawled Articles', icon: Database, href: '/admin/dashboard/crawled' },
+        {
+            id: 'crawl',
+            label: 'Crawl URLs',
+            icon: LinkIcon,
+            subSections: [
+                {
+                    label: 'Crawl Articles',
+                    items: [
+                        { label: 'Crawl URL', href: '/admin/dashboard/urls' },
+                        { label: 'Crawled Articles', href: '/admin/dashboard/crawled' },
+                    ]
+                },
+                {
+                    label: 'Crawl X',
+                    items: [
+                        { label: 'Crawl X URL', href: '/admin/dashboard/x/urls' },
+                        { label: 'Crawled X Content', href: '/admin/dashboard/x/content' },
+                    ]
+                }
+            ]
+        },
         { id: 'banners', label: 'Banners', icon: ImageIcon, href: '/admin/dashboard/banners' },
         { id: 'accounts', label: 'Accounts', icon: Users, href: '/admin/dashboard/accounts' },
     ];
+
+    const [expandedMenus, setExpandedMenus] = useState<string[]>(['crawl']);
+    const [expandedSubSections, setExpandedSubSections] = useState<string[]>([]);
+
+    const toggleMenu = (id: string) => {
+        setExpandedMenus(prev =>
+            prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]
+        );
+    };
+
+    const toggleSubSection = (label: string) => {
+        setExpandedSubSections(prev =>
+            prev.includes(label) ? prev.filter(l => l !== label) : [...prev, label]
+        );
+    };
 
     return (
         <aside className={`bg-gradient-to-b from-black via-gray-900 to-black text-white flex-shrink-0 flex flex-col fixed left-0 top-0 bottom-0 shadow-2xl z-50 transition-all duration-300 h-full ${sidebarOpen ? 'w-64 translate-x-0' : 'w-20 -translate-x-full lg:translate-x-0'
@@ -106,27 +141,105 @@ export default function AdminSidebar({
             {/* Navigation */}
             <nav className="flex-1 p-4 overflow-y-auto scrollbar-hide">
                 {menuItems.map((item) => {
-                    const isActive = pathname === item.href;
+                    const hasSubItems = item.subSections && item.subSections.length > 0;
+                    const isExpanded = expandedMenus.includes(item.id);
+                    const isActive = item.href ? pathname === item.href : item.subSections?.some(s => s.items.some(si => pathname === si.href));
+
                     return (
-                        <Link
-                            key={item.id}
-                            href={item.href}
-                            onClick={() => {
-                                if (window.innerWidth < 1024) setSidebarOpen(false);
-                            }}
-                            className={`w-full flex items-center transition-all duration-200 rounded-xl mb-2 group ${isActive
-                                ? 'bg-gradient-to-r from-[#ff4500] to-[#ff6b35] text-white shadow-lg shadow-orange-500/50 scale-105'
-                                : 'text-gray-300 hover:bg-gray-800/50 hover:scale-105'
-                                } ${!sidebarOpen ? 'justify-center w-12 h-12 mx-auto p-0' : 'px-4 py-3 gap-3'}`}
-                            title={!sidebarOpen ? item.label : ''}
-                        >
-                            <item.icon className={`${!sidebarOpen ? 'w-6 h-6' : 'w-5 h-5'} flex-shrink-0 transition-transform ${isActive && !sidebarOpen ? 'scale-110' : ''}`} />
-                            <span className={`font-medium whitespace-nowrap transition-all duration-300 ${sidebarOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'
-                                }`}>{item.label}</span>
-                        </Link>
+                        <div key={item.id} className="mb-2">
+                            {item.href ? (
+                                <Link
+                                    href={item.href}
+                                    onClick={() => {
+                                        if (window.innerWidth < 1024) setSidebarOpen(false);
+                                    }}
+                                    className={`w-full flex items-center transition-all duration-200 rounded-xl group ${isActive
+                                        ? 'bg-gradient-to-r from-[#ff4500] to-[#ff6b35] text-white shadow-lg shadow-orange-500/50 scale-105'
+                                        : 'text-gray-300 hover:bg-gray-800/50 hover:scale-105'
+                                        } ${!sidebarOpen ? 'justify-center w-12 h-12 mx-auto p-0' : 'px-4 py-3 gap-3'}`}
+                                    title={!sidebarOpen ? item.label : ''}
+                                >
+                                    <item.icon className={`${!sidebarOpen ? 'w-6 h-6' : 'w-5 h-5'} flex-shrink-0 transition-transform ${isActive && !sidebarOpen ? 'scale-110' : ''}`} />
+                                    <span className={`font-medium whitespace-nowrap transition-all duration-300 ${sidebarOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'
+                                        }`}>{item.label}</span>
+                                </Link>
+                            ) : (
+                                <div className="flex flex-col">
+                                    <button
+                                        onClick={() => {
+                                            if (sidebarOpen) {
+                                                toggleMenu(item.id);
+                                            } else {
+                                                setSidebarOpen(true);
+                                                if (!isExpanded) toggleMenu(item.id);
+                                            }
+                                        }}
+                                        className={`w-full flex items-center transition-all duration-200 rounded-xl group ${isActive && !isExpanded
+                                            ? 'bg-gradient-to-r from-[#ff4500] to-[#ff6b35] text-white shadow-lg shadow-orange-500/50 scale-105'
+                                            : 'text-gray-300 hover:bg-gray-800/50 hover:scale-105'
+                                            } ${!sidebarOpen ? 'justify-center w-12 h-12 mx-auto p-0' : 'px-4 py-3 gap-3'}`}
+                                        title={!sidebarOpen ? item.label : ''}
+                                    >
+                                        <item.icon className={`${!sidebarOpen ? 'w-6 h-6' : 'w-5 h-5'} flex-shrink-0`} />
+                                        <span className={`font-medium whitespace-nowrap transition-all duration-300 ${sidebarOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'
+                                            }`}>{item.label}</span>
+                                        {sidebarOpen && (
+                                            <div className="ml-auto">
+                                                {isExpanded ? <ChevronDown className="w-4 h-4 opacity-50" /> : <ChevronRight className="w-4 h-4 opacity-50" />}
+                                            </div>
+                                        )}
+                                    </button>
+
+                                    {/* Sub Sections */}
+                                    {sidebarOpen && isExpanded && item.subSections && (
+                                        <div className="mt-2 ml-4 flex flex-col gap-1 border-l border-gray-800 pl-4">
+                                            {item.subSections.map((section, sIdx) => {
+                                                const isSubExpanded = expandedSubSections.includes(section.label);
+                                                return (
+                                                    <div key={sIdx} className="mb-1 last:mb-0">
+                                                        <button
+                                                            onClick={() => toggleSubSection(section.label)}
+                                                            className="w-full flex items-center justify-between px-2 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider hover:text-white hover:bg-gray-800/30 rounded-lg transition-all"
+                                                        >
+                                                            <span>{section.label}</span>
+                                                            {isSubExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                                                        </button>
+                                                        
+                                                        {isSubExpanded && (
+                                                            <div className="flex flex-col gap-1 mt-1 ml-2 border-l border-gray-800 pl-3">
+                                                                {section.items.map((subItem, siIdx) => {
+                                                                    const isSubActive = pathname === subItem.href;
+                                                                    return (
+                                                                        <Link
+                                                                            key={siIdx}
+                                                                            href={subItem.href}
+                                                                            onClick={() => {
+                                                                                if (window.innerWidth < 1024) setSidebarOpen(false);
+                                                                            }}
+                                                                            className={`px-3 py-2 rounded-lg text-sm transition-all duration-200 ${isSubActive
+                                                                                ? 'text-orange-500 font-bold bg-orange-500/10'
+                                                                                : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
+                                                                                }`}
+                                                                        >
+                                                                            {subItem.label}
+                                                                        </Link>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     );
                 })}
             </nav>
+
+
 
             {/* Admin Details & Actions - Sticky at bottom */}
             <div className="p-4 border-t border-gray-800 bg-gradient-to-b from-black to-gray-900 flex-shrink-0 mt-auto">
