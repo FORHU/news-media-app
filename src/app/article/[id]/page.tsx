@@ -10,6 +10,7 @@ import {
 } from "@/services/articles.service";
 import { DEFAULT_OG_IMAGE, DEFAULT_SEO } from "@/config/site";
 import ArticlePageClient from "./ArticlePageClient";
+import { ArticleClientShell } from "@/components/ArticleClientShell";
 
 export const revalidate = 300;
 
@@ -129,13 +130,15 @@ export default async function ArticlePage({
   const dehydratedState = dehydrate(queryClient);
 
   return (
-    <Hydrate state={dehydratedState}>
-      <Suspense fallback={<div className="min-h-screen bg-white" />}>
-        <ArticlePageClient 
-          articleId={articleId} 
-          initialOtherArticles={allArticles}
-        />
-      </Suspense>
-    </Hydrate>
+    <ArticleClientShell>
+      <Hydrate state={dehydratedState}>
+        <Suspense fallback={<div className="min-h-[60vh] bg-white" />}>
+          <ArticlePageClient 
+            articleId={articleId} 
+            initialOtherArticles={allArticles}
+          />
+        </Suspense>
+      </Hydrate>
+    </ArticleClientShell>
   );
 }

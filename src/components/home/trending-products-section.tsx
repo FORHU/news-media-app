@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { ArticleLink } from "@/components/home/ArticleLink";
-import Image from "next/image";
 import type { Article } from "@/lib/types";
 
 interface TrendingProductsSectionProps {

@@ -18,25 +18,39 @@ interface AdBannerProps {
   position: string;
   className?: string;
   initialIndex?: number;
+  /** Pre-fetched banners from the server. When provided, the client-side fetch is skipped entirely. */
+  initialBanners?: Banner[];
 }
 
 export function AdBanner({ 
   position, 
   className = "", 
-  initialIndex = 0 
+  initialIndex = 0,
+  initialBanners,
 }: AdBannerProps) {
-  const [banners, setBanners] = useState<Banner[]>([]);
-  const [currentIdx, setCurrentIdx] = useState(0); // Initialized properly after fetch
-  const [loading, setLoading] = useState(true);
+  // If the server pre-fetched banners, use them directly — no client fetch needed.
+  const [banners, setBanners] = useState<Banner[]>(() => {
+    if (initialBanners && initialBanners.length > 0) return initialBanners;
+    return [];
+  });
+  const [currentIdx, setCurrentIdx] = useState(() => {
+    if (initialBanners && initialBanners.length > 0) {
+      return initialIndex % initialBanners.length;
+    }
+    return 0;
+  });
+  const [loading, setLoading] = useState(() => !initialBanners);
 
   useEffect(() => {
+    // Skip the client-side fetch if the server already provided banners.
+    if (initialBanners && initialBanners.length > 0) return;
+
     async function fetchBanners() {
       try {
         const res = await fetch(`/api/banners?position=${position}`);
         if (res.ok) {
           const data = await res.json();
           setBanners(data);
-          // Set initial index based on available banners
           if (data.length > 0) {
             setCurrentIdx(initialIndex % data.length);
           }
@@ -49,17 +63,17 @@ export function AdBanner({
     }
 
     fetchBanners();
-  }, [position, initialIndex]);
+  }, [position, initialIndex, initialBanners]);
 
   // Rotate banners if there are multiple for the same position
   useEffect(() => {
     if (banners.length > 1) {
       const interval = setInterval(() => {
         setCurrentIdx((prev) => (prev + 1) % banners.length);
-      }, 7000); // 7s for slightly faster, smoother feeling rotation
+      }, 7000);
       return () => clearInterval(interval);
     }
-  }, [banners.length, banners]); // Added banners for safety
+  }, [banners.length]); // Only length matters; avoid ref-equality resets
 
   if (loading || banners.length === 0) {
     return null;
