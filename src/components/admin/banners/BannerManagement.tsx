@@ -10,7 +10,12 @@ import {
   Eye, 
   EyeOff, 
   Loader2, 
-  ArrowUpRight 
+  ArrowUpRight,
+  Link2,
+  LayoutGrid,
+  List,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { bannersApi } from "@/lib/api";
@@ -28,6 +33,9 @@ export default function BannerManagement() {
   const [selectedBanner, setSelectedBanner] = React.useState<any>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
   const [bannerToDelete, setBannerToDelete] = React.useState<any>(null);
+  const [viewMode, setViewMode] = React.useState<"grid" | "list">("grid");
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const ITEMS_PER_PAGE = viewMode === "grid" ? 6 : 10;
 
   const queryClient = useQueryClient();
 
@@ -57,10 +65,23 @@ export default function BannerManagement() {
 
   const filteredBanners = (banners || []).filter((b) =>
     b && (
-      b.position.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.linkUrl.toLowerCase().includes(searchQuery.toLowerCase())
+      (b.name && b.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (b.positions || []).some((p: string) => p.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      b.linkUrl.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (b.altText && b.altText.toLowerCase().includes(searchQuery.toLowerCase()))
     )
   );
+
+  const totalPages = Math.ceil(filteredBanners.length / ITEMS_PER_PAGE);
+  const paginatedBanners = filteredBanners.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  // Reset to page 1 when search or view mode changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, viewMode]);
 
   const handleEdit = (banner: any) => {
     setSelectedBanner(banner);
@@ -115,6 +136,25 @@ export default function BannerManagement() {
           />
         </div>
 
+        <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl border border-gray-100">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setViewMode("grid")}
+            className={`rounded-xl w-10 h-10 ${viewMode === "grid" ? "bg-white shadow-sm text-gray-900" : "text-gray-400 hover:text-gray-600"}`}
+          >
+            <LayoutGrid className="w-5 h-5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setViewMode("list")}
+            className={`rounded-xl w-10 h-10 ${viewMode === "list" ? "bg-white shadow-sm text-gray-900" : "text-gray-400 hover:text-gray-600"}`}
+          >
+            <List className="w-5 h-5" />
+          </Button>
+        </div>
+
         <Button
           onClick={handleCreate}
           className="h-12 px-8 rounded-2xl bg-[#ff4500] hover:bg-orange-600 text-white font-bold text-sm shadow-lg shadow-orange-500/20 transition-all"
@@ -139,20 +179,20 @@ export default function BannerManagement() {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+          className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 gap-6" : "flex flex-col gap-4"}
         >
-          {filteredBanners.map((banner) => {
+          {paginatedBanners.map((banner) => {
             if (!banner) return null;
             return (
             <motion.div
               key={banner.id}
               variants={itemVariants}
-              whileHover={{ y: -4 }}
-              className={`group relative bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 border ${
+              whileHover={{ y: -2 }}
+              className={`group relative bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border ${viewMode === "list" ? "flex flex-row h-32 items-stretch" : ""} ${
                 banner.isActive ? "border-gray-100" : "border-gray-200 bg-gray-50/50 opacity-75"
               }`}
             >
-              <div className="aspect-[3/1] relative overflow-hidden bg-gray-50 flex-shrink-0">
+              <div className={`${viewMode === "grid" ? "aspect-[3/1]" : "w-48"} relative overflow-hidden bg-gray-50 flex-shrink-0`}>
                 {banner.imageUrl && banner.imageUrl.trim().length > 0 ? (
                   <StoryImage
                     src={banner.imageUrl}
@@ -164,8 +204,8 @@ export default function BannerManagement() {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-[#7c7fff]">
-                    <span className="text-xl font-black text-white tracking-widest opacity-80 uppercase selection:bg-none">
-                      Banner Preview
+                    <span className="text-xl font-black text-white tracking-widest opacity-80 uppercase selection:bg-none text-center px-4">
+                      Preview
                     </span>
                   </div>
                 )}
@@ -176,60 +216,63 @@ export default function BannerManagement() {
                     </span>
                   </div>
                 )}
-                <div className="absolute top-4 left-4">
-                  <span className="bg-gray-900/40 backdrop-blur-md text-[10px] text-white px-3 py-1 rounded-lg font-black uppercase tracking-widest border border-white/10">
-                    {banner.position.replace("_", " ")}
-                  </span>
+                <div className="absolute top-3 left-3 flex flex-wrap gap-1">
+                  {(banner.positions || []).map((pos: string) => (
+                    <span key={pos} className="bg-gray-900/60 backdrop-blur-md text-[9px] text-white px-2 py-1 rounded-md font-black uppercase tracking-widest border border-white/20 shadow-lg shadow-black/20">
+                      {pos.replace(/_/g, " ")}
+                    </span>
+                  ))}
                 </div>
               </div>
 
-              <div className="p-6 flex items-center justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-black text-gray-900 truncate">
-                      {banner.linkUrl}
-                    </span>
+              <div className={`p-5 flex items-center justify-between gap-4 bg-white flex-1 ${viewMode === "list" ? "min-w-0" : ""}`}>
+                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                  <h3 className="text-base font-bold text-gray-900 truncate mb-1.5 capitalize">
+                    {banner.name || "Untitled Banner"}
+                  </h3>
+                  <div className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-orange-500 transition-colors w-fit max-w-full">
+                    <Link2 className="w-4 h-4 flex-shrink-0 text-gray-400" />
                     <a
                       href={banner.linkUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-gray-400 hover:text-orange-500 transition-colors"
+                      className="truncate hover:underline font-medium"
+                      title={banner.linkUrl}
                     >
-                      <ArrowUpRight className="w-4 h-4" />
+                      {banner.linkUrl.replace(/^https?:\/\//, '')}
                     </a>
                   </div>
-                  <p className="text-xs text-gray-400 font-medium truncate">
-                    {banner.altText || "No description provided"}
-                  </p>
                 </div>
 
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center gap-1 flex-shrink-0 bg-gray-50/80 p-1.5 rounded-2xl border border-gray-100">
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => toggleMutation.mutate({ id: banner.id, isActive: !banner.isActive })}
                     title={banner.isActive ? "Deactivate" : "Activate"}
-                    className={`rounded-xl transition-all ${
-                      banner.isActive ? "text-orange-500 bg-orange-50" : "text-gray-400 bg-gray-100"
+                    className={`rounded-xl transition-all w-9 h-9 ${
+                      banner.isActive ? "text-orange-500 hover:bg-orange-100/50" : "text-gray-400 hover:bg-gray-200/50"
                     }`}
                   >
-                    {banner.isActive ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                    {banner.isActive ? <Eye className="w-[18px] h-[18px]" /> : <EyeOff className="w-[18px] h-[18px]" />}
                   </Button>
+                  <div className="w-px h-4 bg-gray-200 mx-0.5" />
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => handleEdit(banner)}
-                    className="rounded-xl text-blue-500 bg-blue-50 hover:bg-blue-100"
+                    className="rounded-xl text-blue-500 hover:bg-blue-100/50 w-9 h-9"
                   >
-                    <Edit3 className="w-5 h-5" />
+                    <Edit3 className="w-[18px] h-[18px]" />
                   </Button>
+                  <div className="w-px h-4 bg-gray-200 mx-0.5" />
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => handleDeleteClick(banner)}
-                    className="rounded-xl text-red-500 bg-red-50 hover:bg-red-100"
+                    className="rounded-xl text-red-500 hover:bg-red-100/50 w-9 h-9"
                   >
-                    <Trash2 className="w-5 h-5" />
+                    <Trash2 className="w-[18px] h-[18px]" />
                   </Button>
                 </div>
               </div>
@@ -247,6 +290,32 @@ export default function BannerManagement() {
                 className="text-orange-500 font-black uppercase tracking-widest text-xs mt-2"
               >
                 Create your first banner
+              </Button>
+            </div>
+          )}
+
+          {filteredBanners.length > 0 && totalPages > 1 && (
+            <div className="col-span-full flex items-center justify-center gap-4 mt-8 pt-8 border-t border-gray-100">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="w-10 h-10 rounded-xl"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </Button>
+              <span className="text-sm font-bold text-gray-500">
+                Page {currentPage} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="w-10 h-10 rounded-xl"
+              >
+                <ChevronRight className="w-5 h-5" />
               </Button>
             </div>
           )}
