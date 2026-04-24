@@ -57,8 +57,8 @@ export default function BannerManagement() {
 
   const filteredBanners = (banners || []).filter((b) =>
     b && (
-      b.position.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.linkUrl.toLowerCase().includes(searchQuery.toLowerCase())
+      (b.position?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+      (b.linkUrl?.toLowerCase() || "").includes(searchQuery.toLowerCase())
     )
   );
 

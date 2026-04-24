@@ -10,19 +10,39 @@ import {
     Search, 
     Loader2, 
     UserCheck,
-    MoreVertical
+    Edit3,
+    Trash2,
+    CheckCircle2,
+    X
 } from 'lucide-react';
-import { motion, Variants } from 'framer-motion';
-import { useQuery } from '@tanstack/react-query';
+import { motion, Variants, AnimatePresence } from 'framer-motion';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import CreateAccountModal from '@/components/admin/accounts/CreateAccountModal';
+import EditAccountModal from '@/components/admin/accounts/EditAccountModal';
+import ConfirmationModal from '@/components/admin/shared/ConfirmationModal';
 import { format } from 'date-fns';
 import { AdminUser } from '@/lib/types';
 
 export default function AccountsPage() {
     const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+    const [selectedUser, setSelectedUser] = React.useState<AdminUser | null>(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
+    const [userToDelete, setUserToDelete] = React.useState<AdminUser | null>(null);
+    
     const [searchQuery, setSearchQuery] = React.useState('');
+    const [notification, setNotification] = React.useState<{ message: string; type: 'success' | 'error' } | null>(null);
+    const queryClient = useQueryClient();
+
+    // Auto-hide notification
+    React.useEffect(() => {
+        if (notification) {
+            const timer = setTimeout(() => setNotification(null), 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [notification]);
 
     const { data: users, isLoading, isError } = useQuery<AdminUser[]>({
         queryKey: ['adminUsers'],
@@ -32,6 +52,34 @@ export default function AccountsPage() {
             return response.json();
         }
     });
+
+    const deleteMutation = useMutation({
+        mutationFn: async (id: string) => {
+            const res = await fetch('/api/admin/accounts', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id }),
+            });
+            if (!res.ok) throw new Error('Failed to delete user');
+            return res.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
+            setIsDeleteModalOpen(false);
+            setUserToDelete(null);
+            setNotification({ message: 'Account deleted successfully', type: 'success' });
+        }
+    });
+
+    const handleEdit = (user: AdminUser) => {
+        setSelectedUser(user);
+        setIsEditModalOpen(true);
+    };
+
+    const handleDeleteClick = (user: AdminUser) => {
+        setUserToDelete(user);
+        setIsDeleteModalOpen(true);
+    };
 
     const filteredUsers = users?.filter(user => 
         user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -149,9 +197,24 @@ export default function AccountsPage() {
                                                 Joined {format(new Date(user.createdAt), 'MMM yyyy')}
                                             </span>
                                         </div>
-                                        <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-400 hover:text-gray-900">
-                                            <MoreVertical className="w-4 h-4" />
-                                        </button>
+                                        <div className="flex items-center gap-2 flex-shrink-0">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handleEdit(user)}
+                                                className="rounded-xl text-[#ff4500] bg-orange-50 hover:bg-orange-100"
+                                            >
+                                                <Edit3 className="w-5 h-5" />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handleDeleteClick(user)}
+                                                className="rounded-xl text-[#ff4500] bg-orange-50 hover:bg-orange-100"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
                             </motion.div>
@@ -167,8 +230,56 @@ export default function AccountsPage() {
 
             <CreateAccountModal 
                 open={isCreateModalOpen} 
-                onOpenChange={setIsCreateModalOpen} 
+                onOpenChange={setIsCreateModalOpen}
+                onSuccess={() => setNotification({ message: 'New admin account created', type: 'success' })}
             />
+
+            <EditAccountModal
+                open={isEditModalOpen}
+                onOpenChange={setIsEditModalOpen}
+                user={selectedUser}
+                onSuccess={() => setNotification({ message: 'Account updated successfully', type: 'success' })}
+            />
+
+            <ConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onOpenChange={setIsDeleteModalOpen}
+                onConfirm={() => {
+                    if (userToDelete?.id) {
+                        deleteMutation.mutate(userToDelete.id);
+                    }
+                }}
+                title="Delete Admin Account?"
+                description={`This action cannot be undone. ${userToDelete?.firstName} will lose all administrative access.`}
+                confirmText="Yes, Delete"
+                variant="destructive"
+                isLoading={deleteMutation.isPending}
+            />
+
+            {/* Notification Toast */}
+            <AnimatePresence>
+                {notification && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+                        className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 px-6 py-4 bg-gray-900 text-white rounded-2xl shadow-2xl border border-white/10 min-w-[320px]"
+                    >
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${notification.type === 'success' ? 'bg-emerald-500' : 'bg-red-500'}`}>
+                            {notification.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
+                        </div>
+                        <div className="flex-1">
+                            <p className="text-sm font-black tracking-tight">{notification.message}</p>
+                        </div>
+                        <button 
+                            onClick={() => setNotification(null)}
+                            className="p-1 hover:bg-white/10 rounded-lg transition-colors"
+                        >
+                            <X className="w-4 h-4 text-gray-400" />
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

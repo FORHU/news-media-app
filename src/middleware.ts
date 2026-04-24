@@ -67,6 +67,12 @@ export async function middleware(request: NextRequest) {
 
     // Return supabaseResponse (not a plain NextResponse.next()) so that any
     // refreshed token cookies written by the SSR client are forwarded to the browser.
+    // Also set cache control to prevent sensitive admin pages from being cached.
+    supabaseResponse.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    supabaseResponse.headers.set("Pragma", "no-cache");
+    supabaseResponse.headers.set("Expires", "0");
+    supabaseResponse.headers.set("Surrogate-Control", "no-store");
+
     return supabaseResponse;
 }
 

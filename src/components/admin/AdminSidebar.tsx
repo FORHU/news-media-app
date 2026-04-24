@@ -51,7 +51,7 @@ export default function AdminSidebar({
     const handleLogout = async () => {
         await supabase.auth.signOut();
         await fetch('/api/admin/auth/logout', { method: 'POST' });
-        router.push('/admin/login');
+        router.replace('/admin/login');
     };
 
     const menuItems = [
