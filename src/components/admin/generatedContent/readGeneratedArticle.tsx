@@ -48,7 +48,7 @@ export default function ReadGeneratedArticle({
 
     const publishDate = article.publishDate || article.createdAt;
     const authorName = article.user ? `${article.user.firstName}` : 'System';
-    const originalUrl = article.rawArticle?.crawledUrl?.url;
+    const originalUrl = article.rawArticle?.crawledUrl?.url || (article as any).rawVideo?.youtubeUrl || (article as any).youtubeUrl;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -103,7 +103,7 @@ export default function ReadGeneratedArticle({
                     
                     {/* YouTube Embed if available */}
                     {(() => {
-                        const youtubeUrl = (article as any).youtubeUrl;
+                        const youtubeUrl = (article as any).rawVideo?.youtubeUrl || (article as any).youtubeUrl;
                         const youtubeId = youtubeUrl ? (
                             youtubeUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/) || []
                         )[1] : null;

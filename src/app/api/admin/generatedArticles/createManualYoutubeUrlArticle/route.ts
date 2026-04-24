@@ -9,6 +9,7 @@ export const maxDuration = 300;
 const RequestSchema = z.object({
   topic: z.string().optional(),
   categoryId: z.string().min(1, "Category is required"),
+  language: z.string().optional(),
   content: z.string().optional(),
   prompt: z.string().optional(),
   fileContent: z.string().optional(),
@@ -105,6 +106,7 @@ export async function POST(req: NextRequest) {
     const {
       topic,
       categoryId,
+      language,
       content: rawContent,
       prompt: customPrompt,
       fileContent,
@@ -131,6 +133,24 @@ export async function POST(req: NextRequest) {
 
     const isYoutube = requestType === "youtube" || topic === "YouTube Video Article";
     const instruction = getAiSystemInstruction(isYoutube, youtubeUrl);
+
+    const user =
+      (await prisma.user.findUnique({ where: { email: "admin@newsmedia.app" } })) ||
+      (await prisma.user.findFirst());
+
+    if (!user) throw new Error("No system user found for attribution");
+
+    const shouldCreateRawVideo = Boolean(isYoutube && youtubeUrl && rawContent && rawContent.trim().length > 0);
+    const rawVideo = shouldCreateRawVideo
+      ? await prisma.rawVideo.create({
+          data: {
+            language: typeof language === "string" && language.trim().length > 0 ? language.trim() : null,
+            youtubeUrl: youtubeUrl!,
+            transcribedContent: rawContent!,
+            prompt: typeof customPrompt === "string" && customPrompt.trim().length > 0 ? customPrompt.trim() : null,
+          },
+        })
+      : null;
 
     let documentContext = "No additional content provided.";
 
@@ -240,12 +260,6 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
         throw new Error("AI failed to generate a complete article. Please refine your prompt or materials and try again.");
       }
 
-      const user =
-        (await prisma.user.findUnique({ where: { email: "admin@newsmedia.app" } })) ||
-        (await prisma.user.findFirst());
-
-      if (!user) throw new Error("No system user found for attribution");
-
       const publishDate = new Date();
       const slug = await generateUniqueArticleSlug(prisma, title, publishDate);
 
@@ -260,6 +274,9 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
           categoryId: categoryId,
           publishDate,
           youtubeUrl: youtubeUrl || null,
+          ...(rawVideo
+            ? { rawVideoId: rawVideo.id, sourceType: "VIDEO" }
+            : { sourceType: "MANUAL" }),
         },
       });
 
