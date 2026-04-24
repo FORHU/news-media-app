@@ -27,10 +27,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
-import YoutubeGenerationTab from "./YoutubeGenerationTab";
 import { LANGUAGE_OPTIONS, ManualArticleContext, ManualMaterialsUpload } from "./ManualGenerationTab";
 import CategorySelectWithOther from "@/components/admin/shared/CategorySelectWithOther";
 
@@ -43,39 +42,26 @@ export default function CreateArticleModal({
     open,
     onOpenChange,
 }: CreateArticleModalProps) {
-    const [activeTab, setActiveTab] = React.useState<"manual" | "youtube">("manual");
     const [topic, setTopic] = React.useState("");
     const [language, setLanguage] = React.useState("English");
     const [selectedCategory, setSelectedCategory] = React.useState<string>("");
     const [files, setFiles] = React.useState<File[]>([]);
-    const [youtubeUrl, setYoutubeUrl] = React.useState("");
-    const [isTranscribing, setIsTranscribing] = React.useState(false);
-    const [youtubeVideoId, setYoutubeVideoId] = React.useState("");
-    const [youtubeTranscript, setYoutubeTranscript] = React.useState("");
-    const [youtubePrompt, setYoutubePrompt] = React.useState("");
     const [error, setError] = React.useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = React.useState<{
         category?: string;
         topic?: string;
-        transcript?: string;
     }>({});
-    const [transcriptError, setTranscriptError] = React.useState<string | null>(null);
     const [isProcessingFiles, setIsProcessingFiles] = React.useState(false);
     const [uploadProgress, setUploadProgress] = React.useState<number | null>(null);
 
     const resetForm = React.useCallback(() => {
         setTopic("");
-        setYoutubeTranscript("");
-        setYoutubeUrl("");
         setFiles([]);
         setUploadProgress(null);
         setFieldErrors({});
         setError(null);
         setIsProcessingFiles(false);
-        setYoutubeVideoId("");
-        setYoutubePrompt("");
         setSelectedCategory("");
-        setTranscriptError(null);
         setLanguage("English");
     }, []);
 
@@ -98,37 +84,10 @@ export default function CreateArticleModal({
         setFieldErrors(prev => ({ ...prev, topic: undefined }));
     };
 
-    const handleTranscriptChange = (val: string) => {
-        setYoutubeTranscript(val);
-        setFieldErrors(prev => ({ ...prev, transcript: undefined }));
-    };
-
     // Fetch categories
     const { data: categories, isLoading: isLoadingCategories } = useQuery({
         queryKey: ['categories'],
         queryFn: () => articlesApi.getCategories(),
-    });
-
-    const mutation = useMutation({
-        mutationFn: (params: {
-            topic?: string;
-            categoryId?: string;
-            content?: string;
-            prompt?: string;
-            fileContent?: string;
-            imageUrl?: string;
-            youtubeUrl?: string;
-            type?: "manual" | "youtube";
-        }) => articlesApi.generateManualArticle(params),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['generatedArticles'] });
-            onOpenChange(false);
-            // resetForm will be called by the useEffect hook
-        },
-        onError: (err: any) => {
-            setError(err.message || "Failed to generate article.");
-            setIsProcessingFiles(false);
-        }
     });
 
     const readFileAsText = (file: File): Promise<string> => {
@@ -205,97 +164,53 @@ export default function CreateArticleModal({
             newErrors.category = "Please select a category";
         }
 
-        // 2. Tab Specific Validation
+        // 2. Manual Validation
         let combinedFileContent = "";
         let uploadedImageUrl = "";
 
-        if (activeTab === "manual") {
-            // Check files
-            const textFiles = files.filter(f => f.name.endsWith('.txt'));
-            const imageFiles = files.filter(f => f.type.startsWith('image/'));
+        const textFiles = files.filter(f => f.name.endsWith('.txt'));
+        const imageFiles = files.filter(f => f.type.startsWith('image/'));
 
-            if (!topic.trim() && textFiles.length === 0) {
-                newErrors.topic = "Provide a topic or upload .txt materials";
-            }
-
-            if (Object.keys(newErrors).length > 0) {
-                setFieldErrors(newErrors);
-                return;
-            }
-
-            setIsProcessingFiles(true);
-            try {
-                // Read text files
-                const texts = await Promise.all(textFiles.map(readFileAsText));
-                combinedFileContent = texts.join("\n\n---\n\n");
-
-                // Upload first image if exists
-                if (imageFiles.length > 0) {
-                    const result = await uploadFileWithPresignedUrl(imageFiles[0]);
-                    if (!result) {
-                        throw new Error("Failed to upload image. Please try again.");
-                    }
-                    uploadedImageUrl = result;
-                }
-
-                mutation.mutate({
-                    topic,
-                    categoryId: selectedCategory,
-                    fileContent: combinedFileContent,
-                    imageUrl: uploadedImageUrl,
-                    prompt: buildLanguageDirective(language),
-                    type: "manual",
-                });
-            } catch (err: any) {
-                setError(err.message || "Failed to process local files.");
-                setIsProcessingFiles(false);
-            }
-        } else {
-            if (!youtubeTranscript.trim()) {
-                newErrors.transcript = "Transcript is required for generation";
-            }
-
-            if (Object.keys(newErrors).length > 0) {
-                setFieldErrors(newErrors);
-                return;
-            }
-
-            mutation.mutate({
-                topic: "YouTube Video Article",
-                content: youtubeTranscript,
-                prompt: [youtubePrompt?.trim(), buildLanguageDirective(language)].filter(Boolean).join("\n\n"),
-                categoryId: selectedCategory,
-                youtubeUrl: youtubeUrl,
-                type: "youtube",
-            });
+        if (!topic.trim() && textFiles.length === 0) {
+            newErrors.topic = "Provide a topic or upload .txt materials";
         }
-    };
 
-    const handleTranscribeYoutube = async () => {
-        const trimmedUrl = youtubeUrl.trim();
-        if (!trimmedUrl) {
-            setTranscriptError("Please enter a YouTube URL.");
+        if (Object.keys(newErrors).length > 0) {
+            setFieldErrors(newErrors);
             return;
         }
 
-        setIsTranscribing(true);
-        setTranscriptError(null);
-
+        setIsProcessingFiles(true);
         try {
-            const data = await articlesApi.transcribeYoutube(trimmedUrl);
-            setYoutubeVideoId(data.video_id || "");
-            setYoutubeTranscript(data.transcript || "");
+            const texts = await Promise.all(textFiles.map(readFileAsText));
+            combinedFileContent = texts.join("\n\n---\n\n");
+
+            if (imageFiles.length > 0) {
+                const result = await uploadFileWithPresignedUrl(imageFiles[0]);
+                if (!result) {
+                    throw new Error("Failed to upload image. Please try again.");
+                }
+                uploadedImageUrl = result;
+            }
+
+            await articlesApi.createArticleFromUpload({
+                categoryId: selectedCategory,
+                topic,
+                extractedText: combinedFileContent,
+                s3ImageUrl: uploadedImageUrl,
+                language,
+                prompt: buildLanguageDirective(language),
+            });
+
+            queryClient.invalidateQueries({ queryKey: ['generatedArticles'] });
+            onOpenChange(false);
         } catch (err: any) {
-            setTranscriptError(err?.message || "Failed to transcribe YouTube video.");
-            setYoutubeVideoId("");
-            setYoutubeTranscript("");
-        } finally {
-            setIsTranscribing(false);
+            setError(err.message || "Failed to process local files.");
+            setIsProcessingFiles(false);
         }
     };
 
-    const isGenerating = mutation.isPending;
-    const isModalBusy = isGenerating || isProcessingFiles;
+    const isModalBusy = isProcessingFiles;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -370,61 +285,20 @@ export default function CreateArticleModal({
                         </div>
                     )}
 
-                    <div className="flex items-center gap-2 rounded-2xl bg-gray-50 p-1.5 border border-gray-100">
-                        <button
-                            type="button"
-                            onClick={() => setActiveTab("manual")}
-                            className={`flex-1 h-10 rounded-xl text-sm font-black tracking-wide transition-all ${activeTab === "manual"
-                                ? "bg-white text-gray-900 shadow-sm"
-                                : "text-gray-500 hover:text-gray-900"
-                                }`}
-                        >
-                            Manual Generation
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setActiveTab("youtube")}
-                            className={`flex-1 h-10 rounded-xl text-sm font-black tracking-wide transition-all ${activeTab === "youtube"
-                                ? "bg-white text-gray-900 shadow-sm"
-                                : "text-gray-500 hover:text-gray-900"
-                                }`}
-                        >
-                            YouTube Generation
-                        </button>
-                    </div>
-
-                    {activeTab === "manual" ? (
-                        <div className="space-y-8">
-                            <div className="space-y-6">
-                                <div className="flex items-center gap-3">
-                                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-black text-xs">01</span>
-                                    <label className="text-sm font-black uppercase tracking-widest text-gray-900">Materials</label>
-                                </div>
-                                <ManualMaterialsUpload files={files} handleFileChange={handleFileChange} removeFile={removeFile} />
+                    <div className="space-y-8">
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-3">
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-black text-xs">01</span>
+                                <label className="text-sm font-black uppercase tracking-widest text-gray-900">Materials</label>
                             </div>
-                            <ManualArticleContext
-                                topic={topic}
-                                handleTopicChange={handleTopicChange}
-                                fieldErrors={fieldErrors}
-                            />
+                            <ManualMaterialsUpload files={files} handleFileChange={handleFileChange} removeFile={removeFile} />
                         </div>
-                    ) : (
-                        <YoutubeGenerationTab
-                            youtubeUrl={youtubeUrl}
-                            setYoutubeUrl={setYoutubeUrl}
-                            handleTranscribeYoutube={handleTranscribeYoutube}
-                            isTranscribing={isTranscribing}
-                            youtubeVideoId={youtubeVideoId}
-                            transcriptError={transcriptError}
-                            youtubeTranscript={youtubeTranscript}
-                            handleTranscriptChange={handleTranscriptChange}
+                        <ManualArticleContext
+                            topic={topic}
+                            handleTopicChange={handleTopicChange}
                             fieldErrors={fieldErrors}
-                            youtubePrompt={youtubePrompt}
-                            setYoutubePrompt={setYoutubePrompt}
-                            language={language}
-                            setLanguage={setLanguage}
                         />
-                    )}
+                    </div>
 
                     {/* Step 2: Configuration - Shared */}
                     <div className="space-y-6">
@@ -455,23 +329,21 @@ export default function CreateArticleModal({
                                 </div>
                             </div>
 
-                            {activeTab === "manual" && (
-                                <div className="space-y-2">
-                                    <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Language</span>
-                                    <Select value={language} onValueChange={setLanguage}>
-                                        <SelectTrigger className="h-12 rounded-xl bg-gray-50 border border-gray-100 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm">
-                                            <SelectValue placeholder="English" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {LANGUAGE_OPTIONS.map((lang) => (
-                                                <SelectItem key={lang} value={lang}>
-                                                    {lang}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            )}
+                            <div className="space-y-2">
+                                <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Language</span>
+                                <Select value={language} onValueChange={setLanguage}>
+                                    <SelectTrigger className="h-12 rounded-xl bg-gray-50 border border-gray-100 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm">
+                                        <SelectValue placeholder="English" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {LANGUAGE_OPTIONS.map((lang) => (
+                                            <SelectItem key={lang} value={lang}>
+                                                {lang}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -483,20 +355,20 @@ export default function CreateArticleModal({
                             variant="ghost"
                             onClick={() => onOpenChange(false)}
                             className="rounded-xl font-bold text-gray-500 hover:text-gray-900 hover:bg-gray-100 px-6 h-12"
-                            disabled={isGenerating}
+                            disabled={isModalBusy}
                         >
                             Discard
                         </Button>
                     </div>
                     <Button
                         onClick={handleGenerate}
-                            disabled={isModalBusy || (activeTab === "youtube" && !youtubeTranscript.trim())}
+                        disabled={isModalBusy}
                         className="flex-1 max-w-[200px] h-14 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-black text-base shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 transition-all"
                     >
                         {isModalBusy ? (
                             <div className="flex items-center gap-2">
                                 <Loader2 className="w-5 h-5 animate-spin" />
-                                <span>{isProcessingFiles && !isGenerating ? 'Processing...' : 'Generating...'}</span>
+                                <span>Processing...</span>
                             </div>
                         ) : (
                             <div className="flex items-center gap-2">

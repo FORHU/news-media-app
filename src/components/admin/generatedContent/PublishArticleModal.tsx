@@ -95,7 +95,7 @@ export default function PublishArticleModal({
         article.categoryId ?? article.category?.id ?? ""
     );
     const [youtubeUrl, setYoutubeUrl] = React.useState(
-        (article as any).youtubeUrl ?? ""
+        (article as any).rawVideo?.youtubeUrl ?? (article as any).youtubeUrl ?? ""
     );
     const [imageFile, setImageFile] = React.useState<File | null>(null);
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
@@ -111,7 +111,7 @@ export default function PublishArticleModal({
             setTitle(article.title);
             setContent(article.content ?? "");
             setCategoryId(article.categoryId ?? (article.category as any)?.id ?? "");
-            setYoutubeUrl((article as any).youtubeUrl ?? "");
+            setYoutubeUrl((article as any).rawVideo?.youtubeUrl ?? (article as any).youtubeUrl ?? "");
             setImageFile(null);
             setImagePreview(null);
             setError(null);

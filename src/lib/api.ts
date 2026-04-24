@@ -109,6 +109,7 @@ export const articlesApi = {
   async generateManualArticle(params: {
     topic?: string;
     categoryId?: string;
+    language?: string;
     content?: string;
     prompt?: string;
     fileContent?: string;
@@ -144,6 +145,30 @@ export const articlesApi = {
     if (!res.ok) {
       const error = await res.json().catch(() => ({}));
       throw new Error(error.error || "Failed to generate article from image");
+    }
+
+    return res.json();
+  },
+
+  async createArticleFromUpload(params: {
+    categoryId: string;
+    topic?: string;
+    prompt?: string;
+    language?: string;
+    extractedText?: string;
+    s3ImageUrl?: string;
+  }): Promise<unknown> {
+    const res = await fetch("/api/admin/generatedArticles/createFromUpload", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(params),
+    });
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(
+        typeof error.error === "string" ? error.error : "Failed to create article from upload."
+      );
     }
 
     return res.json();
