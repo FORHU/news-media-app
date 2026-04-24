@@ -28,20 +28,10 @@ import { articlesApi } from "@/lib/api";
 import { Article } from "@/lib/types";
 import { StoryImage } from "@/components/StoryImage";
 import CategorySelectWithOther from "@/components/admin/shared/CategorySelectWithOther";
+import { extractYoutubeId } from "@/lib/utils";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
-function extractYoutubeId(url: string): string | null {
-    if (!url.trim()) return null;
-    const patterns = [
-        /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/,
-    ];
-    for (const p of patterns) {
-        const m = url.match(p);
-        if (m) return m[1];
-    }
-    return null;
-}
 
 async function uploadImageToSupabase(file: File): Promise<string> {
     const { supabase } = await import("@/lib/supabaseClient");
@@ -184,7 +174,7 @@ export default function PublishArticleModal({
         if (!categoryId) newErrors.categoryId = "Please select a category";
         
         if (youtubeUrl.trim() && !youtubeId) {
-            newErrors.youtubeUrl = "Please enter a valid YouTube URL (e.g., https://www.youtube.com/watch?v=...)";
+            newErrors.youtubeUrl = "Please enter a valid YouTube or Shorts URL";
         }
 
         setFieldErrors(newErrors);
