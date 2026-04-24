@@ -109,6 +109,7 @@ export const articlesApi = {
   async generateManualArticle(params: {
     topic?: string;
     categoryId?: string;
+    language?: string;
     content?: string;
     prompt?: string;
     fileContent?: string;

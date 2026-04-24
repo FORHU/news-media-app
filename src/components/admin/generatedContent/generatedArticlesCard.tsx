@@ -4,6 +4,10 @@ import React from 'react';
 import Image from 'next/image';
 import {
     Globe,
+    Youtube,
+    Twitter,
+    Upload,
+    PenLine,
     ExternalLink,
     Calendar,
     Zap,
@@ -54,6 +58,22 @@ const ALL_STATUS_VALUE = '__all_status__';
 interface GeneratedArticleCardProps {
     article: Article;
     variants: Variants;
+}
+
+function getSourceMeta(sourceType?: string | null) {
+    switch (sourceType) {
+        case 'VIDEO':
+            return { label: 'YouTube', Icon: Youtube, className: 'bg-red-50 text-red-600 border-red-100' };
+        case 'TWEET':
+            return { label: 'Twitter', Icon: Twitter, className: 'bg-sky-50 text-sky-600 border-sky-100' };
+        case 'UPLOAD':
+            return { label: 'Upload', Icon: Upload, className: 'bg-violet-50 text-violet-600 border-violet-100' };
+        case 'MANUAL':
+            return { label: 'Manual', Icon: PenLine, className: 'bg-gray-50 text-gray-600 border-gray-100' };
+        case 'ARTICLE':
+        default:
+            return { label: 'Website', Icon: Globe, className: 'bg-emerald-50 text-emerald-700 border-emerald-100' };
+    }
 }
 
 export function GeneratedArticleCard({ article, variants }: GeneratedArticleCardProps) {
@@ -135,6 +155,17 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                             </span>
                         </div>
                     ) : null}
+
+                    {(() => {
+                        const meta = getSourceMeta((article as any).sourceType);
+                        const Icon = meta.Icon;
+                        return (
+                            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border ${meta.className}`}>
+                                <Icon className="w-3 h-3" />
+                                <span className="text-xs font-bold uppercase tracking-wider">{meta.label}</span>
+                            </div>
+                        );
+                    })()}
 
                     {isPublished ? (
                         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-full border border-emerald-100">

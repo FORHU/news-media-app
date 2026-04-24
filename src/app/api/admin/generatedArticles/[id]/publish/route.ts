@@ -116,6 +116,8 @@ export async function PATCH(
         category: true,
         user: { select: { firstName: true, lastName: true } },
         rawArticle: { include: { category: true, crawledUrl: true } },
+        rawVideo: true,
+        rawSourceUpload: true,
       },
     });
 

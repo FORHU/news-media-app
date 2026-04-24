@@ -274,7 +274,9 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
           categoryId: categoryId,
           publishDate,
           youtubeUrl: youtubeUrl || null,
-          ...(rawVideo ? { rawVideoId: rawVideo.id, sourceType: "VIDEO" } : {}),
+          ...(rawVideo
+            ? { rawVideoId: rawVideo.id, sourceType: "VIDEO" }
+            : { sourceType: "MANUAL" }),
         },
       });
 
