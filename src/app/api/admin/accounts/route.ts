@@ -49,7 +49,12 @@ export async function POST(request: NextRequest) {
       email,
       password,
       email_confirm: true,
-      user_metadata: { firstName, lastName }
+      user_metadata: { 
+        firstName, 
+        lastName,
+        full_name: `${firstName} ${lastName}`,
+        name: `${firstName} ${lastName}`
+      }
     });
 
     if (authError) {
@@ -174,10 +179,14 @@ export async function PATCH(request: NextRequest) {
       const authUpdateData: any = {};
       if (password) authUpdateData.password = password;
       if (firstName || lastName) {
+        const newFirst = firstName || supabaseUser.user_metadata?.firstName;
+        const newLast = lastName || supabaseUser.user_metadata?.lastName;
         authUpdateData.user_metadata = {
           ...supabaseUser.user_metadata,
-          firstName: firstName || supabaseUser.user_metadata?.firstName,
-          lastName: lastName || supabaseUser.user_metadata?.lastName,
+          firstName: newFirst,
+          lastName: newLast,
+          full_name: `${newFirst} ${newLast}`,
+          name: `${newFirst} ${newLast}`
         };
       }
       

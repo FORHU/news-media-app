@@ -31,10 +31,18 @@ export default function AccountsPage() {
     const [selectedUser, setSelectedUser] = React.useState<AdminUser | null>(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
     const [userToDelete, setUserToDelete] = React.useState<AdminUser | null>(null);
-    
     const [searchQuery, setSearchQuery] = React.useState('');
     const [notification, setNotification] = React.useState<{ message: string; type: 'success' | 'error' } | null>(null);
+    const [currentUserEmail, setCurrentUserEmail] = React.useState<string | null>(null);
     const queryClient = useQueryClient();
+
+    React.useEffect(() => {
+        const getMe = async () => {
+            const { data: { user } } = await (await import('@/lib/supabaseClient')).supabase.auth.getUser();
+            if (user) setCurrentUserEmail(user.email ?? null);
+        };
+        getMe();
+    }, []);
 
     // Auto-hide notification
     React.useEffect(() => {
@@ -82,9 +90,9 @@ export default function AccountsPage() {
     };
 
     const filteredUsers = users?.filter(user => 
-        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.lastName.toLowerCase().includes(searchQuery.toLowerCase())
+        user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (user.firstName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (user.lastName || "").toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     const containerVariants: Variants = {
@@ -210,7 +218,9 @@ export default function AccountsPage() {
                                                 variant="ghost"
                                                 size="icon"
                                                 onClick={() => handleDeleteClick(user)}
-                                                className="rounded-xl text-[#ff4500] bg-orange-50 hover:bg-orange-100"
+                                                className={`rounded-xl text-[#ff4500] bg-orange-50 hover:bg-orange-100 ${user.email === currentUserEmail ? 'opacity-30 cursor-not-allowed grayscale' : ''}`}
+                                                disabled={user.email === currentUserEmail}
+                                                title={user.email === currentUserEmail ? "You cannot delete yourself" : "Delete User"}
                                             >
                                                 <Trash2 className="w-5 h-5" />
                                             </Button>
