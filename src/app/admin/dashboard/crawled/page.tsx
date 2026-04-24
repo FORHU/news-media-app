@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import RawArticles from '@/components/admin/ContentSourcing/WebScraping/RawArticles/RawArticles';
 
 export default async function CrawledArticlesPage(props: {
@@ -14,6 +14,8 @@ export default async function CrawledArticlesPage(props: {
     const searchParams = await props.searchParams;
 
     return (
-        <RawArticles searchParams={searchParams} />
+        <Suspense fallback={<div>Loading articles...</div>}>
+            <RawArticles searchParams={searchParams} />
+        </Suspense>
     );
 }

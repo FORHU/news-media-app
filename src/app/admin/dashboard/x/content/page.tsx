@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import ScrapedTweets from '@/components/admin/ContentSourcing/xMonitoring/ScrapedTweets/ScrapedTweets';
 
 export const metadata = {
@@ -7,5 +7,9 @@ export const metadata = {
 };
 
 export default function CrawledXContentPage() {
-  return <ScrapedTweets />;
+  return (
+    <Suspense fallback={<div>Loading content...</div>}>
+      <ScrapedTweets />
+    </Suspense>
+  );
 }
