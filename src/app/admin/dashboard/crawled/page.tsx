@@ -1,5 +1,5 @@
 import React from 'react';
-import CrawledArticlesList from '@/components/admin/crawledArticles/crawledArticlesCard';
+import RawArticles from '@/components/admin/ContentSourcing/WebScraping/RawArticles/RawArticles';
 
 export default async function CrawledArticlesPage(props: {
     searchParams: Promise<{ 
@@ -14,6 +14,6 @@ export default async function CrawledArticlesPage(props: {
     const searchParams = await props.searchParams;
 
     return (
-        <CrawledArticlesList searchParams={searchParams} />
+        <RawArticles searchParams={searchParams} />
     );
 }

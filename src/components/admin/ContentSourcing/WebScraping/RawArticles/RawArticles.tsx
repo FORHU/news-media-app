@@ -214,7 +214,7 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
 }
 
 // Minimal shell to handle React Query and interactive UI
-export default function CrawledArticlesList({ searchParams }: {
+export default function RawArticles({ searchParams }: {
     searchParams: { from?: string; to?: string; q?: string; page?: string; source?: string; date?: string }
 }) {
     const router = useRouter();

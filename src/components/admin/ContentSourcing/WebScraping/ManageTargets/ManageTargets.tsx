@@ -6,7 +6,7 @@ import CrawlConfigurationModal from "./CrawlConfigurationModal";
 import CrawlJobsTable from "./CrawlJobsTable";
 import { useQueryClient } from "@tanstack/react-query";
 
-export default function CrawlUrlsManager() {
+export default function ManageTargets() {
   const [modalOpen, setModalOpen] = React.useState(false);
   const queryClient = useQueryClient();
 

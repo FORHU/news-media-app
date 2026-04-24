@@ -1,5 +1,5 @@
 import React from 'react';
-import CrawledXContent from '@/components/admin/crawlX/CrawledXContent';
+import ScrapedTweets from '@/components/admin/ContentSourcing/xMonitoring/ScrapedTweets/ScrapedTweets';
 
 export const metadata = {
   title: 'Crawled X Content | Admin Dashboard',
@@ -7,5 +7,5 @@ export const metadata = {
 };
 
 export default function CrawledXContentPage() {
-  return <CrawledXContent />;
+  return <ScrapedTweets />;
 }

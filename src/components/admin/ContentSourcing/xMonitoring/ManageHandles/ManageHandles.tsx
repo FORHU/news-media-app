@@ -6,7 +6,7 @@ import { Twitter, Plus, Search } from "lucide-react";
 // import CrawlXJobsTable from "./CrawlXJobsTable"; // TODO: Implement
 import { useQueryClient } from "@tanstack/react-query";
 
-export default function CrawlXManager() {
+export default function ManageHandles() {
   const [modalOpen, setModalOpen] = React.useState(false);
   const queryClient = useQueryClient();
 
