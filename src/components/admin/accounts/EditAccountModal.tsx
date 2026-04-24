@@ -3,14 +3,12 @@
 import React from "react";
 import {
     X,
-    UserPlus,
+    UserCircle,
     Loader2,
     Shield,
     User,
-    Mail,
     Lock,
     AlertCircle,
-    Check,
     Eye,
     EyeOff,
 } from "lucide-react";
@@ -23,24 +21,26 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { AdminUser } from "@/lib/types";
 
-interface CreateAccountModalProps {
+interface EditAccountModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    user: AdminUser | null;
     onSuccess?: () => void;
 }
 
-export default function CreateAccountModal({
+export default function EditAccountModal({
     open,
     onOpenChange,
+    user,
     onSuccess,
-}: CreateAccountModalProps) {
+}: EditAccountModalProps) {
     const queryClient = useQueryClient();
 
     // ── form state ──
     const [firstName, setFirstName] = React.useState("");
     const [lastName, setLastName] = React.useState("");
-    const [email, setEmail] = React.useState("");
     const [password, setPassword] = React.useState("");
     const [confirmPassword, setConfirmPassword] = React.useState("");
     const [showPassword, setShowPassword] = React.useState(false);
@@ -51,10 +51,9 @@ export default function CreateAccountModal({
 
     // reset when open changes
     React.useEffect(() => {
-        if (open) {
-            setFirstName("");
-            setLastName("");
-            setEmail("");
+        if (open && user) {
+            setFirstName(user.firstName);
+            setLastName(user.lastName);
             setPassword("");
             setConfirmPassword("");
             setShowPassword(false);
@@ -62,16 +61,18 @@ export default function CreateAccountModal({
             setError(null);
             setFieldErrors({});
         }
-    }, [open]);
+    }, [open, user]);
 
     // ── validation ──
     const validate = () => {
         const newErrors: Record<string, string> = {};
         if (!firstName.trim()) newErrors.firstName = "First name is required";
         if (!lastName.trim()) newErrors.lastName = "Last name is required";
-        if (!email.trim() || !email.includes("@")) newErrors.email = "Valid email is required";
-        if (password.length < 8) newErrors.password = "Password must be at least 8 characters";
-        if (password !== confirmPassword) newErrors.confirmPassword = "Passwords do not match";
+        
+        if (password) {
+            if (password.length < 8) newErrors.password = "Password must be at least 8 characters";
+            if (password !== confirmPassword) newErrors.confirmPassword = "Passwords do not match";
+        }
         
         setFieldErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -80,16 +81,21 @@ export default function CreateAccountModal({
     // ── mutation ──
     const mutation = useMutation({
         mutationFn: async () => {
+            if (!user) throw new Error("No user selected");
             setError(null);
+            
+            const payload: any = { id: user.id, firstName, lastName };
+            if (password) payload.password = password;
+
             const response = await fetch('/api/admin/accounts', {
-                method: 'POST',
+                method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ firstName, lastName, email, password }),
+                body: JSON.stringify(payload),
             });
 
             const data = await response.json();
             if (!response.ok) {
-                throw new Error(data.error || 'Failed to create account');
+                throw new Error(data.error || 'Failed to update account');
             }
             return data;
         },
@@ -112,6 +118,8 @@ export default function CreateAccountModal({
 
     const isBusy = mutation.isPending;
 
+    if (!user) return null;
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
@@ -130,15 +138,15 @@ export default function CreateAccountModal({
                     </button>
 
                     <div className="relative flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#ff4500] to-[#ff6b35] flex items-center justify-center shadow-lg shadow-orange-500/30">
-                            <UserPlus className="w-6 h-6 text-white" />
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#ff4500] to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
+                            <UserCircle className="w-6 h-6 text-white" />
                         </div>
                         <div>
                             <DialogTitle className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                                New Admin Account
+                                Edit Account
                             </DialogTitle>
                             <DialogDescription className="text-gray-400 text-sm font-medium">
-                                Create a new administrator for the system.
+                                Update administrator details. Leave password blank to keep current.
                             </DialogDescription>
                         </div>
                     </div>
@@ -181,20 +189,7 @@ export default function CreateAccountModal({
 
                     <div className="space-y-1.5">
                         <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
-                            <Mail className="w-3 h-3" /> Email Address
-                        </label>
-                        <Input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="admin@forhu.com"
-                            className={`h-11 rounded-xl bg-white border-gray-200 text-sm focus-visible:ring-orange-500/20 ${fieldErrors.email ? 'border-red-500' : ''}`}
-                        />
-                    </div>
-
-                    <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
-                            <Lock className="w-3 h-3" /> Password
+                            <Lock className="w-3 h-3" /> New Password (Optional)
                         </label>
                         <div className="relative">
                             <Input
@@ -217,14 +212,14 @@ export default function CreateAccountModal({
 
                     <div className="space-y-1.5">
                         <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
-                            <Lock className="w-3 h-3" /> Confirm Password
+                            <Lock className="w-3 h-3" /> Confirm New Password
                         </label>
                         <div className="relative">
                             <Input
                                 type={showConfirmPassword ? "text" : "password"}
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
-                                placeholder="Confirm your password"
+                                placeholder="Confirm your new password"
                                 className={`h-11 rounded-xl bg-white border-gray-200 text-sm focus-visible:ring-orange-500/20 pr-10 ${fieldErrors.confirmPassword ? 'border-red-500' : ''}`}
                             />
                             <button
@@ -256,7 +251,7 @@ export default function CreateAccountModal({
                             {isBusy ? (
                                 <Loader2 className="w-5 h-5 animate-spin" />
                             ) : (
-                                "Create Account"
+                                "Save Changes"
                             )}
                         </Button>
                     </div>
@@ -265,7 +260,7 @@ export default function CreateAccountModal({
                 <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center gap-3">
                     <Shield className="w-5 h-5 text-gray-400" />
                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                        New accounts are created with <span className="text-[#ff4500]">Admin</span> privileges by default.
+                        Editing for <span className="text-gray-900">{user.email}</span>
                     </p>
                 </div>
             </DialogContent>

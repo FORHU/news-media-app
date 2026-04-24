@@ -38,22 +38,22 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     const getVariantStyles = () => {
         switch (variant) {
             case 'destructive':
-                return 'bg-red-600 hover:bg-red-700 text-white';
+                return 'bg-[#ff4500] hover:bg-orange-600 text-white';
             case 'warning':
                 return 'bg-orange-500 hover:bg-orange-600 text-white';
             default:
-                return 'bg-orange-600 hover:bg-orange-700 text-white';
+                return 'bg-[#ff4500] hover:bg-orange-600 text-white';
         }
     };
 
     const getIconColor = () => {
         switch (variant) {
             case 'destructive':
-                return 'text-red-500';
+                return 'text-[#ff4500]';
             case 'warning':
                 return 'text-orange-500';
             default:
-                return 'text-blue-500';
+                return 'text-[#ff4500]';
         }
     };
 
