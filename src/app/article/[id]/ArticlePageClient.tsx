@@ -13,6 +13,7 @@ import { articlesApi } from "@/lib/api";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
 import { AdBanner } from "@/components/AdBanner";
 import type { Article } from "@/lib/types";
+import { extractYoutubeId } from "@/lib/utils";
 
 export default function ArticlePageClient({ 
   articleId, 
@@ -77,11 +78,7 @@ export default function ArticlePageClient({
   });
 
   const youtubeUrl = article.youtubeUrl;
-  const youtubeId = youtubeUrl
-    ? (youtubeUrl.match(
-        /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/
-      ) || [])[1] ?? null
-    : null;
+  const youtubeId = youtubeUrl ? extractYoutubeId(youtubeUrl) : null;
 
   const hasYoutube = Boolean(youtubeId);
 
