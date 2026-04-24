@@ -1,5 +1,5 @@
 import React from 'react';
-import CrawlXManager from '@/components/admin/crawlX/CrawlXManager';
+import ManageHandles from '@/components/admin/ContentSourcing/xMonitoring/ManageHandles/ManageHandles';
 
 export const metadata = {
   title: 'X Crawl Management | Admin Dashboard',
@@ -7,5 +7,5 @@ export const metadata = {
 };
 
 export default function CrawlXUrlsPage() {
-  return <CrawlXManager />;
+  return <ManageHandles />;
 }

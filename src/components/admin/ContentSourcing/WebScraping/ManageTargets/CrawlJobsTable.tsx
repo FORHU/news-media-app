@@ -18,7 +18,7 @@ import { CrawlJob, CrawlJobsResponse } from '@/lib/types';
 import { Variants } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import CrawlJobsFilters from '@/components/admin/crawlURLs/CrawlJobsFilters';
+import CrawlJobsFilters from './CrawlJobsFilters';
 
 const normalizeStatus = (status: string | null | undefined) => {
     const s = (status ?? '').trim().toLowerCase();

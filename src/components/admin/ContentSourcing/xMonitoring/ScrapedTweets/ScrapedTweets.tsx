@@ -106,7 +106,7 @@ export function XContentCard({ item, variants }: { item: XContent; variants: Var
     );
 }
 
-export default function CrawledXContent() {
+export default function ScrapedTweets() {
     const router = useRouter();
     const pathname = usePathname();
     const urlSearchParams = useSearchParams();
