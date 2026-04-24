@@ -13,7 +13,7 @@ export const bannersRepository = {
     const where: Prisma.BannerWhereInput = {};
 
     if (position) {
-      where.position = position;
+      where.positions = { has: position };
     }
 
     if (isActive !== null && isActive !== undefined) {
