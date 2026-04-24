@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import GeneratedArticlesList from '@/components/admin/generatedContent/generatedArticlesCard';
 
 export default async function GeneratedArticlesPage(props: {
@@ -12,6 +12,8 @@ export default async function GeneratedArticlesPage(props: {
     const searchParams = await props.searchParams;
 
     return (
-        <GeneratedArticlesList searchParams={searchParams} />
+        <Suspense fallback={<div>Loading articles...</div>}>
+            <GeneratedArticlesList searchParams={searchParams} />
+        </Suspense>
     );
 }

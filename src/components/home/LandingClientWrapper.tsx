@@ -10,7 +10,7 @@ interface Banner {
     imageUrl: string;
     linkUrl: string;
     altText: string | null;
-    position: string;
+    positions: string[];
 }
 
 interface LandingClientWrapperProps {

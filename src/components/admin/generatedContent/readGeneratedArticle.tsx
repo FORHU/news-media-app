@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Article } from '@/lib/types';
 import { format } from 'date-fns';
 import { normalizeCategoryName } from '@/lib/categoryDisplay';
+import { extractYoutubeId } from '@/lib/utils';
 
 interface ReadGeneratedArticleProps {
     article: Article | null;
@@ -104,9 +105,7 @@ export default function ReadGeneratedArticle({
                     {/* YouTube Embed if available */}
                     {(() => {
                         const youtubeUrl = (article as any).rawVideo?.youtubeUrl || (article as any).youtubeUrl;
-                        const youtubeId = youtubeUrl ? (
-                            youtubeUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/) || []
-                        )[1] : null;
+                        const youtubeId = youtubeUrl ? extractYoutubeId(youtubeUrl) : null;
 
                         if (!youtubeId) return null;
 

@@ -84,7 +84,7 @@ export default function YoutubeGenerationTab({
                 <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">YouTube URL</span>
                 <div className="relative">
                     <Input
-                        placeholder="https://www.youtube.com/watch?v=..."
+                        placeholder="https://www.youtube.com/watch?v=... or https://www.youtube.com/shorts/..."
                         value={youtubeUrl}
                         onChange={(e) => setYoutubeUrl(e.target.value)}
                         className="h-12 pr-[150px] rounded-xl bg-gray-50 border-gray-100 text-sm font-bold placeholder:text-gray-400 focus-visible:ring-orange-500/20 focus-visible:border-orange-200 shadow-sm"
