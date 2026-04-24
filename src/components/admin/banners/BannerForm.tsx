@@ -30,11 +30,13 @@ const POSITIONS = [
 ];
 
 export default function BannerForm({ open, onOpenChange, banner }: BannerFormProps) {
+  const [name, setName] = React.useState<string>(banner?.name || "");
   const [imageUrl, setImageUrl] = React.useState<string>(banner?.imageUrl || "");
   const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [linkUrl, setLinkUrl] = React.useState<string>(banner?.linkUrl || "");
   const [altText, setAltText] = React.useState<string>(banner?.altText || "");
-  const [position, setPosition] = React.useState<string>(banner?.position || "");
+  const [positions, setPositions] = React.useState<string[]>(banner?.positions || []);
   const [isActive, setIsActive] = React.useState<boolean>(banner?.isActive ?? true);
   const [isUploading, setIsUploading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -44,11 +46,13 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
 
   React.useEffect(() => {
     if (open) {
+      setName(banner?.name || "");
       setImageUrl(banner?.imageUrl || "");
       setPreviewUrl(null);
+      setSelectedFile(null);
       setLinkUrl(banner?.linkUrl || "");
       setAltText(banner?.altText || "");
-      setPosition(banner?.position || "");
+      setPositions(banner?.positions || []);
       setIsActive(banner?.isActive ?? true);
       setError(null);
       setFieldErrors({});
@@ -104,42 +108,48 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
     return publicUrl;
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Revoke previous local object URL to prevent memory leaks
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+      setError("Invalid file type. Only JPG, PNG, WEBP, and GIF are allowed.");
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      setError("File is too large. Maximum size is 5MB.");
+      return;
+    }
+
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
     }
 
-    // Instant Preview
     const objectUrl = URL.createObjectURL(file);
     setPreviewUrl(objectUrl);
-    setIsUploading(true);
+    setSelectedFile(file);
     setError(null);
-
-    try {
-      const publicUrl = await uploadBannerToSupabase(file);
-      setImageUrl(publicUrl);
-    } catch (err: any) {
-      console.error("Upload error:", err);
-      setError(err.message || "Failed to upload image. Please try again.");
-    } finally {
-      setIsUploading(false);
-    }
+    setFieldErrors(prev => ({ ...prev, imageUrl: "" }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setFieldErrors({});
 
+    let finalImageUrl = imageUrl;
+
+    // Validate fields before initiating potentially slow upload
     const result = bannerSchema.safeParse({
-      imageUrl,
+      name,
+      imageUrl: selectedFile ? "pending-upload" : finalImageUrl, // mock string for initial validation
       linkUrl,
       altText,
-      position,
+      positions,
       isActive,
     });
 
@@ -154,154 +164,216 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
       return;
     }
 
-    mutation.mutate(result.data);
+    setIsUploading(true);
+
+    try {
+      if (selectedFile) {
+        finalImageUrl = await uploadBannerToSupabase(selectedFile);
+        setImageUrl(finalImageUrl);
+      }
+
+      // Re-validate with actual URL
+      const finalResult = bannerSchema.safeParse({
+        name,
+        imageUrl: finalImageUrl,
+        linkUrl,
+        altText,
+        positions,
+        isActive,
+      });
+
+      if (!finalResult.success) {
+         setError("Validation failed after upload.");
+         return;
+      }
+
+      mutation.mutate(finalResult.data);
+    } catch (err: any) {
+      console.error("Submit error:", err);
+      setError(err.message || "Failed to save banner.");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden rounded-[2.5rem] border-none bg-white shadow-2xl">
-        <div className="relative bg-gray-900 px-8 py-10">
+      <DialogContent className="sm:max-w-[650px] p-0 overflow-hidden rounded-[2.5rem] border-none bg-white shadow-2xl">
+        <div className="relative bg-gray-900 px-8 py-8">
           <button
             onClick={() => onOpenChange(false)}
-            className="absolute top-8 right-8 w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-all z-20 group"
+            className="absolute top-6 right-8 w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-all z-20 group"
           >
             <X className="w-5 h-5 text-gray-400 group-hover:text-white" />
           </button>
 
           <div className="relative flex items-center gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
-              <ImageIcon className="w-7 h-7 text-white fill-white/20" />
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
+              <ImageIcon className="w-6 h-6 text-white fill-white/20" />
             </div>
-            <div className="space-y-1">
-              <DialogTitle className="text-2xl font-black text-white tracking-tight">
+            <div className="space-y-0.5">
+              <DialogTitle className="text-xl font-black text-white tracking-tight">
                 {banner ? "Edit Banner" : "New Banner"}
               </DialogTitle>
-              <DialogDescription className="text-gray-400 font-medium">
+              <DialogDescription className="text-gray-400 text-sm font-medium">
                 {banner ? "Update your advertisement details." : "Create a new visual advertisement."}
               </DialogDescription>
             </div>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-8 py-8 space-y-6">
-          {error && (
-            <div className="p-4 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm font-bold">
-              {error}
-            </div>
-          )}
+        <form onSubmit={handleSubmit} className="flex flex-col overflow-hidden max-h-[85vh]">
+          <div className="px-8 py-6 space-y-5 overflow-y-auto flex-1 custom-scrollbar">
+            {error && (
+              <div className="p-4 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm font-bold animate-in fade-in slide-in-from-top-2">
+                {error}
+              </div>
+            )}
 
-          <div className="space-y-4">
-            {/* Position Select */}
-            <div className="space-y-2">
-              <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Position <span className="text-red-500">*</span></label>
-              <Select value={position} onValueChange={(val) => {
-                setPosition(val);
-                setFieldErrors(prev => ({ ...prev, position: "" }));
-              }}>
-                <SelectTrigger className={`h-12 w-full rounded-xl bg-gray-50 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 ${fieldErrors.position ? "border-red-500 bg-red-50/30" : "border-gray-100"}`}>
-                  <SelectValue placeholder="Select placement position" />
-                </SelectTrigger>
-                <SelectContent>
-                  {POSITIONS.map((pos) => (
-                    <SelectItem key={pos.value} value={pos.value} className="font-medium">
-                      {pos.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {fieldErrors.position && (
-                <p className="text-[10px] font-bold text-red-500 ml-1 mt-1 uppercase tracking-wider">{fieldErrors.position}</p>
-              )}
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="space-y-5 md:col-span-2">
+                {/* Name Input */}
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Banner Name <span className="text-red-500">*</span></label>
+                  <Input
+                    placeholder="e.g. Summer Sale Campaign"
+                    value={name}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      setFieldErrors(prev => ({ ...prev, name: "" }));
+                    }}
+                    className={`h-12 rounded-xl bg-gray-50 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 border-gray-100 shadow-sm transition-all ${fieldErrors.name ? "border-red-500 bg-red-50/30" : ""}`}
+                  />
+                  {fieldErrors.name && (
+                    <p className="text-[10px] font-bold text-red-500 ml-1 mt-1 uppercase tracking-wider">{fieldErrors.name}</p>
+                  )}
+                </div>
 
-            {/* Image Upload */}
-            <div className="space-y-2">
-              <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Banner Image <span className="text-red-500">*</span></label>
-              <div className="relative group">
-                {(previewUrl || (imageUrl && imageUrl.trim() !== "")) ? (
-                  <div className="relative aspect-[21/9] rounded-2xl overflow-hidden shadow-inner bg-gray-50 border border-gray-100">
-                    <img 
-                      src={previewUrl || imageUrl} 
-                      alt={altText || "Banner Preview"} 
-                      className="w-full h-full object-cover animate-in fade-in duration-300" 
-                    />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <label className="cursor-pointer bg-white text-gray-900 px-4 py-2 rounded-xl text-xs font-bold shadow-lg hover:scale-105 transition-transform">
-                        Change Image
-                        <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isUploading} />
-                      </label>
-                    </div>
-                  </div>
-                ) : (
-                  <label className="flex flex-col items-center justify-center aspect-[21/9] rounded-2xl bg-[#7c7fff] transition-all cursor-pointer group relative overflow-hidden">
-                    {isUploading ? (
-                      <div className="flex flex-col items-center gap-3">
-                        <Loader2 className="w-8 h-8 text-white animate-spin" />
-                        <span className="text-xs font-black text-white/80 uppercase tracking-widest">Uploading...</span>
+                {/* Image Upload */}
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Banner Image <span className="text-red-500">*</span></label>
+                  <div className="relative group">
+                    {(previewUrl || (imageUrl && imageUrl.trim() !== "")) ? (
+                      <div className="relative aspect-[21/9] rounded-2xl overflow-hidden shadow-inner bg-gray-50 border border-gray-100">
+                        <img 
+                          src={previewUrl || imageUrl} 
+                          alt={altText || "Banner Preview"} 
+                          className="w-full h-full object-cover animate-in fade-in duration-300" 
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <label className="cursor-pointer bg-white text-gray-900 px-4 py-2 rounded-xl text-xs font-bold shadow-lg hover:scale-105 transition-transform">
+                            Change Image
+                            <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isUploading} />
+                          </label>
+                        </div>
                       </div>
                     ) : (
-                      <div className="flex flex-col items-center justify-center w-full h-full">
-                        <span className="text-3xl font-black text-white tracking-tighter opacity-90 group-hover:opacity-100 transition-opacity">
-                          BANNER PREVIEW
-                        </span>
-                      </div>
+                      <label className="flex flex-col items-center justify-center aspect-[21/9] rounded-2xl bg-[#7c7fff] transition-all cursor-pointer group relative overflow-hidden">
+                        {isUploading ? (
+                          <div className="flex flex-col items-center gap-3">
+                            <Loader2 className="w-8 h-8 text-white animate-spin" />
+                            <span className="text-xs font-black text-white/80 uppercase tracking-widest">Uploading...</span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center w-full h-full gap-2">
+                            <Upload className="w-10 h-10 text-white/80 group-hover:text-white transition-colors group-hover:-translate-y-1 duration-300" />
+                            <span className="text-2xl font-black text-white tracking-tighter opacity-90 group-hover:opacity-100 transition-opacity">
+                              UPLOAD BANNER
+                            </span>
+                          </div>
+                        )}
+                        <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isUploading} />
+                      </label>
                     )}
-                    <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isUploading} />
-                  </label>
-                )}
-                {fieldErrors.imageUrl && (
-                  <p className="text-[10px] font-bold text-red-500 ml-1 mt-1 uppercase tracking-wider">{fieldErrors.imageUrl}</p>
+                    {fieldErrors.imageUrl && (
+                      <p className="text-[10px] font-bold text-red-500 ml-1 mt-1 uppercase tracking-wider">{fieldErrors.imageUrl}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Positions Multi-Select */}
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Positions <span className="text-red-500">*</span></label>
+                <div className="flex flex-wrap gap-2">
+                  {POSITIONS.map((pos) => {
+                    const isSelected = positions.includes(pos.value);
+                    return (
+                      <button
+                        key={pos.value}
+                        type="button"
+                        onClick={() => {
+                          setPositions(prev => 
+                            isSelected 
+                              ? prev.filter(p => p !== pos.value)
+                              : [...prev, pos.value]
+                          );
+                          setFieldErrors(prev => ({ ...prev, positions: "" }));
+                        }}
+                        className={`px-4 py-2 rounded-xl text-[11px] font-bold transition-all border ${
+                          isSelected 
+                            ? "bg-orange-500 text-white border-orange-500 shadow-md shadow-orange-500/20" 
+                            : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
+                        }`}
+                      >
+                        {pos.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {fieldErrors.positions && (
+                  <p className="text-[10px] font-bold text-red-500 ml-1 mt-1 uppercase tracking-wider">{fieldErrors.positions}</p>
                 )}
               </div>
-            </div>
 
-            {/* Destination Link */}
-            <div className="space-y-2">
-              <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Destination URL <span className="text-red-500">*</span></label>
-              <div className="relative">
+              {/* Destination Link */}
+              <div className="space-y-2">
+                <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Destination URL <span className="text-red-500">*</span></label>
+                <div className="relative">
+                  <Input
+                    placeholder="https://example.com/promo"
+                    value={linkUrl}
+                    onChange={(e) => {
+                      setLinkUrl(e.target.value);
+                      setFieldErrors(prev => ({ ...prev, linkUrl: "" }));
+                    }}
+                    className={`h-12 rounded-xl bg-gray-50 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 pr-10 border-gray-100 shadow-sm transition-all ${fieldErrors.linkUrl ? "border-red-500 bg-red-50/30" : ""}`}
+                  />
+                  <ExternalLink className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                </div>
+                {fieldErrors.linkUrl && (
+                  <p className="text-[10px] font-bold text-red-500 ml-1 mt-1 uppercase tracking-wider">{fieldErrors.linkUrl}</p>
+                )}
+              </div>
+
+              {/* Alt Text */}
+              <div className="space-y-2">
+                <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Description / Alt Text</label>
                 <Input
-                  placeholder="https://example.com/promo"
-                  value={linkUrl}
+                  placeholder="Brief description of the ad content"
+                  value={altText || ""}
                   onChange={(e) => {
-                    setLinkUrl(e.target.value);
-                    setFieldErrors(prev => ({ ...prev, linkUrl: "" }));
+                    setAltText(e.target.value);
+                    setFieldErrors(prev => ({ ...prev, altText: "" }));
                   }}
-                  className={`h-12 rounded-xl bg-gray-50 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 pr-12 border-gray-100 shadow-sm transition-all ${fieldErrors.linkUrl ? "border-red-500 bg-red-50/30" : ""}`}
+                  className={`h-12 rounded-xl bg-gray-50 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 border-gray-100 shadow-sm transition-all ${fieldErrors.altText ? "border-red-500 bg-red-50/30" : ""}`}
                 />
-                <ExternalLink className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                {fieldErrors.altText && (
+                  <p className="text-[10px] font-bold text-red-500 ml-1 mt-1 uppercase tracking-wider">{fieldErrors.altText}</p>
+                )}
               </div>
-              {fieldErrors.linkUrl && (
-                <p className="text-[10px] font-bold text-red-500 ml-1 mt-1 uppercase tracking-wider">{fieldErrors.linkUrl}</p>
-              )}
-            </div>
 
-            {/* Alt Text */}
-            <div className="space-y-2">
-              <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Accessibility Text (Alt)</label>
-              <Input
-                placeholder="Brief description of the ad content"
-                value={altText || ""}
-                onChange={(e) => {
-                  setAltText(e.target.value);
-                  setFieldErrors(prev => ({ ...prev, altText: "" }));
-                }}
-                className={`h-12 rounded-xl bg-gray-50 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 border-gray-100 shadow-sm transition-all ${fieldErrors.altText ? "border-red-500 bg-red-50/30" : ""}`}
-              />
-              {fieldErrors.altText && (
-                <p className="text-[10px] font-bold text-red-500 ml-1 mt-1 uppercase tracking-wider">{fieldErrors.altText}</p>
-              )}
-            </div>
-
-            {/* Status Toggle */}
-            <div className="flex items-center gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setIsActive(!isActive)}
-                className={`w-12 h-6 rounded-full transition-colors relative ${isActive ? "bg-orange-500" : "bg-gray-200"}`}
-              >
-                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${isActive ? "left-7" : "left-1"}`} />
-              </button>
-              <span className="text-sm font-bold text-gray-700">Banner is Active</span>
+              {/* Status Toggle */}
+              <div className="flex items-center gap-3 pt-2 md:col-span-2">
+                <button
+                  type="button"
+                  onClick={() => setIsActive(!isActive)}
+                  className={`w-12 h-6 rounded-full transition-colors relative ${isActive ? "bg-orange-500" : "bg-gray-200"}`}
+                >
+                  <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${isActive ? "left-7" : "left-1"}`} />
+                </button>
+                <span className="text-sm font-bold text-gray-700">Banner is Active</span>
+              </div>
             </div>
           </div>
         </form>
