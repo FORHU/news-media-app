@@ -238,14 +238,20 @@ export default function CreateArticleModal({
                     uploadedImageUrl = result;
                 }
 
-                mutation.mutate({
-                    topic,
+                // Schema-aligned flow:
+                // 1) store raw_source_uploads (prompt/language/extractedText/s3ImageUrl)
+                // 2) generate and store content_articles linked via raw_source_uploads_id
+                await articlesApi.createArticleFromUpload({
                     categoryId: selectedCategory,
-                    fileContent: combinedFileContent,
-                    imageUrl: uploadedImageUrl,
+                    topic,
+                    extractedText: combinedFileContent,
+                    s3ImageUrl: uploadedImageUrl,
+                    language,
                     prompt: buildLanguageDirective(language),
-                    type: "manual",
                 });
+
+                queryClient.invalidateQueries({ queryKey: ['generatedArticles'] });
+                onOpenChange(false);
             } catch (err: any) {
                 setError(err.message || "Failed to process local files.");
                 setIsProcessingFiles(false);
