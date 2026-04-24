@@ -39,6 +39,7 @@ export const generatedArticlesService = {
         content: article.content,
         imageUrl,
         youtubeUrl: article.youtube_url,
+        sourceType: article.source_type ?? null,
         publishDate: article.publish_date,
         createdAt: article.created_at,
         status: article.status,
@@ -46,6 +47,7 @@ export const generatedArticlesService = {
           id: article.category?.id || "",
           categoryName: normalizeCategoryName(article.category?.category_name) || "",
         },
+        categoryId: article.category_id || article.category?.id || "",
         user: {
           firstName: article.user?.first_name || "",
           lastName: article.user?.last_name || "",
@@ -65,6 +67,28 @@ export const generatedArticlesService = {
             url: article.rawArticle.crawledUrl?.url || "",
           },
         } : null,
+        rawVideo: article.rawVideo
+          ? {
+              id: article.rawVideo.id,
+              language: article.rawVideo.language,
+              youtubeUrl: article.rawVideo.youtube_url,
+              transcribedContent: article.rawVideo.transcribed_content,
+              prompt: article.rawVideo.prompt,
+              createdAt: article.rawVideo.created_at,
+              updatedAt: article.rawVideo.updated_at,
+            }
+          : null,
+        rawSourceUpload: article.rawSourceUpload
+          ? {
+              id: article.rawSourceUpload.id,
+              prompt: article.rawSourceUpload.prompt,
+              s3ImageUrl: article.rawSourceUpload.s3_image_url,
+              language: article.rawSourceUpload.language,
+              extractedText: article.rawSourceUpload.extracted_text,
+              createdAt: article.rawSourceUpload.created_at,
+              updatedAt: article.rawSourceUpload.updated_at,
+            }
+          : null,
       };
     });
 
