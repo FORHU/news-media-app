@@ -11,6 +11,8 @@ export type Article = Prisma.ContentArticleGetPayload<{
         crawledUrl: true;
       };
     };
+    rawVideo: true;
+    rawSourceUpload: true;
   };
 }>;
 

@@ -1,11 +1,23 @@
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
 }
+
+// --- Enums ---
+
+enum SourceType {
+  ARTICLE
+  TWEET
+  VIDEO
+  UPLOAD
+  MANUAL
+}
+
+// --- Core User & Subscription Models ---
 
 model User {
   id              String           @id @default(cuid())
@@ -23,7 +35,7 @@ model User {
 
 model Category {
   id                    String                 @id @default(cuid())
-  categoryName          String                 @map("category_name")
+  categoryName          String                 @unique(map: "unique_category_name") @map("category_name")
   updatedAt             DateTime               @updatedAt @map("updated_at")
   createdAt             DateTime               @default(now()) @map("created_at")
   contentArticles       ContentArticle[]
@@ -31,115 +43,6 @@ model Category {
   subscriberPreferences SubscriberPreference[]
 
   @@map("categories")
-}
-
-model ContentArticle {
-  id              String                   @id @default(cuid())
-  usersId         String                   @map("users_id")
-  categoryId      String                   @map("category_id")
-  rawArticleId    String?                  @unique @map("raw_article_id")
-  title           String
-  slug            String?                  @unique
-  publishDate     DateTime?                @map("publish_date")
-  imageUrl        String?                  @map("image_url")
-  content         String
-  youtubeUrl      String?                  @map("youtube_url")
-  status          String
-  createdAt       DateTime                 @default(now()) @map("created_at")
-  updatedAt       DateTime                 @updatedAt @map("updated_at")
-  category        Category                 @relation(fields: [categoryId], references: [id])
-  user            User                     @relation(fields: [usersId], references: [id])
-  rawArticle      RawArticle?              @relation(fields: [rawArticleId], references: [id])
-  transformations ContentTransformation[]
-
-  @@map("content_articles")
-}
-
-model RawArticle {
-  id           String    @id @default(cuid())
-  crawledUrlId String    @map("crawled_url_id")
-  categoryId   String    @map("category_id")
-  crawlJobId   String?   @map("crawl_jobs_id")
-  title        String
-  author       String?
-  publishDate  DateTime? @map("publish_date")
-  imageUrl     String?   @map("image_url")
-  content      String?   @map("content")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-  status       String    @default("pending")
-  category     Category  @relation(fields: [categoryId], references: [id])
-  crawledUrl   CrawledUrl @relation(fields: [crawledUrlId], references: [id])
-  crawlJob     CrawlJob?  @relation(fields: [crawlJobId], references: [id])
-  contentArticle ContentArticle?
-
-  @@map("raw_articles")
-}
-
-model CrawlJob {
-  id                 String      @id @default(uuid())
-  status             String      @default("PENDING")
-  urls               String[]    @default([]) @map("urls")
-  maxArticlesRequest Int         @default(10) @map("max_articles_request")
-  articlesSaved      Int?        @default(0) @map("articles_saved")
-  createdAt          DateTime    @default(now()) @map("created_at")
-  startedAt          DateTime?   @map("started_at")
-  finishedAt         DateTime?   @map("finished_at")
-  rawArticles        RawArticle[]
-
-  @@map("crawl_jobs")
-}
-
-model CrawledUrl {
-  id          String        @id @default(cuid())
-  url         String        @unique
-  status      String
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
-  rawArticles RawArticle[]
-
-  @@map("crawled_urls")
-}
-
-model ContentTransformation {
-  id                   String             @id @default(cuid())
-  contentArticleId     String             @map("content_article_id")
-  socialChannelsId     String             @map("social_channels_id")
-  tone                 String?
-  formatType           String?            @map("format_type")
-  transformedTitle     String?            @map("transformed_title")
-  transformedContent   String?            @map("transformed_content")
-  status               String
-  createdAt            DateTime           @default(now()) @map("created_at")
-  updatedAt            DateTime           @updatedAt @map("updated_at")
-  contentArticle       ContentArticle     @relation(fields: [contentArticleId], references: [id])
-  socialChannel        SocialChannel      @relation(fields: [socialChannelsId], references: [id])
-  socialMediaPosts     SocialMediaPost[]
-
-  @@map("content_transformations")
-}
-
-model SocialChannel {
-  id              String                   @id @default(cuid())
-  socialMediaName String                   @map("social_media_name")
-  createdAt       DateTime                 @default(now()) @map("created_at")
-  updatedAt       DateTime                 @updatedAt @map("updated_at")
-  transformations ContentTransformation[]
-
-  @@map("social_channels")
-}
-
-model SocialMediaPost {
-  id                      String                @id @default(cuid())
-  contentTransformationId String                @map("content_transformation_id")
-  postUrl                 String?               @map("post_url")
-  mediaUrl                Json?                 @map("media_url")
-  postedAt                DateTime?             @map("posted_at")
-  createdAt               DateTime              @default(now()) @map("created_at")
-  updatedAt               DateTime              @updatedAt @map("updated_at")
-  transformation          ContentTransformation @relation(fields: [contentTransformationId], references: [id])
-
-  @@map("social_media_posts")
 }
 
 model Subscriber {
@@ -150,7 +53,7 @@ model Subscriber {
   updatedAt     DateTime               @updatedAt @map("updated_at")
   attempts      Int                    @default(0)
   expiresAt     DateTime?              @map("expires_at")
-  otpCode       String?                 @map("otp_code")
+  otpCode       String?                @map("otp_code")
   lastOtpSentAt DateTime?              @map("last_otp_sent_at")
   preferences   SubscriberPreference[]
 
@@ -167,6 +70,187 @@ model SubscriberPreference {
 
   @@unique([subscriberId, categoryId], name: "subscriber_category_unique")
   @@map("subscriber_preferences")
+}
+
+// --- The "Published" Layer ---
+
+model ContentArticle {
+  id         String @id @default(cuid())
+  usersId    String @map("users_id")
+  categoryId String @map("category_id")
+
+  // Sources (Exclusive Foreign Keys)
+  rawArticleId      String? @unique @map("raw_article_id")
+  rawTweetId        String? @unique @map("raw_tweets_id")
+  rawVideoId        String? @unique @map("raw_youtube_id")
+  rawSourceUploadId String? @unique @map("raw_source_uploads_id")
+
+  title       String
+  slug        String?    @unique
+  publishDate DateTime?  @map("publish_date")
+  imageUrl    String?    @map("image_url")
+  content     String     @db.Text
+  youtubeUrl  String?    @map("youtube_url")
+  sourceType  SourceType @default(ARTICLE) @map("source_type")
+  status      String
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  category Category @relation(fields: [categoryId], references: [id])
+  user     User     @relation(fields: [usersId], references: [id])
+
+  rawArticle      RawArticle?      @relation(fields: [rawArticleId], references: [id])
+  rawTweet        RawTweet?        @relation(fields: [rawTweetId], references: [id])
+  rawVideo        RawVideo?        @relation(fields: [rawVideoId], references: [id])
+  rawSourceUpload RawSourceUpload? @relation(fields: [rawSourceUploadId], references: [id])
+
+  transformations ContentTransformation[]
+
+  @@map("content_articles")
+}
+
+// --- Raw Data Sources ---
+
+model RawArticle {
+  id           String    @id @default(cuid())
+  crawledUrlId String    @map("crawled_url_id")
+  categoryId   String    @map("category_id")
+  crawlJobId   String?   @map("crawl_jobs_id")
+  title        String
+  author       String?
+  publishDate  DateTime? @map("publish_date")
+  imageUrl     String?   @map("image_url")
+  content      String?   @db.Text
+  status       String    @default("pending")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  category       Category        @relation(fields: [categoryId], references: [id])
+  crawledUrl     CrawledUrl      @relation(fields: [crawledUrlId], references: [id])
+  crawlJob       CrawlJob?       @relation(fields: [crawlJobId], references: [id])
+  contentArticle ContentArticle?
+
+  @@map("raw_articles")
+}
+
+model RawTweet {
+  id             String   @id @default(cuid())
+  tweetId        String   @unique @map("tweet_id")
+  sourceName     String?  @map("source_name")
+  profileUrl     String?  @map("profile_url")
+  text           String   @db.Text
+  tweetTimestamp String?  @map("tweet_timestamp")
+  hasMedia       Boolean  @default(false) @map("has_media")
+  mediaType      String?  @map("media_type")
+  mediaUrls      String[] @default([]) @map("media_urls")
+  thumbnailUrl   String?  @map("thumbnail_url")
+  status         String   @default("pending")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  contentArticle ContentArticle?
+
+  @@map("raw_tweets")
+}
+
+model RawVideo {
+  id                 String   @id @default(cuid())
+  language           String?
+  youtubeUrl         String   @map("youtube_url")
+  transcribedContent String   @map("transcribed_content") @db.Text
+  prompt             String?  @db.Text
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  contentArticle ContentArticle?
+
+  @@map("raw_videos")
+}
+
+model RawSourceUpload {
+  id            String   @id @default(cuid())
+  prompt        String?  @db.Text
+  s3ImageUrl    String?  @map("s3_image_url")
+  language      String?
+  extractedText String?  @map("extracted_text") @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  contentArticle ContentArticle?
+
+  @@map("raw_source_uploads")
+}
+
+// --- Crawling & Automation Support ---
+
+model CrawlJob {
+  id                 String       @id @default(uuid())
+  status             String       @default("PENDING")
+  urls               String[]     @default([]) @map("urls")
+  maxArticlesRequest Int          @default(10) @map("max_articles_request")
+  articlesSaved      Int?         @default(0) @map("articles_saved")
+  createdAt          DateTime     @default(now()) @map("created_at")
+  startedAt          DateTime?    @map("started_at")
+  finishedAt         DateTime?    @map("finished_at")
+  rawArticles        RawArticle[]
+
+  @@map("crawl_jobs")
+}
+
+model CrawledUrl {
+  id          String       @id @default(cuid())
+  url         String       @unique
+  status      String
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  rawArticles RawArticle[]
+
+  @@map("crawled_urls")
+}
+
+// --- Social Media Distribution ---
+
+model ContentTransformation {
+  id                 String            @id @default(cuid())
+  contentArticleId   String            @map("content_article_id")
+  socialChannelsId   String            @map("social_channels_id")
+  tone               String?
+  formatType         String?           @map("format_type")
+  transformedTitle   String?           @map("transformed_title")
+  transformedContent String?           @map("transformed_content")
+  status             String
+  createdAt          DateTime          @default(now()) @map("created_at")
+  updatedAt          DateTime          @updatedAt @map("updated_at")
+  contentArticle     ContentArticle    @relation(fields: [contentArticleId], references: [id])
+  socialChannel      SocialChannel     @relation(fields: [socialChannelsId], references: [id])
+  socialMediaPosts   SocialMediaPost[]
+
+  @@map("content_transformations")
+}
+
+model SocialChannel {
+  id              String                  @id @default(cuid())
+  socialMediaName String                  @map("social_media_name")
+  createdAt       DateTime                @default(now()) @map("created_at")
+  updatedAt       DateTime                @updatedAt @map("updated_at")
+  transformations ContentTransformation[]
+
+  @@map("social_channels")
+}
+
+model SocialMediaPost {
+  id                      String                @id @default(cuid())
+  contentTransformationId String                @map("content_transformation_id")
+  postUrl                 String?               @map("post_url")
+  mediaUrl                Json?                 @map("media_url")
+  postedAt                DateTime?             @map("posted_at")
+  createdAt               DateTime              @default(now()) @map("created_at")
+  updatedAt               DateTime              @updatedAt @map("updated_at")
+  transformation          ContentTransformation @relation(fields: [contentTransformationId], references: [id])
+
+  @@map("social_media_posts")
 }
 
 model Banner {

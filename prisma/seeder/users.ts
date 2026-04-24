@@ -1,4 +1,5 @@
 import type { PrismaClient } from "../../src/generated/prisma/client";
+import bcrypt from "bcryptjs";
 
 const users = [
   {
@@ -17,12 +18,14 @@ export async function seedUsers(prisma: PrismaClient): Promise<string[]> {
       userIds.push(String(existing.id));
       continue;
     }
+    const hashedPassword = await bcrypt.hash(user.password, 10);
     const created = await prisma.user.create({
       data: {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        password: user.password,
+        password: hashedPassword,
+        role: "admin",
       },
     });
     userIds.push(String(created.id));

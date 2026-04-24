@@ -29,6 +29,7 @@ export function StoryImage({
 }: StoryImageProps) {
   const [imgSrc, setImgSrc] = useState<string | null>(src || null);
   const [error, setError] = useState(false);
+  const isBlockedS3Origin = (imgSrc ?? "").includes("chumme-dev.s3.amazonaws.com");
 
   useEffect(() => {
     setImgSrc(src || null);
@@ -59,7 +60,7 @@ export function StoryImage({
     }
   }[variant];
 
-  if (!imgSrc || error) {
+  if (!imgSrc || error || isBlockedS3Origin) {
     return (
       <div 
         className={`${className} flex items-center justify-center ${config.padding} text-center leading-tight overflow-hidden`}

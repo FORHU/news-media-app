@@ -126,6 +126,7 @@ export default function YoutubeManager() {
 
         mutation.mutate({
             topic: "YouTube Video Article",
+            language,
             content: youtubeTranscript,
             prompt: [youtubePrompt?.trim(), `Write the article in ${language}.`].filter(Boolean).join("\n\n"),
             categoryId: selectedCategory,

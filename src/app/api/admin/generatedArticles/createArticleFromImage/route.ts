@@ -208,6 +208,15 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
       const publishDate = new Date();
       const slug = await generateUniqueArticleSlug(prisma, title, publishDate);
 
+      const rawSourceUpload = await prisma.rawSourceUpload.create({
+        data: {
+          prompt: null,
+          s3ImageUrl: imageUrl,
+          language: null,
+          extractedText: documentContext !== "No additional content provided." ? documentContext : null,
+        },
+      });
+
       const contentArticle = await prisma.contentArticle.create({
         data: {
           title,
@@ -218,6 +227,8 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
           usersId: user.id,
           categoryId: categoryId,
           publishDate,
+          rawSourceUploadId: rawSourceUpload.id,
+          sourceType: "UPLOAD",
         },
       });
 
