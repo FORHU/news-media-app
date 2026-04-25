@@ -10,6 +10,7 @@ const RequestSchema = z.object({
   articleId: z.string().min(1, "articleId is required"),
   categoryId: z.string().min(1, "categoryId is required"),
   generationPrompt: z.string().optional().or(z.literal("")),
+  language: z.string().optional(),
 });
 
 // Safety truncation to avoid token limit errors
@@ -20,10 +21,14 @@ function truncateContent(text: string, limit: number = 12000): string {
 }
 
 // AI persona/instruction
-function getAiSystemInstruction(sourceUrl?: string) {
+function getAiSystemInstruction(sourceUrl?: string, requestedLanguage?: string) {
   const creditInstruction = sourceUrl
     ? `\n9. SOURCE CREDITING: You MUST end the article with exactly one line: "Reference: ${sourceUrl}". This line must be inside the <content> tag and separated from the last paragraph by exactly two newlines (an empty line between them).`
     : "";
+
+  const languageInstruction = requestedLanguage 
+    ? `By default, you MUST write the article in ${requestedLanguage}.`
+    : `By default, you MUST write the article in the SAME LANGUAGE as the provided [SOURCE ARTICLE] (e.g., if the source article is in Korean, write the generated article in Korean).`;
 
   return `
 [PERSONA]:
@@ -45,7 +50,7 @@ function getAiSystemInstruction(sourceUrl?: string) {
 7. NO MARKDOWN: Do not use bold, italics, or lists.
 8. HEADLINE: The headline must be punchy and news-worthy.
 9. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use exactly two newlines (an empty line) between each paragraph for consistent spacing.
-10. LANGUAGE: By default, you MUST write the article in the SAME LANGUAGE as the provided [SOURCE ARTICLE] (e.g., if the source article is in Korean, write the generated article in Korean). HOWEVER, if the [ADDITIONAL USER COMMAND / PROMPT] explicitly commands a different language (e.g., "write in English"), you MUST follow that command and generate the article in the requested language.${creditInstruction ? `\n11. ` + creditInstruction.trim() : ""}
+10. LANGUAGE: ${languageInstruction} HOWEVER, if the [ADDITIONAL USER COMMAND / PROMPT] explicitly commands a different language (e.g., "write in English"), you MUST follow that command and generate the article in the requested language.${creditInstruction ? `\n11. ` + creditInstruction.trim() : ""}
 `;
 }
 
@@ -98,7 +103,8 @@ export async function POST(req: NextRequest) {
     const {
       articleId: bodyArticleId,
       categoryId,
-      generationPrompt: customPrompt
+      generationPrompt: customPrompt,
+      language: requestedLanguage
     } = result.data;
 
     articleId = bodyArticleId;
@@ -118,7 +124,7 @@ export async function POST(req: NextRequest) {
     if (!sessionRes.ok) throw new Error("Could not connect to AI service (session-id)");
     const { session_id } = await sessionRes.json();
 
-    const instruction = getAiSystemInstruction(rawArticle.crawledUrl?.url);
+    const instruction = getAiSystemInstruction(rawArticle.crawledUrl?.url, requestedLanguage);
 
     const truncatedInput = truncateContent(rawArticle.content || "No content provided.");
     const aiPayload = {
