@@ -10,22 +10,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-const LANGUAGE_OPTIONS = [
-    "English",
-    "Filipino",
-    "Spanish",
-    "French",
-    "German",
-    "Italian",
-    "Portuguese",
-    "Japanese",
-    "Korean",
-    "Chinese (Simplified)",
-    "Chinese (Traditional)",
-    "Arabic",
-    "Hindi",
-    "Russian",
-] as const;
+import { LANGUAGE_OPTIONS } from './ManualGenerationTab';
 
 interface YoutubeGenerationTabProps {
     youtubeUrl: string;
