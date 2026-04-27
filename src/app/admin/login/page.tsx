@@ -179,7 +179,7 @@ function LoginContent() {
 
                         <div className="space-y-2">
                             <label htmlFor="password" className="block text-xs font-black text-gray-900 uppercase tracking-widest ml-1">
-                                Secure Token
+                                Password
                             </label>
                             <div className="relative group">
                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#ff4500] transition-colors">
