@@ -84,7 +84,8 @@ export const articlesApi = {
   async generateAiContent(
     articleId: string,
     generationPrompt?: string,
-    categoryId?: string
+    categoryId?: string,
+    language?: string
   ): Promise<unknown> {
     const trimmed =
       typeof generationPrompt === "string" ? generationPrompt.trim() : "";
@@ -95,6 +96,7 @@ export const articlesApi = {
         articleId,
         ...(trimmed.length > 0 ? { generationPrompt: trimmed } : {}),
         ...(categoryId ? { categoryId } : {}),
+        ...(language ? { language } : {}),
       }),
     });
     if (!res.ok) {

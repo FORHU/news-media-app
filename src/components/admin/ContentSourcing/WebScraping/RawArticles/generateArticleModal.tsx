@@ -14,14 +14,22 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { useQuery } from '@tanstack/react-query';
 import { articlesApi } from '@/lib/api';
 import CategorySelectWithOther from '@/components/admin/shared/CategorySelectWithOther';
+import { LANGUAGE_OPTIONS } from '@/components/admin/generatedContent/CreateArticleModal/ManualGenerationTab';
 
 interface GenerateArticleModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onGenerate: (prompt: string, categoryId: string) => void;
+    onGenerate: (prompt: string, categoryId: string, language: string) => void;
     isPending: boolean;
 }
 
@@ -35,6 +43,7 @@ export default function GenerateArticleModal({
 }: GenerateArticleModalProps) {
     const [generationPrompt, setGenerationPrompt] = React.useState('');
     const [selectedCategory, setSelectedCategory] = React.useState<string>('');
+    const [language, setLanguage] = React.useState<string>('English');
     const [error, setError] = React.useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = React.useState<{ category?: string }>({});
 
@@ -43,6 +52,7 @@ export default function GenerateArticleModal({
         if (open) {
             setGenerationPrompt('');
             setSelectedCategory('');
+            setLanguage('English');
             setError(null);
             setFieldErrors({});
         }
@@ -65,7 +75,7 @@ export default function GenerateArticleModal({
             setFieldErrors({ category: "Please select a category first" });
             return;
         }
-        onGenerate(generationPrompt, selectedCategory);
+        onGenerate(generationPrompt, selectedCategory, language);
         onOpenChange(false);
     };
 
@@ -131,10 +141,33 @@ export default function GenerateArticleModal({
                         </div>
                     </div>
 
+                    {/* Language Selection */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 text-purple-600 font-black text-xs">02</span>
+                            <label className="text-sm font-black uppercase tracking-widest text-gray-900">Language</label>
+                        </div>
+                        
+                        <div className="space-y-2">
+                            <Select value={language} onValueChange={setLanguage}>
+                                <SelectTrigger className="w-full h-14 rounded-2xl bg-gray-50 border-gray-100 text-base font-bold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm transition-all">
+                                    <SelectValue placeholder="Select Language" />
+                                </SelectTrigger>
+                                <SelectContent className="max-h-[300px]">
+                                    {LANGUAGE_OPTIONS.map((lang) => (
+                                        <SelectItem key={lang} value={lang}>
+                                            {lang}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
                     {/* Writing Instructions */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
-                            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-black text-xs">02</span>
+                            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-black text-xs">03</span>
                             <label className="text-sm font-black uppercase tracking-widest text-gray-900">Writing Instructions</label>
                         </div>
                         <div className="space-y-2">

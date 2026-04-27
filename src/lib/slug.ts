@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@/generated/prisma/client";
+import type { PrismaClient } from "@/generated/prisma";
 
 const STOP_WORDS = new Set([
   "a",
@@ -58,7 +58,7 @@ function buildBaseSlug(title: string, date: Date): string {
 }
 
 export async function generateUniqueArticleSlug(
-  prisma: PrismaClient,
+  prisma: any,
   title: string,
   date: Date = new Date()
 ): Promise<string> {

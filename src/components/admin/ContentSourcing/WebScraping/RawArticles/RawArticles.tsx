@@ -57,8 +57,10 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
 
     const queryClient = useQueryClient();
     const mutation = useMutation({
-        mutationFn: ({ prompt, categoryId }: { prompt: string; categoryId: string }) =>
-            articlesApi.generateAiContent(article.id, prompt, categoryId),
+        mutationFn: ({ prompt, categoryId, language }: { prompt: string; categoryId: string; language: string }) => {
+            const finalPrompt = [prompt?.trim(), `Write the article in ${language}.`].filter(Boolean).join("\n\n");
+            return articlesApi.generateAiContent(article.id, finalPrompt, categoryId, language);
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['crawledArticles'] });
             setGenerationError(null);
@@ -200,7 +202,7 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
         <GenerateArticleModal
             open={promptDialogOpen}
             onOpenChange={setPromptDialogOpen}
-            onGenerate={(prompt, categoryId) => mutation.mutate({ prompt, categoryId })}
+            onGenerate={(prompt, categoryId, language) => mutation.mutate({ prompt, categoryId, language })}
             isPending={mutation.isPending}
         />
 
