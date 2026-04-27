@@ -30,12 +30,14 @@ export async function middleware(request: NextRequest) {
             cookies: {
                 getAll: () => request.cookies.getAll(),
                 setAll: (cookiesToSet) => {
-                    // Write updated tokens back to both the request and the response
-                    // so that downstream Route Handlers also see the refreshed session.
-                    cookiesToSet.forEach(({ name, value }) =>
-                        request.cookies.set(name, value)
+                    // Write updated tokens back to the request so that downstream
+                    // Route Handlers also see the refreshed session.
+                    cookiesToSet.forEach(({ name, value, options }) =>
+                        request.cookies.set({ name, value, ...options })
                     );
+                    // Re-initialize the response with the modified request.
                     supabaseResponse = NextResponse.next({ request });
+                    // Write updated tokens back to the response for the browser.
                     cookiesToSet.forEach(({ name, value, options }) =>
                         supabaseResponse.cookies.set(name, value, options)
                     );
@@ -62,11 +64,33 @@ export async function middleware(request: NextRequest) {
         }
         const loginUrl = new URL("/admin/login", request.url);
         loginUrl.searchParams.set("redirectTo", pathname);
-        return NextResponse.redirect(loginUrl);
+
+        // Create the redirect response
+        const redirectResponse = NextResponse.redirect(loginUrl);
+
+        // IMPORTANT: If a refresh happened but role check failed, we still want to
+        // carry the refreshed Supabase cookies over to the redirect response.
+        request.cookies.getAll().forEach((cookie) => {
+            if (cookie.name.startsWith('sb-')) {
+                redirectResponse.cookies.set(cookie.name, cookie.value);
+            }
+        });
+
+        return redirectResponse;
     }
 
-    // Return supabaseResponse (not a plain NextResponse.next()) so that any
-    // refreshed token cookies written by the SSR client are forwarded to the browser.
+    // Extend the admin-role cookie on every successful authenticated request (rolling session).
+    // This prevents the session from expiring after 24 hours if the user is active.
+    supabaseResponse.cookies.set(ADMIN_ROLE_COOKIE, "verified", {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 60 * 60 * 24, // 24 hours
+    });
+
+    // Return supabaseResponse so that any refreshed token cookies written by
+    // the SSR client (via setAll) are forwarded to the browser.
     // Also set cache control to prevent sensitive admin pages from being cached.
     supabaseResponse.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     supabaseResponse.headers.set("Pragma", "no-cache");
