@@ -12,7 +12,7 @@ import { DEFAULT_OG_IMAGE, DEFAULT_SEO } from "@/config/site";
 import ArticlePageClient from "./ArticlePageClient";
 import { ArticleClientShell } from "@/components/ArticleClientShell";
 
-export const revalidate = 300;
+export const revalidate = 5;
 
 export async function generateStaticParams() {
   const articles = await articlesService.getArticles({ limit: 100 });
@@ -122,9 +122,9 @@ export default async function ArticlePage({
 
   // We fetch published articles on the server for sidebar/recommendations
   // to ensure consistency (e.g. correct categories) and SEO.
-  const allArticles = await articlesService.getArticles({ 
-    limit: 50, 
-    status: "published" 
+  const allArticles = await articlesService.getArticles({
+    limit: 50,
+    status: "published"
   });
 
   const dehydratedState = dehydrate(queryClient);
@@ -133,8 +133,8 @@ export default async function ArticlePage({
     <ArticleClientShell>
       <Hydrate state={dehydratedState}>
         <Suspense fallback={<div className="min-h-[60vh] bg-white" />}>
-          <ArticlePageClient 
-            articleId={articleId} 
+          <ArticlePageClient
+            articleId={articleId}
             initialOtherArticles={allArticles}
           />
         </Suspense>
