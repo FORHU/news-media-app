@@ -5,9 +5,8 @@ import { AdBanner } from "@/components/AdBanner";
 
 const EXPLORE_LINKS = [
     { label: "Home", href: "/" },
-    { label: "Latest News", href: "/search" },
-    { label: "Trending", href: "/search" },
-    { label: "Archive", href: "/search" },
+    { label: "Latest News", href: "/#latest-stories" },
+    { label: "Trending", href: "/#trending-stories" },
 ];
 
 const COMPANY_LINKS = [

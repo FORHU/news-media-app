@@ -17,7 +17,7 @@ function formatDate(date: Date | string) {
 
 export function TrendingSidebar({ articles }: TrendingSidebarProps) {
   return (
-    <aside className="lg:col-span-1">
+    <aside id="trending-stories" className="lg:col-span-1 scroll-mt-24">
       <div className="sticky top-24">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900">Trending Stories</h2>
