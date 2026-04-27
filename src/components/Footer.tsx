@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { AdBanner } from "@/components/AdBanner";
-const CATEGORIES = [
-    { label: "News & Events", slug: "news-events" },
-    { label: "Business & Tech", slug: "business-tech" },
-    { label: "Lifestyle", slug: "lifestyle" },
-    { label: "Entertainment", slug: "entertainment" },
-    { label: "Personal Growth", slug: "personal-growth" },
-    { label: "Opinion", slug: "opinion" },
+
+const EXPLORE_LINKS = [
+    { label: "Home", href: "/" },
+    { label: "Latest News", href: "/search" },
+    { label: "Trending", href: "/search" },
+    { label: "Archive", href: "/search" },
 ];
 
 const COMPANY_LINKS = [
@@ -16,8 +15,12 @@ const COMPANY_LINKS = [
     { label: "Contact", href: "#" },
     { label: "Careers", href: "#" },
     { label: "Advertise", href: "#" },
+];
+
+const LEGAL_LINKS = [
     { label: "Terms of Service", href: "#" },
     { label: "Privacy Policy", href: "#" },
+    { label: "Cookie Policy", href: "#" },
 ];
 
 interface Banner {
@@ -34,55 +37,30 @@ interface FooterProps {
 }
 
 export function Footer({ onOpenNewsletter, footerBanners }: FooterProps) {
+    const currentYear = new Date().getFullYear();
+
     return (
         <>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 mb-2 -mt-4">
                 <AdBanner position="GLOBAL_FOOTER" initialBanners={footerBanners} />
             </div>
             <footer className="bg-[#1a1a1a] text-white border-t border-gray-800">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
                     {/* Main Footer Content */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8 sm:mb-12">
-                        {/* Categories Column 1 */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-12 sm:mb-16">
+                        {/* Explore Column */}
                         <div>
-                            <h3 className="text-[#ff4500] font-bold text-sm uppercase tracking-wider mb-4">
-                                News & Business
+                            <h3 className="text-[#ff4500] font-bold text-xs uppercase tracking-[0.2em] mb-6">
+                                Explore
                             </h3>
-                            <ul className="space-y-2">
-                                {CATEGORIES.slice(0, 2).map((cat) => (
-                                    <li key={cat.slug}>
+                            <ul className="space-y-4">
+                                {EXPLORE_LINKS.map((link) => (
+                                    <li key={link.label}>
                                         <Link
-                                            href={`/?cat=${cat.slug}`}
-                                            className="text-gray-400 hover:text-white text-sm transition-colors duration-200"
+                                            href={link.href}
+                                            className="text-gray-400 hover:text-white text-sm transition-all duration-300 hover:translate-x-1 inline-block"
                                         >
-                                            {cat.label}
-                                        </Link>
-                                    </li>
-                                ))}
-                                <li>
-                                    <Link
-                                        href="/?cat=opinion"
-                                        className="text-gray-400 hover:text-white text-sm transition-colors duration-200"
-                                    >
-                                        Opinion
-                                    </Link>
-                                </li>
-                            </ul>
-                        </div>
-
-                        {/* Categories Column 2 */}
-                        <div>
-                            <h3 className="text-[#ff4500] font-bold text-sm uppercase tracking-wider mb-4">
-                                Lifestyle & More
-                            </h3>
-                            <ul className="space-y-2">
-                                {CATEGORIES.filter(c => ["lifestyle", "entertainment", "personal-growth"].includes(c.slug)).map((cat) => (
-                                    <li key={cat.slug}>
-                                        <Link
-                                            href={`/?cat=${cat.slug}`}
-                                            className="text-gray-400 hover:text-white text-sm transition-colors duration-200"
-                                        >
-                                            {cat.label}
+                                            {link.label}
                                         </Link>
                                     </li>
                                 ))}
@@ -91,15 +69,34 @@ export function Footer({ onOpenNewsletter, footerBanners }: FooterProps) {
 
                         {/* Company Column */}
                         <div>
-                            <h3 className="text-[#ff4500] font-bold text-sm uppercase tracking-wider mb-4">
+                            <h3 className="text-[#ff4500] font-bold text-xs uppercase tracking-[0.2em] mb-6">
                                 Company
                             </h3>
-                            <ul className="space-y-2">
+                            <ul className="space-y-4">
                                 {COMPANY_LINKS.map((link) => (
                                     <li key={link.label}>
                                         <Link
                                             href={link.href}
-                                            className="text-gray-400 hover:text-white text-sm transition-colors duration-200"
+                                            className="text-gray-400 hover:text-white text-sm transition-all duration-300 hover:translate-x-1 inline-block"
+                                        >
+                                            {link.label}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        {/* Legal Column */}
+                        <div>
+                            <h3 className="text-[#ff4500] font-bold text-xs uppercase tracking-[0.2em] mb-6">
+                                Legal
+                            </h3>
+                            <ul className="space-y-4">
+                                {LEGAL_LINKS.map((link) => (
+                                    <li key={link.label}>
+                                        <Link
+                                            href={link.href}
+                                            className="text-gray-400 hover:text-white text-sm transition-all duration-300 hover:translate-x-1 inline-block"
                                         >
                                             {link.label}
                                         </Link>
@@ -109,47 +106,46 @@ export function Footer({ onOpenNewsletter, footerBanners }: FooterProps) {
                         </div>
 
                         {/* Subscription / Info Column */}
-                        <div>
-                            <h3 className="text-[#ff4500] font-bold text-sm uppercase tracking-wider mb-4">
+                        <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
+                            <h3 className="text-white font-bold text-sm uppercase tracking-wider mb-4">
                                 Stay Connected
                             </h3>
-                            <p className="text-gray-400 text-sm mb-4">
-                                Subscribe to our newsletter for the latest AI-driven insights and news updates.
+                            <p className="text-gray-400 text-sm mb-6 leading-relaxed">
+                                Join our community for AI-driven insights and the latest global news updates.
                             </p>
-                            <div className="flex flex-col gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => onOpenNewsletter?.()}
-                                    className="bg-[#ff4500] text-white px-4 py-2 rounded font-bold text-sm hover:bg-[#e03d00] transition-colors"
-                                >
-                                    NEWSLETTER
-                                </button>
-                            </div>
+                            <button
+                                type="button"
+                                onClick={() => onOpenNewsletter?.()}
+                                className="w-full bg-[#ff4500] text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-[#e03d00] transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#ff4500]/20"
+                            >
+                                SUBSCRIBE NOW
+                            </button>
                         </div>
                     </div>
 
                     {/* Divider */}
-                    <div className="border-t border-gray-800 pt-8">
-                        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="border-t border-gray-800 pt-10">
+                        <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
                             {/* Logo & Copyright */}
-                            <div className="text-center md:text-left">
-                                <div className="flex items-center gap-2 mb-2 justify-center md:justify-start">
-                                    <span className="font-bold text-2xl tracking-tighter text-[#ff4500]">NEWSICONS</span>
-                                    <span className="font-medium text-lg border-l border-gray-700 pl-3">Media & Content Hub</span>
+                            <div className="text-center lg:text-left max-w-md">
+                                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 mb-4 justify-center lg:justify-start">
+                                    <span className="font-black text-3xl tracking-tighter text-[#ff4500]">NEWSICONS</span>
+                                    <span className="hidden sm:block h-6 w-px bg-gray-700"></span>
+                                    <span className="text-gray-400 text-sm font-medium">Next-Gen Media Hub</span>
                                 </div>
-                                <p className="text-gray-500 text-sm">
-                                    © {new Date().getFullYear()} NEWSICONS. All rights reserved.
+                                <p className="text-gray-500 text-sm leading-relaxed mb-4">
+                                    Revolutionizing storytelling through AI-powered insights and high-quality journalism. Delivering truth at the speed of tech.
                                 </p>
-                                <p className="text-gray-500 text-xs mt-1">
-                                    Delivering high-quality news and AI-powered storytelling.
+                                <p className="text-gray-600 text-xs">
+                                    © {currentYear} NEWSICONS. All rights reserved.
                                 </p>
                             </div>
 
                             {/* Social Links */}
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-6">
                                 <a
                                     href="#"
-                                    className="text-gray-400 hover:text-[#ff4500] transition-colors duration-200"
+                                    className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-[#ff4500] hover:bg-white/10 transition-all duration-300 border border-white/5"
                                     aria-label="Twitter"
                                 >
                                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -158,7 +154,7 @@ export function Footer({ onOpenNewsletter, footerBanners }: FooterProps) {
                                 </a>
                                 <a
                                     href="#"
-                                    className="text-gray-400 hover:text-[#ff4500] transition-colors duration-200"
+                                    className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-[#ff4500] hover:bg-white/10 transition-all duration-300 border border-white/5"
                                     aria-label="LinkedIn"
                                 >
                                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -167,7 +163,7 @@ export function Footer({ onOpenNewsletter, footerBanners }: FooterProps) {
                                 </a>
                                 <a
                                     href="#"
-                                    className="text-gray-400 hover:text-[#ff4500] transition-colors duration-200"
+                                    className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-[#ff4500] hover:bg-white/10 transition-all duration-300 border border-white/5"
                                     aria-label="Facebook"
                                 >
                                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -176,7 +172,7 @@ export function Footer({ onOpenNewsletter, footerBanners }: FooterProps) {
                                 </a>
                                 <a
                                     href="#"
-                                    className="text-gray-400 hover:text-[#ff4500] transition-colors duration-200"
+                                    className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-[#ff4500] hover:bg-white/10 transition-all duration-300 border border-white/5"
                                     aria-label="Instagram"
                                 >
                                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
