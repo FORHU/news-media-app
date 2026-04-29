@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { uploadToS3 } from "@/lib/s3";
 import { generateUniqueArticleSlug } from "@/lib/slug";
+import { resolveTenantIdFromRequest } from "@/lib/tenant";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -71,6 +72,11 @@ export async function POST(req: NextRequest) {
     const categoryId = formData.get("categoryId") as string;
     const topic = formData.get("topic") as string || "";
 
+    const tenantId = await resolveTenantIdFromRequest(req);
+    if (!tenantId) {
+      return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+    }
+
     if (!file) {
       return NextResponse.json({ error: "No image file provided" }, { status: 400 });
     }
@@ -87,7 +93,7 @@ export async function POST(req: NextRequest) {
 
     // Verify category exists
     const category = await prisma.category.findUnique({
-      where: { id: categoryId }
+      where: { id: categoryId, tenantId }
     });
 
     if (!category) {
@@ -200,8 +206,8 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
 
       // 5. Database Save
       const user =
-        (await prisma.user.findFirst({ where: { email: "admin@newsmedia.app" } })) ||
-        (await prisma.user.findFirst());
+        (await prisma.user.findFirst({ where: { email: "admin@newsmedia.app", tenantId } })) ||
+        (await prisma.user.findFirst({ where: { tenantId } }));
 
       if (!user) throw new Error("No system user found for attribution");
 
@@ -210,6 +216,7 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
 
       const rawSourceUpload = await prisma.rawSourceUpload.create({
         data: {
+          tenantId,
           prompt: null,
           s3ImageUrl: imageUrl,
           language: null,
@@ -219,6 +226,7 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
 
       const contentArticle = await prisma.contentArticle.create({
         data: {
+          tenantId,
           title,
           slug,
           content,

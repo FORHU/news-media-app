@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { XpozClient } from "@xpoz/xpoz";
 import { prisma } from "@/lib/db";
+import { resolveTenantIdFromRequest } from "@/lib/tenant";
 
 export const dynamic = "force-dynamic";
 
@@ -267,7 +268,12 @@ function mapPostToTweet(post: XpozPost, fallbackHandle: string, index: number) {
   };
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const tenantId = await resolveTenantIdFromRequest(req);
+  if (!tenantId) {
+    return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+  }
+
   let json: unknown;
 
   try {
@@ -462,22 +468,17 @@ export async function POST(req: Request) {
       try {
         await prisma.rawTweet.createMany({
           data: tweets.map((t) => ({
+            tenantId,
             tweetId: t.tweet_id,
             sourceName: t.source_name,
             profileUrl: t.profile_url,
             text: t.text,
             tweetTimestamp: t.tweet_timestamp,
-            hasMedia: t.has_media,
+            hasMedia: t.has_media !== "none",
             mediaType: t.media_type,
             mediaUrls: t.media_urls,
             thumbnailUrl: t.thumbnail_url,
             status: t.status,
-            url: t.url,
-            authorHandle: t.authorHandle,
-            authorName: t.authorName,
-            likes: t.likes,
-            retweets: t.retweets,
-            replies: t.replies,
           })),
           skipDuplicates: true,
         });
