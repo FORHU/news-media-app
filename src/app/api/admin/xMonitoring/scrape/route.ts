@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ResponseType, XpozClient } from "@xpoz/xpoz";
+import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -53,9 +54,13 @@ function getStringArray(value: unknown): string[] {
     .map((item) => {
       if (typeof item === "string") return item;
       if (item && typeof item === "object") {
-        const maybeUrl = getString((item as Record<string, unknown>).url);
-        const maybeMediaUrl = getString((item as Record<string, unknown>).mediaUrl);
-        return maybeUrl ?? maybeMediaUrl ?? "";
+        const record = item as Record<string, unknown>;
+        return (
+          getString(record.videoUrl) ??
+          getString(record.mediaUrl) ??
+          getString(record.url) ??
+          ""
+        );
       }
       return "";
     })
@@ -73,10 +78,26 @@ function mapPostToTweet(post: XpozPost, fallbackHandle: string, index: number) {
     getString(post.url) ??
     getString(post.tweetUrl) ??
     `https://x.com/${authorHandle}/status/${id}`;
-  const mediaUrls = [
-    ...getStringArray(post.mediaUrls),
-    ...getStringArray(post.media),
+  const retweetedPost = (post.retweetedPost || post.retweetedStatus) as XpozPost | undefined;
+  const quotedPost = (post.quotedPost || post.quotedStatus) as XpozPost | undefined;
+
+  const getMediaUrls = (p: XpozPost) => [
+    ...getStringArray(p.mediaUrls),
+    ...getStringArray(p.videoUrls),
+    ...getStringArray(p.media),
+    ...(p.extendedEntities ? getStringArray((p.extendedEntities as Record<string, unknown>).media) : []),
+    ...(typeof p.videoUrl === "string" ? [p.videoUrl] : []),
   ];
+
+  const rawMediaUrls = [
+    ...getMediaUrls(post),
+    ...(retweetedPost ? getMediaUrls(retweetedPost) : []),
+    ...(quotedPost ? getMediaUrls(quotedPost) : []),
+  ];
+
+  console.log(`[DEBUG SCrape] ID: ${id}, isRetweet: ${post.isRetweet}, mediaUrls:`, JSON.stringify(post.mediaUrls), 'videoUrls:', JSON.stringify(post.videoUrls), 'videoUrl:', post.videoUrl, 'retweetedPost:', !!retweetedPost, 'quotedPost:', !!quotedPost, 'extendedEntities:', !!post.extendedEntities);
+
+  const mediaUrls = Array.from(new Set(rawMediaUrls.filter(Boolean)));
   const thumbnailUrl =
     getString(post.thumbnailUrl) ??
     getString(post.previewImageUrl) ??
@@ -200,6 +221,12 @@ export async function POST(req: Request) {
         "isReply",
         "authorUsername",
         "authorName",
+        "videoUrl",
+        "videoUrls",
+        "retweetedPost",
+        "quotedPost",
+        "entities",
+        "extendedEntities",
       ],
     });
     posts = (authorResult?.data ?? []) as XpozPost[];
@@ -235,6 +262,12 @@ export async function POST(req: Request) {
           "isReply",
           "authorUsername",
           "authorName",
+          "videoUrl",
+          "videoUrls",
+          "retweetedPost",
+          "quotedPost",
+          "entities",
+          "extendedEntities",
         ],
       });
       posts = (searchResult?.data ?? []) as XpozPost[];
@@ -279,6 +312,34 @@ export async function POST(req: Request) {
     const tweets = sourcePosts.slice(0, maxItems).map((post, index) =>
       mapPostToTweet(post, handle, index)
     );
+
+    if (tweets.length > 0) {
+      try {
+        await prisma.rawTweet.createMany({
+          data: tweets.map((t) => ({
+            tweetId: t.tweet_id,
+            sourceName: t.source_name,
+            profileUrl: t.profile_url,
+            text: t.text,
+            tweetTimestamp: t.tweet_timestamp,
+            hasMedia: t.has_media,
+            mediaType: t.media_type,
+            mediaUrls: t.media_urls,
+            thumbnailUrl: t.thumbnail_url,
+            status: t.status,
+            url: t.url,
+            authorHandle: t.authorHandle,
+            authorName: t.authorName,
+            likes: t.likes,
+            retweets: t.retweets,
+            replies: t.replies,
+          })),
+          skipDuplicates: true,
+        });
+      } catch (dbError) {
+        console.error("Failed to save scraped tweets to database:", dbError);
+      }
+    }
 
     return NextResponse.json({
       success: true,
