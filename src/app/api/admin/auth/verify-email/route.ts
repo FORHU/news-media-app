@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { resolveTenantIdFromRequest } from "@/lib/tenant";
 
 export async function POST(request: NextRequest) {
   try {
+    const tenantId = await resolveTenantIdFromRequest(request);
+    if (!tenantId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const { email } = await request.json();
 
     if (!email) {
@@ -10,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     const user = await prisma.user.findFirst({
-      where: { email, role: "admin" },
+      where: { email, role: "admin", tenantId },
       select: { role: true },
     });
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { resolveTenantIdFromRequest } from "@/lib/tenant";
 
 const ADMIN_ROLE_COOKIE = "admin-role";
 
@@ -20,6 +21,11 @@ const ADMIN_ROLE_COOKIE = "admin-role";
  */
 export async function POST(_request: NextRequest) {
     try {
+        const tenantId = await resolveTenantIdFromRequest(_request);
+        if (!tenantId) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+
         // Read the current user from the Supabase session cookies
         const supabase = await createSupabaseServerClient();
         const {
@@ -36,7 +42,7 @@ export async function POST(_request: NextRequest) {
 
         // Verify admin role in database
         const dbUser = await prisma.user.findFirst({
-            where: { email: user.email, role: "admin" },
+            where: { email: user.email, role: "admin", tenantId },
             select: { role: true },
         });
 
