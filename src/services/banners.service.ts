@@ -15,16 +15,17 @@ export const bannersService = {
   async getBanners(params: {
     position?: string | null;
     isActive?: boolean | null;
+    tenantId?: string | null;
   }) {
     return bannersRepository.findMany(params);
   },
 
-  async getBannerById(id: string) {
+  async getBannerById(id: string, tenantId?: string | null) {
     if (!id || typeof id !== "string") {
       throw new BannersServiceError("Invalid id", 400);
     }
 
-    const banner = await bannersRepository.findById(id);
+    const banner = await bannersRepository.findById(id, tenantId);
     if (!banner) {
       throw new BannersServiceError("Banner not found", 404);
     }

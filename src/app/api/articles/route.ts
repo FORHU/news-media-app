@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { articlesService } from "@/services/articles.service";
 import { articlesQuerySchema } from "@/lib/validation/articles";
+import { resolveTenantIdFromRequest } from "@/lib/tenant";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -20,7 +21,10 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const articles = await articlesService.getArticles(parsed.data);
+    const tenantId = await resolveTenantIdFromRequest(request);
+    if (!tenantId) return NextResponse.json([]);
+
+    const articles = await articlesService.getArticles(parsed.data, tenantId);
     return NextResponse.json(articles);
   } catch (error) {
     console.error("Articles API error:", error);

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { generateUniqueArticleSlug } from "@/lib/slug";
 import { z } from "zod";
+import { resolveTenantIdFromRequest } from "@/lib/tenant";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -93,6 +94,11 @@ function extractArticleData(
 
 export async function POST(req: NextRequest) {
   try {
+    const tenantId = await resolveTenantIdFromRequest(req);
+    if (!tenantId) {
+      return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+    }
+
     const json = await req.json();
     const result = RequestSchema.safeParse(json);
 
@@ -135,7 +141,7 @@ export async function POST(req: NextRequest) {
     const instruction = getAiSystemInstruction(isYoutube, youtubeUrl);
 
     const user =
-      (await prisma.user.findUnique({ where: { email: "admin@newsmedia.app" } })) ||
+      (await prisma.user.findFirst({ where: { email: "admin@newsmedia.app" } })) ||
       (await prisma.user.findFirst());
 
     if (!user) throw new Error("No system user found for attribution");
@@ -144,6 +150,7 @@ export async function POST(req: NextRequest) {
     const rawVideo = shouldCreateRawVideo
       ? await prisma.rawVideo.create({
           data: {
+            tenantId,
             language: typeof language === "string" && language.trim().length > 0 ? language.trim() : null,
             youtubeUrl: youtubeUrl!,
             transcribedContent: rawContent!,
@@ -265,6 +272,7 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
 
       const contentArticle = await prisma.contentArticle.create({
         data: {
+          tenantId,
           title,
           slug,
           content,

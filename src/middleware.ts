@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { TENANT_DOMAIN_COOKIE, getTenantDomainFromRequest } from "@/lib/tenant";
 
 const ADMIN_ROLE_COOKIE = "admin-role";
 
@@ -11,17 +12,30 @@ export async function middleware(request: NextRequest) {
     const isAdminLogin = pathname === "/admin/login";
     const isAdminAuthApi = pathname.startsWith("/api/admin/auth/");
 
+    // Tenant scoping (domain-based).
+    // Example: host = "korea.com:3000" -> tenant_domain = "korea.com"
+    const tenantDomain = getTenantDomainFromRequest(request);
+    let response = NextResponse.next({ request });
+    if (tenantDomain) {
+        response.cookies.set(TENANT_DOMAIN_COOKIE, tenantDomain, {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production",
+            path: "/",
+        });
+    }
+
     if (!isAdminPage && !isAdminApi) {
-        return NextResponse.next();
+        return response;
     }
 
     // Auth routes are always open (login page + auth API handlers)
     if (isAdminLogin || isAdminAuthApi) {
-        return NextResponse.next();
+        return response;
     }
 
     // Build a response that the SSR client can write refreshed tokens into
-    let supabaseResponse = NextResponse.next({ request });
+    let supabaseResponse = response;
 
     const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -102,4 +116,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
     matcher: ["/admin/:path*", "/api/admin/:path*"],
+    // Middleware must run in Node runtime because `@supabase/ssr` depends on Node's `crypto`.
+    runtime: "nodejs",
 };

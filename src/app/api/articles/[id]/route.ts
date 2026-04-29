@@ -5,6 +5,7 @@ import {
   ArticlesServiceError,
 } from "@/services/articles.service";
 import { articleIdentifierParamSchema } from "@/lib/validation/articles";
+import { resolveTenantIdFromRequest } from "@/lib/tenant";
 
 export async function GET(
   _request: NextRequest,
@@ -21,7 +22,12 @@ export async function GET(
   }
 
   try {
-    const article = await articlesService.getArticleBySlugOrId(parsed.data.id);
+    const tenantId = await resolveTenantIdFromRequest(_request);
+    if (!tenantId) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    const article = await articlesService.getArticleBySlugOrId(parsed.data.id, tenantId);
     return NextResponse.json(article);
   } catch (error) {
     if (error instanceof ArticlesServiceError) {

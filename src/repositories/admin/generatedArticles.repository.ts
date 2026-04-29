@@ -7,6 +7,7 @@ export type FetchGeneratedArticlesParams = {
   limit: number;
   category?: string;
   status?: string;
+  tenantId?: string;
 };
 
 type ContentArticleSupabase = {
@@ -59,9 +60,13 @@ export const generatedArticlesRepository = {
     data: ContentArticleSupabase[];
     count: number;
   }> {
-    const { q, offset, limit, category, status } = params;
+    const { q, offset, limit, category, status, tenantId } = params;
     const where: Prisma.ContentArticleWhereInput = {};
     const and: Prisma.ContentArticleWhereInput[] = [];
+
+    if (tenantId) {
+      and.push({ tenantId });
+    }
 
     if (q?.trim()) {
       and.push({
@@ -89,9 +94,7 @@ export const generatedArticlesRepository = {
       });
     }
 
-    if (and.length > 0) {
-      where.AND = and;
-    }
+    if (and.length > 0) where.AND = and;
 
     const [rows, count] = await prisma.$transaction([
       prisma.contentArticle.findMany({
@@ -186,7 +189,15 @@ export const generatedArticlesRepository = {
     };
   },
 
-  async updateStatus(id: string, status: string): Promise<void> {
+  async updateStatus(id: string, status: string, tenantId?: string): Promise<void> {
+    if (tenantId) {
+      await prisma.contentArticle.updateMany({
+        where: { id, tenantId },
+        data: { status },
+      });
+      return;
+    }
+
     await prisma.contentArticle.update({
       where: { id },
       data: { status },

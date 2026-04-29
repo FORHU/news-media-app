@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { dehydrate } from "@tanstack/react-query";
 import { notFound, redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createQueryClient } from "@/lib/react-query";
 import { Hydrate } from "@/components/react-query/Hydrate";
 import {
@@ -11,6 +12,7 @@ import {
 import { DEFAULT_OG_IMAGE, DEFAULT_SEO } from "@/config/site";
 import ArticlePageClient from "./ArticlePageClient";
 import { ArticleClientShell } from "@/components/ArticleClientShell";
+import { normalizeHostToDomain, resolveTenantIdFromDomain } from "@/lib/tenant";
 
 export const revalidate = 5;
 
@@ -101,8 +103,16 @@ export default async function ArticlePage({
 
   const queryClient = createQueryClient();
 
+  const headerList = await headers();
+  const domain = normalizeHostToDomain(headerList.get("host"));
+  const tenantId = domain ? await resolveTenantIdFromDomain(domain) : null;
+
+  if (!tenantId) {
+    notFound();
+  }
+
   try {
-    const article = await articlesService.getArticleBySlugOrId(articleId);
+    const article = await articlesService.getArticleBySlugOrId(articleId, tenantId);
     const canonicalSlug = article.slug ?? article.id;
 
     // Keep old id links working but redirect to canonical slug URLs.
@@ -124,8 +134,8 @@ export default async function ArticlePage({
   // to ensure consistency (e.g. correct categories) and SEO.
   const allArticles = await articlesService.getArticles({
     limit: 50,
-    status: "published"
-  });
+    status: "published",
+  }, tenantId);
 
   const dehydratedState = dehydrate(queryClient);
 

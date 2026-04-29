@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { generateUniqueArticleSlug } from "@/lib/slug";
 import { generatedArticlesService } from "@/services/admin/generatedArticles.service";
 import { z } from "zod";
+import { resolveTenantIdFromRequest } from "@/lib/tenant";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +36,12 @@ export async function POST(
   }
 
   try {
-    await generatedArticlesService.publishArticle(id);
+    const tenantId = await resolveTenantIdFromRequest(req);
+    if (!tenantId) {
+      return NextResponse.json({ error: "Article not found" }, { status: 404 });
+    }
+
+    await generatedArticlesService.publishArticle(id, tenantId);
     return NextResponse.json({ success: true, message: "Article published successfully" });
   } catch (error) {
     console.error("Error publishing article:", error);
@@ -58,7 +64,14 @@ export async function PATCH(
   }
 
   try {
-    const existing = await prisma.contentArticle.findUnique({ where: { id } });
+    const tenantId = await resolveTenantIdFromRequest(req);
+    if (!tenantId) {
+      return NextResponse.json({ error: "Article not found" }, { status: 404 });
+    }
+
+    const existing = await prisma.contentArticle.findFirst({
+      where: { id, tenantId },
+    });
 
     if (!existing) {
       return NextResponse.json({ error: "Article not found" }, { status: 404 });
@@ -82,7 +95,9 @@ export async function PATCH(
 
     // Verify category exists if changing
     if (categoryId) {
-      const cat = await prisma.category.findUnique({ where: { id: categoryId } });
+      const cat = await prisma.category.findFirst({
+        where: { id: categoryId, tenantId },
+      });
       if (!cat) {
         return NextResponse.json({ error: "Category not found" }, { status: 400 });
       }

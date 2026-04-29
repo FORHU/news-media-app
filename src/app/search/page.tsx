@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { headers } from "next/headers";
 import { NavBar } from "@/components/NavBar";
 import { FilterStatusBar } from "@/components/home/filter-status-bar";
 import { LatestStoriesSection } from "@/components/home/latest-stories-section";
@@ -9,6 +10,7 @@ import { AdBanner } from "@/components/AdBanner";
 import { articlesService } from "@/services/articles.service";
 import { bannersService } from "@/services/banners.service";
 import { DEFAULT_OG_IMAGE, DEFAULT_SEO } from "@/config/site";
+import { normalizeHostToDomain, resolveTenantIdFromDomain } from "@/lib/tenant";
 
 export const metadata: Metadata = {
   title: "Search Results",
@@ -46,18 +48,35 @@ export default async function SearchPage(props: {
   const categoryParam = searchParams.category;
 
   // Fetch articles on the server using database-level filtering
-  const articles = await articlesService.getArticles({ 
-    limit: 50,
-    search: searchQuery,
-    category: categoryParam,
-    status: "published"
-  });
+  const headerList = await headers();
+  const domain = normalizeHostToDomain(headerList.get("host"));
+  const tenantId = domain ? await resolveTenantIdFromDomain(domain) : null;
+
+  const articles = tenantId
+    ? await articlesService.getArticles(
+        {
+          limit: 50,
+          search: searchQuery,
+          category: categoryParam,
+          status: "published",
+        },
+        tenantId
+      )
+    : [];
 
   // Fetch banners server-side so AdBanner components skip their client-side fetch.
   // Errors are swallowed — missing banners are non-critical.
   const [sidebarBanners, footerBanners] = await Promise.all([
-    bannersService.getBanners({ position: "HOME_SIDEBAR",  isActive: true }).catch(() => []),
-    bannersService.getBanners({ position: "GLOBAL_FOOTER", isActive: true }).catch(() => []),
+    tenantId
+      ? bannersService
+          .getBanners({ position: "HOME_SIDEBAR", isActive: true, tenantId })
+          .catch(() => [])
+      : Promise.resolve([]),
+    tenantId
+      ? bannersService
+          .getBanners({ position: "GLOBAL_FOOTER", isActive: true, tenantId })
+          .catch(() => [])
+      : Promise.resolve([]),
   ]);
 
   const error = ""; // Errors can be handled via error.tsx in Next.js

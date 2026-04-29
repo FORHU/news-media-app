@@ -200,7 +200,7 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
 
       // 5. Database Save
       const user =
-        (await prisma.user.findUnique({ where: { email: "admin@newsmedia.app" } })) ||
+        (await prisma.user.findFirst({ where: { email: "admin@newsmedia.app" } })) ||
         (await prisma.user.findFirst());
 
       if (!user) throw new Error("No system user found for attribution");

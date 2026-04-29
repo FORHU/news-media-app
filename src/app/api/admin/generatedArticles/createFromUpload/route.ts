@@ -215,7 +215,7 @@ Write a professional, investigative news article primarily based on the topic, u
 
       // 3) Save content_articles linked to raw_source_uploads (schema-aligned)
       const user =
-        (await prisma.user.findUnique({ where: { email: "admin@newsmedia.app" } })) ||
+        (await prisma.user.findFirst({ where: { email: "admin@newsmedia.app" } })) ||
         (await prisma.user.findFirst());
       if (!user) throw new Error("No system user found for attribution");
 

@@ -13,7 +13,10 @@ type GetGeneratedArticlesParams = {
 };
 
 export const generatedArticlesService = {
-  async getGeneratedArticles(params: GetGeneratedArticlesParams) {
+  async getGeneratedArticles(
+    params: GetGeneratedArticlesParams,
+    tenantId?: string | null
+  ) {
     const offset = (params.page - 1) * params.limit;
 
     const repositoryParams: FetchGeneratedArticlesParams = {
@@ -22,6 +25,7 @@ export const generatedArticlesService = {
       limit: params.limit,
       category: params.category,
       status: params.status,
+      tenantId: tenantId ?? undefined,
     };
 
     const { data, count } = await generatedArticlesRepository.fetchGeneratedArticles(repositoryParams);
@@ -103,11 +107,19 @@ export const generatedArticlesService = {
     };
   },
 
-  async publishArticle(id: string) {
-    return generatedArticlesRepository.updateStatus(id, "published");
+  async publishArticle(id: string, tenantId?: string | null) {
+    return generatedArticlesRepository.updateStatus(
+      id,
+      "published",
+      tenantId ?? undefined
+    );
   },
 
-  async unpublishArticle(id: string) {
-    return generatedArticlesRepository.updateStatus(id, "pending");
+  async unpublishArticle(id: string, tenantId?: string | null) {
+    return generatedArticlesRepository.updateStatus(
+      id,
+      "pending",
+      tenantId ?? undefined
+    );
   },
 };
