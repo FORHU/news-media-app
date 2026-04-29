@@ -19,7 +19,7 @@ type ScrapedTweet = {
   profile_url: string;
   text: string;
   tweet_timestamp: string;
-  has_media: boolean;
+  has_media: "video" | "image" | "none";
   media_type: string | null;
   media_urls: string[];
   thumbnail_url: string | null;
@@ -31,6 +31,8 @@ type ScrapedTweet = {
   replies: number;
   authorHandle: string;
   authorName: string;
+  detected_media_kind?: "image" | "video" | "none";
+  detected_image_url_or_data?: string | null;
 };
 
 type ScrapeDebugAttempt = {
@@ -57,6 +59,50 @@ type ScrapeDebug = {
   actorRequestedItems?: number;
   sampleKeys?: string[];
 };
+
+function isLikelyImageUrl(value: string): boolean {
+  const lowerValue = value.toLowerCase();
+  return (
+    lowerValue.startsWith("data:image/") ||
+    /\.(jpg|jpeg|png|webp|gif|bmp|svg)(\?|$)/.test(lowerValue)
+  );
+}
+
+function isLikelyVideoUrl(value: string): boolean {
+  const lowerValue = value.toLowerCase();
+  return (
+    lowerValue.startsWith("data:video/") ||
+    /\.(mp4|mov|m4v|webm|mkv)(\?|$)/.test(lowerValue)
+  );
+}
+
+function normalizeTweetMedia(tweet: ScrapedTweet): ScrapedTweet {
+  const declaredType = (tweet.media_type ?? "").toLowerCase();
+  const mediaUrls = Array.isArray(tweet.media_urls) ? tweet.media_urls : [];
+  const thumbnailUrl = tweet.thumbnail_url ?? "";
+  const imageFromMediaUrls = mediaUrls.find((url) => isLikelyImageUrl(url)) ?? null;
+  const imageFromThumbnail = isLikelyImageUrl(thumbnailUrl) ? thumbnailUrl : null;
+  const imageUrlOrData = imageFromMediaUrls ?? imageFromThumbnail;
+  const hasVideoInMediaUrls = mediaUrls.some((url) => isLikelyVideoUrl(url));
+  const hasVideoDeclared =
+    declaredType.includes("video") ||
+    declaredType.includes("animated_gif") ||
+    declaredType.includes("gif");
+  const hasImageDeclared = declaredType.includes("image") || declaredType.includes("photo");
+
+  let detectedMediaKind: "image" | "video" | "none" = "none";
+  if (hasVideoDeclared || hasVideoInMediaUrls) {
+    detectedMediaKind = "video";
+  } else if (hasImageDeclared || Boolean(imageUrlOrData)) {
+    detectedMediaKind = "image";
+  }
+
+  return {
+    ...tweet,
+    detected_media_kind: detectedMediaKind,
+    detected_image_url_or_data: imageUrlOrData,
+  };
+}
 
 export default function ManageHandles() {
   const [profileUrlOrHandle, setProfileUrlOrHandle] = React.useState("");
@@ -100,7 +146,9 @@ export default function ManageHandles() {
         throw new Error(data.error ?? "Failed to scrape tweets.");
       }
 
-      setTweets(Array.isArray(data.tweets) ? data.tweets : []);
+      setTweets(
+        Array.isArray(data.tweets) ? data.tweets.map((tweet) => normalizeTweetMedia(tweet)) : []
+      );
       setDebug(data.debug ?? null);
     } catch (fetchError) {
       const message =
@@ -240,6 +288,9 @@ export default function ManageHandles() {
                 <p className="text-xs text-gray-500 mt-2">
                   ❤️ {tweet.likes} · 🔁 {tweet.retweets} · 💬 {tweet.replies}
                 </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Media: {tweet.detected_media_kind ?? "none"}
+                </p>
               </button>
             ))}
           </div>
@@ -286,8 +337,7 @@ export default function ManageHandles() {
                   <span className="font-semibold">Replies:</span> {selectedTweet.replies}
                 </p>
                 <p>
-                  <span className="font-semibold">Has media:</span>{" "}
-                  {selectedTweet.has_media ? "Yes" : "No"}
+                  <span className="font-semibold">Has media:</span> {selectedTweet.has_media}
                 </p>
                 <p className="sm:col-span-2 break-all">
                   <span className="font-semibold">Profile URL:</span>{" "}
@@ -300,6 +350,16 @@ export default function ManageHandles() {
                   <span className="font-semibold">Media type:</span>{" "}
                   {selectedTweet.media_type ?? "N/A"}
                 </p>
+                <p className="sm:col-span-2">
+                  <span className="font-semibold">Detected media:</span>{" "}
+                  {selectedTweet.detected_media_kind ?? "none"}
+                </p>
+                {selectedTweet.detected_image_url_or_data ? (
+                  <p className="sm:col-span-2 break-all">
+                    <span className="font-semibold">Detected image URL/Data:</span>{" "}
+                    {selectedTweet.detected_image_url_or_data}
+                  </p>
+                ) : null}
                 {selectedTweet.thumbnail_url ? (
                   <p className="sm:col-span-2 break-all">
                     <span className="font-semibold">Thumbnail URL:</span>{" "}
@@ -318,6 +378,17 @@ export default function ManageHandles() {
                       </p>
                     ))}
                   </div>
+                </div>
+              ) : null}
+
+              {selectedTweet.detected_image_url_or_data ? (
+                <div className="space-y-2">
+                  <p className="font-semibold text-gray-900">Detected Image Preview</p>
+                  <img
+                    src={selectedTweet.detected_image_url_or_data}
+                    alt="Detected tweet media"
+                    className="max-h-80 w-full rounded-lg object-contain border border-gray-200 bg-white"
+                  />
                 </div>
               ) : null}
             </div>

@@ -142,11 +142,17 @@ model RawTweet {
   profileUrl     String?  @map("profile_url")
   text           String   @db.Text
   tweetTimestamp String?  @map("tweet_timestamp")
-  hasMedia       Boolean  @default(false) @map("has_media")
+  hasMedia       String   @default("none") @map("has_media")
   mediaType      String?  @map("media_type")
   mediaUrls      String[] @default([]) @map("media_urls")
   thumbnailUrl   String?  @map("thumbnail_url")
   status         String   @default("pending")
+  url            String?  @map("url") 
+  authorHandle   String?  @map("author_handle")
+  authorName     String?  @map("author_name")
+  likes          Int      @default(0)
+  retweets       Int      @default(0)
+  replies        Int      @default(0)
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
@@ -154,6 +160,7 @@ model RawTweet {
 
   @@map("raw_tweets")
 }
+
 
 model RawVideo {
   id                 String   @id @default(cuid())
