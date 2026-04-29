@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { ResponseType, XpozClient } from "@xpoz/xpoz";
+import { XpozClient } from "@xpoz/xpoz";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
 type XpozPost = Record<string, unknown>;
+type MediaState = "video" | "image" | "none";
 
 function extractHandle(input: string): string {
   const value = input.trim();
@@ -67,6 +68,67 @@ function getStringArray(value: unknown): string[] {
     .filter((item) => item.length > 0);
 }
 
+function getObjectArray(value: unknown): Record<string, unknown>[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(
+    (item): item is Record<string, unknown> => Boolean(item && typeof item === "object")
+  );
+}
+
+function extractMediaUrlsFromObjects(items: Record<string, unknown>[]): string[] {
+  return items
+    .flatMap((item) => [
+      getString(item.mediaUrl),
+      getString(item.url),
+      getString(item.media_url),
+      getString(item.expanded_url),
+      getString(item.display_url),
+      getString(item.videoUrl),
+      getString(item.video_url),
+      getString(item.previewImageUrl),
+      getString(item.preview_image_url),
+      getString(item.thumbnailUrl),
+      getString(item.thumbnail_url),
+      ...getStringArray(item.urls),
+      ...getStringArray(item.mediaUrls),
+      ...getStringArray(item.videoUrls),
+      ...getStringArray(item.variants),
+    ])
+    .filter((item): item is string => Boolean(item));
+}
+
+function splitCommaSeparatedUrls(value: string): string[] {
+  return value
+    .split(",")
+    .map((part) => part.replace(/^"+|"+$/g, "").replace(/\\"/g, "\"").trim())
+    .filter((part) => /^https?:\/\//i.test(part));
+}
+
+function extractBracketIndexedMediaUrls(post: XpozPost): string[] {
+  return Object.entries(post)
+    .filter(([key]) => /^mediaUrls\[\d+\]$/i.test(key) || /^videoUrls\[\d+\]$/i.test(key))
+    .flatMap(([, value]) => {
+      const raw = getString(value);
+      if (!raw) return [];
+      if (/^https?:\/\//i.test(raw) && !raw.includes(",")) return [raw];
+      return splitCommaSeparatedUrls(raw);
+    });
+}
+
+function getMediaObjects(post: XpozPost): Record<string, unknown>[] {
+  const entities = (post.entities as Record<string, unknown> | undefined) ?? {};
+  const extendedEntities = (post.extendedEntities as Record<string, unknown> | undefined) ?? {};
+  const legacyExtendedEntities =
+    (post.extended_entities as Record<string, unknown> | undefined) ?? {};
+
+  return [
+    ...getObjectArray(post.media),
+    ...getObjectArray(entities.media),
+    ...getObjectArray(extendedEntities.media),
+    ...getObjectArray(legacyExtendedEntities.media),
+  ];
+}
+
 function mapPostToTweet(post: XpozPost, fallbackHandle: string, index: number) {
   const id = getString(post.id) ?? `${fallbackHandle}-${index}`;
   const authorHandle =
@@ -81,38 +143,106 @@ function mapPostToTweet(post: XpozPost, fallbackHandle: string, index: number) {
   const retweetedPost = (post.retweetedPost || post.retweetedStatus) as XpozPost | undefined;
   const quotedPost = (post.quotedPost || post.quotedStatus) as XpozPost | undefined;
 
-  const getMediaUrls = (p: XpozPost) => [
-    ...getStringArray(p.mediaUrls),
-    ...getStringArray(p.videoUrls),
-    ...getStringArray(p.media),
-    ...(p.extendedEntities ? getStringArray((p.extendedEntities as Record<string, unknown>).media) : []),
-    ...(typeof p.videoUrl === "string" ? [p.videoUrl] : []),
-  ];
+  const getMediaUrls = (p: XpozPost) => {
+    const entities = (p.entities as Record<string, unknown> | undefined) ?? {};
+    const extendedEntities = (p.extendedEntities as Record<string, unknown> | undefined) ?? {};
+    const legacyExtendedEntities =
+      (p.extended_entities as Record<string, unknown> | undefined) ?? {};
+    const mediaObjects = getMediaObjects(p);
+
+    return [
+      ...getStringArray(p.mediaUrls),
+      ...getStringArray(p.videoUrls),
+      ...extractBracketIndexedMediaUrls(p),
+      ...getStringArray(p.media),
+      ...getStringArray(entities.urls),
+      ...getStringArray(entities.media),
+      ...getStringArray(extendedEntities.media),
+      ...getStringArray(legacyExtendedEntities.media),
+      ...extractMediaUrlsFromObjects(mediaObjects),
+      ...(typeof p.videoUrl === "string" ? [p.videoUrl] : []),
+      ...(typeof p.url === "string" ? [p.url] : []),
+    ];
+  };
 
   const rawMediaUrls = [
     ...getMediaUrls(post),
     ...(retweetedPost ? getMediaUrls(retweetedPost) : []),
     ...(quotedPost ? getMediaUrls(quotedPost) : []),
   ];
-
-  console.log(`[DEBUG SCrape] ID: ${id}, isRetweet: ${post.isRetweet}, mediaUrls:`, JSON.stringify(post.mediaUrls), 'videoUrls:', JSON.stringify(post.videoUrls), 'videoUrl:', post.videoUrl, 'retweetedPost:', !!retweetedPost, 'quotedPost:', !!quotedPost, 'extendedEntities:', !!post.extendedEntities);
+  const mediaObjects = [
+    ...getMediaObjects(post),
+    ...(retweetedPost ? getMediaObjects(retweetedPost) : []),
+    ...(quotedPost ? getMediaObjects(quotedPost) : []),
+  ];
+  const mediaTypes = Array.from(
+    new Set(
+      mediaObjects
+        .map(
+          (item) =>
+            getString(item.type) ??
+            getString(item.mediaType) ??
+            getString(item.media_type) ??
+            ""
+        )
+        .filter(Boolean)
+    )
+  );
 
   const mediaUrls = Array.from(new Set(rawMediaUrls.filter(Boolean)));
   const thumbnailUrl =
     getString(post.thumbnailUrl) ??
+    getString(post.thumbnail_url) ??
     getString(post.previewImageUrl) ??
+    getString(post.preview_image_url) ??
     getString(
       Array.isArray(post.media) && post.media[0] && typeof post.media[0] === "object"
-        ? (post.media[0] as Record<string, unknown>).thumbnailUrl
+        ? ((post.media[0] as Record<string, unknown>).thumbnailUrl ??
+          (post.media[0] as Record<string, unknown>).thumbnail_url ??
+          (post.media[0] as Record<string, unknown>).previewImageUrl ??
+          (post.media[0] as Record<string, unknown>).preview_image_url)
         : undefined
+    ) ??
+    getString(
+      getObjectArray(
+        ((post.extendedEntities as Record<string, unknown> | undefined)?.media as unknown) ?? []
+      )[0]?.media_url
     );
   const mediaType =
     getString(post.mediaType) ??
+    getString(post.media_type) ??
     getString(
       Array.isArray(post.media) && post.media[0] && typeof post.media[0] === "object"
-        ? (post.media[0] as Record<string, unknown>).type
+        ? ((post.media[0] as Record<string, unknown>).type ??
+          (post.media[0] as Record<string, unknown>).mediaType ??
+          (post.media[0] as Record<string, unknown>).media_type)
         : undefined
-    );
+    ) ??
+    getString(
+      getObjectArray(
+        ((post.extendedEntities as Record<string, unknown> | undefined)?.media as unknown) ?? []
+      )[0]?.type
+    ) ??
+    mediaTypes[0];
+  const hasMedia = mediaObjects.length > 0 || mediaUrls.length > 0;
+  const hasVideoMedia =
+    mediaUrls.some((url) => /\.(mp4|mov|m4v|webm|mkv|m3u8)(\?|$)/i.test(url)) ||
+    (mediaType ?? "").toLowerCase().includes("video") ||
+    (mediaType ?? "").toLowerCase().includes("animated_gif") ||
+    (mediaType ?? "").toLowerCase().includes("gif");
+  const hasImageMedia =
+    mediaUrls.some((url) => /\.(jpg|jpeg|png|webp|gif|bmp|svg)(\?|$)/i.test(url)) ||
+    Boolean(thumbnailUrl) ||
+    (mediaType ?? "").toLowerCase().includes("image") ||
+    (mediaType ?? "").toLowerCase().includes("photo");
+  const mediaState: MediaState = hasVideoMedia
+    ? "video"
+    : hasImageMedia && hasMedia
+      ? "image"
+      : "none";
+  if (mediaType === "video") {
+    // TODO: If mediaType is video, call APISmith Apify actor for transcription.
+  }
   const createdAt = getString(post.createdAt) ?? new Date().toISOString();
 
   return {
@@ -122,7 +252,7 @@ function mapPostToTweet(post: XpozPost, fallbackHandle: string, index: number) {
     profile_url: `https://x.com/${authorHandle}`,
     text,
     tweet_timestamp: createdAt,
-    has_media: mediaUrls.length > 0 || Boolean(thumbnailUrl),
+    has_media: mediaState,
     media_type: mediaType ?? null,
     media_urls: mediaUrls,
     thumbnail_url: thumbnailUrl ?? null,
@@ -199,7 +329,6 @@ export async function POST(req: Request) {
     let posts: XpozPost[] = [];
 
     const authorResult = await client.twitter.getPostsByAuthor(handle, {
-      responseType: ResponseType.Fast,
       limit: actorRequestedItems,
       fields: [
         "id",
@@ -215,17 +344,24 @@ export async function POST(req: Request) {
         "replyCount",
         "createdAt",
         "mediaUrls",
+        "media",
+        "media_url",
         "mediaType",
+        "media_type",
         "thumbnailUrl",
+        "thumbnail_url",
+        "previewImageUrl",
+        "preview_image_url",
         "isRetweet",
         "isReply",
         "authorUsername",
         "authorName",
         "videoUrl",
         "videoUrls",
+        "entities",
+        "extended_entities",
         "retweetedPost",
         "quotedPost",
-        "entities",
         "extendedEntities",
       ],
     });
@@ -240,7 +376,6 @@ export async function POST(req: Request) {
     if (posts.length === 0) {
       const searchQuery = `from:${handle}`;
       const searchResult = await client.twitter.searchPosts(searchQuery, {
-        responseType: ResponseType.Fast,
         limit: actorRequestedItems,
         fields: [
           "id",
@@ -256,17 +391,24 @@ export async function POST(req: Request) {
           "replyCount",
           "createdAt",
           "mediaUrls",
+          "media",
+          "media_url",
           "mediaType",
+          "media_type",
           "thumbnailUrl",
+          "thumbnail_url",
+          "previewImageUrl",
+          "preview_image_url",
           "isRetweet",
           "isReply",
           "authorUsername",
           "authorName",
           "videoUrl",
           "videoUrls",
+          "entities",
+          "extended_entities",
           "retweetedPost",
           "quotedPost",
-          "entities",
           "extendedEntities",
         ],
       });
@@ -309,9 +451,12 @@ export async function POST(req: Request) {
 
     const sourcePosts = filteredPosts.length > 0 ? filteredPosts : posts;
 
-    const tweets = sourcePosts.slice(0, maxItems).map((post, index) =>
+    const normalizedTweets = sourcePosts.map((post, index) =>
       mapPostToTweet(post, handle, index)
     );
+    const tweets = normalizedTweets
+      .sort((a, b) => Number(b.has_media !== "none") - Number(a.has_media !== "none"))
+      .slice(0, maxItems);
 
     if (tweets.length > 0) {
       try {

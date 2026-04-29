@@ -142,7 +142,7 @@ model RawTweet {
   profileUrl     String?  @map("profile_url")
   text           String   @db.Text
   tweetTimestamp String?  @map("tweet_timestamp")
-  hasMedia       Boolean  @default(false) @map("has_media")
+  hasMedia       String   @default("none") @map("has_media")
   mediaType      String?  @map("media_type")
   mediaUrls      String[] @default([]) @map("media_urls")
   thumbnailUrl   String?  @map("thumbnail_url")
