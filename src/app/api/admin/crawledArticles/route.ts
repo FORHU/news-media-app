@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { resolveTenantIdFromRequest } from "@/lib/tenant";
 
 export const dynamic = "force-dynamic";
 import {
@@ -31,7 +32,12 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const result = await crawledArticlesService.getCrawledArticles(parsed.data);
+    const tenantId = await resolveTenantIdFromRequest(req);
+    if (!tenantId) {
+      return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+    }
+
+    const result = await crawledArticlesService.getCrawledArticles(parsed.data, tenantId);
     return NextResponse.json(result, {
       headers: { "Cache-Control": "no-store, must-revalidate" },
     });

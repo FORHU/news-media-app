@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { generateUniqueArticleSlug } from "@/lib/slug";
 import { z } from "zod";
+import { resolveTenantIdFromRequest } from "@/lib/tenant";
 
 export const dynamic = "force-dynamic";
 
@@ -21,8 +22,12 @@ export async function PATCH(
   try {
     const { id } = await params;
 
-    const existing = await prisma.contentArticle.findUnique({
-      where: { id },
+    const tenantId = await resolveTenantIdFromRequest(req);
+    if (!tenantId) {
+      return NextResponse.json({ error: "Article not found" }, { status: 404 });
+    }
+    const existing = await prisma.contentArticle.findFirst({
+      where: { id, tenantId },
     });
 
     if (!existing) {
@@ -43,7 +48,9 @@ export async function PATCH(
 
     // If category is changing, verify it exists
     if (categoryId) {
-      const cat = await prisma.category.findUnique({ where: { id: categoryId } });
+      const cat = await prisma.category.findFirst({
+        where: { id: categoryId, tenantId },
+      });
       if (!cat) {
         return NextResponse.json({ error: "Category not found" }, { status: 400 });
       }

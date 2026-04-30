@@ -1,16 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { resolveTenantIdFromRequest } from "@/lib/tenant";
 
 export async function POST(request: NextRequest) {
   try {
+    const tenantId = await resolveTenantIdFromRequest(request);
+    if (!tenantId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const { email } = await request.json();
 
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email },
+    const user = await prisma.user.findFirst({
+      where: { email, role: "admin", tenantId },
       select: { role: true },
     });
 

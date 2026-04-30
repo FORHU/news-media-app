@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { generateUniqueArticleSlug } from "@/lib/slug";
 import { z } from "zod";
+import { resolveTenantIdFromRequest } from "@/lib/tenant";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // Allow up to 5 minutes on Vercel Pro/Enterprise
@@ -109,11 +110,16 @@ export async function POST(req: NextRequest) {
 
     articleId = bodyArticleId;
 
+    const tenantId = await resolveTenantIdFromRequest(req);
+    if (!tenantId) {
+      return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+    }
+
     const baseUrl = (process.env.GENERATE_CONTENT_API || "").replace(/\/$/, "");
     if (!baseUrl) throw new Error("GENERATE_CONTENT_API is not configured");
 
     const rawArticle = await prisma.rawArticle.findUnique({
-      where: { id: articleId },
+      where: { id: articleId, tenantId },
       include: { crawledUrl: true }
     });
     if (!rawArticle) {
@@ -188,8 +194,8 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
       }
 
       const user =
-        (await prisma.user.findUnique({ where: { email: "admin@newsmedia.app" } })) ||
-        (await prisma.user.findFirst());
+        (await prisma.user.findFirst({ where: { email: "admin@newsmedia.app", tenantId } })) ||
+        (await prisma.user.findFirst({ where: { tenantId } }));
 
       if (!user) throw new Error("No system user found for attribution");
 
@@ -198,6 +204,7 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
 
       const contentArticle = await prisma.contentArticle.create({
         data: {
+          tenantId,
           title,
           slug,
           content,
@@ -210,7 +217,7 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
       });
 
       await prisma.rawArticle.update({
-        where: { id: articleId },
+        where: { id: articleId, tenantId },
         data: { status: "generated" },
       });
 
@@ -221,7 +228,7 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
       // Update status to failed only if it was a real attempt
       if (articleId) {
         await prisma.rawArticle.update({
-          where: { id: articleId },
+          where: { id: articleId, tenantId },
           data: { status: "failed" },
         }).catch(err => console.error("Failed to set article as failed:", err));
       }

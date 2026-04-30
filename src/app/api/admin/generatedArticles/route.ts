@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generatedArticlesService } from "@/services/admin/generatedArticles.service";
 import { generatedArticlesQuerySchema } from "@/lib/validation/generated";
+import { resolveTenantIdFromRequest } from "@/lib/tenant";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,20 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const result = await generatedArticlesService.getGeneratedArticles(parsed.data);
+    const tenantId = await resolveTenantIdFromRequest(req);
+    if (!tenantId) {
+      return NextResponse.json({
+        articles: [],
+        pagination: {
+          total: 0,
+          page: parsed.data.page ? Number(parsed.data.page) : 1,
+          limit: parsed.data.limit ? Number(parsed.data.limit) : 10,
+          totalPages: 0,
+        },
+      });
+    }
+
+    const result = await generatedArticlesService.getGeneratedArticles(parsed.data, tenantId);
     return NextResponse.json(result, {
       headers: { "Cache-Control": "no-store, must-revalidate" },
     });

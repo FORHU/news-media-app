@@ -9,10 +9,12 @@ export const articlesRepository = {
     search?: string | null;
     category?: string | null;
     status?: string | null;
+    tenantId?: string;
   }): Promise<Article[]> {
-    const { limit, search, category, status } = params;
+    const { limit, search, category, status, tenantId } = params;
 
     const and: Prisma.ContentArticleWhereInput[] = [];
+    if (tenantId) and.push({ tenantId });
 
     if (search) {
       and.push({
@@ -59,17 +61,18 @@ export const articlesRepository = {
     }) as Promise<Article[]>;
   },
 
-  async findById(id: string): Promise<Article | null> {
-    return (await prisma.contentArticle.findUnique({
-      where: { id },
+  async findById(id: string, tenantId?: string | null): Promise<Article | null> {
+    const where = tenantId ? { id, tenantId } : { id };
+    return (await prisma.contentArticle.findFirst({
+      where: where as any,
       include: { category: true },
     })) as Article | null;
   },
 
-  async findBySlug(slug: string): Promise<Article | null> {
+  async findBySlug(slug: string, tenantId?: string | null): Promise<Article | null> {
     try {
       return (await prisma.contentArticle.findFirst({
-        where: { slug },
+        where: tenantId ? ({ slug, tenantId } as any) : ({ slug } as any),
         include: { category: true },
       })) as Article | null;
     } catch {
@@ -80,13 +83,16 @@ export const articlesRepository = {
     }
   },
 
-  async findBySlugOrId(identifier: string): Promise<Article | null> {
-    const bySlug = await this.findBySlug(identifier);
+  async findBySlugOrId(
+    identifier: string,
+    tenantId?: string | null
+  ): Promise<Article | null> {
+    const bySlug = await this.findBySlug(identifier, tenantId);
     if (bySlug) {
       return bySlug;
     }
 
-    return this.findById(identifier);
+    return this.findById(identifier, tenantId);
   },
 };
 

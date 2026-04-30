@@ -1,30 +1,25 @@
-import { supabase } from "@/lib/supabaseClient";
-
-type CrawlJobRow = {
-  id: string;
-  status: string | null;
-  urls: unknown;
-  max_articles_request: number | null;
-  articles_saved: number | null;
-  created_at: string | null;
-  started_at: string | null;
-  finished_at: string | null;
-};
+import { prisma } from "@/lib/db";
+import { CrawlJob } from "@/generated/prisma/client";
 
 export const crawlJobsRepository = {
-  async fetchJobs(params: { offset: number; limit: number }) {
-    const { data, error, count } = await supabase
-      .from("crawl_jobs")
-      .select("*", { count: "exact" })
-      .order("created_at", { ascending: false })
-      .range(params.offset, params.offset + params.limit - 1);
+  async fetchJobs(params: { offset: number; limit: number; tenantId: string }) {
+    const { offset, limit, tenantId } = params;
 
-    if (error) throw error;
+    const [rows, count] = await Promise.all([
+      prisma.crawlJob.findMany({
+        where: { tenantId },
+        orderBy: { createdAt: "desc" },
+        skip: offset,
+        take: limit,
+      }),
+      prisma.crawlJob.count({
+        where: { tenantId },
+      }),
+    ]);
 
     return {
-      rows: ((data as CrawlJobRow[]) || []) satisfies CrawlJobRow[],
-      count: count || 0,
+      rows,
+      count,
     };
   },
 };
-

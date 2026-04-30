@@ -110,8 +110,9 @@ function isIsoDateString(value: unknown) {
 }
 
 export const crawledArticlesService = {
-  async getCrawledArticles(params: GetCrawledArticlesParams) {
+  async getCrawledArticles(params: GetCrawledArticlesParams, tenantId: string) {
     const offset = (params.page - 1) * params.limit;
+
     const range = normalizeDateRange(params);
 
     const repositoryParams: FetchCrawledArticlesParams = {
@@ -121,15 +122,16 @@ export const crawledArticlesService = {
       q: params.q,
       offset,
       limit: params.limit,
+      tenantId,
     };
 
     const [{ data, count }, sourceUrls] = await Promise.all([
       crawledArticlesRepository.fetchCrawledArticles(repositoryParams),
-      crawledArticlesRepository.fetchCrawledSources(),
+      crawledArticlesRepository.fetchCrawledSources(tenantId),
     ]);
 
     const articles = data.map((article) => {
-      const rawImg = article.image_url;
+      const rawImg = article.imageUrl;
       const imageUrl =
         typeof rawImg === "string" && rawImg.trim().length > 0
           ? rawImg.trim()
@@ -140,11 +142,11 @@ export const crawledArticlesService = {
         title: article.title,
         content: article.content,
         imageUrl,
-        publishDate: article.publish_date,
-        createdAt: article.created_at,
+        publishDate: article.publishDate,
+        createdAt: article.createdAt,
         status: article.status,
         category: {
-          categoryName: normalizeCategoryName(article.category?.category_name) || "",
+          categoryName: normalizeCategoryName(article.category?.categoryName) || "",
         },
         crawledUrl: {
           url: article.crawledUrl?.url || "",
