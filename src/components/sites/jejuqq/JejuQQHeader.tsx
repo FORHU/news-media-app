@@ -107,17 +107,17 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
         </div>
 
         {/* Logo & Main Nav */}
-        <div className="max-w-7xl mx-auto px-4 py-5">
+        <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex flex-col items-center lg:flex-row lg:justify-between lg:items-end">
-            <Link href="/" className="lg:mb-0">
+            <Link href="/" className="lg:mb-0 shrink-0 mb-6 lg:mb-0">
               <div className="flex flex-col leading-none">
                 <span className="text-[52px] font-serif font-black tracking-tighter text-black">Jeju</span>
                 <span className="text-[42px] font-serif font-black tracking-tighter text-black -mt-4">QQ Daily</span>
               </div>
             </Link>
-
-            <nav className="hidden lg:flex flex-1 justify-center items-center space-x-4 text-[12px] font-bold uppercase tracking-tighter text-gray-600">
-            {coreCategories.slice(0, 10).map((cat) => (
+ 
+            <nav className="hidden lg:flex flex-1 justify-center items-center space-x-6 text-[13px] font-bold uppercase tracking-tighter text-gray-600">
+            {coreCategories.slice(0, 5).map((cat) => (
               <Link 
                 key={cat} 
                 href={`/search?category=${encodeURIComponent(cat)}`}
@@ -126,12 +126,12 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                 {cat}
               </Link>
             ))}
-            {coreCategories.length > 10 && (
+            {coreCategories.length > 5 && (
               <div className="relative group cursor-pointer flex items-center gap-1 hover:text-[#dc2626] py-2">
                  MORE <ChevronDown size={14} />
                  <div className="absolute top-full right-0 pt-2 hidden group-hover:block z-50">
                     <div className="bg-white shadow-2xl border border-gray-100 p-4 rounded-sm grid grid-cols-2 gap-x-8 gap-y-3 min-w-[300px]">
-                       {coreCategories.slice(10).map((cat) => (
+                       {coreCategories.slice(5).map((cat) => (
                          <Link 
                             key={cat} 
                             href={categoryHref(cat)} 

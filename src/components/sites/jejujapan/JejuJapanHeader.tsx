@@ -97,7 +97,7 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
           <div className="flex items-center space-x-8">
             <button
               type="button"
@@ -116,9 +116,9 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
               </div>
             </Link>
           </div>
-
-          <nav className="hidden lg:flex flex-1 justify-center items-center space-x-5 text-[12px] font-bold uppercase tracking-[0.1em] text-slate-500 mx-8">
-            {coreCategories.slice(0, 10).map((cat) => (
+ 
+          <nav className="hidden lg:flex flex-1 justify-center items-center space-x-6 text-[12px] font-bold uppercase tracking-[0.15em] text-slate-500 mx-8">
+            {coreCategories.slice(0, 5).map((cat) => (
               <Link 
                 key={cat} 
                 href={`/search?category=${encodeURIComponent(cat)}`}
@@ -127,12 +127,12 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
                 {cat}
               </Link>
             ))}
-            {coreCategories.length > 10 && (
+            {coreCategories.length > 5 && (
               <div className="relative group cursor-pointer flex items-center gap-1 hover:text-[#bc002d] py-2">
                  MORE <ChevronDown size={14} />
                  <div className="absolute top-full right-0 pt-2 hidden group-hover:block z-50">
                     <div className="bg-white shadow-2xl border border-gray-100 p-4 rounded-sm grid grid-cols-2 gap-x-8 gap-y-3 min-w-[300px]">
-                       {coreCategories.slice(10).map((cat) => (
+                       {coreCategories.slice(5).map((cat) => (
                          <Link 
                             key={cat} 
                             href={categoryHref(cat)} 
@@ -146,9 +146,6 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
               </div>
             )}
           </nav>
-
-          {/* Right Spacer to keep nav centered */}
-          <div className="w-[180px] hidden lg:block" />
         </div>
       </header>
 

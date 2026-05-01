@@ -128,7 +128,7 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
       </div>
 
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-blue-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-8">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-8">
           
           <div className="flex items-center space-x-8 shrink-0">
             <button
@@ -145,10 +145,10 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
               </h1>
             </Link>
           </div>
-
+ 
           {/* Dynamic Categories Nav */}
-          <nav className="hidden lg:flex flex-1 justify-center items-center space-x-4 text-[11px] font-bold uppercase tracking-[0.1em] text-slate-500">
-            {coreCategories.slice(0, 10).map((cat) => (
+          <nav className="hidden lg:flex flex-1 justify-center items-center space-x-6 text-[12px] font-bold uppercase tracking-widest text-slate-500">
+            {coreCategories.slice(0, 5).map((cat) => (
               <Link 
                 key={cat} 
                 href={`/search?category=${encodeURIComponent(cat)}`}
@@ -157,12 +157,12 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
                 {cat}
               </Link>
             ))}
-            {coreCategories.length > 10 && (
+            {coreCategories.length > 5 && (
               <div className="relative group cursor-pointer flex items-center gap-1 hover:text-blue-600 py-2">
                  MORE <ChevronDown size={14} />
                  <div className="absolute top-full right-0 pt-2 hidden group-hover:block z-50">
                     <div className="bg-white shadow-2xl border border-slate-100 p-6 rounded-2xl grid grid-cols-2 gap-x-8 gap-y-4 min-w-[350px]">
-                       {coreCategories.slice(10).map((cat) => (
+                       {coreCategories.slice(5).map((cat) => (
                          <Link 
                             key={cat} 
                             href={categoryHref(cat)} 
@@ -176,10 +176,9 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
               </div>
             )}
           </nav>
-
+ 
           <div className="flex items-center space-x-5 shrink-0">
             {/* Search Container */}
-          <div className="w-[180px] hidden lg:block" />
 
             <button 
               onClick={onOpenNewsletter}
