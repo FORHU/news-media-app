@@ -20,6 +20,12 @@ export function getTenantDomainFromRequest(request: NextRequest): string | null 
   if (!host) return "newsicons.com";
 
   const domain = normalizeHostToDomain(host);
+  
+  // Handle localhost in development
+  if (domain === "localhost" || domain === "127.0.0.1") {
+    return "newsicons.com";
+  }
+
   return domain ?? "newsicons.com";
 }
 
