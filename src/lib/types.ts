@@ -75,3 +75,5 @@ export interface AdminUser {
   role: string;
   createdAt: string | Date;
 }
+
+export type Tenant = Prisma.TenantGetPayload<{}>;
