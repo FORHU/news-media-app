@@ -1,8 +1,12 @@
-import { Suspense } from "react";
+"use client";
+
 import { LandingClientWrapper } from "@/components/home/LandingClientWrapper";
 import { AdBanner } from "@/components/AdBanner";
 import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
+import { ChevronRight, ChevronLeft } from "lucide-react";
+import { Suspense, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Props {
   tenantId: string | null;
@@ -15,12 +19,26 @@ interface Props {
 }
 
 export default function JejuTimeLanding({ tenantId, articles, banners }: Props) {
-  const mainArticle = articles[0];
+  const heroArticles = articles.slice(0, 5);
   const secondaryArticles = articles.slice(1, 4);
-  const latestStories = articles.slice(4, 14);
+  const latestStories = articles.slice(0, 10);
   const trendingArticles = articles.slice(0, 5);
-  const featuredArticles = articles.slice(14, 18);
+  const featuredArticles = articles.slice(0, 4);
   const trendingProducts = articles.filter((a: any) => a.status === "blog").slice(0, 4);
+
+  const [[page, direction], setPage] = useState([0, 0]);
+  const index = heroArticles.length > 0 ? Math.abs(page % heroArticles.length) : 0;
+  const mainArticle = heroArticles[index];
+
+  const paginate = (newDirection: number) => {
+    setPage([page + newDirection, newDirection]);
+  };
+
+  const variants = {
+    enter: (direction: number) => ({ x: direction > 0 ? 50 : -50, opacity: 0 }),
+    center: { zIndex: 1, x: 0, opacity: 1 },
+    exit: (direction: number) => ({ zIndex: 0, x: direction < 0 ? 50 : -50, opacity: 0 })
+  };
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#2D3748] font-roboto selection:bg-blue-100">
@@ -37,29 +55,66 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
             {/* Main Floating Feature */}
             <div className="lg:col-span-8 group">
               {mainArticle && (
-                <Link href={`/article/${mainArticle.slug || mainArticle.id}`}>
-                  <div className="relative aspect-[16/9] rounded-3xl overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] group-hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.15)] transition-all duration-700 hover:-translate-y-2 bg-slate-100">
-                    <StoryImage 
-                      src={mainArticle.imageUrl} 
-                      alt={mainArticle.title}
-                      fill
-                      className="object-cover scale-105 group-hover:scale-100 transition-transform duration-1000"
-                      variant="hero"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-blue-950/80 via-transparent to-transparent" />
-                    <div className="absolute bottom-0 left-0 p-10 text-white max-w-2xl">
-                       <span className="inline-block bg-blue-500/30 backdrop-blur-md px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest mb-4 border border-white/20">
-                          Primary Story
-                       </span>
-                       <h2 className="text-4xl font-playfair font-bold leading-tight mb-4 group-hover:text-blue-200 transition-colors">
-                          {mainArticle.title}
-                       </h2>
-                       <p className="text-white/80 line-clamp-2 text-lg font-light leading-relaxed">
-                          {mainArticle.content}
-                       </p>
-                    </div>
+                <div className="relative aspect-[16/9] rounded-3xl overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] group-hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.15)] transition-all duration-700 hover:-translate-y-2 bg-slate-100">
+                  <AnimatePresence initial={false} custom={direction} mode="wait">
+                    <motion.div
+                      key={page}
+                      custom={direction}
+                      variants={variants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
+                      className="absolute inset-0 h-full w-full"
+                    >
+                      <Link href={`/article/${mainArticle.slug || mainArticle.id}`} className="block h-full w-full">
+                        <StoryImage 
+                          src={mainArticle.imageUrl} 
+                          alt={mainArticle.title}
+                          fill
+                          className="object-cover scale-105 transition-transform duration-1000"
+                          variant="hero"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-blue-950/80 via-transparent to-transparent" />
+                        <div className="absolute bottom-0 left-0 p-10 text-white max-w-2xl">
+                           <span className="inline-block bg-blue-500/30 backdrop-blur-md px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest mb-4 border border-white/20">
+                              Primary Story
+                           </span>
+                           <h2 className="text-4xl font-playfair font-bold leading-tight mb-4 group-hover:text-blue-200 transition-colors">
+                              {mainArticle.title}
+                           </h2>
+                           <p className="text-white/80 line-clamp-2 text-lg font-light leading-relaxed">
+                              {mainArticle.content}
+                           </p>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  </AnimatePresence>
+
+                  {/* Navigation Buttons */}
+                  <button type="button" onClick={() => paginate(-1)} className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-md text-white flex items-center justify-center shadow-lg transition-colors border border-white/20" aria-label="Previous">
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                  <button type="button" onClick={() => paginate(1)} className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-md text-white flex items-center justify-center shadow-lg transition-colors border border-white/20" aria-label="Next">
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+
+                  {/* Dots */}
+                  <div className="absolute bottom-6 right-10 flex gap-2 z-10">
+                    {heroArticles.map((_, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => {
+                          const newDirection = i > index ? 1 : -1;
+                          setPage([i, newDirection]);
+                        }}
+                        className={`h-1.5 transition-all duration-300 rounded-full ${i === index ? "w-8 bg-blue-400" : "w-4 bg-white/40 hover:bg-white/80"}`}
+                        aria-label={`Go to slide ${i + 1}`}
+                      />
+                    ))}
                   </div>
-                </Link>
+                </div>
               )}
             </div>
 

@@ -46,9 +46,9 @@ export function ArticleClientShell({ children }: ArticleClientShellProps) {
       {isJejuTime ? (
         <JejuTimeFooter onOpenNewsletter={openNewsletter} />
       ) : isJejuQQ ? (
-        <JejuQQFooter />
+        <JejuQQFooter onOpenNewsletter={openNewsletter} />
       ) : isJejuJapan ? (
-        <JejuJapanFooter />
+        <JejuJapanFooter onOpenNewsletter={openNewsletter} />
       ) : (
         <Footer onOpenNewsletter={openNewsletter} />
       )}
@@ -56,6 +56,7 @@ export function ArticleClientShell({ children }: ArticleClientShellProps) {
       <NewsletterModal
         isOpen={isNewsletterOpen}
         onClose={closeNewsletter}
+        domain={domain}
       />
     </div>
   );

@@ -56,9 +56,9 @@ export function LandingClientWrapper({ children, footerBanners }: LandingClientW
             {isJejuTime ? (
                 <JejuTimeFooter onOpenNewsletter={openNewsletter} />
             ) : isJejuQQ ? (
-                <JejuQQFooter />
+                <JejuQQFooter onOpenNewsletter={openNewsletter} />
             ) : isJejuJapan ? (
-                <JejuJapanFooter />
+                <JejuJapanFooter onOpenNewsletter={openNewsletter} />
             ) : (
                 <Footer onOpenNewsletter={openNewsletter} footerBanners={footerBanners} />
             )}
@@ -66,6 +66,7 @@ export function LandingClientWrapper({ children, footerBanners }: LandingClientW
             <NewsletterModal
                 isOpen={isNewsletterOpen}
                 onClose={closeNewsletter}
+                domain={domain}
             />
         </>
     );

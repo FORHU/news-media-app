@@ -4,7 +4,9 @@ import { LandingClientWrapper } from "@/components/home/LandingClientWrapper";
 import { AdBanner } from "@/components/AdBanner";
 import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
-import { ChevronRight, TrendingUp } from "lucide-react";
+import { ChevronRight, TrendingUp, ChevronLeft } from "lucide-react";
+import { Suspense, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Props {
   tenantId: string | null;
@@ -17,12 +19,26 @@ interface Props {
 }
 
 export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
-  const mainArticle = articles[0];
+  const heroArticles = articles.slice(0, 5);
   const galleryArticles = articles.slice(1, 4);
-  const latestStories = articles.slice(4, 14); // Replaces Insights & Opinions
-  const trendingArticles = articles.slice(0, 5); // Sidebar
-  const featuredArticles = articles.slice(14, 18); // Bottom grid
+  const latestStories = articles.slice(0, 10);
+  const trendingArticles = articles.slice(0, 5);
+  const featuredArticles = articles.slice(0, 4);
   const trendingProducts = articles.filter((a: any) => a.status === "blog").slice(0, 4);
+
+  const [[page, direction], setPage] = useState([0, 0]);
+  const index = heroArticles.length > 0 ? Math.abs(page % heroArticles.length) : 0;
+  const mainArticle = heroArticles[index];
+
+  const paginate = (newDirection: number) => {
+    setPage([page + newDirection, newDirection]);
+  };
+
+  const variants = {
+    enter: (direction: number) => ({ x: direction > 0 ? 50 : -50, opacity: 0 }),
+    center: { zIndex: 1, x: 0, opacity: 1 },
+    exit: (direction: number) => ({ zIndex: 0, x: direction < 0 ? 50 : -50, opacity: 0 })
+  };
 
   return (
     <div className="min-h-screen bg-white text-[#222]">
@@ -39,19 +55,59 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
             <div className="lg:col-span-8">
               {/* Main Article Section (Hero) */}
               {mainArticle && (
-                <div className="mb-12">
+                <div className="mb-12 relative group">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                        <Link href={`/article/${mainArticle.slug || mainArticle.id}`} className="block relative aspect-[4/3] overflow-hidden bg-gray-100">
-                            <StoryImage 
-                                src={mainArticle.imageUrl} 
-                                alt={mainArticle.title}
-                                fill
-                                className="object-cover hover:scale-105 transition-transform duration-700"
-                                variant="hero"
-                            />
-                        </Link>
-                        <div>
+                        <div className="block relative aspect-[4/3] overflow-hidden bg-gray-100">
+                          <AnimatePresence initial={false} custom={direction} mode="wait">
+                            <motion.div
+                              key={page}
+                              custom={direction}
+                              variants={variants}
+                              initial="enter"
+                              animate="center"
+                              exit="exit"
+                              transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
+                              className="absolute inset-0 h-full w-full"
+                            >
+                              <Link href={`/article/${mainArticle.slug || mainArticle.id}`} className="block h-full w-full">
+                                <StoryImage 
+                                    src={mainArticle.imageUrl} 
+                                    alt={mainArticle.title}
+                                    fill
+                                    className="object-cover transition-transform duration-700"
+                                    variant="hero"
+                                />
+                              </Link>
+                            </motion.div>
+                          </AnimatePresence>
+
+                          {/* Navigation Buttons */}
+                          <button type="button" onClick={() => paginate(-1)} className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/80 hover:bg-white text-[#ff4500] flex items-center justify-center shadow-lg transition-colors" aria-label="Previous">
+                            <ChevronLeft className="w-5 h-5" />
+                          </button>
+                          <button type="button" onClick={() => paginate(1)} className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/80 hover:bg-white text-[#ff4500] flex items-center justify-center shadow-lg transition-colors" aria-label="Next">
+                            <ChevronRight className="w-5 h-5" />
+                          </button>
+
+                          {/* Dots */}
+                          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
+                            {heroArticles.map((_, i) => (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() => {
+                                  const newDirection = i > index ? 1 : -1;
+                                  setPage([i, newDirection]);
+                                }}
+                                className={`h-1.5 transition-all duration-300 ${i === index ? "w-8 bg-[#ff4500]" : "w-4 bg-white/50 hover:bg-white/80"}`}
+                                aria-label={`Go to slide ${i + 1}`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex flex-col justify-center h-full py-4">
                             <Link href={`/article/${mainArticle.slug || mainArticle.id}`} className="group">
+                                <span className="text-[10px] text-[#ff4500] font-bold uppercase mb-2 block tracking-widest">{mainArticle.category?.categoryName}</span>
                                 <h2 className="text-[34px] font-serif font-bold leading-tight mb-4 group-hover:underline decoration-[#ff4500]">
                                     {mainArticle.title}
                                 </h2>

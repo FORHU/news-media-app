@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { Twitter, Youtube, Facebook, Instagram } from "lucide-react";
 
-export default function JejuQQFooter() {
+interface JejuQQFooterProps {
+  onOpenNewsletter?: () => void;
+}
+
+export default function JejuQQFooter({ onOpenNewsletter }: JejuQQFooterProps) {
   const currentYear = new Date().getFullYear();
 
   return (

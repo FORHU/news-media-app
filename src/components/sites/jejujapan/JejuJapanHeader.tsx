@@ -70,13 +70,10 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search news..." 
-              className="bg-gray-50 border border-gray-100 rounded-sm px-4 py-1.5 text-xs w-48 focus:w-64 transition-all outline-none focus:border-[#bc002d]/30"
+              className="bg-gray-50 border border-gray-100 rounded-sm px-4 py-1.5 text-xs w-64 focus:w-80 transition-all outline-none focus:border-[#bc002d]/30"
             />
             <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
           </form>
-          <button className="bg-black text-white px-6 py-2 text-[11px] font-bold uppercase tracking-widest hover:bg-[#bc002d] transition-colors">
-            Subscribe
-          </button>
         </div>
       </div>
     </header>

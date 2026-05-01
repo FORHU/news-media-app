@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { ChevronLeft, Check } from "lucide-react";
+import type { ThemeClasses } from "./NewsletterModal";
 
 type CategoryOption = {
   id: string;
@@ -17,6 +18,7 @@ interface InterestsStepProps {
   onToggleInterest: (id: string) => void;
   onSubmit: () => void;
   onCancel: () => void;
+  theme: ThemeClasses;
 }
 
 export function InterestsStep({
@@ -30,6 +32,7 @@ export function InterestsStep({
   onToggleInterest,
   onSubmit,
   onCancel,
+  theme,
 }: InterestsStepProps) {
   return (
     <motion.div
@@ -48,23 +51,23 @@ export function InterestsStep({
               onClick={() => onToggleInterest(category.id)}
               className={`p-3 sm:p-4 rounded-xl transition-all text-left relative group border-2 ${
                 isSelected
-                  ? "bg-white border-[#ff4500] shadow-md"
+                  ? `bg-white ${theme.border} shadow-md`
                   : "bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm"
               }`}
             >
               {isSelected && (
-                <div className="absolute inset-0 bg-gradient-to-br from-[#ff4500]/5 to-transparent pointer-events-none rounded-xl" />
+                <div className={`absolute inset-0 bg-gradient-to-br ${theme.gradient} to-transparent pointer-events-none rounded-xl`} />
               )}
               <div className="flex items-center justify-between gap-2 sm:gap-3 relative z-10">
                 <span
-                  className={`text-xs sm:text-sm font-medium flex-1 font-sans ${
-                    isSelected ? "text-[#ff4500]" : "text-gray-900"
+                  className={`text-xs sm:text-sm font-medium flex-1 ${theme.font} ${
+                    isSelected ? theme.text : "text-gray-900"
                   }`}
                 >
                   {category.name}
                 </span>
                 {isSelected && (
-                  <div className="w-4 h-4 sm:w-5 sm:h-5 bg-[#ff4500] rounded-full flex items-center justify-center flex-shrink-0 transition-transform scale-110">
+                  <div className={`w-4 h-4 sm:w-5 sm:h-5 ${theme.bg} rounded-full flex items-center justify-center flex-shrink-0 transition-transform scale-110`}>
                     <Check className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-white stroke-[3.5]" />
                   </div>
                 )}
@@ -74,11 +77,11 @@ export function InterestsStep({
         })}
       </div>
 
-      <p className="text-gray-500 mb-2 sm:mb-3 text-center text-[10px] sm:text-sm font-sans">
+      <p className={`text-gray-500 mb-2 sm:mb-3 text-center text-[10px] sm:text-sm ${theme.font}`}>
         Select topics to personalize your experience
       </p>
       {categoriesErrorMessage && (
-        <p className="text-center text-[10px] sm:text-xs text-red-500 font-sans mb-2">
+        <p className={`text-center text-[10px] sm:text-xs text-red-500 ${theme.font} mb-2`}>
           {categoriesErrorMessage}
         </p>
       )}
@@ -87,13 +90,13 @@ export function InterestsStep({
         <button
           type="button"
           onClick={onBack}
-          className="text-xs sm:text-sm text-gray-600 hover:text-gray-900 font-medium flex items-center gap-1 sm:gap-2 transition-colors font-sans"
+          className={`text-xs sm:text-sm text-gray-600 hover:text-gray-900 font-medium flex items-center gap-1 sm:gap-2 transition-colors ${theme.font}`}
         >
           <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           Back
         </button>
 
-        <div className="text-xs sm:text-sm text-gray-600 font-medium font-sans">
+        <div className={`text-xs sm:text-sm text-gray-600 font-medium ${theme.font}`}>
           {selectedInterests.length}{" "}
           {selectedInterests.length === 1 ? "category" : "categories"}
         </div>
@@ -109,13 +112,13 @@ export function InterestsStep({
             categoriesLoading ||
             categories.length === 0
           }
-          className={`flex-1 px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg transition-colors font-medium text-sm sm:text-base font-sans ${
+          className={`flex-1 px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg transition-colors font-medium text-sm sm:text-base ${theme.font} ${
             selectedInterests.length === 0 ||
             isSendingOtp ||
             categoriesLoading ||
             categories.length === 0
               ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-              : "bg-[#ff4500] text-white hover:bg-[#e63e00]"
+              : `${theme.bg} text-white ${theme.hoverBg}`
           }`}
         >
           {isSendingOtp ? "Sending code..." : "Next"}
@@ -123,14 +126,14 @@ export function InterestsStep({
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 sm:px-8 py-3 sm:py-3.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm sm:text-base font-sans"
+          className={`px-6 sm:px-8 py-3 sm:py-3.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm sm:text-base ${theme.font}`}
         >
           Cancel
         </button>
       </div>
 
       {otpSendError && (
-        <p className="mt-2 text-xs sm:text-sm text-red-500 font-sans">
+        <p className={`mt-2 text-xs sm:text-sm text-red-500 ${theme.font}`}>
           {otpSendError}
         </p>
       )}
