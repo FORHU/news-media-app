@@ -18,8 +18,8 @@ const { Pool } = pg;
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 try {
-  const r = await pool.query("SELECT * FROM news_icons.tenants");
-  console.log('Tenants in news_icons schema:', JSON.stringify(r.rows, null, 2));
+  const r = await pool.query("SELECT * FROM public.tenants");
+  console.log('Tenants in public schema:', JSON.stringify(r.rows, null, 2));
 } catch (e) {
   console.error('Failed:', e.message);
 } finally {

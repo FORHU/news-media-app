@@ -13,7 +13,7 @@ async function showCredentials() {
   `);
 
   if (tenants.length === 0) {
-    console.log("No admin users found in news_icons schema.");
+    console.log("No admin users found in public schema.");
   } else {
     console.table(tenants.map(t => ({
       "Site Name": t.site_name,
