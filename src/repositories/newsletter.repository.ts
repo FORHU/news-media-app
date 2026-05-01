@@ -10,48 +10,82 @@ type OtpData = {
 const MAX_VERIFY_ATTEMPTS = 3;
 
 export const newsletterRepository = {
-  findSubscriberByEmail(email: string) {
-    return prisma.subscriber.findUnique({ where: { email } });
+  findSubscriberByEmail(email: string, tenantId: string) {
+    return prisma.subscriber.findUnique({
+      where: {
+        tenantId_email: {
+          tenantId,
+          email,
+        },
+      },
+    });
   },
 
-  upsertSubscriber(email: string) {
+  upsertSubscriber(email: string, tenantId: string) {
     return prisma.subscriber.upsert({
-      where: { email },
+      where: {
+        tenantId_email: {
+          tenantId,
+          email,
+        },
+      },
       update: {},
-      create: { email },
+      create: {
+        email,
+        tenantId,
+      },
     });
   },
 
-  upsertSubscriberOtp(email: string, otpData: OtpData) {
+  upsertSubscriberOtp(email: string, tenantId: string, otpData: OtpData) {
     return prisma.subscriber.upsert({
-      where: { email },
+      where: {
+        tenantId_email: {
+          tenantId,
+          email,
+        },
+      },
       update: otpData,
-      create: { email, ...otpData },
+      create: {
+        email,
+        tenantId,
+        ...otpData,
+      },
     });
   },
 
-  getRawSendWindow(email: string) {
+  getRawSendWindow(email: string, tenantId: string) {
     return prisma.$queryRaw<
       { attempts: number; last_otp_sent_at: Date | null }[]
-    >`SELECT attempts, last_otp_sent_at FROM subscribers WHERE email = ${email} LIMIT 1`;
+    >`SELECT attempts, last_otp_sent_at FROM subscribers WHERE email = ${email} AND tenant_id = ${tenantId} LIMIT 1`;
   },
 
-  updateLastOtpSentAt(email: string, date: Date) {
+  updateLastOtpSentAt(email: string, tenantId: string, date: Date) {
     return prisma.$executeRaw`
-      UPDATE subscribers SET last_otp_sent_at = ${date} WHERE email = ${email}
+      UPDATE subscribers SET last_otp_sent_at = ${date} WHERE email = ${email} AND tenant_id = ${tenantId}
     `;
   },
 
-  incrementAttempts(email: string) {
+  incrementAttempts(email: string, tenantId: string) {
     return prisma.subscriber.update({
-      where: { email },
+      where: {
+        tenantId_email: {
+          tenantId,
+          email,
+        },
+      },
       data: { attempts: { increment: 1 } },
     });
   },
 
-  markVerified(email: string) {
+  markVerified(email: string, tenantId: string) {
     return prisma.subscriber.update({
-      where: { email },
+      where: {
+        tenantId_email: {
+          tenantId,
+          email,
+        },
+      },
       data: {
         isVerified: true,
         otpCode: null,
@@ -61,9 +95,9 @@ export const newsletterRepository = {
     });
   },
 
-  resetLastOtpSentAt(email: string) {
+  resetLastOtpSentAt(email: string, tenantId: string) {
     return prisma.$executeRaw`
-      UPDATE subscribers SET last_otp_sent_at = NULL WHERE email = ${email}
+      UPDATE subscribers SET last_otp_sent_at = NULL WHERE email = ${email} AND tenant_id = ${tenantId}
     `;
   },
 
@@ -80,10 +114,20 @@ export const newsletterRepository = {
     }
   },
 
-  async verifyOtp(email: string, code: string, categories: string[]): Promise<void> {
+  async verifyOtp(
+    email: string,
+    tenantId: string,
+    code: string,
+    categories: string[]
+  ): Promise<void> {
     await prisma.$transaction(async (tx) => {
       const subscriber = await tx.subscriber.findUnique({
-        where: { email },
+        where: {
+          tenantId_email: {
+            tenantId,
+            email,
+          },
+        },
       });
 
       if (!subscriber || !subscriber.otpCode || !subscriber.expiresAt) {
@@ -109,7 +153,12 @@ export const newsletterRepository = {
 
       if (subscriber.otpCode !== code) {
         await tx.subscriber.update({
-          where: { email },
+          where: {
+            tenantId_email: {
+              tenantId,
+              email,
+            },
+          },
           data: { attempts: { increment: 1 } },
         });
         const remaining = MAX_VERIFY_ATTEMPTS - (subscriber.attempts + 1);
@@ -122,7 +171,12 @@ export const newsletterRepository = {
       }
 
       await tx.subscriber.update({
-        where: { email },
+        where: {
+          tenantId_email: {
+            tenantId,
+            email,
+          },
+        },
         data: {
           isVerified: true,
           otpCode: null,
@@ -132,7 +186,7 @@ export const newsletterRepository = {
       });
 
       await tx.$executeRaw`
-        UPDATE subscribers SET last_otp_sent_at = NULL WHERE email = ${email}
+        UPDATE subscribers SET last_otp_sent_at = NULL WHERE email = ${email} AND tenant_id = ${tenantId}
       `;
 
       const uniqueCategoryIds = [...new Set(categories)];
@@ -153,4 +207,3 @@ export const newsletterRepository = {
     });
   },
 };
-

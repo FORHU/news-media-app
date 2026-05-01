@@ -49,7 +49,7 @@ export async function POST(_request: NextRequest) {
         if (!dbUser) {
             console.warn("[POST /api/admin/auth/session] Role check failed", {
                 email: user.email,
-                dbRole: dbUser?.role ?? null,
+                dbRole: null,
             });
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }

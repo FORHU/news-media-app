@@ -33,7 +33,7 @@ export const bannersService = {
     return banner;
   },
 
-  async createBanner(data: Prisma.BannerCreateInput) {
+  async createBanner(data: Prisma.BannerUncheckedCreateInput) {
     return bannersRepository.create(data);
   },
 
