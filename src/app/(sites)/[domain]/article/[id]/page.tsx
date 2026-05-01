@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { dehydrate } from "@tanstack/react-query";
 import { notFound, redirect } from "next/navigation";
-import { headers } from "next/headers";
 import { createQueryClient } from "@/lib/react-query";
 import { Hydrate } from "@/components/react-query/Hydrate";
 import {
@@ -12,26 +11,25 @@ import {
 import { DEFAULT_OG_IMAGE, DEFAULT_SEO } from "@/config/site";
 import ArticlePageClient from "./ArticlePageClient";
 import { ArticleClientShell } from "@/components/ArticleClientShell";
-import { normalizeHostToDomain, resolveTenantIdFromDomain } from "@/lib/tenant";
+import { resolveTenantIdFromDomain } from "@/lib/tenant";
 
 export const revalidate = 5;
 
+// Dynamic rendering for multi-tenant articles
 export async function generateStaticParams() {
-  const articles = await articlesService.getArticles({ limit: 100 });
-  return articles.map((article) => ({
-    id: article.slug ?? article.id,
-  }));
+  return [];
 }
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ domain: string; id: string }>;
 }): Promise<Metadata> {
-  const { id } = await params;
+  const { domain, id } = await params;
   const articleId = id?.trim() ?? "";
+  const tenantId = await resolveTenantIdFromDomain(domain);
 
-  if (!articleId) {
+  if (!articleId || !tenantId) {
     return {
       title: DEFAULT_SEO.title,
       description: DEFAULT_SEO.description,
@@ -39,7 +37,7 @@ export async function generateMetadata({
   }
 
   try {
-    const article = await articlesService.getArticleBySlugOrId(articleId);
+    const article = await articlesService.getArticleBySlugOrId(articleId, tenantId);
     const title = article.title ?? DEFAULT_SEO.title;
     const rawDescription = article.content ?? DEFAULT_SEO.description;
     const description = rawDescription
@@ -50,9 +48,17 @@ export async function generateMetadata({
     const canonicalSlug = article.slug ?? article.id;
     const url = `/article/${canonicalSlug}`;
 
+    let icon = "/icons/newsicons.ico";
+    if (domain === "jejutime.com") icon = "/icons/jejutimes.ico";
+    if (domain === "jejuqq.com") icon = "/icons/jejuqq.ico";
+    if (domain === "jejujapan.com") icon = "/icons/jejujapan.ico";
+
     return {
       title,
       description,
+      icons: {
+        icon: icon,
+      },
       alternates: {
         canonical: url,
       },
@@ -79,9 +85,18 @@ export async function generateMetadata({
     };
   } catch {
     const url = `/article/${articleId}`;
+
+    let icon = "/icons/newsicons.ico";
+    if (domain === "jejutime.com") icon = "/icons/jejutimes.ico";
+    if (domain === "jejuqq.com") icon = "/icons/jejuqq.ico";
+    if (domain === "jejujapan.com") icon = "/icons/jejujapan.ico";
+
     return {
       title: DEFAULT_SEO.title,
       description: DEFAULT_SEO.description,
+      icons: {
+        icon: icon,
+      },
       alternates: {
         canonical: url,
       },
@@ -92,24 +107,22 @@ export async function generateMetadata({
 export default async function ArticlePage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ domain: string; id: string }>;
 }) {
-  const { id } = await params;
+  const { domain, id } = await params;
   const articleId = id?.trim() ?? "";
 
   if (!articleId) {
     notFound();
   }
 
-  const queryClient = createQueryClient();
-
-  const headerList = await headers();
-  const domain = normalizeHostToDomain(headerList.get("host"));
-  const tenantId = domain ? await resolveTenantIdFromDomain(domain) : null;
+  const tenantId = await resolveTenantIdFromDomain(domain);
 
   if (!tenantId) {
     notFound();
   }
+
+  const queryClient = createQueryClient();
 
   try {
     const article = await articlesService.getArticleBySlugOrId(articleId, tenantId);
@@ -125,13 +138,8 @@ export default async function ArticlePage({
     if (error instanceof ArticlesServiceError && error.status === 404) {
       notFound();
     }
-
-    // Any other server-side failure should not hard-404 the page.
-    // We fall back to client fetching so users still get a usable screen.
   }
 
-  // We fetch published articles on the server for sidebar/recommendations
-  // to ensure consistency (e.g. correct categories) and SEO.
   const allArticles = await articlesService.getArticles({
     limit: 50,
     status: "published",
@@ -152,3 +160,4 @@ export default async function ArticlePage({
     </ArticleClientShell>
   );
 }
+

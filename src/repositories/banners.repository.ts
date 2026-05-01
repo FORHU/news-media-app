@@ -44,7 +44,7 @@ export const bannersRepository = {
     });
   },
 
-  async create(data: Prisma.BannerCreateInput): Promise<Banner> {
+  async create(data: Prisma.BannerUncheckedCreateInput): Promise<Banner> {
     return prisma.banner.create({
       data,
     });

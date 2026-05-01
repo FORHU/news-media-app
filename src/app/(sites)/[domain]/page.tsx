@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { headers } from "next/headers";
 import { NavBar } from "@/components/NavBar";
 import { HeroSection } from "@/components/HeroSection";
-import { FilterStatusBar } from "@/components/home/filter-status-bar";
 import { LatestStoriesSection } from "@/components/home/latest-stories-section";
 import { TrendingSidebar } from "@/components/home/trending-sidebar";
 import { FeaturedArticlesSection } from "@/components/home/featured-articles-section";
@@ -13,43 +11,46 @@ import { AdBanner } from "@/components/AdBanner";
 import { articlesService } from "@/services/articles.service";
 import { bannersService } from "@/services/banners.service";
 import { DEFAULT_OG_IMAGE, DEFAULT_SEO } from "@/config/site";
-import { normalizeHostToDomain, resolveTenantIdFromDomain } from "@/lib/tenant";
+import { resolveTenantIdFromDomain } from "@/lib/tenant";
+
+// Domain-specific designs
+import NewsIconsLanding from "@/components/sites/newsicons/NewsIconsLanding";
+import JejuTimeLanding from "@/components/sites/jejutime/JejuTimeLanding";
+import JejuQQLanding from "@/components/sites/jejuqq/JejuQQLanding";
+import JejuJapanLanding from "@/components/sites/jejujapan/JejuJapanLanding";
 
 export const revalidate = 300;
 
-export const metadata: Metadata = {
-  title: "Home",
-  description: DEFAULT_SEO.description,
-  openGraph: {
-    title: "Home",
-    description: DEFAULT_SEO.description,
-    url: "/",
-    type: "website",
-    images: [
-      {
-        url: DEFAULT_OG_IMAGE,
-        width: 1200,
-        height: 630,
-        alt: DEFAULT_SEO.title,
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Home",
-    description: DEFAULT_SEO.description,
-    images: [DEFAULT_OG_IMAGE],
-  },
-  alternates: {
-    canonical: "/",
-  },
-};
+export async function generateMetadata({ params }: { params: Promise<{ domain: string }> }): Promise<Metadata> {
+  const { domain } = await params;
+  
+  let icon = "/icons/newsicons.ico";
+  if (domain === "jejutime.com") icon = "/icons/jejutimes.ico";
+  if (domain === "jejuqq.com") icon = "/icons/jejuqq.ico";
+  if (domain === "jejujapan.com") icon = "/icons/jejujapan.ico";
 
-export default async function Page() {
-  // Fetch articles on the server (latest 50 published)
-  const headerList = await headers();
-  const domain = normalizeHostToDomain(headerList.get("host"));
-  const tenantId = domain ? await resolveTenantIdFromDomain(domain) : null;
+  return {
+    title: `Home | ${domain}`,
+    description: DEFAULT_SEO.description,
+    icons: {
+      icon: icon,
+    },
+    openGraph: {
+      title: `Home | ${domain}`,
+      description: DEFAULT_SEO.description,
+      url: "/",
+      type: "website",
+    },
+  };
+}
+
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ domain: string }>;
+}) {
+  const { domain } = await params;
+  const tenantId = await resolveTenantIdFromDomain(domain);
 
   const articles = tenantId
     ? await articlesService.getArticles(
@@ -58,8 +59,6 @@ export default async function Page() {
       )
     : [];
 
-  // Fetch banners server-side so AdBanner components skip their client-side fetch.
-  // Errors are swallowed — missing banners are non-critical.
   const [topBanners, sidebarBanners, footerBanners] = await Promise.all([
     tenantId
       ? bannersService
@@ -78,8 +77,27 @@ export default async function Page() {
       : Promise.resolve([]),
   ]);
 
-  const error = ""; // Errors can be handled via error.tsx in Next.js
+  const banners = { top: topBanners, sidebar: sidebarBanners, footer: footerBanners };
 
+  // --- Design Routing ---
+  if (domain === "newsicons.com") {
+      return <NewsIconsLanding tenantId={tenantId} articles={articles} banners={banners} />;
+  }
+
+  if (domain === "jejutime.com") {
+      return <JejuTimeLanding tenantId={tenantId} articles={articles} banners={banners} />;
+  }
+
+  if (domain === "jejuqq.com") {
+      return <JejuQQLanding tenantId={tenantId} articles={articles} banners={banners} />;
+  }
+
+  if (domain === "jejujapan.com") {
+      return <JejuJapanLanding tenantId={tenantId} articles={articles} banners={banners} />;
+  }
+
+  // Default design (current layout)
+  const error = "";
   return (
     <div className="min-h-screen bg-white">
       <LandingClientWrapper footerBanners={footerBanners}>
@@ -87,19 +105,15 @@ export default async function Page() {
           <NavBar />
         </Suspense>
 
-        {/* Top Ad Banner */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
           <AdBanner position="HOME_TOP" initialBanners={topBanners} />
         </div>
 
-        {/* Hero Section - Carousel with trending sidebar & recommendations */}
         {articles.length > 0 && (
           <HeroSection articles={articles.slice(0, 5)} />
         )}
 
-        {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
-          {/* Two-Column Layout: Latest Stories + Trending Sidebar */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
             <LatestStoriesSection
               articles={articles}
@@ -113,12 +127,10 @@ export default async function Page() {
             </div>
           </div>
 
-          {/* Featured Articles Grid */}
           <FeaturedArticlesSection
             articles={articles.slice(0, 4)}
           />
 
-          {/* Trending Products Section */}
           <TrendingProductsSection
             articles={articles
               .filter((a) => a.status === "blog")
@@ -129,3 +141,5 @@ export default async function Page() {
     </div>
   );
 }
+
+

@@ -5,13 +5,19 @@ import {
   NewsletterServiceError,
 } from "@/services/newsletter.service";
 import { ZodError } from "zod";
+import { resolveTenantIdFromRequest } from "@/lib/tenant";
 
 export async function POST(request: NextRequest) {
   try {
+    const tenantId = await resolveTenantIdFromRequest(request);
+    if (!tenantId) {
+      return NextResponse.json({ error: "Tenant not found" }, { status: 400 });
+    }
+
     const json = await request.json();
     const { email } = newsletterSubscribeSchema.parse(json);
 
-    await newsletterService.sendOtp(email);
+    await newsletterService.sendOtp(email, tenantId);
 
     return NextResponse.json({ ok: true });
   } catch (error) {
@@ -32,4 +38,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
-

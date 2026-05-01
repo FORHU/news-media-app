@@ -14,7 +14,19 @@ export function normalizeHostToDomain(host: string | null): string | null {
 
 export function getTenantDomainFromRequest(request: NextRequest): string | null {
   const cookie = request.cookies.get(TENANT_DOMAIN_COOKIE)?.value;
-  return normalizeHostToDomain(cookie ?? request.headers.get("host"));
+  const host = cookie ?? request.headers.get("host");
+  
+  // Default fallback if no host/cookie is found (e.g. local dev without host header)
+  if (!host) return "newsicons.com";
+
+  const domain = normalizeHostToDomain(host);
+  
+  // Handle localhost in development
+  if (domain === "localhost" || domain === "127.0.0.1") {
+    return "newsicons.com";
+  }
+
+  return domain ?? "newsicons.com";
 }
 
 export async function resolveTenantIdFromRequest(request: NextRequest): Promise<string | null> {

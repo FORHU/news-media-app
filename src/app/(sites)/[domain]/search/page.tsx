@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { headers } from "next/headers";
 import { NavBar } from "@/components/NavBar";
 import { FilterStatusBar } from "@/components/home/filter-status-bar";
 import { LatestStoriesSection } from "@/components/home/latest-stories-section";
@@ -10,47 +9,59 @@ import { AdBanner } from "@/components/AdBanner";
 import { articlesService } from "@/services/articles.service";
 import { bannersService } from "@/services/banners.service";
 import { DEFAULT_OG_IMAGE, DEFAULT_SEO } from "@/config/site";
-import { normalizeHostToDomain, resolveTenantIdFromDomain } from "@/lib/tenant";
+import { resolveTenantIdFromDomain } from "@/lib/tenant";
 
-export const metadata: Metadata = {
-  title: "Search Results",
-  description: "Search results for articles.",
-  openGraph: {
+export async function generateMetadata({ params }: { params: Promise<{ domain: string }> }): Promise<Metadata> {
+  const { domain } = await params;
+  
+  let icon = "/icons/newsicons.ico";
+  if (domain === "jejutime.com") icon = "/icons/jejutimes.ico";
+  if (domain === "jejuqq.com") icon = "/icons/jejuqq.ico";
+  if (domain === "jejujapan.com") icon = "/icons/jejujapan.ico";
+
+  return {
     title: "Search Results",
     description: "Search results for articles.",
-    url: "/search",
-    type: "website",
-    images: [
-      {
-        url: DEFAULT_OG_IMAGE,
-        width: 1200,
-        height: 630,
-        alt: DEFAULT_SEO.title,
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Search Results",
-    description: "Search results for articles.",
-    images: [DEFAULT_OG_IMAGE],
-  },
-  alternates: {
-    canonical: "/search",
-  },
-};
+    icons: {
+      icon: icon,
+    },
+    openGraph: {
+      title: "Search Results",
+      description: "Search results for articles.",
+      url: "/search",
+      type: "website",
+      images: [
+        {
+          url: DEFAULT_OG_IMAGE,
+          width: 1200,
+          height: 630,
+          alt: DEFAULT_SEO.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Search Results",
+      description: "Search results for articles.",
+      images: [DEFAULT_OG_IMAGE],
+    },
+    alternates: {
+      canonical: "/search",
+    },
+  };
+}
 
-export default async function SearchPage(props: {
+export default async function SearchPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ domain: string }>;
   searchParams: Promise<{ search?: string; category?: string }>;
 }) {
-  const searchParams = await props.searchParams;
-  const searchQuery = searchParams.search;
-  const categoryParam = searchParams.category;
+  const { domain } = await params;
+  const { search: searchQuery, category: categoryParam } = await searchParams;
 
-  // Fetch articles on the server using database-level filtering
-  const headerList = await headers();
-  const domain = normalizeHostToDomain(headerList.get("host"));
-  const tenantId = domain ? await resolveTenantIdFromDomain(domain) : null;
+  const tenantId = await resolveTenantIdFromDomain(domain);
 
   const articles = tenantId
     ? await articlesService.getArticles(
@@ -64,8 +75,6 @@ export default async function SearchPage(props: {
       )
     : [];
 
-  // Fetch banners server-side so AdBanner components skip their client-side fetch.
-  // Errors are swallowed — missing banners are non-critical.
   const [sidebarBanners, footerBanners] = await Promise.all([
     tenantId
       ? bannersService
@@ -79,25 +88,24 @@ export default async function SearchPage(props: {
       : Promise.resolve([]),
   ]);
 
-  const error = ""; // Errors can be handled via error.tsx in Next.js
+  const error = "";
 
   return (
     <div className="min-h-screen bg-white">
       <LandingClientWrapper footerBanners={footerBanners}>
-        <Suspense fallback={<div className="hidden md:block h-12 bg-black" />}>
-          <NavBar />
-        </Suspense>
+        {domain !== "jejutime.com" && domain !== "jejuqq.com" && domain !== "jejujapan.com" && (
+          <Suspense fallback={<div className="hidden md:block h-12 bg-black" />}>
+            <NavBar />
+          </Suspense>
+        )}
 
-        {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
-          {/* Filter Status Bar */}
           <FilterStatusBar
             searchQuery={searchQuery || null}
             categoryName={categoryParam || null}
             resultCount={articles.length}
           />
 
-          {/* Two-Column Layout: Latest Stories + Trending Sidebar */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
             <LatestStoriesSection
               articles={articles}
@@ -115,3 +123,4 @@ export default async function SearchPage(props: {
     </div>
   );
 }
+

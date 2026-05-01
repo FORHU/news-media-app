@@ -1,35 +1,63 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { NewsletterModal } from "@/components/newsLetterModal/NewsletterModal";
+import JejuTimeHeader from "./sites/jejutime/JejuTimeHeader";
+import JejuTimeFooter from "./sites/jejutime/JejuTimeFooter";
+import JejuQQHeader from "./sites/jejuqq/JejuQQHeader";
+import JejuQQFooter from "./sites/jejuqq/JejuQQFooter";
+import JejuJapanHeader from "./sites/jejujapan/JejuJapanHeader";
+import JejuJapanFooter from "./sites/jejujapan/JejuJapanFooter";
 
 interface ArticleClientShellProps {
   children: React.ReactNode;
 }
 
-/**
- * Thin client boundary that owns the newsletter open/close state and renders
- * the persistent Header + Footer around server-rendered article content.
- *
- * Keeping this separate from ArticlePageClient means the article body itself
- * does not need to live inside a client component just because the Header does.
- */
 export function ArticleClientShell({ children }: ArticleClientShellProps) {
   const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
+  const [domain, setDomain] = useState<string>("");
+
+  useEffect(() => {
+    setDomain(window.location.hostname);
+  }, []);
+
+  const isJejuTime = domain.includes("jejutime");
+  const isJejuQQ = domain.includes("jejuqq");
+  const isJejuJapan = domain.includes("jejujapan");
+  const openNewsletter = () => setIsNewsletterOpen(true);
+  const closeNewsletter = () => setIsNewsletterOpen(false);
 
   return (
     <div className="min-h-screen bg-white">
-      <Suspense fallback={<div className="h-16 bg-white border-b" />}>
-        <Header onOpenNewsletter={() => setIsNewsletterOpen(true)} />
-      </Suspense>
+      {isJejuTime ? (
+        <JejuTimeHeader onOpenNewsletter={openNewsletter} />
+      ) : isJejuQQ ? (
+        <JejuQQHeader onOpenNewsletter={openNewsletter} />
+      ) : isJejuJapan ? (
+        <JejuJapanHeader onOpenNewsletter={openNewsletter} />
+      ) : (
+        <Header onOpenNewsletter={openNewsletter} />
+      )}
+      
       {children}
-      <Footer onOpenNewsletter={() => setIsNewsletterOpen(true)} />
+      
+      {isJejuTime ? (
+        <JejuTimeFooter onOpenNewsletter={openNewsletter} />
+      ) : isJejuQQ ? (
+        <JejuQQFooter />
+      ) : isJejuJapan ? (
+        <JejuJapanFooter />
+      ) : (
+        <Footer onOpenNewsletter={openNewsletter} />
+      )}
+
       <NewsletterModal
         isOpen={isNewsletterOpen}
-        onClose={() => setIsNewsletterOpen(false)}
+        onClose={closeNewsletter}
       />
     </div>
   );
 }
+
