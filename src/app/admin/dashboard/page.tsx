@@ -57,7 +57,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Real-time Polling Stats Grid Component */}
-            <DashboardStatsGrid stats={data} loading={loading || isFetching} />
+            <DashboardStatsGrid stats={data} loading={loading} />
 
             {/* Lower Section: Activity Feed & Health Metrics */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

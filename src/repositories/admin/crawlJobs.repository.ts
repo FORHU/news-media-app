@@ -8,6 +8,11 @@ export const crawlJobsRepository = {
     const [rows, count] = await Promise.all([
       prisma.crawlJob.findMany({
         where: { tenantId },
+        include: {
+          _count: {
+            select: { rawArticles: true },
+          },
+        },
         orderBy: { createdAt: "desc" },
         skip: offset,
         take: limit,
