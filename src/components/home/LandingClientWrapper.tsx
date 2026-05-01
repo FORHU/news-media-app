@@ -1,9 +1,15 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { NewsletterModal } from "@/components/newsLetterModal/NewsletterModal";
+import JejuTimeHeader from "../sites/jejutime/JejuTimeHeader";
+import JejuTimeFooter from "../sites/jejutime/JejuTimeFooter";
+import JejuQQHeader from "../sites/jejuqq/JejuQQHeader";
+import JejuQQFooter from "../sites/jejuqq/JejuQQFooter";
+import JejuJapanHeader from "../sites/jejujapan/JejuJapanHeader";
+import JejuJapanFooter from "../sites/jejujapan/JejuJapanFooter";
 
 interface Banner {
     id: string;
@@ -20,17 +26,43 @@ interface LandingClientWrapperProps {
 
 export function LandingClientWrapper({ children, footerBanners }: LandingClientWrapperProps) {
     const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
+    const [domain, setDomain] = useState<string>("");
+
+    useEffect(() => {
+        setDomain(window.location.hostname);
+    }, []);
 
     const openNewsletter = () => setIsNewsletterOpen(true);
     const closeNewsletter = () => setIsNewsletterOpen(false);
 
+    const isJejuTime = domain.includes("jejutime");
+    const isJejuQQ = domain.includes("jejuqq");
+    const isJejuJapan = domain.includes("jejujapan");
+
     return (
         <>
-            <Suspense fallback={<div className="h-16 bg-white border-b" />}>
+            {isJejuTime ? (
+                <JejuTimeHeader onOpenNewsletter={openNewsletter} />
+            ) : isJejuQQ ? (
+                <JejuQQHeader onOpenNewsletter={openNewsletter} />
+            ) : isJejuJapan ? (
+                <JejuJapanHeader onOpenNewsletter={openNewsletter} />
+            ) : (
                 <Header onOpenNewsletter={openNewsletter} />
-            </Suspense>
+            )}
+            
             {children}
-            <Footer onOpenNewsletter={openNewsletter} footerBanners={footerBanners} />
+            
+            {isJejuTime ? (
+                <JejuTimeFooter onOpenNewsletter={openNewsletter} />
+            ) : isJejuQQ ? (
+                <JejuQQFooter />
+            ) : isJejuJapan ? (
+                <JejuJapanFooter />
+            ) : (
+                <Footer onOpenNewsletter={openNewsletter} footerBanners={footerBanners} />
+            )}
+
             <NewsletterModal
                 isOpen={isNewsletterOpen}
                 onClose={closeNewsletter}
@@ -38,3 +70,4 @@ export function LandingClientWrapper({ children, footerBanners }: LandingClientW
         </>
     );
 }
+
