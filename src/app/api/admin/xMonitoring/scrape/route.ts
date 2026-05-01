@@ -166,49 +166,33 @@ function mapPostToTweet(post: XpozPost, fallbackHandle: string, index: number) {
     ];
   };
 
-  const rawMediaUrls = [
-    ...getMediaUrls(post),
-    ...(retweetedPost ? getMediaUrls(retweetedPost) : []),
-    ...(quotedPost ? getMediaUrls(quotedPost) : []),
-  ];
-  const mediaObjects = [
-    ...getMediaObjects(post),
-    ...(retweetedPost ? getMediaObjects(retweetedPost) : []),
-    ...(quotedPost ? getMediaObjects(quotedPost) : []),
-  ];
-  const mediaTypes = Array.from(
-    new Set(
-      mediaObjects
-        .map(
-          (item) =>
+    // Consolidate all media URLs collected from the post and related entities
+    const rawMediaUrls = [
+      ...getMediaUrls(post),
+      ...(retweetedPost ? getMediaUrls(retweetedPost) : []),
+      ...(quotedPost ? getMediaUrls(quotedPost) : []),
+    ];
+    const mediaObjects = [
+      ...getMediaObjects(post),
+      ...(retweetedPost ? getMediaObjects(retweetedPost) : []),
+      ...(quotedPost ? getMediaObjects(quotedPost) : []),
+    ];
+    const mediaTypes = Array.from(
+      new Set(
+        mediaObjects
+          .map((item) =>
             getString(item.type) ??
             getString(item.mediaType) ??
             getString(item.media_type) ??
             ""
+          )
+          .filter(Boolean)
         )
-        .filter(Boolean)
-    )
-  );
-
-  const mediaUrls = Array.from(new Set(rawMediaUrls.filter(Boolean)));
-  const thumbnailUrl =
-    getString(post.thumbnailUrl) ??
-    getString(post.thumbnail_url) ??
-    getString(post.previewImageUrl) ??
-    getString(post.preview_image_url) ??
-    getString(
-      Array.isArray(post.media) && post.media[0] && typeof post.media[0] === "object"
-        ? ((post.media[0] as Record<string, unknown>).thumbnailUrl ??
-          (post.media[0] as Record<string, unknown>).thumbnail_url ??
-          (post.media[0] as Record<string, unknown>).previewImageUrl ??
-          (post.media[0] as Record<string, unknown>).preview_image_url)
-        : undefined
-    ) ??
-    getString(
-      getObjectArray(
-        ((post.extendedEntities as Record<string, unknown> | undefined)?.media as unknown) ?? []
-      )[0]?.media_url
     );
+
+    const mediaUrls = Array.from(new Set(rawMediaUrls.filter(Boolean)));
+    // Determine media state (video, image, none) based on URLs and declared types
+
   const mediaType =
     getString(post.mediaType) ??
     getString(post.media_type) ??
@@ -225,22 +209,33 @@ function mapPostToTweet(post: XpozPost, fallbackHandle: string, index: number) {
       )[0]?.type
     ) ??
     mediaTypes[0];
-  const hasMedia = mediaObjects.length > 0 || mediaUrls.length > 0;
-  const hasVideoMedia =
-    mediaUrls.some((url) => /\.(mp4|mov|m4v|webm|mkv|m3u8)(\?|$)/i.test(url)) ||
-    (mediaType ?? "").toLowerCase().includes("video") ||
-    (mediaType ?? "").toLowerCase().includes("animated_gif") ||
-    (mediaType ?? "").toLowerCase().includes("gif");
-  const hasImageMedia =
-    mediaUrls.some((url) => /\.(jpg|jpeg|png|webp|gif|bmp|svg)(\?|$)/i.test(url)) ||
-    Boolean(thumbnailUrl) ||
-    (mediaType ?? "").toLowerCase().includes("image") ||
-    (mediaType ?? "").toLowerCase().includes("photo");
-  const mediaState: MediaState = hasVideoMedia
-    ? "video"
-    : hasImageMedia && hasMedia
-      ? "image"
-      : "none";
+    const hasVideoMedia = mediaUrls.some((url) => /\.(mp4|mov|m4v|webm|mkv|m3u8)(\?|$)/i.test(url)) ||
+      (mediaTypes[0] ?? "").toLowerCase().includes("video") ||
+      (mediaTypes[0] ?? "").toLowerCase().includes("animated_gif") ||
+      (mediaTypes[0] ?? "").toLowerCase().includes("gif");
+
+    const mediaState: MediaState = hasVideoMedia ? "video" : "none";
+
+    const finalThumbnailUrl = mediaState === "video"
+      ? null
+      : (getString(post.thumbnailUrl) ??
+          getString(post.thumbnail_url) ??
+          getString(post.previewImageUrl) ??
+          getString(post.preview_image_url) ??
+          (Array.isArray(post.media) && post.media[0] && typeof post.media[0] === "object"
+            ? ((post.media[0] as Record<string, unknown>).thumbnailUrl ??
+                (post.media[0] as Record<string, unknown>).thumbnail_url ??
+                (post.media[0] as Record<string, unknown>).previewImageUrl ??
+                (post.media[0] as Record<string, unknown>).preview_image_url)
+            : undefined) ??
+          getString(
+            getObjectArray(((post.extendedEntities as Record<string, unknown> | undefined)?.media as unknown) ?? [])[0]?.media_url
+          )
+        );
+
+    const finalMediaUrls = mediaState === "video"
+      ? mediaUrls.filter((url) => /\.(mp4|mov|m4v|webm|mkv|m3u8)(\?|$)/i.test(url))
+      : mediaUrls;
   if (mediaType === "video") {
     // TODO: If mediaType is video, call APISmith Apify actor for transcription.
   }
@@ -254,9 +249,9 @@ function mapPostToTweet(post: XpozPost, fallbackHandle: string, index: number) {
     text,
     tweet_timestamp: createdAt,
     has_media: mediaState,
-    media_type: mediaType ?? null,
-    media_urls: mediaUrls,
-    thumbnail_url: thumbnailUrl ?? null,
+    media_type: mediaState !== "none" ? mediaState : (mediaType ?? null),
+    media_urls: finalMediaUrls,
+    thumbnail_url: mediaState === "video" ? null : finalThumbnailUrl ?? null,
     status: "crawled",
     url,
     createdAt,

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Twitter, Plus, Search, Loader2 } from "lucide-react";
+import { Twitter, Plus, Search, Loader2, Heart, Repeat2, ChevronLeft, ChevronRight, Zap, Check } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -9,6 +9,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { articlesApi } from "@/lib/api";
+import GenerateArticleFromXModal from "./generateArticleFromXModal";
 // import CrawlXConfigurationModal from "./CrawlXConfigurationModal"; // TODO: Implement
 // import CrawlXJobsTable from "./CrawlXJobsTable"; // TODO: Implement
 
@@ -26,38 +29,28 @@ type ScrapedTweet = {
   status: string;
   url: string;
   createdAt: string;
-  likes: number;
-  retweets: number;
-  replies: number;
-  authorHandle: string;
-  authorName: string;
-  detected_media_kind?: "image" | "video" | "none";
-  detected_image_url_or_data?: string | null;
-};
-
-type ScrapeDebugAttempt = {
-  attempt?: number;
-  input?: Record<string, unknown>;
-  source?: string;
-  query?: string;
-  returnedItems?: number;
-  sampleKeys?: string[];
-  httpStatus?: number;
-  httpError?: string;
-  noResults?: boolean;
+  authorHandle?: string;
+  authorName?: string;
+  likes?: number;
+  retweets?: number;
+  replies?: number;
+  detected_media_kind?: string;
+  detected_image_url_or_data?: string;
 };
 
 type ScrapeDebug = {
   provider?: string;
-  actorId?: string;
-  requestedHandle?: string;
-  attempts?: ScrapeDebugAttempt[];
-  selectedAttempt?: Record<string, unknown> | null;
   returnedItems?: number;
   filteredItems?: number;
   requestedItems?: number;
-  actorRequestedItems?: number;
-  sampleKeys?: string[];
+  attempts: Array<{
+    attempt?: number;
+    source?: string;
+    query?: string;
+    returnedItems?: number;
+    httpStatus?: number;
+    httpError?: string;
+  }>;
 };
 
 function isLikelyImageUrl(value: string): boolean {
@@ -80,8 +73,8 @@ function normalizeTweetMedia(tweet: ScrapedTweet): ScrapedTweet {
   const declaredType = (tweet.media_type ?? "").toLowerCase();
   const mediaUrls = Array.isArray(tweet.media_urls) ? tweet.media_urls : [];
   const thumbnailUrl = tweet.thumbnail_url ?? "";
-  const imageFromMediaUrls = mediaUrls.find((url) => isLikelyImageUrl(url)) ?? null;
-  const imageFromThumbnail = isLikelyImageUrl(thumbnailUrl) ? thumbnailUrl : null;
+  const imageFromMediaUrls = mediaUrls.find((url) => isLikelyImageUrl(url)) ?? undefined;
+  const imageFromThumbnail = isLikelyImageUrl(thumbnailUrl) ? thumbnailUrl : undefined;
   const imageUrlOrData = imageFromMediaUrls ?? imageFromThumbnail;
   const hasVideoInMediaUrls = mediaUrls.some((url) => isLikelyVideoUrl(url));
   const hasVideoDeclared =
@@ -112,6 +105,72 @@ export default function ManageHandles() {
   const [debug, setDebug] = React.useState<ScrapeDebug | null>(null);
   const [tweets, setTweets] = React.useState<ScrapedTweet[]>([]);
   const [selectedTweet, setSelectedTweet] = React.useState<ScrapedTweet | null>(null);
+  const [selectedAuthor, setSelectedAuthor] = React.useState<string | null>(null);
+  const [isInitialLoading, setIsInitialLoading] = React.useState(true);
+  const [isCrawlModalOpen, setIsCrawlModalOpen] = React.useState(false);
+  const [isGenerationModalOpen, setIsGenerationModalOpen] = React.useState(false);
+  const [tweetToGenerate, setTweetToGenerate] = React.useState<ScrapedTweet | null>(null);
+
+  const queryClient = useQueryClient();
+
+  const generationMutation = useMutation({
+    mutationFn: ({ prompt, categoryId, language }: { prompt: string; categoryId: string; language: string }) => {
+      if (!tweetToGenerate) throw new Error("No tweet selected for generation");
+      return articlesApi.generateAiContentFromX(tweetToGenerate.id, prompt, categoryId, language);
+    },
+    onSuccess: () => {
+      fetchExistingTweets();
+      setIsGenerationModalOpen(false);
+      setTweetToGenerate(null);
+    },
+    onError: (err: Error) => {
+      setError(err.message || "Failed to generate article from X");
+    }
+  });
+
+  async function fetchExistingTweets() {
+    try {
+      const response = await fetch("/api/admin/xMonitoring?limit=100");
+      if (response.ok) {
+        const data = await response.json();
+        setTweets(data.tweets || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch existing tweets:", err);
+    } finally {
+      setIsInitialLoading(false);
+    }
+  }
+
+  React.useEffect(() => {
+    fetchExistingTweets();
+  }, []);
+
+  // Group tweets by author handle
+  const groupedByAuthor = React.useMemo(() => {
+    const groups: Record<string, { name: string; handle: string; count: number; lastUpdate: string; thumbnail?: string; tweets: ScrapedTweet[] }> = {};
+    
+    tweets.forEach(tweet => {
+      const handle = tweet.authorHandle || 'unknown';
+      if (!groups[handle]) {
+        groups[handle] = {
+          name: tweet.source_name || tweet.authorName || handle,
+          handle: handle,
+          count: 0,
+          lastUpdate: tweet.tweet_timestamp,
+          thumbnail: tweet.thumbnail_url || undefined,
+          tweets: []
+        };
+      }
+      groups[handle].count++;
+      groups[handle].tweets.push(tweet);
+      if (new Date(tweet.tweet_timestamp) > new Date(groups[handle].lastUpdate)) {
+        groups[handle].lastUpdate = tweet.tweet_timestamp;
+      }
+    });
+
+    return Object.values(groups).sort((a, b) => new Date(b.lastUpdate).getTime() - new Date(a.lastUpdate).getTime());
+  }, [tweets]);
 
   async function handleStartCrawl() {
     if (!profileUrlOrHandle.trim()) {
@@ -146,154 +205,260 @@ export default function ManageHandles() {
         throw new Error(data.error ?? "Failed to scrape tweets.");
       }
 
-      setTweets(
-        Array.isArray(data.tweets) ? data.tweets.map((tweet) => normalizeTweetMedia(tweet)) : []
-      );
-      setDebug(data.debug ?? null);
-    } catch (fetchError) {
-      const message =
-        fetchError instanceof Error ? fetchError.message : "Something went wrong.";
-      setTweets([]);
-      setError(message);
+      // Refresh the list from DB to ensure consistency
+      fetchExistingTweets();
+      setProfileUrlOrHandle(""); // Clear input on success
+      setIsCrawlModalOpen(false); // Close modal on success
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
   }
 
+  const selectedChannel = groupedByAuthor.find(g => g.handle === selectedAuthor);
+
   return (
-    <div className="space-y-12 animate-in fade-in duration-500">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-          X Monitoring
-        </h1>
-        <p className="text-gray-500 font-medium">
-          Configure X profiles and keywords to crawl for AI content generation
-        </p>
-      </div>
-
-      {/* X Crawler Configuration Card */}
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 md:p-8 space-y-6">
-        <div className="flex items-start gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20 flex-shrink-0">
-            <Twitter className="w-7 h-7 text-white" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">
-              Monitoring Configuration
-            </h2>
-            <p className="text-gray-500 font-medium mt-1">
-              Add X handles or search terms to monitor for new content
-            </p>
-          </div>
+    <div className="space-y-10 animate-in fade-in duration-500">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight">
+            X Feed Sources
+          </h1>
+          <p className="text-sm md:text-base text-gray-500 font-medium">
+            Monitor real-time X intelligence and source viral news.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_auto] gap-3">
-          <input
-            value={profileUrlOrHandle}
-            onChange={(event) => setProfileUrlOrHandle(event.target.value)}
-            placeholder="@username or https://x.com/username"
-            className="h-11 px-4 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-          <input
-            type="number"
-            min={1}
-            max={50}
-            value={limit}
-            onChange={(event) =>
-              setLimit(Math.max(1, Math.min(50, Number(event.target.value) || 5)))
-            }
-            className="h-11 px-4 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-          <button
-            onClick={handleStartCrawl}
-            disabled={isLoading || !profileUrlOrHandle.trim()}
-            className="h-11 flex items-center justify-center gap-2 px-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-500/30 disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Crawling...
-              </>
-            ) : (
-              <>
-                <Plus className="w-5 h-5" />
-                Start X Crawl
-              </>
-            )}
-          </button>
-        </div>
-
-        {error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-3 text-sm">
-            {error}
-          </div>
-        ) : null}
-
-        {debug?.attempts && debug.attempts.length > 0 ? (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900 space-y-2">
-            <p className="font-semibold">
-              Crawl debug details ({(debug.provider ?? "x").toUpperCase()})
-            </p>
-            <p className="text-[11px] text-amber-800">
-              Returned: {debug.returnedItems ?? 0}
-              {typeof debug.filteredItems === "number"
-                ? ` | Filtered: ${debug.filteredItems}`
-                : ""}
-              {typeof debug.requestedItems === "number"
-                ? ` | Requested: ${debug.requestedItems}`
-                : ""}
-            </p>
-            {debug.attempts.map((attempt, index) => (
-              <div
-                key={`${attempt.attempt ?? index}-${attempt.source ?? "attempt"}`}
-                className="border-t border-amber-200 pt-2"
-              >
-                <p>
-                  {attempt.source
-                    ? `${attempt.source}${attempt.query ? ` (${attempt.query})` : ""}`
-                    : `Attempt ${attempt.attempt ?? index + 1}`}
-                  :{" "}
-                  {attempt.httpStatus
-                    ? `HTTP ${attempt.httpStatus}`
-                    : `${attempt.returnedItems ?? 0} items`}
-                </p>
-                {attempt.httpError ? <p className="break-all">{attempt.httpError}</p> : null}
-              </div>
-            ))}
-          </div>
-        ) : null}
+        <button 
+          onClick={() => setIsCrawlModalOpen(true)}
+          className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/25 active:scale-95 group"
+        >
+          <Twitter className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+          Crawl New Feed
+        </button>
       </div>
 
-      <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-8">
-        {tweets.length === 0 ? (
-          <div className="py-8 flex flex-col items-center justify-center text-center">
-            <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-6">
-              <Search className="w-10 h-10 text-blue-300" />
+      {/* Crawl Configuration Modal */}
+      <Dialog open={isCrawlModalOpen} onOpenChange={setIsCrawlModalOpen}>
+        <DialogContent className="sm:max-w-[500px] rounded-[2.5rem] p-8">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black text-gray-900">Configure X Crawl</DialogTitle>
+            <DialogDescription className="text-gray-500 font-medium pt-1">
+              Add X handles or profile URLs to source fresh content for AI processing.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 pt-6">
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Target X Profile</label>
+              <input
+                value={profileUrlOrHandle}
+                onChange={(event) => setProfileUrlOrHandle(event.target.value)}
+                placeholder="@username or https://x.com/username"
+                className="w-full h-14 px-5 rounded-2xl border border-gray-100 bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all font-medium text-gray-900"
+              />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">No X Crawl Results Yet</h3>
-            <p className="text-gray-500 max-w-sm mx-auto">
-              Enter an X profile URL or handle, choose a tweet limit, then start crawl.
-            </p>
+
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Article Limit</label>
+              <div className="flex items-center gap-4">
+                <input
+                  type="number"
+                  min={1}
+                  max={50}
+                  value={limit}
+                  onChange={(event) =>
+                    setLimit(Math.max(1, Math.min(50, Number(event.target.value) || 5)))
+                  }
+                  className="w-24 h-14 px-5 rounded-2xl border border-gray-100 bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all font-bold text-gray-900"
+                />
+                <p className="text-xs text-gray-400 font-medium">Recommended: 5-20 tweets per crawl</p>
+              </div>
+            </div>
+
+            {error ? (
+              <div className="rounded-2xl border border-red-100 bg-red-50/50 text-red-600 px-5 py-4 text-sm font-bold animate-in slide-in-from-top-2">
+                {error}
+              </div>
+            ) : null}
+
+            <button
+              onClick={handleStartCrawl}
+              disabled={isLoading || !profileUrlOrHandle.trim()}
+              className="w-full h-14 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Processing Feed...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-5 h-5" />
+                  Initiate X Crawl
+                </>
+              )}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+        {selectedAuthor && selectedChannel ? (
+          /* CHANNEL DETAIL VIEW */
+          <div className="flex flex-col h-full animate-in slide-in-from-right-4 duration-300">
+             <div className="px-8 py-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
+               <div className="flex items-center gap-4">
+                 <button 
+                  onClick={() => setSelectedAuthor(null)}
+                  className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+                 >
+                   <ChevronLeft className="w-5 h-5 text-gray-600" />
+                 </button>
+                 <div>
+                   <h3 className="font-bold text-gray-900">Feed: {selectedChannel.name}</h3>
+                   <p className="text-xs text-blue-500 font-bold">@{selectedChannel.handle}</p>
+                 </div>
+               </div>
+               <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                 {selectedChannel.tweets.length} posts found
+               </div>
+             </div>
+
+             <div className="divide-y divide-gray-50">
+                {selectedChannel.tweets.map((tweet) => (
+                  <div 
+                    key={tweet.id}
+                    className="group flex flex-col md:flex-row items-start md:items-center gap-4 px-8 py-5 hover:bg-blue-50/30 transition-all cursor-pointer border-l-4 border-transparent hover:border-blue-500"
+                    onClick={() => setSelectedTweet(tweet)}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-600 line-clamp-1 group-hover:text-gray-900 transition-colors">
+                        {tweet.text}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-4 flex-shrink-0">
+                       <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setTweetToGenerate(tweet);
+                          setIsGenerationModalOpen(true);
+                        }}
+                        disabled={tweet.status === 'generated' || generationMutation.isPending}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                          tweet.status === 'generated'
+                          ? 'bg-green-50 text-green-600 border border-green-100 shadow-none'
+                          : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/20 hover:scale-105 active:scale-95'
+                        } disabled:opacity-50`}
+                       >
+                         {tweet.status === 'generated' ? (
+                           <>
+                             <Check className="w-3 h-3" />
+                             Generated
+                           </>
+                         ) : (
+                           <>
+                             <Zap className="w-3 h-3" />
+                             Generate
+                           </>
+                         )}
+                       </button>
+
+                       {tweet.has_media !== 'none' && (
+                           <div className={`px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter ${tweet.has_media === 'video' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
+                               {tweet.has_media}
+                           </div>
+                       )}
+                       <div className="flex items-center gap-3 text-gray-400">
+                            <div className="flex items-center gap-1">
+                                <Heart className="w-3.5 h-3.5" />
+                                <span className="text-xs font-bold">{tweet.likes || 0}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <Repeat2 className="w-3.5 h-3.5" />
+                                <span className="text-xs font-bold">{tweet.retweets || 0}</span>
+                            </div>
+                       </div>
+                    </div>
+
+                    <div className="w-28 text-right flex-shrink-0">
+                       <p className="text-xs font-bold text-gray-400">
+                           {new Date(tweet.tweet_timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                       </p>
+                    </div>
+                  </div>
+                ))}
+             </div>
           </div>
         ) : (
-          <div className="space-y-4">
-            {tweets.map((tweet) => (
-              <button
-                key={tweet.id}
-                onClick={() => setSelectedTweet(tweet)}
-                className="block rounded-2xl border border-gray-100 p-4 hover:border-blue-200 hover:bg-blue-50/30 transition-colors"
-              >
-                <p className="font-semibold text-gray-900">@{tweet.authorHandle}</p>
-                <p className="text-gray-700 mt-1 line-clamp-3">{tweet.text}</p>
-                <p className="text-xs text-gray-500 mt-2">
-                  ❤️ {tweet.likes} · 🔁 {tweet.retweets} · 💬 {tweet.replies}
+          /* MASTER SOURCE LIST VIEW */
+          <>
+            <div className="px-8 py-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
+              <h3 className="font-bold text-gray-900">Connected Channels</h3>
+              <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                {groupedByAuthor.length} Sources Monitored
+              </div>
+            </div>
+
+            {isInitialLoading ? (
+              <div className="p-20 flex flex-col items-center justify-center gap-4">
+                <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
+                <p className="text-gray-400 font-medium italic">Scanning connected channels...</p>
+              </div>
+            ) : groupedByAuthor.length === 0 ? (
+              <div className="py-20 flex flex-col items-center justify-center text-center">
+                <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-6">
+                  <Twitter className="w-10 h-10 text-blue-200" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">No Sources Connected</h3>
+                <p className="text-gray-500 max-w-sm mx-auto">
+                  Click "Crawl New Feed" to add your first X monitoring target.
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Media: {tweet.detected_media_kind ?? "none"}
-                </p>
-              </button>
-            ))}
-          </div>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-50">
+                {groupedByAuthor.map((author) => (
+                  <div 
+                    key={author.handle}
+                    className="group flex items-center gap-6 px-8 py-6 hover:bg-blue-50/40 transition-all cursor-pointer border-l-4 border-transparent hover:border-blue-500"
+                    onClick={() => setSelectedAuthor(author.handle)}
+                  >
+                    {/* Channel Profile */}
+                    <div className="w-14 h-14 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-500 font-black text-xl overflow-hidden shadow-sm group-hover:scale-110 transition-transform flex-shrink-0">
+                      {author.thumbnail ? (
+                          <img src={author.thumbnail} className="w-full h-full object-cover" alt="" />
+                      ) : (
+                          <span>{author.name?.[0]?.toUpperCase()}</span>
+                      )}
+                    </div>
+
+                    {/* Channel Info */}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-lg font-black text-gray-900 truncate">{author.name}</h4>
+                      <p className="text-sm text-blue-500 font-bold">@{author.handle}</p>
+                    </div>
+
+                    {/* Channel Stats */}
+                    <div className="flex items-center gap-8 flex-shrink-0">
+                        <div className="text-center">
+                           <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Captured</p>
+                           <p className="text-lg font-black text-gray-900">{author.count}</p>
+                        </div>
+                        <div className="text-right hidden sm:block">
+                           <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Last Activity</p>
+                           <p className="text-xs font-bold text-gray-600">
+                             {new Date(author.lastUpdate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                           </p>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-blue-500 transition-colors" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -403,6 +568,14 @@ export default function ManageHandles() {
           queryClient.invalidateQueries({ queryKey: ["crawlXJobs"] });
         }}
       /> */}
+      <GenerateArticleFromXModal
+        open={isGenerationModalOpen}
+        onOpenChange={setIsGenerationModalOpen}
+        onGenerate={(prompt, categoryId, language) => generationMutation.mutate({ prompt, categoryId, language })}
+        isPending={generationMutation.isPending}
+        tweetText={tweetToGenerate?.text}
+        authorName={tweetToGenerate?.source_name}
+      />
     </div>
   );
 }

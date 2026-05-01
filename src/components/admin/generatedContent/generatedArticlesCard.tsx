@@ -65,7 +65,7 @@ function getSourceMeta(sourceType?: string | null) {
         case 'VIDEO':
             return { label: 'YouTube', Icon: Youtube, className: 'bg-red-50 text-red-600 border-red-100' };
         case 'TWEET':
-            return { label: 'Twitter', Icon: Twitter, className: 'bg-sky-50 text-sky-600 border-sky-100' };
+            return { label: 'X', Icon: Twitter, className: 'bg-gray-900 text-white border-gray-800' };
         case 'UPLOAD':
             return { label: 'Upload', Icon: Upload, className: 'bg-violet-50 text-violet-600 border-violet-100' };
         case 'MANUAL':

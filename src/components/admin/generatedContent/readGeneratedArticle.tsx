@@ -55,6 +55,7 @@ export default function ReadGeneratedArticle({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
                 showCloseButton={false}
+                aria-describedby={undefined}
                 className="w-[95vw] sm:max-w-[800px] max-h-[90vh] p-0 overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] border-none bg-white shadow-2xl flex flex-col"
             >
                 {/* Header with AI/Admin Aesthetic */}

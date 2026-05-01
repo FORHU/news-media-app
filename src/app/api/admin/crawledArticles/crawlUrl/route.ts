@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   }
 
   const parsed = crawlTriggerBodySchema.safeParse({
-    ...json,
+    ...(json as any),
     // Map frontend's max_requests_per_crawl to the new max_articles field
     max_articles: (json as any)?.max_articles ?? (json as any)?.max_requests_per_crawl,
     tenant_id: tenantId,

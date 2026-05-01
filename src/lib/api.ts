@@ -108,6 +108,30 @@ export const articlesApi = {
     return res.json();
   },
 
+  async generateAiContentFromX(
+    tweetId: string,
+    generationPrompt?: string,
+    categoryId?: string,
+    language?: string
+  ): Promise<unknown> {
+    const trimmed = typeof generationPrompt === "string" ? generationPrompt.trim() : "";
+    const res = await fetch("/api/admin/xMonitoring/aiGenerateContent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tweetId,
+        ...(trimmed.length > 0 ? { generationPrompt: trimmed } : {}),
+        ...(categoryId ? { categoryId } : {}),
+        ...(language ? { language } : {}),
+      }),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to generate AI content from X");
+    }
+    return res.json();
+  },
+
   async generateManualArticle(params: {
     topic?: string;
     categoryId?: string;
