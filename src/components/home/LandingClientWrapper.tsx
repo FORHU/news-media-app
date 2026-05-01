@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { NewsletterModal } from "@/components/newsLetterModal/NewsletterModal";
 import JejuTimeHeader from "../sites/jejutime/JejuTimeHeader";
 import JejuTimeFooter from "../sites/jejutime/JejuTimeFooter";
@@ -10,6 +8,8 @@ import JejuQQHeader from "../sites/jejuqq/JejuQQHeader";
 import JejuQQFooter from "../sites/jejuqq/JejuQQFooter";
 import JejuJapanHeader from "../sites/jejujapan/JejuJapanHeader";
 import JejuJapanFooter from "../sites/jejujapan/JejuJapanFooter";
+import NewsIconsHeader from "../sites/newsicons/NewsIconsHeader";
+import NewsIconsFooter from "../sites/newsicons/NewsIconsFooter";
 
 interface Banner {
     id: string;
@@ -48,11 +48,11 @@ export function LandingClientWrapper({ children, footerBanners }: LandingClientW
             ) : isJejuJapan ? (
                 <JejuJapanHeader onOpenNewsletter={openNewsletter} />
             ) : (
-                <Header onOpenNewsletter={openNewsletter} />
+                <NewsIconsHeader onOpenNewsletter={openNewsletter} />
             )}
-            
+
             {children}
-            
+
             {isJejuTime ? (
                 <JejuTimeFooter onOpenNewsletter={openNewsletter} />
             ) : isJejuQQ ? (
@@ -60,7 +60,7 @@ export function LandingClientWrapper({ children, footerBanners }: LandingClientW
             ) : isJejuJapan ? (
                 <JejuJapanFooter onOpenNewsletter={openNewsletter} />
             ) : (
-                <Footer onOpenNewsletter={openNewsletter} footerBanners={footerBanners} />
+                <NewsIconsFooter onOpenNewsletter={openNewsletter} footerBanners={footerBanners} />
             )}
 
             <NewsletterModal

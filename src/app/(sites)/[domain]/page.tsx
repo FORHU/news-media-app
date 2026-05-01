@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
   const { domain } = await params;
   
   let icon = "/icons/newsicons.ico";
-  if (domain === "jejutime.com") icon = "/icons/jejutimes.ico";
+  if (domain === "jejutime.com") icon = "/icons/jejutime.ico";
   if (domain === "jejuqq.com") icon = "/icons/jejuqq.ico";
   if (domain === "jejujapan.com") icon = "/icons/jejujapan.ico";
 

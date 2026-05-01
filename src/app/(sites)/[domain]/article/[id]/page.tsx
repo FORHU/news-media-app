@@ -52,7 +52,7 @@ export async function generateMetadata({
     const url = `/article/${canonicalSlug}`;
 
     let icon = "/icons/newsicons.ico";
-    if (domain === "jejutime.com") icon = "/icons/jejutimes.ico";
+    if (domain === "jejutime.com") icon = "/icons/jejutime.ico";
     if (domain === "jejuqq.com") icon = "/icons/jejuqq.ico";
     if (domain === "jejujapan.com") icon = "/icons/jejujapan.ico";
 
@@ -90,7 +90,7 @@ export async function generateMetadata({
     const url = `/article/${articleId}`;
 
     let icon = "/icons/newsicons.ico";
-    if (domain === "jejutime.com") icon = "/icons/jejutimes.ico";
+    if (domain === "jejutime.com") icon = "/icons/jejutime.ico";
     if (domain === "jejuqq.com") icon = "/icons/jejuqq.ico";
     if (domain === "jejujapan.com") icon = "/icons/jejujapan.ico";
 

@@ -14,7 +14,7 @@ export default function JejuTimeFooter({ onOpenNewsletter }: FooterProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 mb-20">
           <div className="lg:col-span-4">
             <h2 className="text-2xl font-playfair font-black tracking-tighter text-blue-950 mb-6">
-              Jeju <span className="text-blue-600/80">Times</span>
+              Jeju <span className="text-blue-600/80">Time</span>
             </h2>
             <p className="text-slate-400 text-sm leading-relaxed max-w-sm mb-8 font-light">
               Capturing the weightless essence of Jeju's volcanic soul and coastal rhythm. Premium journalism for the modern islander.
@@ -51,14 +51,14 @@ export default function JejuTimeFooter({ onOpenNewsletter }: FooterProps) {
             <h4 className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-900 mb-8">Contact</h4>
             <ul className="space-y-4 text-sm text-slate-500 font-light">
               <li className="flex items-center gap-3"><MapPin size={14} /> Seogwipo Coastal Hub, Jeju</li>
-              <li className="flex items-center gap-3"><Mail size={14} /> editor@jejutimes.com</li>
+              <li className="flex items-center gap-3"><Mail size={14} /> editor@jejutime.com</li>
               <li className="flex items-center gap-3"><Phone size={14} /> +82 064 123 4567</li>
             </ul>
           </div>
         </div>
 
         <div className="border-t border-slate-50 pt-8 flex flex-col md:flex-row justify-between items-center text-[10px] font-bold uppercase tracking-widest text-slate-300 space-y-4 md:space-y-0">
-          <p>© 2026 Jeju Times. All rights reserved.</p>
+          <p>© 2026 Jeju Time. All rights reserved.</p>
           <div className="flex space-x-8">
             <Link href="#" className="hover:text-slate-600">Privacy Policy</Link>
             <Link href="#" className="hover:text-slate-600">Terms of Service</Link>
