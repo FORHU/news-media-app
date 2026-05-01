@@ -54,7 +54,7 @@ export default async function Page({
 
   const articles = tenantId
     ? await articlesService.getArticles(
-        { limit: 50, status: "published" },
+        { limit: 50 },
         tenantId
       )
     : [];
@@ -99,7 +99,7 @@ export default async function Page({
   // Default design (current layout)
   const error = "";
   return (
-    <div className="min-h-screen bg-white">
+    <div className="bg-white">
       <LandingClientWrapper footerBanners={footerBanners}>
         <Suspense fallback={<div className="hidden md:block h-12 bg-black" />}>
           <NavBar />

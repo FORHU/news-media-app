@@ -20,13 +20,13 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
   const heroArticles = articles.slice(0, 3);
   const mainArticle = heroArticles[0];
   const secondaryArticles = heroArticles.slice(1, 3);
-  const latestStories = articles.slice(3, 13);
+  const latestStories = articles.slice(0, 10);
   const trendingArticles = articles.slice(0, 5);
   const featuredArticles = articles.slice(0, 4);
   const trendingProducts = articles.filter((a: any) => a.status === "blog").slice(0, 4);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#2D3748] font-roboto selection:bg-blue-100">
+    <div className="bg-[#F8FAFC] text-[#2D3748] font-roboto selection:bg-blue-100">
       <LandingClientWrapper footerBanners={banners.footer}>
         <div className="max-w-7xl mx-auto px-6 mt-4">
           <AdBanner position="HOME_TOP" initialBanners={banners.top} />

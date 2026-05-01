@@ -41,7 +41,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
   };
 
   return (
-    <div className="min-h-screen bg-white text-[#222]">
+    <div className="bg-white text-[#222]">
       <LandingClientWrapper footerBanners={banners.footer}>
         <div className="max-w-7xl mx-auto px-4 mt-4">
           <AdBanner position="HOME_TOP" initialBanners={banners.top} />
@@ -82,10 +82,10 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                           </AnimatePresence>
 
                           {/* Navigation Buttons */}
-                          <button type="button" onClick={() => paginate(-1)} className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/80 hover:bg-white text-[#ff4500] flex items-center justify-center shadow-lg transition-colors" aria-label="Previous">
+                          <button type="button" onClick={() => paginate(-1)} className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/80 hover:bg-white text-[#dc2626] flex items-center justify-center shadow-lg transition-colors" aria-label="Previous">
                             <ChevronLeft className="w-5 h-5" />
                           </button>
-                          <button type="button" onClick={() => paginate(1)} className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/80 hover:bg-white text-[#ff4500] flex items-center justify-center shadow-lg transition-colors" aria-label="Next">
+                          <button type="button" onClick={() => paginate(1)} className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/80 hover:bg-white text-[#dc2626] flex items-center justify-center shadow-lg transition-colors" aria-label="Next">
                             <ChevronRight className="w-5 h-5" />
                           </button>
 
@@ -99,7 +99,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                                   const newDirection = i > index ? 1 : -1;
                                   setPage([i, newDirection]);
                                 }}
-                                className={`h-1.5 transition-all duration-300 ${i === index ? "w-8 bg-[#ff4500]" : "w-4 bg-white/50 hover:bg-white/80"}`}
+                                className={`h-1.5 transition-all duration-300 ${i === index ? "w-8 bg-[#dc2626]" : "w-4 bg-white/50 hover:bg-white/80"}`}
                                 aria-label={`Go to slide ${i + 1}`}
                               />
                             ))}
@@ -107,8 +107,8 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                         </div>
                         <div className="flex flex-col justify-center h-full py-4">
                             <Link href={`/article/${mainArticle.slug || mainArticle.id}`} className="group">
-                                <span className="text-[10px] text-[#ff4500] font-bold uppercase mb-2 block tracking-widest">{mainArticle.category?.categoryName}</span>
-                                <h2 className="text-[34px] font-serif font-bold leading-tight mb-4 group-hover:underline decoration-[#ff4500]">
+                                <span className="text-[10px] text-[#dc2626] font-bold uppercase mb-2 block tracking-widest">{mainArticle.category?.categoryName}</span>
+                                <h2 className="text-[34px] font-serif font-bold leading-tight mb-4 group-hover:underline decoration-[#dc2626]">
                                     {mainArticle.title}
                                 </h2>
                             </Link>
@@ -127,7 +127,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                         <div className="relative aspect-[4/3] overflow-hidden mb-3 bg-gray-100">
                             <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" />
                         </div>
-                        <h4 className="text-sm font-bold leading-tight line-clamp-2 group-hover:text-[#ff4500]">
+                        <h4 className="text-sm font-bold leading-tight line-clamp-2 group-hover:text-[#dc2626]">
                             {article.title}
                         </h4>
                     </Link>
@@ -140,11 +140,11 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-12">
                     {latestStories.map((article) => (
                         <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex gap-4 group">
-                            <div className="relative w-24 aspect-square shrink-0 rounded-full overflow-hidden border-2 border-[#ff4500]/20 group-hover:border-[#ff4500] transition-colors bg-gray-100">
+                            <div className="relative w-24 aspect-square shrink-0 rounded-full overflow-hidden border-2 border-[#dc2626]/20 group-hover:border-[#dc2626] transition-colors bg-gray-100">
                                 <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" />
                             </div>
                             <div className="flex flex-col justify-center">
-                                <span className="text-[10px] text-[#ff4500] font-bold uppercase mb-1 block tracking-widest">{article.category?.categoryName}</span>
+                                <span className="text-[10px] text-[#dc2626] font-bold uppercase mb-1 block tracking-widest">{article.category?.categoryName}</span>
                                 <h5 className="text-[15px] font-bold leading-snug group-hover:underline">{article.title}</h5>
                             </div>
                         </Link>
@@ -158,10 +158,10 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                <div className="border-t-4 border-black pt-4">
                   <div className="flex items-center justify-between mb-8">
                      <h3 className="text-xl font-bold flex items-center gap-2">
-                        Trending <TrendingUp size={18} className="text-[#ff4500]" />
+                        Trending <TrendingUp size={18} className="text-[#dc2626]" />
                      </h3>
                      <div className="flex gap-1">
-                        <span className="w-2 h-2 rounded-full bg-[#ff4500]"></span>
+                        <span className="w-2 h-2 rounded-full bg-[#dc2626]"></span>
                         <span className="w-2 h-2 rounded-full bg-gray-200"></span>
                      </div>
                   </div>
@@ -174,7 +174,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                            </span>
                            <div>
                              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">{article.category?.categoryName}</span>
-                             <h4 className="text-[14px] font-medium leading-snug group-hover:text-[#ff4500] transition-colors line-clamp-2">
+                             <h4 className="text-[14px] font-medium leading-snug group-hover:text-[#dc2626] transition-colors line-clamp-2">
                                 {article.title}
                              </h4>
                            </div>
@@ -202,7 +202,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                       <div className="relative aspect-[4/3] overflow-hidden mb-4 border border-gray-100 bg-gray-50">
                         <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
                       </div>
-                      <span className="text-[10px] text-[#ff4500] font-bold uppercase mb-2 block">{article.category?.categoryName}</span>
+                      <span className="text-[10px] text-[#dc2626] font-bold uppercase mb-2 block">{article.category?.categoryName}</span>
                       <h4 className="text-lg font-bold leading-tight group-hover:underline">{article.title}</h4>
                     </Link>
                   ))}
@@ -213,7 +213,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
             {/* Trending Products / Blogs */}
             {trendingProducts.length > 0 && (
               <section className="border-t border-gray-200 pt-8 pb-8">
-                <h3 className="text-xl font-bold mb-6 flex items-center gap-2">Explore <ChevronRight size={18} className="text-[#ff4500]"/></h3>
+                <h3 className="text-xl font-bold mb-6 flex items-center gap-2">Explore <ChevronRight size={18} className="text-[#dc2626]"/></h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {trendingProducts.map((article: any) => (
                     <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex gap-4 group bg-gray-50 p-4 hover:bg-black hover:text-white transition-colors">

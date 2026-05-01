@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Search, Menu, Globe, User, X, ChevronDown, Mail } from "lucide-react";
-import { CORE_CATEGORIES, HOME_CATEGORY_LABEL, normalizeCategoryKey } from "@/config/categories";
+import { getCoreCategories, HOME_CATEGORY_LABEL, normalizeCategoryKey } from "@/config/categories";
 import { motion, AnimatePresence } from "framer-motion";
 import { RemoveScroll } from "react-remove-scroll";
 import { useQuery } from "@tanstack/react-query";
@@ -31,8 +31,9 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
     staleTime: 5 * 60 * 1000,
   });
 
+  const coreCategories = getCoreCategories("jejujapan.com");
   const coreCategoryKeys = new Set(
-    CORE_CATEGORIES.map((c) => normalizeCategoryKey(c))
+    coreCategories.map((category) => normalizeCategoryKey(category))
   );
   const overflowCategories = Array.from(
     categories.reduce((acc, cat) => {
@@ -48,7 +49,10 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
 
   const categoryLinks = [
     { name: HOME_CATEGORY_LABEL, link: "/" },
-    ...CORE_CATEGORIES.map((cat) => ({ name: cat, link: categoryHref(cat) })),
+    ...coreCategories.map((categoryName) => ({
+      name: categoryName,
+      link: categoryHref(categoryName),
+    })),
   ];
 
   useEffect(() => {
@@ -67,19 +71,33 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
       <header className="bg-white border-b border-gray-200">
         {/* Top Thin Bar */}
         <div className="border-b border-gray-100 py-2 bg-[#fafafa]">
-          <div className="max-w-7xl mx-auto px-6 flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-gray-500">
+          <div className="max-w-7xl mx-auto px-6 grid grid-cols-3 items-center text-[10px] font-bold uppercase tracking-widest text-gray-500">
             <div className="flex space-x-6">
               <span className="flex items-center gap-1"><Globe size={12} className="text-[#bc002d]" /> Tokyo - Jeju Bridge</span>
-              <span>{new Date().toLocaleDateString('ja-JP', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+              <span className="hidden xl:inline">{new Date().toLocaleDateString('ja-JP', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
             </div>
-            <div className="flex space-x-4">
+            
+            <div className="flex justify-center">
+              <form onSubmit={handleSearch} className="relative w-full max-w-[280px]">
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="SEARCH NEWS..."
+                  className="bg-white border border-gray-200 rounded-full px-8 py-1 text-[9px] w-full outline-none focus:border-[#bc002d]/30 transition-all shadow-sm"
+                />
+                <Search size={10} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              </form>
+            </div>
+
+            <div className="flex justify-end space-x-4">
               <Link href="/admin/dashboard" className="hover:text-[#bc002d] transition-colors">Admin</Link>
               <button onClick={onOpenNewsletter} className="hover:text-[#bc002d] transition-colors">Newsletter</button>
             </div>
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center space-x-8">
             <button
               type="button"
@@ -99,26 +117,38 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
             </Link>
           </div>
 
-          <nav className="hidden lg:flex space-x-8 text-[13px] font-bold text-gray-900">
-            {CORE_CATEGORIES.map((cat) => (
-              <Link key={cat} href={`/search?category=${encodeURIComponent(cat)}`} className="hover:text-[#bc002d] transition-colors border-b-2 border-transparent hover:border-[#bc002d] pb-1">
+          <nav className="hidden lg:flex flex-1 justify-center items-center space-x-5 text-[12px] font-bold uppercase tracking-[0.1em] text-slate-500 mx-8">
+            {coreCategories.slice(0, 10).map((cat) => (
+              <Link 
+                key={cat} 
+                href={`/search?category=${encodeURIComponent(cat)}`}
+                className="hover:text-[#bc002d] transition-colors whitespace-nowrap"
+              >
                 {cat}
               </Link>
             ))}
+            {coreCategories.length > 10 && (
+              <div className="relative group cursor-pointer flex items-center gap-1 hover:text-[#bc002d] py-2">
+                 MORE <ChevronDown size={14} />
+                 <div className="absolute top-full right-0 pt-2 hidden group-hover:block z-50">
+                    <div className="bg-white shadow-2xl border border-gray-100 p-4 rounded-sm grid grid-cols-2 gap-x-8 gap-y-3 min-w-[300px]">
+                       {coreCategories.slice(10).map((cat) => (
+                         <Link 
+                            key={cat} 
+                            href={categoryHref(cat)} 
+                            className="text-gray-500 hover:text-[#bc002d] text-xs font-medium whitespace-nowrap transition-colors"
+                         >
+                            {cat}
+                         </Link>
+                       ))}
+                    </div>
+                 </div>
+              </div>
+            )}
           </nav>
 
-          <div className="flex items-center space-x-6">
-            <form onSubmit={handleSearch} className="relative hidden md:block">
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search news..."
-                className="bg-gray-50 border border-gray-100 rounded-sm px-4 py-1.5 text-xs w-64 focus:w-80 transition-all outline-none focus:border-[#bc002d]/30"
-              />
-              <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            </form>
-          </div>
+          {/* Right Spacer to keep nav centered */}
+          <div className="w-[180px] hidden lg:block" />
         </div>
       </header>
 

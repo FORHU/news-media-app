@@ -40,7 +40,7 @@ export function LandingClientWrapper({ children, footerBanners }: LandingClientW
     const isJejuJapan = domain.includes("jejujapan");
 
     return (
-        <>
+        <div className="flex flex-col min-h-screen">
             {isJejuTime ? (
                 <JejuTimeHeader onOpenNewsletter={openNewsletter} />
             ) : isJejuQQ ? (
@@ -51,7 +51,9 @@ export function LandingClientWrapper({ children, footerBanners }: LandingClientW
                 <NewsIconsHeader onOpenNewsletter={openNewsletter} />
             )}
 
-            {children}
+            <main className="flex-1">
+                {children}
+            </main>
 
             {isJejuTime ? (
                 <JejuTimeFooter onOpenNewsletter={openNewsletter} />
@@ -68,7 +70,7 @@ export function LandingClientWrapper({ children, footerBanners }: LandingClientW
                 onClose={closeNewsletter}
                 domain={domain}
             />
-        </>
+        </div>
     );
 }
 

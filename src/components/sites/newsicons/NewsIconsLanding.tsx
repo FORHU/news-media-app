@@ -18,7 +18,7 @@ interface Props {
 
 export default function NewsIconsLanding({ tenantId, articles, banners }: Props) {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="bg-slate-50">
       <LandingClientWrapper footerBanners={banners.footer}>
 
         {/* Top Ad Banner */}

@@ -35,7 +35,7 @@ export default function JejuQQArticle({
       <div className="flex items-center justify-center py-32 px-6">
         <div className="text-center max-w-md">
           <p className="text-[#222] font-semibold mb-2">We couldn’t load this article.</p>
-          <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#ff4500] transition-colors">
+          <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#dc2626] transition-colors">
             <ArrowLeft className="w-4 h-4" /> Back to home
           </Link>
         </div>
@@ -58,7 +58,7 @@ export default function JejuQQArticle({
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 bg-white text-[#222]">
-      <button onClick={() => window.history.length > 1 ? router.back() : router.push("/")} className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#ff4500] mb-8 transition-colors uppercase tracking-wider font-bold">
+      <button onClick={() => window.history.length > 1 ? router.back() : router.push("/")} className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#dc2626] mb-8 transition-colors uppercase tracking-wider font-bold">
         <ArrowLeft className="w-4 h-4" /> Back
       </button>
 
@@ -67,7 +67,7 @@ export default function JejuQQArticle({
           <article>
             <header className="mb-10">
               {normalizeCategoryName(article.category?.categoryName) && (
-                <span className="text-[12px] text-[#ff4500] font-bold uppercase mb-4 block tracking-[0.2em]">
+                <span className="text-[12px] text-[#dc2626] font-bold uppercase mb-4 block tracking-[0.2em]">
                   {normalizeCategoryName(article.category?.categoryName)}
                 </span>
               )}
@@ -76,7 +76,7 @@ export default function JejuQQArticle({
               </h1>
               <div className="flex items-center gap-4 text-sm text-gray-500 font-medium uppercase tracking-wider border-y border-gray-100 py-3">
                 <span>{formattedDate}</span>
-                <span className="w-1 h-1 bg-[#ff4500] rounded-full"></span>
+                <span className="w-1 h-1 bg-[#dc2626] rounded-full"></span>
                 <span>By JejuQQ Team</span>
               </div>
             </header>
@@ -106,7 +106,7 @@ export default function JejuQQArticle({
         </div>
 
         <div className="lg:col-span-4 space-y-12">
-          <div className="bg-gray-50 p-6 border-t-4 border-[#ff4500]">
+          <div className="bg-gray-50 p-6 border-t-4 border-[#dc2626]">
              <TrendingSidebar articles={trendingArticles} />
           </div>
           <AdBanner position="ARTICLE_SIDEBAR" />

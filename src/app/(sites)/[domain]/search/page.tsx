@@ -91,7 +91,7 @@ export default async function SearchPage({
   const error = "";
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="bg-white">
       <LandingClientWrapper footerBanners={footerBanners}>
         {domain !== "jejutime.com" && domain !== "jejuqq.com" && domain !== "jejujapan.com" && (
           <Suspense fallback={<div className="hidden md:block h-12 bg-black" />}>
