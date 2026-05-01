@@ -30,17 +30,16 @@ export default function NewsIconsLanding({ tenantId, articles, banners }: Props)
           <AdBanner position="HOME_TOP" initialBanners={banners.top} />
         </div>
 
-        {/* Big Hero Slider for NewsIcons */}
-        {articles.length > 0 && (
-          <HeroSection articles={articles.slice(0, 5)} />
-        )}
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
+          {/* Big Hero Slider for NewsIcons */}
+          {articles.length > 0 && (
+            <div className="mb-10">
+              <HeroSection articles={articles.slice(0, 5)} />
+            </div>
+          )}
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
             <div className="lg:col-span-2">
-              <h2 className="text-2xl font-bold text-blue-900 mb-6 border-b-2 border-blue-100 pb-2">
-                Latest Headlines
-              </h2>
               <LatestStoriesSection
                 articles={articles}
                 error=""

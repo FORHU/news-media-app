@@ -163,6 +163,22 @@ body {
   }
 }
 
+/* Site-specific theme overrides */
+.site-theme-jejutime-com {
+  --primary: oklch(0.45 0.15 250);
+  --background: oklch(0.98 0.01 240);
+}
+
+.site-theme-jejuqq-com {
+  --primary: oklch(0.55 0.2 140);
+  --background: oklch(0.98 0.02 140);
+}
+
+.site-theme-jejujapan-com {
+  --primary: oklch(0.5 0.2 20);
+  --background: oklch(0.98 0.01 20);
+}
+
 @keyframes shimmer {
   0% { transform: translateX(-100%) rotate(45deg); }
   100% { transform: translateX(100%) rotate(45deg); }

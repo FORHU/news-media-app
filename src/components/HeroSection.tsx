@@ -62,9 +62,8 @@ export function HeroSection({ articles }: HeroSectionProps) {
     .replace(/\s+/g, " ");
 
   return (
-    <section className="bg-white border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h2 className="text-2xl font-bold text-black mb-6">Latest News</h2>
+    <section className="bg-white">
+      <div className="py-4">
 
         <div>
           {/* Main article carousel */}
