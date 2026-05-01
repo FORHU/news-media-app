@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { LandingClientWrapper } from "@/components/home/LandingClientWrapper";
 import { AdBanner } from "@/components/AdBanner";
-import Image from "next/image";
+import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
 
 interface Props {
@@ -17,12 +17,18 @@ interface Props {
 export default function JejuTimeLanding({ tenantId, articles, banners }: Props) {
   const mainArticle = articles[0];
   const secondaryArticles = articles.slice(1, 4);
-  const latestArticles = articles.slice(4, 10);
+  const latestStories = articles.slice(4, 14);
+  const trendingArticles = articles.slice(0, 5);
+  const featuredArticles = articles.slice(14, 18);
+  const trendingProducts = articles.filter((a: any) => a.status === "blog").slice(0, 4);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#2D3748] font-roboto selection:bg-blue-100">
       <LandingClientWrapper footerBanners={banners.footer}>
-        
+        <div className="max-w-7xl mx-auto px-6 mt-4">
+          <AdBanner position="HOME_TOP" initialBanners={banners.top} />
+        </div>
+
         <main className="max-w-7xl mx-auto px-6 py-12">
           
           {/* Hero Section: Weightless Composition */}
@@ -32,12 +38,13 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
             <div className="lg:col-span-8 group">
               {mainArticle && (
                 <Link href={`/article/${mainArticle.slug || mainArticle.id}`}>
-                  <div className="relative aspect-[16/9] rounded-3xl overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] group-hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.15)] transition-all duration-700 hover:-translate-y-2 bg-white">
-                    <Image 
-                      src={mainArticle.imageUrl || "/placeholder.jpg"} 
+                  <div className="relative aspect-[16/9] rounded-3xl overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] group-hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.15)] transition-all duration-700 hover:-translate-y-2 bg-slate-100">
+                    <StoryImage 
+                      src={mainArticle.imageUrl} 
                       alt={mainArticle.title}
                       fill
                       className="object-cover scale-105 group-hover:scale-100 transition-transform duration-1000"
+                      variant="hero"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-blue-950/80 via-transparent to-transparent" />
                     <div className="absolute bottom-0 left-0 p-10 text-white max-w-2xl">
@@ -61,8 +68,8 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                {secondaryArticles.map((article) => (
                  <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group block">
                     <div className="flex gap-5 items-start">
-                       <div className="relative w-28 aspect-square rounded-2xl overflow-hidden shadow-xl shadow-blue-100 group-hover:-translate-y-1 transition-transform duration-500 shrink-0">
-                          <Image src={article.imageUrl || "/placeholder.jpg"} alt={article.title} fill className="object-cover" />
+                       <div className="relative w-28 aspect-square rounded-2xl overflow-hidden shadow-xl shadow-blue-100 group-hover:-translate-y-1 transition-transform duration-500 shrink-0 bg-slate-100">
+                          <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" />
                        </div>
                        <div className="flex flex-col">
                           <span className="text-[9px] font-bold text-blue-400 uppercase tracking-widest mb-1">Deep Blue</span>
@@ -81,32 +88,93 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
             </div>
           </section>
 
-          {/* Grid of Coastal News */}
-          <section className="mb-24">
-             <div className="flex items-center justify-between mb-12 border-b border-slate-200 pb-6">
-                <h3 className="text-3xl font-playfair font-black text-blue-950">Basalt <span className="font-light italic text-slate-400">Currents</span></h3>
-                <Link href="#" className="text-xs font-bold uppercase tracking-widest text-blue-600 hover:underline underline-offset-8">Browse Archive</Link>
+          {/* Main Content Grid (Latest + Sidebar) */}
+          <section className="grid grid-cols-1 lg:grid-cols-12 gap-10 mb-24">
+             {/* Latest Stories (JejuTime UI) */}
+             <div className="lg:col-span-8">
+                <div className="flex items-center justify-between mb-8 border-b border-slate-200 pb-4">
+                   <h3 className="text-3xl font-playfair font-black text-blue-950">Latest Updates</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                   {latestStories.map((article) => (
+                     <article key={article.id} className="group cursor-pointer">
+                       <Link href={`/article/${article.slug || article.id}`}>
+                         <div className="relative aspect-[4/3] rounded-2xl overflow-hidden mb-4 shadow-xl shadow-blue-50 transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-blue-200 bg-slate-100">
+                           <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" />
+                           <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors pointer-events-none" />
+                         </div>
+                         <h4 className="text-lg font-bold mb-2 leading-tight group-hover:text-blue-600 transition-colors">{article.title}</h4>
+                         <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed font-light">{article.content}</p>
+                       </Link>
+                     </article>
+                   ))}
+                </div>
              </div>
 
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-                {latestArticles.map((article) => (
-                  <article key={article.id} className="group cursor-pointer">
-                    <Link href={`/article/${article.slug || article.id}`}>
-                      <div className="relative aspect-[4/3] rounded-2xl overflow-hidden mb-6 shadow-2xl shadow-blue-50 transition-all duration-500 group-hover:-translate-y-3 group-hover:shadow-blue-200">
-                        <Image src={article.imageUrl || "/placeholder.jpg"} alt={article.title} fill className="object-cover" />
-                        <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors" />
-                      </div>
-                      <h4 className="text-xl font-bold mb-3 leading-tight group-hover:text-blue-600 transition-colors">{article.title}</h4>
-                      <p className="text-sm text-slate-500 line-clamp-3 leading-relaxed font-light">{article.content}</p>
-                    </Link>
-                  </article>
-                ))}
+             {/* Trending Sidebar (JejuTime UI) */}
+             <div className="lg:col-span-4">
+                <div className="bg-white rounded-3xl p-8 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-100 mb-8">
+                   <h3 className="text-xl font-playfair font-black text-blue-950 mb-6">Trending</h3>
+                   <div className="space-y-6">
+                      {trendingArticles.map((article, i) => (
+                        <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex gap-4 group">
+                           <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                              {i + 1}
+                           </div>
+                           <div>
+                              <h4 className="text-sm font-bold leading-snug group-hover:text-blue-600 transition-colors line-clamp-2">{article.title}</h4>
+                           </div>
+                        </Link>
+                      ))}
+                   </div>
+                </div>
+
+                <div className="sticky top-24">
+                   <AdBanner position="HOME_SIDEBAR" initialBanners={banners.sidebar} />
+                </div>
              </div>
           </section>
 
-          <div className="my-24">
-             <AdBanner position="HOME_TOP" initialBanners={banners.top} />
-          </div>
+          {/* Featured Articles */}
+          {featuredArticles.length > 0 && (
+            <section className="mb-24">
+               <div className="flex items-center justify-between mb-8 border-b border-slate-200 pb-4">
+                  <h3 className="text-2xl font-playfair font-black text-blue-950">Featured Collections</h3>
+               </div>
+               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  {featuredArticles.map((article) => (
+                     <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group block bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="relative aspect-video rounded-xl overflow-hidden mb-4 bg-slate-100">
+                           <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                        </div>
+                        <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest block mb-2">{article.category?.categoryName}</span>
+                        <h4 className="text-md font-bold leading-tight group-hover:text-blue-600 transition-colors">{article.title}</h4>
+                     </Link>
+                  ))}
+               </div>
+            </section>
+          )}
+
+          {/* Trending Products */}
+          {trendingProducts.length > 0 && (
+            <section className="mb-12">
+               <div className="flex items-center justify-between mb-8 border-b border-slate-200 pb-4">
+                  <h3 className="text-xl font-playfair font-black text-blue-950">Discover More</h3>
+               </div>
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {trendingProducts.map((article: any) => (
+                     <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group flex items-center gap-4 bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-slate-100">
+                           <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                           <h4 className="text-sm font-bold leading-snug group-hover:text-blue-600 transition-colors line-clamp-2">{article.title}</h4>
+                        </div>
+                     </Link>
+                  ))}
+               </div>
+            </section>
+          )}
 
         </main>
       </LandingClientWrapper>
