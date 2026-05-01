@@ -94,7 +94,7 @@ export default function ArticlePageClient({
   const secondHalf = paragraphs.slice(midpoint).join("\n\n");
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
         <button
           type="button"
           onClick={() =>

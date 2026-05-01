@@ -110,7 +110,9 @@ export default async function Page({
         </div>
 
         {articles.length > 0 && (
-          <HeroSection articles={articles.slice(0, 5)} />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <HeroSection articles={articles.slice(0, 5)} />
+          </div>
         )}
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
