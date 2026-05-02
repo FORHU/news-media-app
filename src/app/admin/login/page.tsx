@@ -159,10 +159,25 @@ function LoginContent() {
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string; general?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Update browser title based on domain theme
+  // Update browser title and favicon based on domain theme
   useEffect(() => {
     if (theme.siteName) {
       document.title = `Admin Login | ${theme.siteName}`;
+      
+      // Dynamic Favicon update
+      const favicon = document.querySelector('link[rel="icon"]') as HTMLLinkElement || document.createElement('link');
+      favicon.rel = 'icon';
+      
+      const domain = window.location.hostname.toLowerCase();
+      let iconPath = "/icons/newsicons.ico";
+      if (domain.includes("jejutime")) iconPath = "/icons/jejutime.ico";
+      else if (domain.includes("jejuqq")) iconPath = "/icons/jejuqq.ico";
+      else if (domain.includes("jejujapan")) iconPath = "/icons/jejujapan.ico";
+      
+      favicon.href = iconPath;
+      if (!document.querySelector('link[rel="icon"]')) {
+        document.head.appendChild(favicon);
+      }
     }
   }, [theme.siteName]);
 

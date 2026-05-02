@@ -30,7 +30,7 @@ const roboto = Roboto({
 
 export async function generateMetadata(): Promise<Metadata> {
   const host = (await headers()).get("host");
-  const domain = normalizeHostToDomain(host);
+  const domain = normalizeHostToDomain(host) || "";
   const siteName = getSiteNameFromDomain(domain);
 
   return {
@@ -38,6 +38,12 @@ export async function generateMetadata(): Promise<Metadata> {
     title: {
       default: siteName,
       template: `%s | ${siteName}`,
+    },
+    icons: {
+      icon: domain.includes("jejutime") ? "/icons/jejutime.ico" :
+            domain.includes("jejuqq") ? "/icons/jejuqq.ico" :
+            domain.includes("jejujapan") ? "/icons/jejujapan.ico" :
+            "/icons/newsicons.ico",
     },
     description: DEFAULT_SEO.description,
     openGraph: {
