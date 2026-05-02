@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
             status: t.status,
             url: `https://x.com/i/status/${t.tweetId}`,
             createdAt: t.createdAt,
-            authorHandle: t.profileUrl.split('/').pop(),
+            authorHandle: t.profileUrl?.split('/').pop() || "",
             authorName: t.sourceName
         }));
 
