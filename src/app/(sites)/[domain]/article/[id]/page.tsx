@@ -13,7 +13,6 @@ import ArticlePageClient from "./ArticlePageClient";
 import JejuJapanArticle from "@/components/sites/jejujapan/JejuJapanArticle";
 import JejuQQArticle from "@/components/sites/jejuqq/JejuQQArticle";
 import JejuTimeArticle from "@/components/sites/jejutime/JejuTimeArticle";
-import { ArticleClientShell } from "@/components/ArticleClientShell";
 import { resolveTenantIdFromDomain } from "@/lib/tenant";
 
 export const revalidate = 5;

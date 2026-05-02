@@ -6,7 +6,6 @@ import { LatestStoriesSection } from "@/components/home/latest-stories-section";
 import { TrendingSidebar } from "@/components/home/trending-sidebar";
 import { FeaturedArticlesSection } from "@/components/home/featured-articles-section";
 import { TrendingProductsSection } from "@/components/home/trending-products-section";
-import { LandingClientWrapper } from "@/components/home/LandingClientWrapper";
 import { AdBanner } from "@/components/AdBanner";
 import { articlesService } from "@/services/articles.service";
 import { bannersService } from "@/services/banners.service";
