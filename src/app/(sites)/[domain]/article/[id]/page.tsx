@@ -151,21 +151,19 @@ export default async function ArticlePage({
   const dehydratedState = dehydrate(queryClient);
 
   return (
-    <ArticleClientShell domain={domain}>
-      <Hydrate state={dehydratedState}>
-        <Suspense fallback={<div className="min-h-[60vh] bg-white" />}>
-          {domain === "jejujapan.com" ? (
-            <JejuJapanArticle articleId={articleId} initialOtherArticles={allArticles} />
-          ) : domain === "jejuqq.com" ? (
-            <JejuQQArticle articleId={articleId} initialOtherArticles={allArticles} />
-          ) : domain === "jejutime.com" ? (
-            <JejuTimeArticle articleId={articleId} initialOtherArticles={allArticles} />
-          ) : (
-            <ArticlePageClient articleId={articleId} initialOtherArticles={allArticles} domain={domain} />
-          )}
-        </Suspense>
-      </Hydrate>
-    </ArticleClientShell>
+    <Hydrate state={dehydratedState}>
+      <Suspense fallback={<div className="min-h-[60vh] bg-white" />}>
+        {domain === "jejujapan.com" ? (
+          <JejuJapanArticle articleId={articleId} initialOtherArticles={allArticles} />
+        ) : domain === "jejuqq.com" ? (
+          <JejuQQArticle articleId={articleId} initialOtherArticles={allArticles} />
+        ) : domain === "jejutime.com" ? (
+          <JejuTimeArticle articleId={articleId} initialOtherArticles={allArticles} />
+        ) : (
+          <ArticlePageClient articleId={articleId} initialOtherArticles={allArticles} domain={domain} />
+        )}
+      </Suspense>
+    </Hydrate>
   );
 }
 

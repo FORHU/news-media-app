@@ -92,33 +92,31 @@ export default async function SearchPage({
 
   return (
     <div className="bg-white">
-      <LandingClientWrapper footerBanners={footerBanners} domain={domain}>
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
-          <FilterStatusBar
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
+        <FilterStatusBar
+          searchQuery={searchQuery || null}
+          categoryName={categoryParam ? decodeURIComponent(categoryParam) : null}
+          resultCount={articles.length}
+          domain={domain}
+        />
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+          <LatestStoriesSection
+            articles={articles}
+            error={error}
             searchQuery={searchQuery || null}
-            categoryName={categoryParam ? decodeURIComponent(categoryParam) : null}
-            resultCount={articles.length}
+            isLoading={false}
             domain={domain}
           />
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-            <LatestStoriesSection
-              articles={articles}
-              error={error}
-              searchQuery={searchQuery || null}
-              isLoading={false}
+          <div className="space-y-8">
+            <TrendingSidebar 
+              articles={articles.slice(0, 5)} 
               domain={domain}
             />
-            <div className="space-y-8">
-              <TrendingSidebar 
-                articles={articles.slice(0, 5)} 
-                domain={domain}
-              />
-              <AdBanner position="HOME_SIDEBAR" initialBanners={sidebarBanners} />
-            </div>
+            <AdBanner position="HOME_SIDEBAR" initialBanners={sidebarBanners} />
           </div>
-        </main>
-      </LandingClientWrapper>
+        </div>
+      </main>
     </div>
   );
 }

@@ -49,12 +49,11 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
 
   return (
     <div className="bg-white text-black font-sans">
-      <LandingClientWrapper footerBanners={banners.footer} domain="jejujapan.com">
-        <div className="max-w-7xl mx-auto px-6 mt-4">
-          <AdBanner position="HOME_TOP" initialBanners={banners.top} />
-        </div>
+      <div className="max-w-7xl mx-auto px-6 mt-4">
+        <AdBanner position="HOME_TOP" initialBanners={banners.top} />
+      </div>
 
-        <main className="max-w-7xl mx-auto px-6 py-10">
+      <main className="max-w-7xl mx-auto px-6 py-10">
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             
@@ -232,8 +231,6 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
           )}
 
         </main>
-      </LandingClientWrapper>
-
       <style dangerouslySetInnerHTML={{ __html: `
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Playfair+Display:wght@900&display=swap');
         
