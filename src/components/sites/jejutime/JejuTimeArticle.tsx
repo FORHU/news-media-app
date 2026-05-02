@@ -133,7 +133,7 @@ export default function JejuTimeArticle({
             <h2 className="text-3xl font-playfair font-bold text-slate-900 mb-8 text-center">
                 Recommended For You
             </h2>
-            <FeaturedArticlesSection articles={recommendedArticles} />
+            <FeaturedArticlesSection articles={recommendedArticles} domain="jejutime.com" />
             </div>
         )}
       </div>

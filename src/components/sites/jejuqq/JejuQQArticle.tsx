@@ -130,7 +130,7 @@ export default function JejuQQArticle({
           <h2 className="text-3xl font-serif font-black mb-10 uppercase tracking-widest text-center">
             More to Discover
           </h2>
-          <FeaturedArticlesSection articles={recommendedArticles} />
+          <FeaturedArticlesSection articles={recommendedArticles} domain="jejuqq.com" />
         </div>
       )}
     </main>

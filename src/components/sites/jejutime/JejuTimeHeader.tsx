@@ -100,8 +100,8 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
     <>
     <div className="flex flex-col">
       {/* Top Black Bar (Shared with NewsIcons style but Jeju branded) */}
-      <div className="bg-[#1a1a1a] text-white py-1.5 px-6">
-        <div className="max-w-7xl mx-auto grid grid-cols-3 items-center text-[10px] font-bold tracking-widest uppercase">
+      <div className="bg-[#1a1a1a] text-white py-1.5">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-3 items-center text-[10px] font-bold tracking-widest uppercase">
           <div className="opacity-60">
             {/* Left side info if any */}
           </div>

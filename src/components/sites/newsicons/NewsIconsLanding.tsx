@@ -54,7 +54,7 @@ export default function NewsIconsLanding({ tenantId, articles, banners }: Props)
           </div>
 
           {/* Featured Articles */}
-          <FeaturedArticlesSection articles={articles.slice(0, 4)} />
+          <FeaturedArticlesSection articles={articles.slice(0, 4)} domain="newsicons.com" />
 
           {/* Trending / Blog Posts */}
           <TrendingProductsSection

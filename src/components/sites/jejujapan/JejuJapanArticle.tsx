@@ -124,7 +124,7 @@ export default function JejuJapanArticle({
           <h2 className="text-3xl font-serif font-black text-black mb-8 border-l-4 border-[#bc002d] pl-4">
             Recommended Stories
           </h2>
-          <FeaturedArticlesSection articles={recommendedArticles} />
+          <FeaturedArticlesSection articles={recommendedArticles} domain="jejujapan.com" />
         </div>
       )}
     </main>

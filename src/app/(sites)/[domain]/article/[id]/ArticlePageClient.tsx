@@ -205,7 +205,7 @@ export default function ArticlePageClient({
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
               Recommended articles
             </h2>
-            <FeaturedArticlesSection articles={recommendedArticles} />
+            <FeaturedArticlesSection articles={recommendedArticles} domain={domain} />
           </div>
         )}
       </main>

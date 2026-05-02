@@ -6,6 +6,7 @@ import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
 import { TrendingUp, Clock, ChevronRight, ChevronLeft } from "lucide-react";
 import { Suspense, useState } from "react";
+import { ClientPagination } from "@/components/home/ClientPagination";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Props {
@@ -20,7 +21,14 @@ interface Props {
 
 export default function JejuJapanLanding({ tenantId, articles, banners }: Props) {
   const heroArticles = articles.slice(0, 5);
-  const latestStories = articles.slice(0, 10);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  
+  const totalPages = Math.ceil(articles.length / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const latestStories = articles.slice(startIndex, endIndex);
   const trendingArticles = articles.slice(0, 5);
   const featuredArticles = articles.slice(0, 4);
   const trendingProducts = articles.filter((a: any) => a.status === "blog").slice(0, 4);
@@ -136,8 +144,23 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                        </div>
                     </Link>
                  ))}
-              </div>
-            </div>
+                  </div>
+                  {articles.length > 0 && (
+                     <div className="mt-4">
+                        <ClientPagination
+                           currentPage={currentPage}
+                           totalPages={totalPages}
+                           onPageChange={setCurrentPage}
+                           itemsPerPage={itemsPerPage}
+                           onItemsPerPageChange={setItemsPerPage}
+                           totalItems={articles.length}
+                           startIndex={startIndex}
+                           endIndex={endIndex}
+                           domain="jejujapan.com"
+                        />
+                     </div>
+                  )}
+               </div>
 
             {/* Right Sidebar (Trending & Precision) */}
             <aside className="lg:col-span-4">

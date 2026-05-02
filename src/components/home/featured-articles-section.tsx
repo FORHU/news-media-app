@@ -5,8 +5,11 @@ import type { Article } from "@/lib/types";
 import { ArticleLink } from "@/components/home/ArticleLink";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
 
+import { getDomainColor } from "@/lib/domainColors";
+
 interface FeaturedArticlesSectionProps {
   articles: Article[];
+  domain?: string;
 }
 
 function formatDate(date: Date | string) {
@@ -29,8 +32,10 @@ import { StoryImage } from "@/components/StoryImage";
 
 export function FeaturedArticlesSection({
   articles,
+  domain = "newsicons.com",
 }: FeaturedArticlesSectionProps) {
   if (articles.length === 0) return null;
+  const domainColor = getDomainColor(domain);
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -49,18 +54,28 @@ export function FeaturedArticlesSection({
               className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
             <div className="absolute top-2 right-2">
-              <span className="inline-block bg-[#ff4500] text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase">
+              <span 
+                className="inline-block text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase"
+                style={{ backgroundColor: domainColor.hex }}
+              >
                 {article.status ?? "article"}
               </span>
             </div>
           </div>
           <div className="p-3">
             {normalizeCategoryName(article.category?.categoryName) ? (
-              <div className="text-xs text-[#ff4500] font-semibold mb-1 uppercase">
+              <div 
+                className="text-xs font-semibold mb-1 uppercase"
+                style={{ color: domainColor.hex }}
+              >
                 {normalizeCategoryName(article.category?.categoryName)}
               </div>
             ) : null}
-            <h3 className="text-sm font-bold text-gray-900 mb-2 group-hover:text-[#ff4500] transition-colors line-clamp-2">
+            <h3 
+              className="text-sm font-bold text-gray-900 mb-2 transition-colors line-clamp-2"
+              onMouseEnter={(e) => e.currentTarget.style.color = domainColor.hex}
+              onMouseLeave={(e) => e.currentTarget.style.color = '#111827'}
+            >
               {article.title}
             </h3>
             <p className="text-xs text-gray-600 line-clamp-2 mb-2">

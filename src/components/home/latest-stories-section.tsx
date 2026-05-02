@@ -9,6 +9,7 @@ import { ArticleLink } from "@/components/home/ArticleLink";
 import type { Article } from "@/lib/types";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
 import { getDomainColor } from "@/lib/domainColors";
+import { ClientPagination } from "@/components/home/ClientPagination";
 
 
 interface LatestStoriesSectionProps {
@@ -163,76 +164,17 @@ export function LatestStoriesSection({
 
           {/* Pagination Controls */}
           {!searchQuery && articles.length > 0 && (
-            <div className="mt-8 pt-6 ">
-              <div className="flex items-center justify-between flex-wrap gap-4">
-                <div className="text-sm text-gray-500">
-                  {startIndex + 1}–{Math.min(endIndex, articles.length)} of{" "}
-                  {articles.length}
-                </div>
-
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(1, prev - 1))
-                    }
-                    disabled={currentPage === 1}
-                    className={`p-2 rounded-md transition-colors ${currentPage === 1
-                      ? "text-gray-300 cursor-not-allowed"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                      }`}
-                    aria-label="Previous page"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-
-                  <div className="px-3 text-sm text-gray-700">
-                    Page {currentPage} of {totalPages}
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-                    }
-                    disabled={currentPage === totalPages}
-                    className={`p-2 rounded-md transition-colors ${currentPage === totalPages
-                      ? "text-gray-300 cursor-not-allowed"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                      }`}
-                    aria-label="Next page"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-1">
-                  {[5, 10, 15]
-                    .filter((count) => {
-                      if (count === 15) return articles.length > 10;
-                      if (count === 10) return articles.length > 5;
-                      return true;
-                    })
-                    .map((count) => (
-                      <button
-                        key={count}
-                        type="button"
-                        onClick={() => {
-                          setItemsPerPage(count);
-                          setCurrentPage(1);
-                        }}
-                        className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${itemsPerPage === count
-                          ? "text-white"
-                          : "text-gray-600 hover:bg-gray-100"
-                          }`}
-                        style={itemsPerPage === count ? { backgroundColor: domainColor.hex } : {}}
-                      >
-                        {count}
-                      </button>
-                    ))}
-                </div>
-              </div>
-            </div>
+            <ClientPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={setItemsPerPage}
+              totalItems={articles.length}
+              startIndex={startIndex}
+              endIndex={endIndex}
+              domain={domain}
+            />
           )}
         </div>
       )}
