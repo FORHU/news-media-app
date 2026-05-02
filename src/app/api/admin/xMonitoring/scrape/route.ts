@@ -156,7 +156,6 @@ function mapPostToTweet(post: XpozPost, fallbackHandle: string, index: number) {
       ...getStringArray(p.videoUrls),
       ...extractBracketIndexedMediaUrls(p),
       ...getStringArray(p.media),
-      ...getStringArray(entities.urls),
       ...getStringArray(entities.media),
       ...getStringArray(extendedEntities.media),
       ...getStringArray(legacyExtendedEntities.media),
@@ -214,7 +213,14 @@ function mapPostToTweet(post: XpozPost, fallbackHandle: string, index: number) {
       (mediaTypes[0] ?? "").toLowerCase().includes("animated_gif") ||
       (mediaTypes[0] ?? "").toLowerCase().includes("gif");
 
-    const mediaState: MediaState = hasVideoMedia ? "video" : "none";
+    let hasImageMedia = false;
+    if (!hasVideoMedia) {
+      hasImageMedia = mediaUrls.some((url) => /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(url)) ||
+        (mediaTypes[0] ?? "").toLowerCase().includes("image") ||
+        (mediaTypes[0] ?? "").toLowerCase().includes("photo");
+    }
+
+    const mediaState: MediaState = hasVideoMedia ? "video" : (hasImageMedia ? "image" : "none");
 
     const finalThumbnailUrl = mediaState === "video"
       ? null
@@ -222,20 +228,57 @@ function mapPostToTweet(post: XpozPost, fallbackHandle: string, index: number) {
           getString(post.thumbnail_url) ??
           getString(post.previewImageUrl) ??
           getString(post.preview_image_url) ??
-          (Array.isArray(post.media) && post.media[0] && typeof post.media[0] === "object"
-            ? ((post.media[0] as Record<string, unknown>).thumbnailUrl ??
-                (post.media[0] as Record<string, unknown>).thumbnail_url ??
-                (post.media[0] as Record<string, unknown>).previewImageUrl ??
-                (post.media[0] as Record<string, unknown>).preview_image_url)
-            : undefined) ??
+          getString(
+            Array.isArray(post.media) && post.media[0] && typeof post.media[0] === "object"
+              ? ((post.media[0] as Record<string, unknown>).thumbnailUrl ??
+                  (post.media[0] as Record<string, unknown>).thumbnail_url ??
+                  (post.media[0] as Record<string, unknown>).previewImageUrl ??
+                  (post.media[0] as Record<string, unknown>).preview_image_url)
+              : undefined
+          ) ??
           getString(
             getObjectArray(((post.extendedEntities as Record<string, unknown> | undefined)?.media as unknown) ?? [])[0]?.media_url
           )
         );
 
-    const finalMediaUrls = mediaState === "video"
-      ? mediaUrls.filter((url) => /\.(mp4|mov|m4v|webm|mkv|m3u8)(\?|$)/i.test(url))
-      : mediaUrls;
+    const cleanUrls = (urls: string[]) => {
+      const uniqueUrls = new Map<string, string>();
+      const isMediaUrl = (url: string) => {
+        const lower = url.toLowerCase();
+        if (lower.match(/x\.com\/[^\/]+\/status\//) || lower.match(/twitter\.com\/[^\/]+\/status\//)) return false;
+        if (lower.match(/^https?:\/\/t\.co\//)) return false;
+        return true;
+      };
+      
+      urls.filter(isMediaUrl).forEach(url => {
+        try {
+          const parsed = new URL(url);
+          let basePath = parsed.origin + parsed.pathname;
+          if (parsed.hostname.includes('twimg.com') && parsed.pathname.includes('/media/')) {
+             basePath = basePath.replace(/\.(jpg|jpeg|png|webp|gif)$/i, '');
+          }
+          if (!uniqueUrls.has(basePath)) {
+            uniqueUrls.set(basePath, url);
+          } else {
+            const existing = uniqueUrls.get(basePath)!;
+            if (url.includes('name=large') || url.includes('name=orig') || (!existing.includes('name=large') && !existing.includes('name=orig') && url.length > existing.length)) {
+              uniqueUrls.set(basePath, url);
+            }
+          }
+        } catch {
+          if (!uniqueUrls.has(url)) uniqueUrls.set(url, url);
+        }
+      });
+      return Array.from(uniqueUrls.values());
+    };
+
+    let filteredMediaUrls = mediaUrls;
+    if (mediaState === "video") {
+       const videoUrls = mediaUrls.filter((url) => /\.(mp4|mov|m4v|webm|mkv|m3u8)(\?|$)/i.test(url));
+       filteredMediaUrls = videoUrls.length > 0 ? videoUrls : mediaUrls;
+    }
+
+    const finalMediaUrls = cleanUrls(filteredMediaUrls);
   if (mediaType === "video") {
     // TODO: If mediaType is video, call APISmith Apify actor for transcription.
   }

@@ -110,24 +110,34 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Could not connect to AI service" }, { status: 503 });
     }
 
+    const authorHandle = tweet.profileUrl ? tweet.profileUrl.split('/').filter(Boolean).pop() || "X_User" : "X_User";
+    const tweetUrl = tweet.profileUrl ? `${tweet.profileUrl.replace(/\/$/, '')}/status/${tweet.tweetId}` : undefined;
+
     const instruction = getAiSystemInstruction(
         tweet.sourceName || "Unknown Source", 
-        tweet.authorHandle || "X_User",
-        tweet.url || undefined, 
+        authorHandle,
+        tweetUrl, 
         requestedLanguage
     );
 
     let videoTranscript = "";
+    const logs: string[] = [];
+
     if (tweet.hasMedia && tweet.mediaType?.toLowerCase().includes("video")) {
         const apifyToken = process.env.APIFY_API_TOKEN;
-        if (apifyToken) {
+        const videoUrlToTranscribe = tweet.mediaUrls.find(url => /\.(mp4|mov|m4v|webm|mkv|m3u8)(\?|$)/i.test(url)) || tweet.mediaUrls[0];
+
+        if (apifyToken && videoUrlToTranscribe) {
+            logs.push(`Found video URL: ${videoUrlToTranscribe}`);
+            
+            const tweetUrl = tweet.profileUrl 
+                ? `${tweet.profileUrl.replace(/\/$/, '')}/status/${tweet.tweetId}`
+                : `https://x.com/i/status/${tweet.tweetId}`;
+
             try {
-                // profileUrl is typically "https://x.com/username", so we can build the status URL
-                const tweetUrl = tweet.profileUrl 
-                    ? `${tweet.profileUrl.replace(/\/$/, '')}/status/${tweet.tweetId}`
-                    : `https://x.com/i/status/${tweet.tweetId}`;
+                console.log(`[Apify] Transcribing video using tweet URL: ${tweetUrl}`);
+                logs.push(`Connecting to transcription service with tweet URL: ${tweetUrl}...`);
                 
-                console.log(`[Apify] Transcribing video for tweet: ${tweetUrl}`);
                 const apifyRes = await fetch(
                     `https://api.apify.com/v2/acts/apple_yang~twitter-video-transcript-api/run-sync-get-dataset-items?token=${apifyToken}`,
                     {
@@ -143,17 +153,29 @@ export async function POST(req: NextRequest) {
                         const transcript = datasetItems[0].transcript || datasetItems[0].text;
                         if (transcript) {
                             videoTranscript = `\n\n[VIDEO TRANSCRIPT]:\n${transcript}\n`;
-                            console.log("[Apify] Successfully transcribed video.");
+                            logs.push("Video transcribed successfully.");
+                            console.log("[Apify] Successfully transcribed video. Transcript length:", transcript.length);
+                        } else {
+                            logs.push("Transcription succeeded but returned empty text.");
+                            console.log("[Apify] Transcription succeeded but returned empty text. datasetItems:", JSON.stringify(datasetItems));
                         }
+                    } else {
+                        logs.push("Transcription service returned no data.");
+                        console.log("[Apify] Transcription service returned no data. datasetItems:", JSON.stringify(datasetItems));
                     }
                 } else {
+                    logs.push(`Failed to transcribe video. API Status: ${apifyRes.status}`);
                     console.error("[Apify] Failed to transcribe video. Status:", apifyRes.status);
                 }
-            } catch (err) {
+            } catch (err: any) {
+                logs.push(`Error connecting to transcription service: ${err.message}`);
                 console.error("[Apify] Error connecting to Apify:", err);
             }
-        } else {
+        } else if (!apifyToken) {
+            logs.push("APIFY_API_TOKEN is missing. Video transcription skipped.");
             console.warn("APIFY_API_TOKEN is missing. Video transcription skipped.");
+        } else {
+            logs.push("No valid video URL found in mediaUrls.");
         }
     }
 
@@ -230,7 +252,7 @@ CRITICAL: Generate the article now using the <title> and <content> tags.
           data: { status: "generated" }
         });
 
-        return NextResponse.json(contentArticle);
+        return NextResponse.json({ article: contentArticle, logs });
     } catch (err: any) {
         clearTimeout(timeout);
         console.error("AI Generation Process Error:", err);

@@ -533,18 +533,58 @@ export default function ManageHandles() {
                 ) : null}
               </div>
 
-              {selectedTweet.media_urls.length > 0 ? (
-                <div className="space-y-2">
-                  <p className="font-semibold text-gray-900">Media URLs</p>
-                  <div className="space-y-1">
-                    {selectedTweet.media_urls.map((mediaUrl, index) => (
-                      <p key={`${mediaUrl}-${index}`} className="break-all text-xs text-gray-600">
-                        {mediaUrl}
-                      </p>
-                    ))}
+              {(() => {
+                const isMediaUrl = (url: string) => {
+                  const lower = url.toLowerCase();
+                  if (lower.match(/x\.com\/[^\/]+\/status\//) || lower.match(/twitter\.com\/[^\/]+\/status\//)) return false;
+                  if (lower.match(/^https?:\/\/t\.co\//)) return false;
+                  return true;
+                };
+                const uniqueUrls = new Map<string, string>();
+                
+                let targetUrls = selectedTweet.media_urls;
+                if (selectedTweet.has_media === 'video') {
+                   const vUrls = targetUrls.filter(u => /\.(mp4|mov|m4v|webm|mkv|m3u8)(\?|$)/i.test(u));
+                   if (vUrls.length > 0) targetUrls = vUrls;
+                }
+
+                targetUrls.filter(isMediaUrl).forEach(url => {
+                  try {
+                    const parsed = new URL(url);
+                    let basePath = parsed.origin + parsed.pathname;
+                    if (parsed.hostname.includes('twimg.com') && parsed.pathname.includes('/media/')) {
+                       basePath = basePath.replace(/\.(jpg|jpeg|png|webp|gif)$/i, '');
+                    }
+                    if (!uniqueUrls.has(basePath)) {
+                      uniqueUrls.set(basePath, url);
+                    } else {
+                      const existing = uniqueUrls.get(basePath)!;
+                      if (url.includes('name=large') || url.includes('name=orig') || (!existing.includes('name=large') && !existing.includes('name=orig') && url.length > existing.length)) {
+                        uniqueUrls.set(basePath, url);
+                      }
+                    }
+                  } catch {
+                    if (!uniqueUrls.has(url)) uniqueUrls.set(url, url);
+                  }
+                });
+                
+                const finalUrls = Array.from(uniqueUrls.values());
+
+                if (finalUrls.length === 0) return null;
+
+                return (
+                  <div className="space-y-2">
+                    <p className="font-semibold text-gray-900">Media URLs</p>
+                    <div className="space-y-1">
+                      {finalUrls.map((mediaUrl, index) => (
+                        <p key={`${mediaUrl}-${index}`} className="break-all text-xs text-gray-600">
+                          {mediaUrl}
+                        </p>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ) : null}
+                );
+              })()}
 
               {selectedTweet.detected_image_url_or_data ? (
                 <div className="space-y-2">
