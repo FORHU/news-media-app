@@ -72,8 +72,7 @@ export default function AdminSidebar({
                 {
                     label: 'X Monitoring',
                     items: [
-                        { label: 'Manage Handles', href: '/admin/dashboard/x/urls' },
-                        { label: 'Scraped Tweets', href: '/admin/dashboard/x/content' },
+                        { label: 'X Feed Sources', href: '/admin/dashboard/x/urls' },
                     ]
                 },
                 {

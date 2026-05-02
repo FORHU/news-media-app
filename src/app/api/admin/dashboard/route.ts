@@ -1,93 +1,86 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { subDays, subWeeks } from "date-fns";
+import { subWeeks } from "date-fns";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
+import { resolveTenantIdFromRequest } from "@/lib/tenant";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
+        const tenantId = await resolveTenantIdFromRequest(req);
+        if (!tenantId) {
+            return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+        }
+
         const now = new Date();
-        
-        // Last week start (for generated articles)
         const oneWeekAgo = subWeeks(now, 1);
-        
-        // Today start (for crawled articles)
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
 
-        // Generated Articles
-        const totalGeneratedArticles = await prisma.contentArticle.count();
-        const generatedLastWeekCount = await prisma.contentArticle.count({
-            where: {
-                createdAt: {
-                    gte: oneWeekAgo
-                }
-            }
-        });
-
-        // Crawled Articles
-        const totalCrawledArticles = await prisma.rawArticle.count();
-        const crawledTodayCount = await prisma.rawArticle.count({
-            where: {
-                createdAt: {
-                    gte: today
-                }
-            }
-        });
-
-        // Crawled URLs
-        const totalCrawledUrls = await prisma.crawledUrl.count();
-
-        // Active Crawlers
-        const activeCrawlers = await prisma.crawlJob.count({
-            where: {
-                status: {
-                    in: ["PENDING", "RUNNING", "IN_PROGRESS"]
-                }
-            }
-        });
-
-        // Recent Activity (Latest 5 of each)
-        const recentGenerated = await prisma.contentArticle.findMany({
-            take: 5,
-            orderBy: { createdAt: "desc" },
-            include: { category: true }
-        });
-
-        const recentCrawled = await prisma.rawArticle.findMany({
-            take: 5,
-            orderBy: { createdAt: "desc" },
-            include: { category: true }
-        });
-
-        // Queue Details
-        const pendingArticlesCount = await prisma.rawArticle.count({
-            where: { status: "pending" }
-        });
+        // Execute all queries in parallel for maximum speed
+        const [
+            totalGenerated,
+            lastWeekGenerated,
+            totalCrawled,
+            todayCrawled,
+            totalUrls,
+            activeJobs,
+            pendingArticles,
+            recentGen,
+            recentCrawl
+        ] = await Promise.all([
+            // Counts
+            prisma.contentArticle.count({ where: { tenantId } }),
+            prisma.contentArticle.count({ where: { tenantId, createdAt: { gte: oneWeekAgo } } }),
+            prisma.rawArticle.count({ where: { tenantId } }),
+            prisma.rawArticle.count({ where: { tenantId, createdAt: { gte: todayStart } } }),
+            prisma.crawledUrl.count({ where: { tenantId } }),
+            prisma.crawlJob.count({ 
+                where: { 
+                    tenantId, 
+                    status: { in: ["PENDING", "RUNNING", "IN_PROGRESS", "Crawling"] } 
+                } 
+            }),
+            prisma.rawArticle.count({ where: { tenantId, status: "pending" } }),
+            
+            // Recent Activity
+            prisma.contentArticle.findMany({
+                where: { tenantId },
+                take: 5,
+                orderBy: { createdAt: "desc" },
+                include: { category: true }
+            }),
+            prisma.rawArticle.findMany({
+                where: { tenantId },
+                take: 5,
+                orderBy: { createdAt: "desc" },
+                include: { category: true }
+            })
+        ]);
 
         const stats = {
             generatedArticles: {
-                total: totalGeneratedArticles,
-                addedLastWeek: generatedLastWeekCount
+                total: totalGenerated,
+                addedLastWeek: lastWeekGenerated
             },
             crawledArticles: {
-                total: totalCrawledArticles,
-                addedToday: crawledTodayCount
+                total: totalCrawled,
+                addedToday: todayCrawled
             },
             crawledUrls: {
-                total: totalCrawledUrls
+                total: totalUrls
             },
             activeCrawlers: {
-                total: activeCrawlers
+                total: activeJobs
             },
             queueStatus: {
-                pendingAI: pendingArticlesCount,
-                activeCrawls: activeCrawlers,
-                totalToday: crawledTodayCount + generatedLastWeekCount // Approximation for "today"
+                pendingAI: pendingArticles,
+                activeCrawls: activeJobs,
+                totalToday: todayCrawled + lastWeekGenerated
             },
             recentActivity: [
-                ...recentGenerated.map(a => ({
+                ...recentGen.map(a => ({
                     id: a.id,
                     type: "GENERATION",
                     title: a.title,
@@ -95,7 +88,7 @@ export async function GET() {
                     status: "completed",
                     category: normalizeCategoryName(a.category?.categoryName) ?? undefined
                 })),
-                ...recentCrawled.map(a => ({
+                ...recentCrawl.map(a => ({
                     id: a.id,
                     type: "CRAWL",
                     title: a.title,

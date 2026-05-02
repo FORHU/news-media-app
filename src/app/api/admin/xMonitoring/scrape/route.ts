@@ -130,12 +130,44 @@ function getMediaObjects(post: XpozPost): Record<string, unknown>[] {
   ];
 }
 
+/**
+ * X embed and permalinks require the numeric status id (snowflake).
+ * XPOZ sometimes omits `id` but includes a full /status/{id} URL — parse that first.
+ */
+function extractTweetSnowflakeId(post: XpozPost, authorHandle: string, index: number): string {
+  const statusFromUrl = (u: string) =>
+    u.match(/(?:twitter|x)\.com\/[^/]+\/status\/(\d+)/i)?.[1];
+
+  const url =
+    getString(post.url) ??
+    getString(post.tweetUrl) ??
+    getString(post.permalink) ??
+    "";
+  const fromUrl = url ? statusFromUrl(url) : undefined;
+  if (fromUrl && /^\d{10,22}$/.test(fromUrl)) return fromUrl;
+
+  const restRaw = (post as Record<string, unknown>).restId ?? (post as Record<string, unknown>).rest_id;
+  const fromRest =
+    typeof restRaw === "number" && Number.isFinite(restRaw)
+      ? String(restRaw)
+      : typeof restRaw === "string"
+        ? restRaw.trim()
+        : "";
+  const candidates = [fromRest, getString(post.idStr), getString(post.id)];
+  for (const c of candidates) {
+    const t = c?.trim();
+    if (t && /^\d{10,22}$/.test(t)) return t;
+  }
+
+  return `${authorHandle}-${index}`;
+}
+
 function mapPostToTweet(post: XpozPost, fallbackHandle: string, index: number) {
-  const id = getString(post.id) ?? `${fallbackHandle}-${index}`;
   const authorHandle =
     getString(post.authorUsername) ??
     getString(post.username) ??
     fallbackHandle;
+  const id = extractTweetSnowflakeId(post, authorHandle, index);
   const text = extractTweetText(post);
   const url =
     getString(post.url) ??
@@ -156,7 +188,6 @@ function mapPostToTweet(post: XpozPost, fallbackHandle: string, index: number) {
       ...getStringArray(p.videoUrls),
       ...extractBracketIndexedMediaUrls(p),
       ...getStringArray(p.media),
-      ...getStringArray(entities.urls),
       ...getStringArray(entities.media),
       ...getStringArray(extendedEntities.media),
       ...getStringArray(legacyExtendedEntities.media),
@@ -166,49 +197,33 @@ function mapPostToTweet(post: XpozPost, fallbackHandle: string, index: number) {
     ];
   };
 
-  const rawMediaUrls = [
-    ...getMediaUrls(post),
-    ...(retweetedPost ? getMediaUrls(retweetedPost) : []),
-    ...(quotedPost ? getMediaUrls(quotedPost) : []),
-  ];
-  const mediaObjects = [
-    ...getMediaObjects(post),
-    ...(retweetedPost ? getMediaObjects(retweetedPost) : []),
-    ...(quotedPost ? getMediaObjects(quotedPost) : []),
-  ];
-  const mediaTypes = Array.from(
-    new Set(
-      mediaObjects
-        .map(
-          (item) =>
+    // Consolidate all media URLs collected from the post and related entities
+    const rawMediaUrls = [
+      ...getMediaUrls(post),
+      ...(retweetedPost ? getMediaUrls(retweetedPost) : []),
+      ...(quotedPost ? getMediaUrls(quotedPost) : []),
+    ];
+    const mediaObjects = [
+      ...getMediaObjects(post),
+      ...(retweetedPost ? getMediaObjects(retweetedPost) : []),
+      ...(quotedPost ? getMediaObjects(quotedPost) : []),
+    ];
+    const mediaTypes = Array.from(
+      new Set(
+        mediaObjects
+          .map((item) =>
             getString(item.type) ??
             getString(item.mediaType) ??
             getString(item.media_type) ??
             ""
+          )
+          .filter(Boolean)
         )
-        .filter(Boolean)
-    )
-  );
-
-  const mediaUrls = Array.from(new Set(rawMediaUrls.filter(Boolean)));
-  const thumbnailUrl =
-    getString(post.thumbnailUrl) ??
-    getString(post.thumbnail_url) ??
-    getString(post.previewImageUrl) ??
-    getString(post.preview_image_url) ??
-    getString(
-      Array.isArray(post.media) && post.media[0] && typeof post.media[0] === "object"
-        ? ((post.media[0] as Record<string, unknown>).thumbnailUrl ??
-          (post.media[0] as Record<string, unknown>).thumbnail_url ??
-          (post.media[0] as Record<string, unknown>).previewImageUrl ??
-          (post.media[0] as Record<string, unknown>).preview_image_url)
-        : undefined
-    ) ??
-    getString(
-      getObjectArray(
-        ((post.extendedEntities as Record<string, unknown> | undefined)?.media as unknown) ?? []
-      )[0]?.media_url
     );
+
+    const mediaUrls = Array.from(new Set(rawMediaUrls.filter(Boolean)));
+    // Determine media state (video, image, none) based on URLs and declared types
+
   const mediaType =
     getString(post.mediaType) ??
     getString(post.media_type) ??
@@ -225,22 +240,77 @@ function mapPostToTweet(post: XpozPost, fallbackHandle: string, index: number) {
       )[0]?.type
     ) ??
     mediaTypes[0];
-  const hasMedia = mediaObjects.length > 0 || mediaUrls.length > 0;
-  const hasVideoMedia =
-    mediaUrls.some((url) => /\.(mp4|mov|m4v|webm|mkv|m3u8)(\?|$)/i.test(url)) ||
-    (mediaType ?? "").toLowerCase().includes("video") ||
-    (mediaType ?? "").toLowerCase().includes("animated_gif") ||
-    (mediaType ?? "").toLowerCase().includes("gif");
-  const hasImageMedia =
-    mediaUrls.some((url) => /\.(jpg|jpeg|png|webp|gif|bmp|svg)(\?|$)/i.test(url)) ||
-    Boolean(thumbnailUrl) ||
-    (mediaType ?? "").toLowerCase().includes("image") ||
-    (mediaType ?? "").toLowerCase().includes("photo");
-  const mediaState: MediaState = hasVideoMedia
-    ? "video"
-    : hasImageMedia && hasMedia
-      ? "image"
-      : "none";
+    const hasVideoMedia = mediaUrls.some((url) => /\.(mp4|mov|m4v|webm|mkv|m3u8)(\?|$)/i.test(url)) ||
+      (mediaTypes[0] ?? "").toLowerCase().includes("video") ||
+      (mediaTypes[0] ?? "").toLowerCase().includes("animated_gif") ||
+      (mediaTypes[0] ?? "").toLowerCase().includes("gif");
+
+    let hasImageMedia = false;
+    if (!hasVideoMedia) {
+      hasImageMedia = mediaUrls.some((url) => /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(url)) ||
+        (mediaTypes[0] ?? "").toLowerCase().includes("image") ||
+        (mediaTypes[0] ?? "").toLowerCase().includes("photo");
+    }
+
+    const mediaState: MediaState = hasVideoMedia ? "video" : (hasImageMedia ? "image" : "none");
+
+    const finalThumbnailUrl = mediaState === "video"
+      ? null
+      : (getString(post.thumbnailUrl) ??
+          getString(post.thumbnail_url) ??
+          getString(post.previewImageUrl) ??
+          getString(post.preview_image_url) ??
+          getString(
+            Array.isArray(post.media) && post.media[0] && typeof post.media[0] === "object"
+              ? ((post.media[0] as Record<string, unknown>).thumbnailUrl ??
+                  (post.media[0] as Record<string, unknown>).thumbnail_url ??
+                  (post.media[0] as Record<string, unknown>).previewImageUrl ??
+                  (post.media[0] as Record<string, unknown>).preview_image_url)
+              : undefined
+          ) ??
+          getString(
+            getObjectArray(((post.extendedEntities as Record<string, unknown> | undefined)?.media as unknown) ?? [])[0]?.media_url
+          )
+        );
+
+    const cleanUrls = (urls: string[]) => {
+      const uniqueUrls = new Map<string, string>();
+      const isMediaUrl = (url: string) => {
+        const lower = url.toLowerCase();
+        if (lower.match(/x\.com\/[^\/]+\/status\//) || lower.match(/twitter\.com\/[^\/]+\/status\//)) return false;
+        if (lower.match(/^https?:\/\/t\.co\//)) return false;
+        return true;
+      };
+      
+      urls.filter(isMediaUrl).forEach(url => {
+        try {
+          const parsed = new URL(url);
+          let basePath = parsed.origin + parsed.pathname;
+          if (parsed.hostname.includes('twimg.com') && parsed.pathname.includes('/media/')) {
+             basePath = basePath.replace(/\.(jpg|jpeg|png|webp|gif)$/i, '');
+          }
+          if (!uniqueUrls.has(basePath)) {
+            uniqueUrls.set(basePath, url);
+          } else {
+            const existing = uniqueUrls.get(basePath)!;
+            if (url.includes('name=large') || url.includes('name=orig') || (!existing.includes('name=large') && !existing.includes('name=orig') && url.length > existing.length)) {
+              uniqueUrls.set(basePath, url);
+            }
+          }
+        } catch {
+          if (!uniqueUrls.has(url)) uniqueUrls.set(url, url);
+        }
+      });
+      return Array.from(uniqueUrls.values());
+    };
+
+    let filteredMediaUrls = mediaUrls;
+    if (mediaState === "video") {
+       const videoUrls = mediaUrls.filter((url) => /\.(mp4|mov|m4v|webm|mkv|m3u8)(\?|$)/i.test(url));
+       filteredMediaUrls = videoUrls.length > 0 ? videoUrls : mediaUrls;
+    }
+
+    const finalMediaUrls = cleanUrls(filteredMediaUrls);
   if (mediaType === "video") {
     // TODO: If mediaType is video, call APISmith Apify actor for transcription.
   }
@@ -254,9 +324,9 @@ function mapPostToTweet(post: XpozPost, fallbackHandle: string, index: number) {
     text,
     tweet_timestamp: createdAt,
     has_media: mediaState,
-    media_type: mediaType ?? null,
-    media_urls: mediaUrls,
-    thumbnail_url: thumbnailUrl ?? null,
+    media_type: mediaState !== "none" ? mediaState : (mediaType ?? null),
+    media_urls: finalMediaUrls,
+    thumbnail_url: mediaState === "video" ? null : finalThumbnailUrl ?? null,
     status: "crawled",
     url,
     createdAt,

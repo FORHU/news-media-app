@@ -3,6 +3,26 @@ import type { Article } from "@/lib/types";
 import { Prisma } from "@/generated/prisma/client";
 import { getCategoryFilterVariants } from "@/config/categories";
 
+const articleInclude = {
+  category: true,
+  user: { select: { firstName: true, lastName: true } },
+  rawArticle: {
+    include: {
+      category: true,
+      crawledUrl: true,
+    },
+  },
+  rawVideo: true,
+  rawSourceUpload: true,
+  rawTweet: {
+    select: {
+      tweetId: true,
+      generationMode: true,
+      profileUrl: true,
+    },
+  },
+} satisfies Prisma.ContentArticleInclude;
+
 export const articlesRepository = {
   async findMany(params: {
     limit: number;
@@ -57,7 +77,7 @@ export const articlesRepository = {
         { publishDate: { sort: "desc", nulls: "last" } },
         { createdAt: "desc" }
       ],
-      include: { category: true },
+      include: articleInclude,
     }) as Promise<Article[]>;
   },
 
@@ -65,7 +85,7 @@ export const articlesRepository = {
     const where = tenantId ? { id, tenantId } : { id };
     return (await prisma.contentArticle.findFirst({
       where: where as any,
-      include: { category: true },
+      include: articleInclude,
     })) as Article | null;
   },
 
@@ -73,7 +93,7 @@ export const articlesRepository = {
     try {
       return (await prisma.contentArticle.findFirst({
         where: tenantId ? ({ slug, tenantId } as any) : ({ slug } as any),
-        include: { category: true },
+        include: articleInclude,
       })) as Article | null;
     } catch {
       // Temporary compatibility fallback when Prisma client

@@ -24,9 +24,10 @@ type GetCrawledArticlesParams = {
 
 type TriggerCrawlParams = {
   urls: string[];
+  tenant_id: string;
   start_date?: string;
   end_date?: string;
-  max_requests_per_crawl?: number;
+  max_articles?: number;
 };
 
 export class CrawledArticlesServiceError extends Error {
@@ -185,17 +186,15 @@ export const crawledArticlesService = {
       throw new CrawledArticlesServiceError("urls is required", 400);
     }
 
-    const payload: TriggerCrawlParams = { urls };
+    const payload: any = { 
+      urls,
+      tenant_id: params.tenant_id 
+    };
     if (isIsoDateString(params.start_date)) payload.start_date = params.start_date;
     if (isIsoDateString(params.end_date)) payload.end_date = params.end_date;
-    if (
-      typeof params.max_requests_per_crawl === "number" &&
-      Number.isFinite(params.max_requests_per_crawl)
-    ) {
-      payload.max_requests_per_crawl = Math.max(
-        1,
-        Math.floor(params.max_requests_per_crawl)
-      );
+    
+    if (typeof params.max_articles === "number" && Number.isFinite(params.max_articles)) {
+      payload.max_articles = Math.max(1, Math.floor(params.max_articles));
     }
 
     try {
@@ -215,15 +214,15 @@ export const crawledArticlesService = {
       if (!upstream.ok) {
         const message =
           upstreamData &&
-          typeof upstreamData === "object" &&
-          ("error" in upstreamData || "message" in upstreamData) &&
-          (
-            (upstreamData as { error?: string; message?: string }).error ||
-            (upstreamData as { error?: string; message?: string }).message
-          )
+            typeof upstreamData === "object" &&
+            ("error" in upstreamData || "message" in upstreamData) &&
+            (
+              (upstreamData as { error?: string; message?: string }).error ||
+              (upstreamData as { error?: string; message?: string }).message
+            )
             ? (upstreamData as { error?: string; message?: string }).error ||
-              (upstreamData as { error?: string; message?: string }).message ||
-              `Upstream error (${upstream.status})`
+            (upstreamData as { error?: string; message?: string }).message ||
+            `Upstream error (${upstream.status})`
             : `Upstream error (${upstream.status})`;
 
         throw new CrawledArticlesServiceError(message, 502, {
@@ -244,4 +243,5 @@ export const crawledArticlesService = {
     }
   },
 };
+
 

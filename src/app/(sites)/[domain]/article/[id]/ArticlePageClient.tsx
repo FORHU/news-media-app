@@ -14,6 +14,12 @@ import { normalizeCategoryName } from "@/lib/categoryDisplay";
 import { AdBanner } from "@/components/AdBanner";
 import type { Article } from "@/lib/types";
 import { extractYoutubeId } from "@/lib/utils";
+import TwitterStatusEmbed from "@/components/article/TwitterStatusEmbed";
+import {
+  isSocialCommentaryGenerationMode,
+  splitReferenceLineFromContent,
+  stripOriginalPostBlock,
+} from "@/lib/tweetArticleDisplay";
 
 export default function ArticlePageClient({ 
   articleId, 
@@ -79,13 +85,45 @@ export default function ArticlePageClient({
     year: "numeric",
   });
 
-  const youtubeUrl = article.youtubeUrl;
+  const rawVideo = article.rawVideo;
+  const youtubeUrl = article.youtubeUrl || rawVideo?.youtubeUrl || null;
   const youtubeId = youtubeUrl ? extractYoutubeId(youtubeUrl) : null;
 
-  const hasYoutube = Boolean(youtubeId);
+  const rawTweet = article.rawTweet;
+  const isCommentaryTweetArticle =
+    article.sourceType === "TWEET" &&
+    isSocialCommentaryGenerationMode(rawTweet?.generationMode);
+
+  const isCommentaryVideoArticle =
+    article.sourceType === "VIDEO" &&
+    isSocialCommentaryGenerationMode(rawVideo?.generationMode);
+
+  const legacyVideoArticleNoRawRow =
+    article.sourceType === "VIDEO" && Boolean(youtubeId) && !rawVideo;
+
+  const showYoutubePlayer =
+    Boolean(youtubeId) &&
+    (article.sourceType !== "VIDEO" ||
+      isCommentaryVideoArticle ||
+      legacyVideoArticleNoRawRow);
+
+  const showTweetCommentaryEmbed =
+    isCommentaryTweetArticle && Boolean(rawTweet?.tweetId);
+
+  const isCommentaryLayoutArticle =
+    isCommentaryTweetArticle || isCommentaryVideoArticle;
+
+  const bodyContent = isCommentaryLayoutArticle
+    ? stripOriginalPostBlock(article.content)
+    : article.content;
+
+  const { main: layoutContent, referenceLine } = splitReferenceLineFromContent(
+    bodyContent,
+    isCommentaryLayoutArticle
+  );
 
   // Prepare paragraphs for splitting and full content
-  const paragraphs = article.content
+  const paragraphs = layoutContent
     .split(/\n+/)
     .map((p) => p.trim())
     .filter(Boolean);
@@ -124,9 +162,18 @@ export default function ArticlePageClient({
                 <p className="text-gray-500">{formattedDate}</p>
               </header>
 
-              {hasYoutube ? (
+              {showTweetCommentaryEmbed && rawTweet?.tweetId ? (
+                <div className="mt-6 mb-2">
+                  <TwitterStatusEmbed
+                    tweetId={rawTweet.tweetId}
+                    profileUrl={rawTweet.profileUrl}
+                  />
+                </div>
+              ) : null}
+
+              {showYoutubePlayer ? (
                 <>
-                  {/* YouTube Embed at the top */}
+                  {/* YouTube Embed at the top (commentary / legacy); hidden for standalone VIDEO */}
                   <div className="mt-6 mb-8 rounded-xl overflow-hidden bg-black aspect-video shadow-lg">
                     <iframe
                       src={`https://www.youtube.com/embed/${youtubeId}`}
@@ -168,27 +215,38 @@ export default function ArticlePageClient({
                       {fullContent}
                     </div>
                   )}
+                  {referenceLine ? (
+                    <p className="mt-8 pt-6 border-t border-gray-200 text-sm text-gray-500">
+                      {referenceLine}
+                    </p>
+                  ) : null}
                 </>
               ) : (
                 <>
-                  {article.imageUrl && (
-                    <div className="mt-6 rounded-xl overflow-hidden bg-gray-200 relative aspect-video shadow-sm">
-                      <StoryImage
-                        src={article.imageUrl}
-                        alt={article.title}
-                        fill
-                        sizes="(max-width: 1024px) 100vw, 80vw"
-                        priority
-                        className="object-cover"
-                        variant="hero"
-                      />
-                    </div>
-                  )}
+
+                  {/* Hero image — at the top for standard articles (and standalone YouTube articles) */}
+                  <div className="mt-6 rounded-xl overflow-hidden bg-gray-200 relative aspect-video shadow-sm">
+                    <StoryImage
+                      src={article.imageUrl}
+                      alt={article.title}
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 80vw"
+                      priority
+                      className="object-cover"
+                      variant="hero"
+                    />
+                  </div>
+
 
                   {/* Article content — full */}
                   <div className="mt-8 text-gray-700 leading-relaxed whitespace-pre-wrap">
                     {fullContent}
                   </div>
+                  {referenceLine ? (
+                    <p className="mt-8 pt-6 border-t border-gray-200 text-sm text-gray-500">
+                      {referenceLine}
+                    </p>
+                  ) : null}
                 </>
               )}
             </article>

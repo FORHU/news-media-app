@@ -41,6 +41,7 @@ type ContentArticleSupabase = {
     youtube_url: string;
     transcribed_content: string;
     prompt: string | null;
+    generation_mode: string;
     created_at: string;
     updated_at: string;
   } | null;
@@ -52,6 +53,11 @@ type ContentArticleSupabase = {
     extracted_text: string | null;
     created_at: string;
     updated_at: string;
+  } | null;
+  rawTweet: {
+    tweet_id: string;
+    generation_mode: string;
+    profile_url: string | null;
   } | null;
 };
 
@@ -116,6 +122,13 @@ export const generatedArticlesRepository = {
           },
           rawVideo: true,
           rawSourceUpload: true,
+          rawTweet: {
+            select: {
+              tweetId: true,
+              generationMode: true,
+              profileUrl: true,
+            },
+          },
         },
       }),
       prisma.contentArticle.count({ where }),
@@ -166,6 +179,7 @@ export const generatedArticlesRepository = {
             youtube_url: row.rawVideo.youtubeUrl,
             transcribed_content: row.rawVideo.transcribedContent,
             prompt: row.rawVideo.prompt,
+            generation_mode: row.rawVideo.generationMode,
             created_at: row.rawVideo.createdAt.toISOString(),
             updated_at: row.rawVideo.updatedAt.toISOString(),
           }
@@ -179,6 +193,13 @@ export const generatedArticlesRepository = {
             extracted_text: row.rawSourceUpload.extractedText,
             created_at: row.rawSourceUpload.createdAt.toISOString(),
             updated_at: row.rawSourceUpload.updatedAt.toISOString(),
+          }
+        : null,
+      rawTweet: row.rawTweet
+        ? {
+            tweet_id: row.rawTweet.tweetId,
+            generation_mode: row.rawTweet.generationMode,
+            profile_url: row.rawTweet.profileUrl,
           }
         : null,
     }));

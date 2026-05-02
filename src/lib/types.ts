@@ -13,6 +13,13 @@ export type Article = Prisma.ContentArticleGetPayload<{
     };
     rawVideo: true;
     rawSourceUpload: true;
+    rawTweet: {
+      select: {
+        tweetId: true;
+        generationMode: true;
+        profileUrl: true;
+      };
+    };
   };
 }>;
 

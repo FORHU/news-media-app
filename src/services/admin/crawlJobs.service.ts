@@ -35,7 +35,7 @@ export const crawlJobsService = {
       status: job.status || "Pending",
       urls: normalizeUrls(job.urls),
       maxArticlesRequest: job.maxArticlesRequest || 0,
-      articlesSaved: job.articlesSaved || 0,
+      articlesSaved: (job as any)._count?.rawArticles || 0,
       createdAt: job.createdAt,
       startedAt: job.startedAt,
       finishedAt: job.finishedAt,

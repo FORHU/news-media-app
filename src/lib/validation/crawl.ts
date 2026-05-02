@@ -28,9 +28,10 @@ export const crawlTriggerBodySchema = z
     urls: z
       .array(z.string().trim().min(1, "URL cannot be empty"))
       .min(1, "At least one URL is required"),
+    tenant_id: z.string().trim().min(1, "tenant_id is required"),
     start_date: isoDate.optional(),
     end_date: isoDate.optional(),
-    max_requests_per_crawl: z
+    max_articles: z
       .number()
       .int()
       .min(1, "Max articles must be at least 1")

@@ -13,7 +13,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { articlesApi } from '@/lib/api';
 import YoutubeGenerationTab from '../../../generatedContent/CreateArticleModal/YoutubeGenerationTab';
 import CategorySelectWithOther from '../../../shared/CategorySelectWithOther';
+import ArticleGenerationModeSection from '../../../shared/ArticleGenerationModeSection';
 import { Button } from '@/components/ui/button';
+import type { ArticleGenerationMode } from '@/lib/articleGenerationMode';
 
 export default function Transcribe() {
     const queryClient = useQueryClient();
@@ -25,6 +27,8 @@ export default function Transcribe() {
     const [youtubeTranscript, setYoutubeTranscript] = useState("");
     const [youtubePrompt, setYoutubePrompt] = useState("");
     const [language, setLanguage] = useState("English");
+    const [generationMode, setGenerationMode] =
+        useState<ArticleGenerationMode>("standalone");
     const [selectedCategory, setSelectedCategory] = useState("");
     const [fieldErrors, setFieldErrors] = useState<{ category?: string; transcript?: string }>({});
     const [transcriptError, setTranscriptError] = useState<string | null>(null);
@@ -46,6 +50,7 @@ export default function Transcribe() {
             setYoutubeTranscript("");
             setYoutubeVideoId("");
             setYoutubePrompt("");
+            setGenerationMode("standalone");
             setTimeout(() => setSuccessMessage(null), 5000);
         },
         onError: (err: any) => {
@@ -97,6 +102,7 @@ export default function Transcribe() {
             categoryId: selectedCategory,
             youtubeUrl: youtubeUrl,
             type: "youtube",
+            generationMode,
         });
     };
 
@@ -128,9 +134,18 @@ export default function Transcribe() {
                     setLanguage={setLanguage}
                 />
 
+                <div className="mt-8 pt-8 border-t border-gray-50 space-y-8">
+                    <ArticleGenerationModeSection
+                        variant="youtube"
+                        value={generationMode}
+                        onChange={setGenerationMode}
+                        stepNumber="02"
+                    />
+                </div>
+
                 <div className="mt-8 pt-8 border-t border-gray-50 space-y-6">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-black text-xs">02</div>
+                        <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-black text-xs">03</div>
                         <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight">Final Configuration</h2>
                     </div>
 

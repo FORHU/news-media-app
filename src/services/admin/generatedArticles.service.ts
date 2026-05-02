@@ -78,6 +78,7 @@ export const generatedArticlesService = {
               youtubeUrl: article.rawVideo.youtube_url,
               transcribedContent: article.rawVideo.transcribed_content,
               prompt: article.rawVideo.prompt,
+              generationMode: article.rawVideo.generation_mode,
               createdAt: article.rawVideo.created_at,
               updatedAt: article.rawVideo.updated_at,
             }
@@ -91,6 +92,13 @@ export const generatedArticlesService = {
               extractedText: article.rawSourceUpload.extracted_text,
               createdAt: article.rawSourceUpload.created_at,
               updatedAt: article.rawSourceUpload.updated_at,
+            }
+          : null,
+        rawTweet: article.rawTweet
+          ? {
+              tweetId: article.rawTweet.tweet_id,
+              generationMode: article.rawTweet.generation_mode,
+              profileUrl: article.rawTweet.profile_url,
             }
           : null,
       };
