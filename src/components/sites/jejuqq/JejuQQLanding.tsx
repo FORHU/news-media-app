@@ -50,7 +50,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
 
   return (
     <div className="bg-white text-[#222]">
-      <LandingClientWrapper footerBanners={banners.footer}>
+      <LandingClientWrapper footerBanners={banners.footer} domain="jejuqq.com">
         <div className="max-w-7xl mx-auto px-4 mt-4">
           <AdBanner position="HOME_TOP" initialBanners={banners.top} />
         </div>

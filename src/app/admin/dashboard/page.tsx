@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
     Activity,
     ArrowUpRight
@@ -25,6 +25,17 @@ export default function DashboardPage() {
         // Dashboard wants periodic updates while you’re on the page.
         refetchInterval: 10_000,
     });
+    
+    // Set domain-specific title
+    useEffect(() => {
+        const hostname = window.location.hostname;
+        let siteName = "NewsIcons";
+        if (hostname.includes('jejujapan')) siteName = "Jeju Japan";
+        else if (hostname.includes('jejuqq')) siteName = "Jeju QQ";
+        else if (hostname.includes('jejutime')) siteName = "Jeju Times";
+        
+        document.title = `Admin Dashboard | ${siteName}`;
+    }, []);
 
     const loading = isLoading && !data;
 

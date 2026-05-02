@@ -25,6 +25,7 @@ type Theme = {
   backCls: string;
   tagline: string;
   footerText: string;
+  siteName: string;
   fontStyle?: string;
 };
 
@@ -60,6 +61,7 @@ const newsIconsTheme: Theme = {
   backCls: 'fixed top-8 left-8 flex items-center gap-2 text-gray-800 hover:text-[#ff4500] transition-all group z-10',
   tagline: 'Welcome Back',
   footerText: '© FORHU AI Technologies',
+  siteName: 'NewsIcons',
 };
 
 /* ── JejuJapan ── */
@@ -86,13 +88,14 @@ const jejuJapanTheme: Theme = {
   backCls: 'fixed top-8 left-8 flex items-center gap-2 text-gray-700 hover:text-[#bc002d] transition-all group z-10',
   tagline: 'Secure Access',
   footerText: '© Jeju Japan News Network',
+  siteName: 'Jeju Japan',
   fontStyle: "@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Playfair+Display:wght@900&display=swap');",
 };
 
 /* ── JejuQQ ── */
 const jejuQQTheme: Theme = {
   bg: 'min-h-screen bg-white flex items-center justify-center px-4 relative overflow-hidden',
-  card: 'bg-white border-t-4 border-[#ff4500] shadow-lg p-10 md:p-12 relative overflow-hidden',
+  card: 'bg-white border-t-4 border-[#e60012] shadow-lg p-10 md:p-12 relative overflow-hidden',
   topBar: '',
   logo: (
     <div className="text-center mb-10">
@@ -103,17 +106,18 @@ const jejuQQTheme: Theme = {
       <p className="text-[10px] font-bold tracking-[0.3em] text-gray-500 uppercase mt-2">Admin Portal</p>
     </div>
   ),
-  accent: '#ff4500',
-  accentCls: 'bg-[#ff4500]',
-  accentHover: 'hover:bg-[#e03d00]',
-  inputFocus: 'focus:border-[#ff4500]',
+  accent: '#e60012',
+  accentCls: 'bg-[#e60012]',
+  accentHover: 'hover:bg-[#cc0010]',
+  inputFocus: 'focus:border-[#e60012]',
   inputBorder: 'border-gray-200 hover:border-gray-300',
   labelCls: 'text-[11px] font-bold text-black uppercase tracking-widest',
-  btnCls: 'w-full bg-black text-white py-3.5 font-black text-xs uppercase tracking-widest hover:bg-[#ff4500] disabled:opacity-60 transition-colors flex items-center justify-center gap-2 group',
+  btnCls: 'w-full bg-black text-white py-3.5 font-black text-xs uppercase tracking-widest hover:bg-[#e60012] disabled:opacity-60 transition-colors flex items-center justify-center gap-2 group',
   errorCls: 'text-xs text-red-600 bg-red-50 p-3 border border-red-200 font-bold flex items-center gap-2',
-  backCls: 'fixed top-8 left-8 flex items-center gap-2 text-gray-800 hover:text-[#ff4500] transition-all group z-10',
+  backCls: 'fixed top-8 left-8 flex items-center gap-2 text-gray-800 hover:text-[#e60012] transition-all group z-10',
   tagline: 'Welcome Back',
   footerText: '© Jeju QQ Daily',
+  siteName: 'Jeju QQ',
 };
 
 /* ── JejuTime ── */
@@ -140,6 +144,7 @@ const jejuTimeTheme: Theme = {
   backCls: 'fixed top-8 left-8 flex items-center gap-2 text-slate-600 hover:text-blue-600 transition-all group z-10',
   tagline: 'Welcome Back',
   footerText: '© Jeju Times · Coastal Edition',
+  siteName: 'Jeju Times',
 };
 
 /* ─── Shared form logic ─── */
@@ -153,6 +158,13 @@ function LoginContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string; general?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Update browser title based on domain theme
+  useEffect(() => {
+    if (theme.siteName) {
+      document.title = `Admin Login | ${theme.siteName}`;
+    }
+  }, [theme.siteName]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();

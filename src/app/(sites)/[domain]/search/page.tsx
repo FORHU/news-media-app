@@ -92,7 +92,7 @@ export default async function SearchPage({
 
   return (
     <div className="bg-white">
-      <LandingClientWrapper footerBanners={footerBanners}>
+      <LandingClientWrapper footerBanners={footerBanners} domain={domain}>
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
           <FilterStatusBar
             searchQuery={searchQuery || null}

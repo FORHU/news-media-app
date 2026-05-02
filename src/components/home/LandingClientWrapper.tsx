@@ -24,13 +24,15 @@ interface LandingClientWrapperProps {
     footerBanners?: Banner[];
 }
 
-export function LandingClientWrapper({ children, footerBanners }: LandingClientWrapperProps) {
+export function LandingClientWrapper({ children, footerBanners, domain: initialDomain = "" }: LandingClientWrapperProps & { domain?: string }) {
     const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
-    const [domain, setDomain] = useState<string>("");
+    const [domain, setDomain] = useState<string>(initialDomain);
 
     useEffect(() => {
-        setDomain(window.location.hostname);
-    }, []);
+        if (!initialDomain) {
+            setDomain(window.location.hostname);
+        }
+    }, [initialDomain]);
 
     const openNewsletter = () => setIsNewsletterOpen(true);
     const closeNewsletter = () => setIsNewsletterOpen(false);

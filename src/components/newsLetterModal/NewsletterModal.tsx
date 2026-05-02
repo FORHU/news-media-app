@@ -54,16 +54,16 @@ const getDomainTheme = (domain: string): ThemeClasses => {
   }
   if (domain.includes("jejuqq")) {
     return {
-      bg: "bg-[#dc2626]",
-      text: "text-[#dc2626]",
-      border: "border-[#dc2626]",
-      borderFocus: "focus:border-[#dc2626]",
-      hoverBg: "hover:bg-[#b91c1c]",
-      hoverText: "hover:text-[#dc2626]",
+      bg: "bg-[#e60012]", // Pure red for JejuQQ
+      text: "text-[#e60012]",
+      border: "border-[#e60012]",
+      borderFocus: "focus:border-[#e60012]",
+      hoverBg: "hover:bg-[#cc0010]",
+      hoverText: "hover:text-[#e60012]",
       bgLight: "bg-red-50",
-      bgLight10: "bg-[#dc2626]/10",
+      bgLight10: "bg-[#e60012]/10",
       font: "font-serif",
-      gradient: "from-[#dc2626]/5",
+      gradient: "from-[#e60012]/5",
     };
   }
   // Default / NewsIcons

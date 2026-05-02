@@ -47,3 +47,12 @@ export async function resolveTenantIdFromDomain(domain: string): Promise<string 
   return tenant?.id ?? null;
 }
 
+export function getSiteNameFromDomain(domain: string | null): string {
+  if (!domain) return "NewsIcons";
+  const d = domain.toLowerCase();
+  if (d.includes('jejujapan')) return "Jeju Japan";
+  if (d.includes('jejuqq')) return "Jeju QQ";
+  if (d.includes('jejutime')) return "Jeju Times";
+  return "NewsIcons";
+}
+

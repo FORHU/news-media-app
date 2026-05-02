@@ -15,13 +15,15 @@ interface ArticleClientShellProps {
   children: React.ReactNode;
 }
 
-export function ArticleClientShell({ children }: ArticleClientShellProps) {
+export function ArticleClientShell({ children, domain: initialDomain = "" }: ArticleClientShellProps & { domain?: string }) {
   const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
-  const [domain, setDomain] = useState<string>("");
+  const [domain, setDomain] = useState<string>(initialDomain);
 
   useEffect(() => {
-    setDomain(window.location.hostname);
-  }, []);
+    if (!initialDomain) {
+      setDomain(window.location.hostname);
+    }
+  }, [initialDomain]);
 
   const isJejuTime = domain.includes("jejutime");
   const isJejuQQ = domain.includes("jejuqq");

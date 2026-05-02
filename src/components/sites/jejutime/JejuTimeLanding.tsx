@@ -35,7 +35,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
 
    return (
       <div className="bg-[#F8FAFC] text-[#2D3748] font-roboto selection:bg-blue-100">
-         <LandingClientWrapper footerBanners={banners.footer}>
+         <LandingClientWrapper footerBanners={banners.footer} domain="jejutime.com">
             <div className="max-w-7xl mx-auto px-6 mt-4">
                <AdBanner position="HOME_TOP" initialBanners={banners.top} />
             </div>

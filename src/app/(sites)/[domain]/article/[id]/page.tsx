@@ -151,7 +151,7 @@ export default async function ArticlePage({
   const dehydratedState = dehydrate(queryClient);
 
   return (
-    <ArticleClientShell>
+    <ArticleClientShell domain={domain}>
       <Hydrate state={dehydratedState}>
         <Suspense fallback={<div className="min-h-[60vh] bg-white" />}>
           {domain === "jejujapan.com" ? (

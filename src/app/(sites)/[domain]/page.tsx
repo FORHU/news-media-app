@@ -100,7 +100,7 @@ export default async function Page({
   const error = "";
   return (
     <div className="bg-white">
-      <LandingClientWrapper footerBanners={footerBanners}>
+      <LandingClientWrapper footerBanners={footerBanners} domain={domain}>
         <Suspense fallback={<div className="hidden md:block h-12 bg-black" />}>
           <NavBar />
         </Suspense>

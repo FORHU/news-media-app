@@ -49,7 +49,7 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
 
   return (
     <div className="bg-white text-black font-sans">
-      <LandingClientWrapper footerBanners={banners.footer}>
+      <LandingClientWrapper footerBanners={banners.footer} domain="jejujapan.com">
         <div className="max-w-7xl mx-auto px-6 mt-4">
           <AdBanner position="HOME_TOP" initialBanners={banners.top} />
         </div>
