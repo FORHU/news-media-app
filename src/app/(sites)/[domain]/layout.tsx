@@ -1,5 +1,6 @@
-import { NavBar } from "@/components/NavBar";
-import { Footer } from "@/components/Footer";
+import { SiteShell } from "@/components/SiteShell";
+import { resolveTenantIdFromDomain } from "@/lib/tenant";
+import { bannersService } from "@/services/banners.service";
 
 export default async function SiteLayout({
   children,
@@ -9,20 +10,20 @@ export default async function SiteLayout({
   params: Promise<{ domain: string }>;
 }) {
   const { domain } = await params;
+  const tenantId = await resolveTenantIdFromDomain(domain);
 
-  // You can switch headers/footers here based on the domain
-  // if (domain === "jejutime.com") return <JejuTimeLayout>{children}</JejuTimeLayout>
+  // Fetch footer banners once for the entire site
+  const footerBanners = tenantId
+    ? await bannersService
+        .getBanners({ position: "GLOBAL_FOOTER", isActive: true, tenantId })
+        .catch(() => [])
+    : [];
 
   return (
-    <>
-      {/* Site-specific wrapper or CSS classes could go here */}
-      <div className={`site-theme-${domain.replace(".", "-")}`}>
+    <div className={`site-theme-${domain.replace(".", "-")}`}>
+      <SiteShell domain={domain} footerBanners={footerBanners}>
         {children}
-      </div>
-      {/* 
-         If you move the NavBar here, remove it from individual pages.
-         For now, keeping it in pages to match existing structure.
-      */}
-    </>
+      </SiteShell>
+    </div>
   );
 }

@@ -61,8 +61,23 @@ export function HeroSection({ articles }: HeroSectionProps) {
     ?.toUpperCase()
     .replace(/\s+/g, " ");
 
+  const nextIndex = (index + 1) % articles.length;
+  const nextArticle = articles[nextIndex];
+
   return (
     <section className="bg-white">
+      {/* Pre-load next image for smoother transitions */}
+      {nextArticle?.imageUrl && (
+        <div className="hidden" aria-hidden="true">
+          <StoryImage 
+            src={nextArticle.imageUrl} 
+            alt="preload" 
+            width={10} 
+            height={10} 
+            priority={true} 
+          />
+        </div>
+      )}
       <div className="py-4">
 
         <div>

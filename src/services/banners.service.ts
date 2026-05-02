@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { bannersRepository, Banner } from "@/repositories/banners.repository";
 import { Prisma } from "@/generated/prisma/client";
 
@@ -12,15 +13,15 @@ export class BannersServiceError extends Error {
 }
 
 export const bannersService = {
-  async getBanners(params: {
+  getBanners: cache(async (params: {
     position?: string | null;
     isActive?: boolean | null;
     tenantId?: string | null;
-  }) {
+  }) => {
     return bannersRepository.findMany(params);
-  },
+  }),
 
-  async getBannerById(id: string, tenantId?: string | null) {
+  getBannerById: cache(async (id: string, tenantId?: string | null) => {
     if (!id || typeof id !== "string") {
       throw new BannersServiceError("Invalid id", 400);
     }
@@ -31,7 +32,7 @@ export const bannersService = {
     }
 
     return banner;
-  },
+  }),
 
   async createBanner(data: Prisma.BannerUncheckedCreateInput) {
     return bannersRepository.create(data);

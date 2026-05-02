@@ -1,9 +1,15 @@
+"use client";
+ 
 import type { Article } from "@/lib/types";
 import { ArticleLink } from "@/components/home/ArticleLink";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
+import { getDomainColor } from "@/lib/domainColors";
+import { useState, useEffect } from "react";
+
 
 interface TrendingSidebarProps {
   articles: Article[];
+  domain: string;
 }
 
 function formatDate(date: Date | string) {
@@ -15,7 +21,9 @@ function formatDate(date: Date | string) {
   });
 }
 
-export function TrendingSidebar({ articles }: TrendingSidebarProps) {
+export function TrendingSidebar({ articles, domain }: TrendingSidebarProps) {
+  const domainColor = getDomainColor(domain);
+
   return (
     <aside id="trending-stories" className="lg:col-span-1 scroll-mt-24">
       <div className="sticky top-24">
@@ -32,17 +40,27 @@ export function TrendingSidebar({ articles }: TrendingSidebarProps) {
               className="group cursor-pointer flex gap-3 hover:bg-gray-50 transition-colors rounded-lg p-2 -m-2 block"
             >
               <div className="flex-shrink-0">
-                <div className="w-8 h-8 rounded-full bg-[#ff4500] text-white flex items-center justify-center font-bold text-sm">
+                <div 
+                  className="w-8 h-8 rounded-full text-white flex items-center justify-center font-bold text-sm"
+                  style={{ backgroundColor: domainColor.hex }}
+                >
                   {index + 1}
                 </div>
               </div>
               <div className="flex-1 min-w-0">
                 {normalizeCategoryName(article.category?.categoryName) ? (
-                  <div className="text-xs text-[#ff4500] font-semibold mb-1 uppercase">
+                  <div 
+                    className="text-xs font-semibold mb-1 uppercase"
+                    style={{ color: domainColor.hex }}
+                  >
                     {normalizeCategoryName(article.category?.categoryName)}
                   </div>
                 ) : null}
-                <h3 className="text-sm font-bold text-gray-900 group-hover:text-[#ff4500] transition-colors line-clamp-2 mb-1">
+                <h3 
+                  className="text-sm font-bold text-gray-900 transition-colors line-clamp-2 mb-1"
+                  onMouseEnter={(e) => e.currentTarget.style.color = domainColor.hex}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#111827'} // gray-900
+                >
                   {article.title}
                 </h3>
                 <div className="text-xs text-gray-500">

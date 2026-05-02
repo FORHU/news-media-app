@@ -1,15 +1,62 @@
 export const HOME_CATEGORY_LABEL = "Latest News";
 
-export const CORE_CATEGORIES = [
-  "Politics",
-  "Sports",
-  "Technology",
-  "Entertainment",
-  "Business",
-  "World",
-  "Travel",
-  "Science",
-] as const;
+export const TENANT_CATEGORIES: Record<string, string[]> = {
+  "jejutime.com": [
+    "Jeju Today",
+    "Travel & Tourism",
+    "Food & Restaurants",
+    "Shopping & Markets",
+    "Stay & Accommodation",
+    "Getting Around",
+    "Events & Festivals",
+    "Nature & Outdoors",
+    "Visa & Entry Info",
+    "Local Business & Living",
+  ],
+  "jejuqq.com": [
+    "济州今日",
+    "旅游资讯",
+    "美食餐厅",
+    "购物市场",
+    "住宿信息",
+    "交通出行",
+    "活动节庆",
+    "自然户外",
+    "签证入境",
+    "本地商业生活",
+  ],
+  "jejujapan.com": [
+    "済州今日",
+    "旅行情報",
+    "グルメ情報",
+    "ショッピング",
+    "宿泊情報",
+    "交通・移動",
+    "イベント・祭り",
+    "自然・アウトドア",
+    "ビザ・入国情報",
+    "ローカルビジネス・生活",
+  ],
+  "newsicons.com": [
+    "Politics",
+    "Sports",
+    "Technology",
+    "Entertainment",
+    "Business",
+    "World",
+    "Travel",
+    "Science",
+  ],
+};
+
+export function getCoreCategories(domain: string): string[] {
+  // Normalize domain to check against keys
+  const key = Object.keys(TENANT_CATEGORIES).find(k => domain.includes(k)) || "newsicons.com";
+  return TENANT_CATEGORIES[key as keyof typeof TENANT_CATEGORIES];
+}
+
+// Keep legacy export for compatibility during transition
+export const CORE_CATEGORIES = TENANT_CATEGORIES["newsicons.com"];
 
 const CATEGORY_ALIASES: Record<string, string> = {
   "world news": "world",

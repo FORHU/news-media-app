@@ -4,7 +4,10 @@ import { LandingClientWrapper } from "@/components/home/LandingClientWrapper";
 import { AdBanner } from "@/components/AdBanner";
 import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
-import { ChevronRight, TrendingUp } from "lucide-react";
+import { ChevronRight, TrendingUp, ChevronLeft } from "lucide-react";
+import { Suspense, useState } from "react";
+import { ClientPagination } from "@/components/home/ClientPagination";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Props {
   tenantId: string | null;
@@ -17,21 +20,41 @@ interface Props {
 }
 
 export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
-  const mainArticle = articles[0];
+  const heroArticles = articles.slice(0, 5);
   const galleryArticles = articles.slice(1, 4);
-  const latestStories = articles.slice(4, 14); // Replaces Insights & Opinions
-  const trendingArticles = articles.slice(0, 5); // Sidebar
-  const featuredArticles = articles.slice(14, 18); // Bottom grid
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  
+  const totalPages = Math.ceil(articles.length / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const latestStories = articles.slice(startIndex, endIndex);
+  const trendingArticles = articles.slice(0, 5);
+  const featuredArticles = articles.slice(0, 4);
   const trendingProducts = articles.filter((a: any) => a.status === "blog").slice(0, 4);
 
-  return (
-    <div className="min-h-screen bg-white text-[#222]">
-      <LandingClientWrapper footerBanners={banners.footer}>
-        <div className="max-w-7xl mx-auto px-4 mt-4">
-          <AdBanner position="HOME_TOP" initialBanners={banners.top} />
-        </div>
+  const [[page, direction], setPage] = useState([0, 0]);
+  const index = heroArticles.length > 0 ? Math.abs(page % heroArticles.length) : 0;
+  const mainArticle = heroArticles[index];
 
-        <main className="max-w-7xl mx-auto px-4 py-12">
+  const paginate = (newDirection: number) => {
+    setPage([page + newDirection, newDirection]);
+  };
+
+  const variants = {
+    enter: (direction: number) => ({ x: direction > 0 ? 50 : -50, opacity: 0 }),
+    center: { zIndex: 1, x: 0, opacity: 1 },
+    exit: (direction: number) => ({ zIndex: 0, x: direction < 0 ? 50 : -50, opacity: 0 })
+  };
+
+  return (
+    <div className="bg-white text-[#222]">
+      <div className="max-w-7xl mx-auto px-4 mt-4">
+        <AdBanner position="HOME_TOP" initialBanners={banners.top} />
+      </div>
+
+      <main className="max-w-7xl mx-auto px-4 py-12">
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             
@@ -39,20 +62,60 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
             <div className="lg:col-span-8">
               {/* Main Article Section (Hero) */}
               {mainArticle && (
-                <div className="mb-12">
+                <div className="mb-12 relative group">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                        <Link href={`/article/${mainArticle.slug || mainArticle.id}`} className="block relative aspect-[4/3] overflow-hidden bg-gray-100">
-                            <StoryImage 
-                                src={mainArticle.imageUrl} 
-                                alt={mainArticle.title}
-                                fill
-                                className="object-cover hover:scale-105 transition-transform duration-700"
-                                variant="hero"
-                            />
-                        </Link>
-                        <div>
+                        <div className="block relative aspect-[4/3] overflow-hidden bg-gray-100">
+                          <AnimatePresence initial={false} custom={direction} mode="wait">
+                            <motion.div
+                              key={page}
+                              custom={direction}
+                              variants={variants}
+                              initial="enter"
+                              animate="center"
+                              exit="exit"
+                              transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
+                              className="absolute inset-0 h-full w-full"
+                            >
+                              <Link href={`/article/${mainArticle.slug || mainArticle.id}`} className="block h-full w-full">
+                                <StoryImage 
+                                    src={mainArticle.imageUrl} 
+                                    alt={mainArticle.title}
+                                    fill
+                                    className="object-cover transition-transform duration-700"
+                                    variant="hero"
+                                />
+                              </Link>
+                            </motion.div>
+                          </AnimatePresence>
+
+                          {/* Navigation Buttons */}
+                          <button type="button" onClick={() => paginate(-1)} className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/80 hover:bg-white text-[#dc2626] flex items-center justify-center shadow-lg transition-colors" aria-label="Previous">
+                            <ChevronLeft className="w-5 h-5" />
+                          </button>
+                          <button type="button" onClick={() => paginate(1)} className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/80 hover:bg-white text-[#dc2626] flex items-center justify-center shadow-lg transition-colors" aria-label="Next">
+                            <ChevronRight className="w-5 h-5" />
+                          </button>
+
+                          {/* Dots */}
+                          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
+                            {heroArticles.map((_, i) => (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() => {
+                                  const newDirection = i > index ? 1 : -1;
+                                  setPage([i, newDirection]);
+                                }}
+                                className={`h-1.5 transition-all duration-300 ${i === index ? "w-8 bg-[#dc2626]" : "w-4 bg-white/50 hover:bg-white/80"}`}
+                                aria-label={`Go to slide ${i + 1}`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex flex-col justify-center h-full py-4">
                             <Link href={`/article/${mainArticle.slug || mainArticle.id}`} className="group">
-                                <h2 className="text-[34px] font-serif font-bold leading-tight mb-4 group-hover:underline decoration-[#ff4500]">
+                                <span className="text-[10px] text-[#dc2626] font-bold uppercase mb-2 block tracking-widest">{mainArticle.category?.categoryName}</span>
+                                <h2 className="text-[34px] font-serif font-bold leading-tight mb-4 group-hover:underline decoration-[#dc2626]">
                                     {mainArticle.title}
                                 </h2>
                             </Link>
@@ -71,7 +134,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                         <div className="relative aspect-[4/3] overflow-hidden mb-3 bg-gray-100">
                             <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" />
                         </div>
-                        <h4 className="text-sm font-bold leading-tight line-clamp-2 group-hover:text-[#ff4500]">
+                        <h4 className="text-sm font-bold leading-tight line-clamp-2 group-hover:text-[#dc2626]">
                             {article.title}
                         </h4>
                     </Link>
@@ -84,16 +147,31 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-12">
                     {latestStories.map((article) => (
                         <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex gap-4 group">
-                            <div className="relative w-24 aspect-square shrink-0 rounded-full overflow-hidden border-2 border-[#ff4500]/20 group-hover:border-[#ff4500] transition-colors bg-gray-100">
+                            <div className="relative w-24 aspect-square shrink-0 rounded-full overflow-hidden border-2 border-[#dc2626]/20 group-hover:border-[#dc2626] transition-colors bg-gray-100">
                                 <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" />
                             </div>
                             <div className="flex flex-col justify-center">
-                                <span className="text-[10px] text-[#ff4500] font-bold uppercase mb-1 block tracking-widest">{article.category?.categoryName}</span>
+                                <span className="text-[10px] text-[#dc2626] font-bold uppercase mb-1 block tracking-widest">{article.category?.categoryName}</span>
                                 <h5 className="text-[15px] font-bold leading-snug group-hover:underline">{article.title}</h5>
                             </div>
                         </Link>
                     ))}
                  </div>
+                 {articles.length > 0 && (
+                    <div className="mt-8">
+                       <ClientPagination
+                          currentPage={currentPage}
+                          totalPages={totalPages}
+                          onPageChange={setCurrentPage}
+                          itemsPerPage={itemsPerPage}
+                          onItemsPerPageChange={setItemsPerPage}
+                          totalItems={articles.length}
+                          startIndex={startIndex}
+                          endIndex={endIndex}
+                          domain="jejuqq.com"
+                       />
+                    </div>
+                 )}
               </div>
             </div>
 
@@ -102,10 +180,10 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                <div className="border-t-4 border-black pt-4">
                   <div className="flex items-center justify-between mb-8">
                      <h3 className="text-xl font-bold flex items-center gap-2">
-                        Trending <TrendingUp size={18} className="text-[#ff4500]" />
+                        Trending <TrendingUp size={18} className="text-[#dc2626]" />
                      </h3>
                      <div className="flex gap-1">
-                        <span className="w-2 h-2 rounded-full bg-[#ff4500]"></span>
+                        <span className="w-2 h-2 rounded-full bg-[#dc2626]"></span>
                         <span className="w-2 h-2 rounded-full bg-gray-200"></span>
                      </div>
                   </div>
@@ -118,7 +196,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                            </span>
                            <div>
                              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">{article.category?.categoryName}</span>
-                             <h4 className="text-[14px] font-medium leading-snug group-hover:text-[#ff4500] transition-colors line-clamp-2">
+                             <h4 className="text-[14px] font-medium leading-snug group-hover:text-[#dc2626] transition-colors line-clamp-2">
                                 {article.title}
                              </h4>
                            </div>
@@ -146,7 +224,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                       <div className="relative aspect-[4/3] overflow-hidden mb-4 border border-gray-100 bg-gray-50">
                         <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
                       </div>
-                      <span className="text-[10px] text-[#ff4500] font-bold uppercase mb-2 block">{article.category?.categoryName}</span>
+                      <span className="text-[10px] text-[#dc2626] font-bold uppercase mb-2 block">{article.category?.categoryName}</span>
                       <h4 className="text-lg font-bold leading-tight group-hover:underline">{article.title}</h4>
                     </Link>
                   ))}
@@ -157,7 +235,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
             {/* Trending Products / Blogs */}
             {trendingProducts.length > 0 && (
               <section className="border-t border-gray-200 pt-8 pb-8">
-                <h3 className="text-xl font-bold mb-6 flex items-center gap-2">Explore <ChevronRight size={18} className="text-[#ff4500]"/></h3>
+                <h3 className="text-xl font-bold mb-6 flex items-center gap-2">Explore <ChevronRight size={18} className="text-[#dc2626]"/></h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {trendingProducts.map((article: any) => (
                     <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex gap-4 group bg-gray-50 p-4 hover:bg-black hover:text-white transition-colors">
@@ -175,8 +253,6 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
             )}
           </div>
         </main>
-      </LandingClientWrapper>
-
       <style dangerouslySetInnerHTML={{ __html: `
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;700&display=swap');
         

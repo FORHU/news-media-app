@@ -4,7 +4,6 @@ import { NavBar } from "@/components/NavBar";
 import { FilterStatusBar } from "@/components/home/filter-status-bar";
 import { LatestStoriesSection } from "@/components/home/latest-stories-section";
 import { TrendingSidebar } from "@/components/home/trending-sidebar";
-import { LandingClientWrapper } from "@/components/home/LandingClientWrapper";
 import { AdBanner } from "@/components/AdBanner";
 import { articlesService } from "@/services/articles.service";
 import { bannersService } from "@/services/banners.service";
@@ -15,7 +14,7 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
   const { domain } = await params;
   
   let icon = "/icons/newsicons.ico";
-  if (domain === "jejutime.com") icon = "/icons/jejutimes.ico";
+  if (domain === "jejutime.com") icon = "/icons/jejutime.ico";
   if (domain === "jejuqq.com") icon = "/icons/jejuqq.ico";
   if (domain === "jejujapan.com") icon = "/icons/jejujapan.ico";
 
@@ -91,35 +90,32 @@ export default async function SearchPage({
   const error = "";
 
   return (
-    <div className="min-h-screen bg-white">
-      <LandingClientWrapper footerBanners={footerBanners}>
-        {domain !== "jejutime.com" && domain !== "jejuqq.com" && domain !== "jejujapan.com" && (
-          <Suspense fallback={<div className="hidden md:block h-12 bg-black" />}>
-            <NavBar />
-          </Suspense>
-        )}
+    <div className="bg-white">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
+        <FilterStatusBar
+          searchQuery={searchQuery || null}
+          categoryName={categoryParam ? decodeURIComponent(categoryParam) : null}
+          resultCount={articles.length}
+          domain={domain}
+        />
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
-          <FilterStatusBar
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+          <LatestStoriesSection
+            articles={articles}
+            error={error}
             searchQuery={searchQuery || null}
-            categoryName={categoryParam || null}
-            resultCount={articles.length}
+            isLoading={false}
+            domain={domain}
           />
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-            <LatestStoriesSection
-              articles={articles}
-              error={error}
-              searchQuery={searchQuery || null}
-              isLoading={false}
+          <div className="space-y-8">
+            <TrendingSidebar 
+              articles={articles.slice(0, 5)} 
+              domain={domain}
             />
-            <div className="space-y-8">
-              <TrendingSidebar articles={articles.slice(0, 5)} />
-              <AdBanner position="HOME_SIDEBAR" initialBanners={sidebarBanners} />
-            </div>
+            <AdBanner position="HOME_SIDEBAR" initialBanners={sidebarBanners} />
           </div>
-        </main>
-      </LandingClientWrapper>
+        </div>
+      </main>
     </div>
   );
 }

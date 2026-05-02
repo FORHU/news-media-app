@@ -17,10 +17,12 @@ import { extractYoutubeId } from "@/lib/utils";
 
 export default function ArticlePageClient({ 
   articleId, 
-  initialOtherArticles = [] 
+  initialOtherArticles = [],
+  domain
 }: { 
   articleId: string;
   initialOtherArticles?: Article[];
+  domain: string;
 }) {
   const router = useRouter();
 
@@ -135,44 +137,53 @@ export default function ArticlePageClient({
                     />
                   </div>
 
-                  {/* Article content — first half */}
-                  <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                    {firstHalf}
-                  </div>
+                  {article.imageUrl ? (
+                    <>
+                      {/* Article content — first half */}
+                      <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                        {firstHalf}
+                      </div>
 
-                  {/* Hero image — inside the article (unconditionally rendered for fallback support) */}
-                  <div className="my-8 rounded-xl overflow-hidden bg-gray-200 relative aspect-video shadow-sm">
-                    <StoryImage
-                      src={article.imageUrl}
-                      alt={article.title}
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 80vw"
-                      className="object-cover"
-                      variant="hero"
-                    />
-                  </div>
+                      {/* Hero image — inside the article */}
+                      <div className="my-8 rounded-xl overflow-hidden bg-gray-200 relative aspect-video shadow-sm">
+                        <StoryImage
+                          src={article.imageUrl}
+                          alt={article.title}
+                          fill
+                          sizes="(max-width: 1024px) 100vw, 80vw"
+                          className="object-cover"
+                          variant="hero"
+                        />
+                      </div>
 
-                  {/* Article content — second half */}
-                  {secondHalf && (
-                    <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                      {secondHalf}
+                      {/* Article content — second half */}
+                      {secondHalf && (
+                        <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                          {secondHalf}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="mt-8 text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      {fullContent}
                     </div>
                   )}
                 </>
               ) : (
                 <>
-                  {/* Hero image — at the top for standard articles */}
-                  <div className="mt-6 rounded-xl overflow-hidden bg-gray-200 relative aspect-video shadow-sm">
-                    <StoryImage
-                      src={article.imageUrl}
-                      alt={article.title}
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 80vw"
-                      priority
-                      className="object-cover"
-                      variant="hero"
-                    />
-                  </div>
+                  {article.imageUrl && (
+                    <div className="mt-6 rounded-xl overflow-hidden bg-gray-200 relative aspect-video shadow-sm">
+                      <StoryImage
+                        src={article.imageUrl}
+                        alt={article.title}
+                        fill
+                        sizes="(max-width: 1024px) 100vw, 80vw"
+                        priority
+                        className="object-cover"
+                        variant="hero"
+                      />
+                    </div>
+                  )}
 
                   {/* Article content — full */}
                   <div className="mt-8 text-gray-700 leading-relaxed whitespace-pre-wrap">
@@ -184,7 +195,7 @@ export default function ArticlePageClient({
           </div>
 
           <div className="lg:col-span-1 space-y-8">
-            <TrendingSidebar articles={trendingArticles} />
+            <TrendingSidebar articles={trendingArticles} domain={domain} />
             <AdBanner position="ARTICLE_SIDEBAR" />
           </div>
         </div>
@@ -194,7 +205,7 @@ export default function ArticlePageClient({
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
               Recommended articles
             </h2>
-            <FeaturedArticlesSection articles={recommendedArticles} />
+            <FeaturedArticlesSection articles={recommendedArticles} domain={domain} />
           </div>
         )}
       </main>

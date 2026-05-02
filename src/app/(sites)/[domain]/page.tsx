@@ -6,7 +6,6 @@ import { LatestStoriesSection } from "@/components/home/latest-stories-section";
 import { TrendingSidebar } from "@/components/home/trending-sidebar";
 import { FeaturedArticlesSection } from "@/components/home/featured-articles-section";
 import { TrendingProductsSection } from "@/components/home/trending-products-section";
-import { LandingClientWrapper } from "@/components/home/LandingClientWrapper";
 import { AdBanner } from "@/components/AdBanner";
 import { articlesService } from "@/services/articles.service";
 import { bannersService } from "@/services/banners.service";
@@ -25,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
   const { domain } = await params;
   
   let icon = "/icons/newsicons.ico";
-  if (domain === "jejutime.com") icon = "/icons/jejutimes.ico";
+  if (domain === "jejutime.com") icon = "/icons/jejutime.ico";
   if (domain === "jejuqq.com") icon = "/icons/jejuqq.ico";
   if (domain === "jejujapan.com") icon = "/icons/jejujapan.ico";
 
@@ -54,7 +53,7 @@ export default async function Page({
 
   const articles = tenantId
     ? await articlesService.getArticles(
-        { limit: 50, status: "published" },
+        { limit: 50 },
         tenantId
       )
     : [];
@@ -77,69 +76,68 @@ export default async function Page({
       : Promise.resolve([]),
   ]);
 
-  const banners = { top: topBanners, sidebar: sidebarBanners, footer: footerBanners };
+  const banners = { top: topBanners, sidebar: sidebarBanners };
 
   // --- Design Routing ---
   if (domain === "newsicons.com") {
-      return <NewsIconsLanding tenantId={tenantId} articles={articles} banners={banners} />;
+      return <NewsIconsLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
   }
 
   if (domain === "jejutime.com") {
-      return <JejuTimeLanding tenantId={tenantId} articles={articles} banners={banners} />;
+      return <JejuTimeLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
   }
 
   if (domain === "jejuqq.com") {
-      return <JejuQQLanding tenantId={tenantId} articles={articles} banners={banners} />;
+      return <JejuQQLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
   }
 
   if (domain === "jejujapan.com") {
-      return <JejuJapanLanding tenantId={tenantId} articles={articles} banners={banners} />;
+      return <JejuJapanLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
   }
 
   // Default design (current layout)
   const error = "";
   return (
-    <div className="min-h-screen bg-white">
-      <LandingClientWrapper footerBanners={footerBanners}>
-        <Suspense fallback={<div className="hidden md:block h-12 bg-black" />}>
-          <NavBar />
-        </Suspense>
+    <div className="bg-white">
+      <Suspense fallback={<div className="hidden md:block h-12 bg-black" />}>
+        <NavBar />
+      </Suspense>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-          <AdBanner position="HOME_TOP" initialBanners={topBanners} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+        <AdBanner position="HOME_TOP" initialBanners={topBanners} />
+      </div>
+
+      {articles.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <HeroSection articles={articles.slice(0, 5)} />
+        </div>
+      )}
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+          <LatestStoriesSection
+            articles={articles}
+            error={error}
+            searchQuery={null}
+            isLoading={false}
+            domain={domain}
+          />
+          <div className="space-y-8">
+            <TrendingSidebar articles={articles.slice(0, 5)} domain={domain} />
+            <AdBanner position="HOME_SIDEBAR" initialBanners={sidebarBanners} />
+          </div>
         </div>
 
-        {articles.length > 0 && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <HeroSection articles={articles.slice(0, 5)} />
-          </div>
-        )}
+        <FeaturedArticlesSection
+          articles={articles.slice(0, 4)}
+        />
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-            <LatestStoriesSection
-              articles={articles}
-              error={error}
-              searchQuery={null}
-              isLoading={false}
-            />
-            <div className="space-y-8">
-              <TrendingSidebar articles={articles.slice(0, 5)} />
-              <AdBanner position="HOME_SIDEBAR" initialBanners={sidebarBanners} />
-            </div>
-          </div>
-
-          <FeaturedArticlesSection
-            articles={articles.slice(0, 4)}
-          />
-
-          <TrendingProductsSection
-            articles={articles
-              .filter((a) => a.status === "blog")
-              .slice(0, 4)}
-          />
-        </main>
-      </LandingClientWrapper>
+        <TrendingProductsSection
+          articles={articles
+            .filter((a) => a.status === "blog")
+            .slice(0, 4)}
+        />
+      </main>
     </div>
   );
 }

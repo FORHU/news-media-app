@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { articlesRepository } from "@/repositories/articles.repository";
 
 export class ArticlesServiceError extends Error {
@@ -11,14 +12,14 @@ export class ArticlesServiceError extends Error {
 }
 
 export const articlesService = {
-  async getArticles(params: {
+  getArticles: cache(async (params: {
     limit?: number;
     search?: string | null;
     category?: string | null;
     status?: string | null;
-  }, tenantId?: string | null) {
+  }, tenantId?: string | null) => {
     const rawLimit = params.limit ?? 50;
-    const safeLimit = Math.min(rawLimit || 50, 100);
+    const safeLimit = Math.min(rawLimit || 50, 1000); // Increased limit for sitemaps/etc
 
     return articlesRepository.findMany({
       limit: safeLimit,
@@ -27,9 +28,9 @@ export const articlesService = {
       status: params.status ?? null,
       tenantId: tenantId ?? undefined,
     });
-  },
+  }),
 
-  async getArticleById(id: string, tenantId?: string | null) {
+  getArticleById: cache(async (id: string, tenantId?: string | null) => {
     if (!id || typeof id !== "string") {
       throw new ArticlesServiceError("Invalid id", 400);
     }
@@ -40,9 +41,9 @@ export const articlesService = {
     }
 
     return article;
-  },
+  }),
 
-  async getArticleBySlugOrId(identifier: string, tenantId?: string | null) {
+  getArticleBySlugOrId: cache(async (identifier: string, tenantId?: string | null) => {
     if (!identifier || typeof identifier !== "string") {
       throw new ArticlesServiceError("Invalid identifier", 400);
     }
@@ -53,6 +54,6 @@ export const articlesService = {
     }
 
     return article;
-  },
+  }),
 };
 

@@ -1,17 +1,24 @@
 import type { MetadataRoute } from "next";
-import { SITE_URL } from "@/config/site";
+import { headers } from "next/headers";
 
-export default function robots(): MetadataRoute.Robots {
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const headersList = await headers();
+  const host = headersList.get("host") || "newsicons.com";
+  
+  // Use https by default in production, http for localhost
+  const protocol = host.includes("localhost") ? "http" : "https";
+  const baseUrl = `${protocol}://${host}`;
+
   return {
     rules: [
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin", "/admin/*","/api/*"],
+        disallow: ["/admin", "/admin/*", "/api/*"],
       },
     ],
-    sitemap: `${SITE_URL}/sitemap.xml`,
-    host: SITE_URL,
+    sitemap: `${baseUrl}/sitemap.xml`,
+    host: baseUrl,
   };
 }
 
