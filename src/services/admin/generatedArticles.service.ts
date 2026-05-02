@@ -78,6 +78,7 @@ export const generatedArticlesService = {
               youtubeUrl: article.rawVideo.youtube_url,
               transcribedContent: article.rawVideo.transcribed_content,
               prompt: article.rawVideo.prompt,
+              generationMode: article.rawVideo.generation_mode,
               createdAt: article.rawVideo.created_at,
               updatedAt: article.rawVideo.updated_at,
             }

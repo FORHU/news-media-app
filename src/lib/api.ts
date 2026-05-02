@@ -144,6 +144,7 @@ export const articlesApi = {
     imageUrl?: string;
     youtubeUrl?: string;
     type?: "manual" | "youtube";
+    generationMode?: "standalone" | "commentary";
   }): Promise<unknown> {
     const res = await fetch("/api/admin/generatedArticles/createManualYoutubeUrlArticle", {
       method: "POST",

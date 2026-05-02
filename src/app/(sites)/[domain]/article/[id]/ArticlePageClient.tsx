@@ -16,7 +16,7 @@ import type { Article } from "@/lib/types";
 import { extractYoutubeId } from "@/lib/utils";
 import TwitterStatusEmbed from "@/components/article/TwitterStatusEmbed";
 import {
-  isTweetSocialCommentaryMode,
+  isSocialCommentaryGenerationMode,
   splitReferenceLineFromContent,
   stripOriginalPostBlock,
 } from "@/lib/tweetArticleDisplay";
@@ -83,26 +83,41 @@ export default function ArticlePageClient({
     year: "numeric",
   });
 
-  const youtubeUrl = article.youtubeUrl;
+  const rawVideo = article.rawVideo;
+  const youtubeUrl = article.youtubeUrl || rawVideo?.youtubeUrl || null;
   const youtubeId = youtubeUrl ? extractYoutubeId(youtubeUrl) : null;
-
-  const hasYoutube = Boolean(youtubeId);
 
   const rawTweet = article.rawTweet;
   const isCommentaryTweetArticle =
     article.sourceType === "TWEET" &&
-    isTweetSocialCommentaryMode(rawTweet?.generationMode);
+    isSocialCommentaryGenerationMode(rawTweet?.generationMode);
+
+  const isCommentaryVideoArticle =
+    article.sourceType === "VIDEO" &&
+    isSocialCommentaryGenerationMode(rawVideo?.generationMode);
+
+  const legacyVideoArticleNoRawRow =
+    article.sourceType === "VIDEO" && Boolean(youtubeId) && !rawVideo;
+
+  const showYoutubePlayer =
+    Boolean(youtubeId) &&
+    (article.sourceType !== "VIDEO" ||
+      isCommentaryVideoArticle ||
+      legacyVideoArticleNoRawRow);
 
   const showTweetCommentaryEmbed =
     isCommentaryTweetArticle && Boolean(rawTweet?.tweetId);
 
-  const bodyContent = isCommentaryTweetArticle
+  const isCommentaryLayoutArticle =
+    isCommentaryTweetArticle || isCommentaryVideoArticle;
+
+  const bodyContent = isCommentaryLayoutArticle
     ? stripOriginalPostBlock(article.content)
     : article.content;
 
   const { main: layoutContent, referenceLine } = splitReferenceLineFromContent(
     bodyContent,
-    isCommentaryTweetArticle
+    isCommentaryLayoutArticle
   );
 
   // Prepare paragraphs for splitting and full content
@@ -154,9 +169,9 @@ export default function ArticlePageClient({
                 </div>
               ) : null}
 
-              {hasYoutube ? (
+              {showYoutubePlayer ? (
                 <>
-                  {/* YouTube Embed at the top */}
+                  {/* YouTube Embed at the top (commentary / legacy); hidden for standalone VIDEO */}
                   <div className="mt-6 mb-8 rounded-xl overflow-hidden bg-black aspect-video shadow-lg">
                     <iframe
                       src={`https://www.youtube.com/embed/${youtubeId}`}
@@ -198,7 +213,7 @@ export default function ArticlePageClient({
                 </>
               ) : (
                 <>
-                  {/* Hero image — at the top for standard articles */}
+                  {/* Hero image — at the top for standard articles (and standalone YouTube articles) */}
                   <div className="mt-6 rounded-xl overflow-hidden bg-gray-200 relative aspect-video shadow-sm">
                     <StoryImage
                       src={article.imageUrl}

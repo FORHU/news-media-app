@@ -27,8 +27,10 @@ import { articlesApi } from '@/lib/api';
 import CategorySelectWithOther from '@/components/admin/shared/CategorySelectWithOther';
 import { LANGUAGE_OPTIONS } from '@/components/admin/generatedContent/CreateArticleModal/ManualGenerationTab';
 
-/** Persisted on RawTweet.generationMode */
-export type TweetArticleGenerationMode = "standalone" | "commentary";
+import type { ArticleGenerationMode } from "@/lib/articleGenerationMode";
+
+/** @alias ArticleGenerationMode */
+export type TweetArticleGenerationMode = ArticleGenerationMode;
 
 interface GenerateArticleFromXModalProps {
     open: boolean;

@@ -1,5 +1,5 @@
-/** RawTweet.generationMode values that use the social-commentary layout (embed + article). */
-export function isTweetSocialCommentaryMode(
+/** RawTweet / RawVideo .generationMode values that use commentary layout (embed + article + reference). */
+export function isSocialCommentaryGenerationMode(
   mode: string | null | undefined
 ): boolean {
   return (
@@ -8,6 +8,9 @@ export function isTweetSocialCommentaryMode(
     mode === "commentary_oppose"
   );
 }
+
+/** @deprecated use isSocialCommentaryGenerationMode */
+export const isTweetSocialCommentaryMode = isSocialCommentaryGenerationMode;
 
 /**
  * Remove legacy "--- ORIGINAL POST ---" pasted blocks (multiple formats).

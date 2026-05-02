@@ -36,6 +36,7 @@ export async function seedRawVideos(prisma: PrismaClient, tenantId: string): Pro
         youtube_url,
         transcribed_content,
         prompt,
+        generation_mode,
         created_at,
         updated_at
       ) VALUES (
@@ -45,6 +46,7 @@ export async function seedRawVideos(prisma: PrismaClient, tenantId: string): Pro
         ${v.youtubeUrl},
         ${v.transcribedContent},
         ${v.prompt},
+        'standalone',
         now(),
         now()
       )

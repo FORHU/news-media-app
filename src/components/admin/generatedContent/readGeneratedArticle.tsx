@@ -25,7 +25,7 @@ import { normalizeCategoryName } from '@/lib/categoryDisplay';
 import { extractYoutubeId } from '@/lib/utils';
 import TwitterStatusEmbed from '@/components/article/TwitterStatusEmbed';
 import {
-    isTweetSocialCommentaryMode,
+    isSocialCommentaryGenerationMode,
     splitReferenceLineFromContent,
     stripOriginalPostBlock,
 } from '@/lib/tweetArticleDisplay';
@@ -50,20 +50,40 @@ export default function ReadGeneratedArticle({
     const originalUrl = article.rawArticle?.crawledUrl?.url || (article as any).rawVideo?.youtubeUrl || (article as any).youtubeUrl;
 
     const rawTweet = article.rawTweet;
+    const rawVideo = article.rawVideo;
+
     const isCommentaryTweetArticle =
         article.sourceType === 'TWEET' &&
-        isTweetSocialCommentaryMode(rawTweet?.generationMode);
+        isSocialCommentaryGenerationMode(rawTweet?.generationMode);
+
+    const isCommentaryVideoArticle =
+        article.sourceType === 'VIDEO' &&
+        isSocialCommentaryGenerationMode(rawVideo?.generationMode);
+
+    const ytUrl = rawVideo?.youtubeUrl || article.youtubeUrl;
+    const ytId = ytUrl ? extractYoutubeId(ytUrl) : null;
+    const legacyVideoNoRow =
+        article.sourceType === 'VIDEO' && Boolean(ytId) && !rawVideo;
+
+    const showYoutubeReaderEmbed =
+        Boolean(ytId) &&
+        (article.sourceType !== 'VIDEO' ||
+            isCommentaryVideoArticle ||
+            legacyVideoNoRow);
 
     const showTweetCommentaryEmbed =
         isCommentaryTweetArticle && Boolean(rawTweet?.tweetId);
 
-    const bodyContent = isCommentaryTweetArticle
+    const isCommentaryLayoutArticle =
+        isCommentaryTweetArticle || isCommentaryVideoArticle;
+
+    const bodyContent = isCommentaryLayoutArticle
         ? stripOriginalPostBlock(article.content ?? '')
         : (article.content ?? '');
 
     const { main: layoutMain, referenceLine } = splitReferenceLineFromContent(
         bodyContent,
-        isCommentaryTweetArticle
+        isCommentaryLayoutArticle
     );
 
     const handleCopy = () => {
@@ -126,25 +146,17 @@ export default function ReadGeneratedArticle({
                 {/* Content Area - Optimized for smooth scrolling with GPU acceleration */}
                 <div className="px-4 sm:px-8 py-6 sm:py-8 space-y-6 overflow-y-auto overscroll-contain flex-1 min-h-0 bg-gray-50/30 will-change-transform [-webkit-overflow-scrolling:touch]">
                     
-                    {/* YouTube Embed if available */}
-                    {(() => {
-                        const youtubeUrl = (article as any).rawVideo?.youtubeUrl || (article as any).youtubeUrl;
-                        const youtubeId = youtubeUrl ? extractYoutubeId(youtubeUrl) : null;
-
-                        if (!youtubeId) return null;
-
-                        return (
-                            <div className="rounded-2xl overflow-hidden bg-black aspect-video shadow-md mb-6">
-                                <iframe
-                                    src={`https://www.youtube.com/embed/${youtubeId}`}
-                                    title="YouTube video player"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                    className="w-full h-full border-0"
-                                />
-                            </div>
-                        );
-                    })()}
+                    {showYoutubeReaderEmbed ? (
+                        <div className="rounded-2xl overflow-hidden bg-black aspect-video shadow-md mb-6">
+                            <iframe
+                                src={`https://www.youtube.com/embed/${ytId}`}
+                                title="YouTube video player"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                                className="w-full h-full border-0"
+                            />
+                        </div>
+                    ) : null}
 
                     {showTweetCommentaryEmbed && rawTweet?.tweetId ? (
                         <div className="mb-6 flex justify-center">

@@ -41,6 +41,7 @@ type ContentArticleSupabase = {
     youtube_url: string;
     transcribed_content: string;
     prompt: string | null;
+    generation_mode: string;
     created_at: string;
     updated_at: string;
   } | null;
@@ -178,6 +179,7 @@ export const generatedArticlesRepository = {
             youtube_url: row.rawVideo.youtubeUrl,
             transcribed_content: row.rawVideo.transcribedContent,
             prompt: row.rawVideo.prompt,
+            generation_mode: row.rawVideo.generationMode,
             created_at: row.rawVideo.createdAt.toISOString(),
             updated_at: row.rawVideo.updatedAt.toISOString(),
           }
