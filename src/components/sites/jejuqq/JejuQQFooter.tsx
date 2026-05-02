@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { Twitter, Youtube, Facebook, Instagram } from "lucide-react";
 
-export default function JejuQQFooter() {
+interface JejuQQFooterProps {
+  onOpenNewsletter?: () => void;
+}
+
+export default function JejuQQFooter({ onOpenNewsletter }: JejuQQFooterProps) {
   const currentYear = new Date().getFullYear();
 
   return (
@@ -16,37 +20,37 @@ export default function JejuQQFooter() {
                 <span className="text-[26px] font-serif font-black tracking-tighter text-black -mt-2">QQ Daily</span>
              </div>
              <div className="flex space-x-4 text-gray-400">
-                <Twitter size={18} className="hover:text-[#ff4500] cursor-pointer" />
-                <Youtube size={18} className="hover:text-[#ff4500] cursor-pointer" />
-                <Facebook size={18} className="hover:text-[#ff4500] cursor-pointer" />
-                <Instagram size={18} className="hover:text-[#ff4500] cursor-pointer" />
+                <Twitter size={18} className="hover:text-[#dc2626] cursor-pointer" />
+                <Youtube size={18} className="hover:text-[#dc2626] cursor-pointer" />
+                <Facebook size={18} className="hover:text-[#dc2626] cursor-pointer" />
+                <Instagram size={18} className="hover:text-[#dc2626] cursor-pointer" />
              </div>
           </div>
 
           <div>
              <h4 className="font-bold text-sm mb-6 border-b border-gray-200 pb-2">National</h4>
              <ul className="space-y-3 text-xs text-gray-500">
-                <li><Link href="#" className="hover:text-[#ff4500]">Politics</Link></li>
-                <li><Link href="#" className="hover:text-[#ff4500]">Society</Link></li>
-                <li><Link href="#" className="hover:text-[#ff4500]">Environment</Link></li>
+                <li><Link href="#" className="hover:text-[#dc2626]">Politics</Link></li>
+                <li><Link href="#" className="hover:text-[#dc2626]">Society</Link></li>
+                <li><Link href="#" className="hover:text-[#dc2626]">Environment</Link></li>
              </ul>
           </div>
 
           <div>
              <h4 className="font-bold text-sm mb-6 border-b border-gray-200 pb-2">Business</h4>
              <ul className="space-y-3 text-xs text-gray-500">
-                <li><Link href="#" className="hover:text-[#ff4500]">Economy</Link></li>
-                <li><Link href="#" className="hover:text-[#ff4500]">Industry</Link></li>
-                <li><Link href="#" className="hover:text-[#ff4500]">Finance</Link></li>
+                <li><Link href="#" className="hover:text-[#dc2626]">Economy</Link></li>
+                <li><Link href="#" className="hover:text-[#dc2626]">Industry</Link></li>
+                <li><Link href="#" className="hover:text-[#dc2626]">Finance</Link></li>
              </ul>
           </div>
 
           <div>
              <h4 className="font-bold text-sm mb-6 border-b border-gray-200 pb-2">Information</h4>
              <ul className="space-y-3 text-xs text-gray-500">
-                <li><Link href="#" className="hover:text-[#ff4500]">About Us</Link></li>
-                <li><Link href="#" className="hover:text-[#ff4500]">Privacy Policy</Link></li>
-                <li><Link href="#" className="hover:text-[#ff4500]">Terms of Service</Link></li>
+                <li><Link href="#" className="hover:text-[#dc2626]">About Us</Link></li>
+                <li><Link href="#" className="hover:text-[#dc2626]">Privacy Policy</Link></li>
+                <li><Link href="#" className="hover:text-[#dc2626]">Terms of Service</Link></li>
              </ul>
           </div>
         </div>

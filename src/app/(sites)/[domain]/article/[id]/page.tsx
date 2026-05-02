@@ -10,7 +10,9 @@ import {
 } from "@/services/articles.service";
 import { DEFAULT_OG_IMAGE, DEFAULT_SEO } from "@/config/site";
 import ArticlePageClient from "./ArticlePageClient";
-import { ArticleClientShell } from "@/components/ArticleClientShell";
+import JejuJapanArticle from "@/components/sites/jejujapan/JejuJapanArticle";
+import JejuQQArticle from "@/components/sites/jejuqq/JejuQQArticle";
+import JejuTimeArticle from "@/components/sites/jejutime/JejuTimeArticle";
 import { resolveTenantIdFromDomain } from "@/lib/tenant";
 
 export const revalidate = 5;
@@ -49,7 +51,7 @@ export async function generateMetadata({
     const url = `/article/${canonicalSlug}`;
 
     let icon = "/icons/newsicons.ico";
-    if (domain === "jejutime.com") icon = "/icons/jejutimes.ico";
+    if (domain === "jejutime.com") icon = "/icons/jejutime.ico";
     if (domain === "jejuqq.com") icon = "/icons/jejuqq.ico";
     if (domain === "jejujapan.com") icon = "/icons/jejujapan.ico";
 
@@ -87,7 +89,7 @@ export async function generateMetadata({
     const url = `/article/${articleId}`;
 
     let icon = "/icons/newsicons.ico";
-    if (domain === "jejutime.com") icon = "/icons/jejutimes.ico";
+    if (domain === "jejutime.com") icon = "/icons/jejutime.ico";
     if (domain === "jejuqq.com") icon = "/icons/jejuqq.ico";
     if (domain === "jejujapan.com") icon = "/icons/jejujapan.ico";
 
@@ -148,16 +150,19 @@ export default async function ArticlePage({
   const dehydratedState = dehydrate(queryClient);
 
   return (
-    <ArticleClientShell>
-      <Hydrate state={dehydratedState}>
-        <Suspense fallback={<div className="min-h-[60vh] bg-white" />}>
-          <ArticlePageClient
-            articleId={articleId}
-            initialOtherArticles={allArticles}
-          />
-        </Suspense>
-      </Hydrate>
-    </ArticleClientShell>
+    <Hydrate state={dehydratedState}>
+      <Suspense fallback={<div className="min-h-[60vh] bg-white" />}>
+        {domain === "jejujapan.com" ? (
+          <JejuJapanArticle articleId={articleId} initialOtherArticles={allArticles} />
+        ) : domain === "jejuqq.com" ? (
+          <JejuQQArticle articleId={articleId} initialOtherArticles={allArticles} />
+        ) : domain === "jejutime.com" ? (
+          <JejuTimeArticle articleId={articleId} initialOtherArticles={allArticles} />
+        ) : (
+          <ArticlePageClient articleId={articleId} initialOtherArticles={allArticles} domain={domain} />
+        )}
+      </Suspense>
+    </Hydrate>
   );
 }
 

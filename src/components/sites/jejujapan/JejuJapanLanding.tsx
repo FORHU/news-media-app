@@ -4,8 +4,10 @@ import { LandingClientWrapper } from "@/components/home/LandingClientWrapper";
 import { AdBanner } from "@/components/AdBanner";
 import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
-import { TrendingUp, Clock, ChevronRight } from "lucide-react";
-import { Suspense } from "react";
+import { TrendingUp, Clock, ChevronRight, ChevronLeft } from "lucide-react";
+import { Suspense, useState } from "react";
+import { ClientPagination } from "@/components/home/ClientPagination";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Props {
   tenantId: string | null;
@@ -18,42 +20,101 @@ interface Props {
 }
 
 export default function JejuJapanLanding({ tenantId, articles, banners }: Props) {
-  const heroArticle = articles[0];
-  const latestStories = articles.slice(4, 14);
+  const heroArticles = articles.slice(0, 5);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  
+  const totalPages = Math.ceil(articles.length / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const latestStories = articles.slice(startIndex, endIndex);
   const trendingArticles = articles.slice(0, 5);
-  const featuredArticles = articles.slice(14, 18);
+  const featuredArticles = articles.slice(0, 4);
   const trendingProducts = articles.filter((a: any) => a.status === "blog").slice(0, 4);
 
-  return (
-    <div className="min-h-screen bg-white text-black font-sans">
-      <LandingClientWrapper footerBanners={banners.footer}>
-        <div className="max-w-7xl mx-auto px-6 mt-4">
-          <AdBanner position="HOME_TOP" initialBanners={banners.top} />
-        </div>
+  const [[page, direction], setPage] = useState([0, 0]);
+  const index = heroArticles.length > 0 ? Math.abs(page % heroArticles.length) : 0;
+  const heroArticle = heroArticles[index];
 
-        <main className="max-w-7xl mx-auto px-6 py-10">
+  const paginate = (newDirection: number) => {
+    setPage([page + newDirection, newDirection]);
+  };
+
+  const variants = {
+    enter: (direction: number) => ({ x: direction > 0 ? 50 : -50, opacity: 0 }),
+    center: { zIndex: 1, x: 0, opacity: 1 },
+    exit: (direction: number) => ({ zIndex: 0, x: direction < 0 ? 50 : -50, opacity: 0 })
+  };
+
+  return (
+    <div className="bg-white text-black font-sans">
+      <div className="max-w-7xl mx-auto px-6 mt-4">
+        <AdBanner position="HOME_TOP" initialBanners={banners.top} />
+      </div>
+
+      <main className="max-w-7xl mx-auto px-6 py-10">
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             
             {/* Left Content Area */}
             <div className="lg:col-span-8">
               
-              {/* Hero Section */}
+              {/* Hero Section Carousel */}
               {heroArticle && (
-                <div className="mb-12 group">
-                  <Link href={`/article/${heroArticle.slug || heroArticle.id}`}>
-                    <div className="relative aspect-[21/9] overflow-hidden mb-6 bg-gray-100">
-                      <StoryImage 
-                        src={heroArticle.imageUrl} 
-                        alt={heroArticle.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-1000"
-                        variant="hero"
-                      />
-                      <div className="absolute top-4 left-4 bg-[#bc002d] text-white text-[10px] font-bold px-3 py-1 uppercase tracking-widest">
-                         Top Story
-                      </div>
+                <div className="mb-12 group relative">
+                  <div className="relative aspect-[21/9] overflow-hidden mb-6 bg-gray-100">
+                    <AnimatePresence initial={false} custom={direction} mode="wait">
+                      <motion.div
+                        key={page}
+                        custom={direction}
+                        variants={variants}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                        transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
+                        className="h-full w-full absolute inset-0"
+                      >
+                        <Link href={`/article/${heroArticle.slug || heroArticle.id}`} className="block h-full">
+                          <StoryImage 
+                            src={heroArticle.imageUrl} 
+                            alt={heroArticle.title}
+                            fill
+                            className="object-cover transition-transform duration-1000 group-hover:scale-105"
+                            variant="hero"
+                          />
+                        </Link>
+                      </motion.div>
+                    </AnimatePresence>
+
+                    <div className="absolute top-4 left-4 bg-[#bc002d] text-white text-[10px] font-bold px-3 py-1 uppercase tracking-widest z-10">
+                       Top Story
                     </div>
+
+                    <button type="button" onClick={() => paginate(-1)} className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/80 hover:bg-white text-[#bc002d] flex items-center justify-center shadow-lg transition-colors" aria-label="Previous">
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button type="button" onClick={() => paginate(1)} className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/80 hover:bg-white text-[#bc002d] flex items-center justify-center shadow-lg transition-colors" aria-label="Next">
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+
+                    <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
+                      {heroArticles.map((_, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => {
+                            const newDirection = i > index ? 1 : -1;
+                            setPage([i, newDirection]);
+                          }}
+                          className={`h-1.5 transition-all duration-300 ${i === index ? "w-8 bg-[#bc002d]" : "w-4 bg-white/50 hover:bg-white/80"}`}
+                          aria-label={`Go to slide ${i + 1}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <Link href={`/article/${heroArticle.slug || heroArticle.id}`}>
                     <h2 className="text-4xl font-serif font-black leading-tight mb-4 hover:text-[#bc002d] transition-colors">
                       {heroArticle.title}
                     </h2>
@@ -82,8 +143,23 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                        </div>
                     </Link>
                  ))}
-              </div>
-            </div>
+                  </div>
+                  {articles.length > 0 && (
+                     <div className="mt-4">
+                        <ClientPagination
+                           currentPage={currentPage}
+                           totalPages={totalPages}
+                           onPageChange={setCurrentPage}
+                           itemsPerPage={itemsPerPage}
+                           onItemsPerPageChange={setItemsPerPage}
+                           totalItems={articles.length}
+                           startIndex={startIndex}
+                           endIndex={endIndex}
+                           domain="jejujapan.com"
+                        />
+                     </div>
+                  )}
+               </div>
 
             {/* Right Sidebar (Trending & Precision) */}
             <aside className="lg:col-span-4">
@@ -155,8 +231,6 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
           )}
 
         </main>
-      </LandingClientWrapper>
-
       <style dangerouslySetInnerHTML={{ __html: `
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Playfair+Display:wght@900&display=swap');
         

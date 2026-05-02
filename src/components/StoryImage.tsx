@@ -13,20 +13,12 @@ interface StoryImageProps {
   className?: string;
   priority?: boolean;
   sizes?: string;
+  hideTitle?: boolean;
   variant?: "hero" | "featured" | "thumbnail";
 }
 
-export function StoryImage({ 
-  src, 
-  alt, 
-  fill, 
-  width, 
-  height, 
-  className, 
-  priority,
-  sizes,
-  variant = "featured"
-}: StoryImageProps) {
+export function StoryImage(props: StoryImageProps) {
+  const { src, alt, fill, width, height, className, priority, sizes, variant = "featured", hideTitle } = props;
   const [imgSrc, setImgSrc] = useState<string | null>(src || null);
   const [error, setError] = useState(false);
   const isBlockedS3Origin = (imgSrc ?? "").includes("chumme-dev.s3.amazonaws.com");
@@ -75,16 +67,18 @@ export function StoryImage({
           containerType: 'inline-size'
         }}
       >
-        <span 
-          className={`font-black uppercase tracking-tighter drop-shadow-xl ${config.lineClamp}`}
-          style={{ 
-            // Scales exactly based on the container width now
-            fontSize: `clamp(${config.minFont}, 8cqw, ${config.maxFont})`,
-            lineHeight: '1.1'
-          }}
-        >
-          {alt}
-        </span>
+        {!hideTitle && (
+          <span 
+            className={`font-black uppercase tracking-tighter drop-shadow-xl ${config.lineClamp}`}
+            style={{ 
+              // Scales exactly based on the container width now
+              fontSize: `clamp(${config.minFont}, 8cqw, ${config.maxFont})`,
+              lineHeight: '1.1'
+            }}
+          >
+            {alt}
+          </span>
+        )}
       </div>
     );
   }

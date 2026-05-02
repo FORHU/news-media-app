@@ -1,6 +1,7 @@
 import { Mail, ChevronLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import { MutableRefObject, KeyboardEvent, FormEvent } from "react";
+import type { ThemeClasses } from "./NewsletterModal";
 
 interface VerifyEmailStepProps {
   email: string;
@@ -16,6 +17,7 @@ interface VerifyEmailStepProps {
   onOtpChange: (index: number, value: string) => void;
   onKeyDown: (index: number, e: KeyboardEvent<HTMLInputElement>) => void;
   onResend: () => void;
+  theme: ThemeClasses;
 }
 
 export function VerifyEmailStep({
@@ -32,6 +34,7 @@ export function VerifyEmailStep({
   onOtpChange,
   onKeyDown,
   onResend,
+  theme,
 }: VerifyEmailStepProps) {
   return (
     <motion.div
@@ -51,15 +54,15 @@ export function VerifyEmailStep({
       </button>
 
       <div className="flex justify-center mb-4 sm:mb-6">
-        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#ff4500]/10 rounded-2xl flex items-center justify-center">
-          <Mail className="w-6 h-6 sm:w-8 sm:h-8 text-[#ff4500]" />
+        <div className={`w-12 h-12 sm:w-16 sm:h-16 ${theme.bgLight10} rounded-2xl flex items-center justify-center`}>
+          <Mail className={`w-6 h-6 sm:w-8 sm:h-8 ${theme.text}`} />
         </div>
       </div>
 
-      <h3 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3 font-sans">
+      <h3 className={`text-lg sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3 ${theme.font}`}>
         Please check your email
       </h3>
-      <p className="text-xs sm:text-base text-gray-600 mb-4 sm:mb-8 font-sans">
+      <p className={`text-xs sm:text-base text-gray-600 mb-4 sm:mb-8 ${theme.font}`}>
         We&apos;ve sent a code to{" "}
         <strong className="text-gray-900">{email}</strong>
       </p>
@@ -77,37 +80,37 @@ export function VerifyEmailStep({
               value={digit}
               onChange={(e) => onOtpChange(idx, e.target.value)}
               onKeyDown={(e) => onKeyDown(idx, e)}
-              className={`w-9 h-11 sm:w-14 sm:h-14 text-center text-xl sm:text-2xl font-semibold border-2 rounded-lg focus:border-[#ff4500] focus:outline-none transition-all bg-white font-sans text-gray-900 ${
-                otpError ? "border-red-500" : "border-gray-300"
+              className={`w-9 h-11 sm:w-14 sm:h-14 text-center text-xl sm:text-2xl font-semibold border-2 rounded-lg focus:outline-none transition-all bg-white ${theme.font} text-gray-900 ${
+                otpError ? "border-red-500" : `border-gray-300 ${theme.borderFocus}`
               }`}
             />
           ))}
         </div>
         {otpSendError && (
-            <p className="text-sm sm:text-base text-red-500 mt-2 mb-4 font-sans">
+            <p className={`text-sm sm:text-base text-red-500 mt-2 mb-4 ${theme.font}`}>
               {otpSendError}
             </p>
           )}
 
           {otpError && (
-            <p className="text-sm sm:text-base text-red-500 mt-2 mb-4 font-sans">
+            <p className={`text-sm sm:text-base text-red-500 mt-2 mb-4 ${theme.font}`}>
               {otpErrorMessage || "Invalid verification code. Please try again."}
             </p>
           )}
         <button
           type="submit"
           disabled={otp.some((d) => !d) || isVerifying}
-          className={`w-full px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg font-medium text-sm sm:text-base mb-3 sm:mb-4 transition-colors font-sans ${
+          className={`w-full px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg font-medium text-sm sm:text-base mb-3 sm:mb-4 transition-colors ${theme.font} ${
             otp.some((d) => !d) || isVerifying
               ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-              : "bg-[#ff4500] text-white hover:bg-[#e63e00]"
+              : `${theme.bg} text-white ${theme.hoverBg}`
           }`}
         >
           {isVerifying ? "Verifying..." : "Verify"}
         </button>
 
         {resendCooldown > 0 ? (
-          <p className="text-xs sm:text-sm text-gray-600 font-sans">
+          <p className={`text-xs sm:text-sm text-gray-600 ${theme.font}`}>
             You can request a new code in{" "}
             <span className="font-semibold text-gray-900">
               {resendCooldown}s
@@ -115,12 +118,12 @@ export function VerifyEmailStep({
             .
           </p>
         ) : (
-          <p className="text-xs sm:text-sm text-gray-600 font-sans">
+          <p className={`text-xs sm:text-sm text-gray-600 ${theme.font}`}>
             Didn&apos;t receive an email?{" "}
             <button
               type="button"
               onClick={onResend}
-              className="text-gray-900 font-semibold hover:text-[#ff4500] transition-colors"
+              className={`text-gray-900 font-semibold ${theme.hoverText} transition-colors`}
             >
               Resend
             </button>

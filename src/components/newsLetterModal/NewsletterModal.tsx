@@ -10,9 +10,81 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { VerifyEmailStep } from "./VerifyEmailStep";
 import { InterestsStep } from "./InterestsStep";
 
+export type ThemeClasses = {
+  bg: string;
+  text: string;
+  border: string;
+  borderFocus: string;
+  hoverBg: string;
+  hoverText: string;
+  bgLight: string;
+  bgLight10: string;
+  font: string;
+  gradient: string;
+};
+
+const getDomainTheme = (domain: string): ThemeClasses => {
+  if (domain.includes("jejutime")) {
+    return {
+      bg: "bg-blue-600",
+      text: "text-blue-600",
+      border: "border-blue-600",
+      borderFocus: "focus:border-blue-600",
+      hoverBg: "hover:bg-blue-700",
+      hoverText: "hover:text-blue-600",
+      bgLight: "bg-blue-50",
+      bgLight10: "bg-blue-600/10",
+      font: "font-serif",
+      gradient: "from-blue-600/5",
+    };
+  }
+  if (domain.includes("jejujapan")) {
+    return {
+      bg: "bg-[#bc002d]",
+      text: "text-[#bc002d]",
+      border: "border-[#bc002d]",
+      borderFocus: "focus:border-[#bc002d]",
+      hoverBg: "hover:bg-[#9a0025]",
+      hoverText: "hover:text-[#bc002d]",
+      bgLight: "bg-[#bc002d]/5",
+      bgLight10: "bg-[#bc002d]/10",
+      font: "font-serif",
+      gradient: "from-[#bc002d]/5",
+    };
+  }
+  if (domain.includes("jejuqq")) {
+    return {
+      bg: "bg-[#e60012]", // Pure red for JejuQQ
+      text: "text-[#e60012]",
+      border: "border-[#e60012]",
+      borderFocus: "focus:border-[#e60012]",
+      hoverBg: "hover:bg-[#cc0010]",
+      hoverText: "hover:text-[#e60012]",
+      bgLight: "bg-red-50",
+      bgLight10: "bg-[#e60012]/10",
+      font: "font-serif",
+      gradient: "from-[#e60012]/5",
+    };
+  }
+  // Default / NewsIcons
+  return {
+    bg: "bg-[#ff4500]",
+    text: "text-[#ff4500]",
+    border: "border-[#ff4500]",
+    borderFocus: "focus:border-[#ff4500]",
+    hoverBg: "hover:bg-[#e63e00]",
+    hoverText: "hover:text-[#ff4500]",
+    bgLight: "bg-orange-50",
+    bgLight10: "bg-[#ff4500]/10",
+    font: "font-sans",
+    gradient: "from-[#ff4500]/5",
+  };
+};
+
 interface NewsletterModalProps {
   isOpen: boolean;
   onClose: () => void;
+  domain?: string;
 }
 
 type CategoryOption = {
@@ -20,7 +92,7 @@ type CategoryOption = {
   name: string;
 };
 
-export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
+export function NewsletterModal({ isOpen, onClose, domain = "" }: NewsletterModalProps) {
   const [step, setStep] = useState<
     "email" | "verification" | "interests" | "success"
   >("email");
@@ -34,6 +106,18 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
   const [otpErrorMessage, setOtpErrorMessage] = useState("");
   const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
   const [resendCooldown, setResendCooldown] = useState(0);
+
+  const [localDomain, setLocalDomain] = useState(domain);
+  
+  useEffect(() => {
+    if (domain) {
+      setLocalDomain(domain);
+    } else {
+      setLocalDomain(window.location.hostname);
+    }
+  }, [domain]);
+
+  const theme = getDomainTheme(localDomain.toLowerCase());
 
   // Load available newsletter categories when the modal is open
   const {
@@ -281,8 +365,8 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 sm:p-5 bg-[#ff4500] rounded-t-2xl shrink-0">
-              <h2 className="text-xl sm:text-2xl font-bold text-white font-sans">
+            <div className={`flex items-center justify-between p-4 sm:p-5 ${theme.bg} rounded-t-2xl shrink-0`}>
+              <h2 className={`text-xl sm:text-2xl font-bold text-white ${theme.font}`}>
                 {step === "email" && "Subscribe to Newsletter"}
                 {step === "verification" && "Verify Your Email"}
                 {step === "interests" && "Choose Your Interests"}
@@ -309,7 +393,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                   >
                     <form noValidate onSubmit={handleEmailSubmit}>
                       <div className="relative mb-3 sm:mb-4">
-                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-[#ff4500]" />
+                        <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 ${theme.text}`} />
                         <input
                           type="email"
                           value={email}
@@ -319,28 +403,28 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                           }}
                           placeholder="Enter your email address"
                           autoFocus
-                          className={`w-full thick-border pl-10 sm:pl-12 pr-4 py-3 sm:py-3.5 text-sm sm:text-base bg-gray-100 border-2 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all placeholder:text-gray-500 font-sans ${error
+                          className={`w-full thick-border pl-10 sm:pl-12 pr-4 py-3 sm:py-3.5 text-sm sm:text-base bg-gray-100 border-2 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all placeholder:text-gray-500 ${theme.font} ${error
                               ? "border-red-500 bg-red-50"
                               : "border-transparent"
                             }`}
                         />
                       </div>
                       {error && (
-                        <p className="text-xs sm:text-sm text-red-500 mb-3 sm:mb-4 font-sans">
+                        <p className={`text-xs sm:text-sm text-red-500 mb-3 sm:mb-4 ${theme.font}`}>
                           {error}
                         </p>
                       )}
                       <div className="flex gap-2 sm:gap-3 mb-4 sm:mb-6">
                         <button
                           type="submit"
-                          className="flex-1 bg-[#ff4500] text-white px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg hover:bg-[#e63e00] transition-colors font-medium text-sm sm:text-base font-sans"
+                          className={`flex-1 ${theme.bg} text-white px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg ${theme.hoverBg} transition-colors font-medium text-sm sm:text-base ${theme.font}`}
                         >
                           Next
                         </button>
                         <button
                           type="button"
                           onClick={onClose}
-                          className="px-6 sm:px-8 py-3 sm:py-3.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm sm:text-base font-sans"
+                          className={`px-6 sm:px-8 py-3 sm:py-3.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm sm:text-base ${theme.font}`}
                         >
                           Cancel
                         </button>
@@ -348,7 +432,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                     </form>
 
                     <div className="pt-4 sm:pt-6 border-t border-gray-200">
-                      <h3 className="text-xs sm:text-sm font-semibold text-gray-900 mb-3 sm:mb-4 font-sans">
+                      <h3 className={`text-xs sm:text-sm font-semibold text-gray-900 mb-3 sm:mb-4 ${theme.font}`}>
                         What you&apos;ll get
                       </h3>
                       <ul className="space-y-2 sm:space-y-3">
@@ -361,10 +445,10 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                             key={benefit}
                             className="flex items-start gap-2 sm:gap-3"
                           >
-                            <span className="text-[#ff4500] mt-0.5 flex-shrink-0 text-xs sm:text-sm">
+                            <span className={`${theme.text} mt-0.5 flex-shrink-0 text-xs sm:text-sm`}>
                               ✓
                             </span>
-                            <span className="text-xs sm:text-sm text-gray-700 font-sans">
+                            <span className={`text-xs sm:text-sm text-gray-700 ${theme.font}`}>
                               {benefit}
                             </span>
                           </li>
@@ -400,6 +484,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                         console.error("Failed to resend OTP", err);
                       }
                     }}
+                    theme={theme}
                   />
                 )}
 
@@ -415,6 +500,7 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                     onToggleInterest={toggleInterest}
                     onSubmit={handleInterestsSubmit}
                     onCancel={onClose}
+                    theme={theme}
                   />
                 )}
 
@@ -427,22 +513,22 @@ export function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
                     className="text-center py-4"
                   >
                     <div className="flex justify-center mb-4 sm:mb-6">
-                      <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#ff4500]/10 rounded-2xl flex items-center justify-center">
-                        <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-[#ff4500]" />
+                      <div className={`w-12 h-12 sm:w-16 sm:h-16 ${theme.bgLight10} rounded-2xl flex items-center justify-center`}>
+                        <CheckCircle className={`w-6 h-6 sm:w-8 sm:h-8 ${theme.text}`} />
                       </div>
                     </div>
 
-                    <h3 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3 font-sans">
+                    <h3 className={`text-lg sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3 ${theme.font}`}>
                       Subscription Successful
                     </h3>
-                    <p className="text-xs sm:text-base text-gray-600 mb-6 sm:mb-8 font-sans">
+                    <p className={`text-xs sm:text-base text-gray-600 mb-6 sm:mb-8 ${theme.font}`}>
                       You&apos;re now subscribed to our newsletter
                     </p>
 
                     <button
                       type="button"
                       onClick={handleFinalClose}
-                      className="w-full px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg font-bold text-base sm:text-lg bg-[#ff4500] text-white hover:bg-[#e63e00] transition-all active:scale-[0.98] font-sans"
+                      className={`w-full px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg font-bold text-base sm:text-lg ${theme.bg} text-white ${theme.hoverBg} transition-all active:scale-[0.98] ${theme.font}`}
                     >
                       Close
                     </button>

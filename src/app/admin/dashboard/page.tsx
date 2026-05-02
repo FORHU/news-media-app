@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
     Activity,
     ArrowUpRight
@@ -25,6 +25,34 @@ export default function DashboardPage() {
         // Dashboard wants periodic updates while you’re on the page.
         refetchInterval: 10_000,
     });
+    
+    // Set domain-specific title and favicon
+    useEffect(() => {
+        const hostname = window.location.hostname.toLowerCase();
+        let siteName = "NewsIcons";
+        let iconPath = "/icons/newsicons.ico";
+        
+        if (hostname.includes('jejujapan')) {
+            siteName = "Jeju Japan";
+            iconPath = "/icons/jejujapan.ico";
+        } else if (hostname.includes('jejuqq')) {
+            siteName = "Jeju QQ";
+            iconPath = "/icons/jejuqq.ico";
+        } else if (hostname.includes('jejutime')) {
+            siteName = "Jeju Times";
+            iconPath = "/icons/jejutime.ico";
+        }
+        
+        document.title = `Admin Dashboard | ${siteName}`;
+        
+        // Dynamic Favicon update
+        const favicon = document.querySelector('link[rel="icon"]') as HTMLLinkElement || document.createElement('link');
+        favicon.rel = 'icon';
+        favicon.href = iconPath;
+        if (!document.querySelector('link[rel="icon"]')) {
+            document.head.appendChild(favicon);
+        }
+    }, []);
 
     const loading = isLoading && !data;
 

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 
@@ -29,21 +30,30 @@ export function getTenantDomainFromRequest(request: NextRequest): string | null 
   return domain ?? "newsicons.com";
 }
 
-export async function resolveTenantIdFromRequest(request: NextRequest): Promise<string | null> {
+export const resolveTenantIdFromRequest = cache(async (request: NextRequest): Promise<string | null> => {
   const domain = getTenantDomainFromRequest(request);
   if (!domain) return null;
 
   return resolveTenantIdFromDomain(domain);
-}
+});
 
 export { TENANT_DOMAIN_COOKIE };
 
-export async function resolveTenantIdFromDomain(domain: string): Promise<string | null> {
+export const resolveTenantIdFromDomain = cache(async (domain: string): Promise<string | null> => {
   if (!domain) return null;
   const tenant = await prisma.tenant.findUnique({
     where: { domain },
     select: { id: true },
   });
   return tenant?.id ?? null;
+});
+
+export function getSiteNameFromDomain(domain: string | null): string {
+  if (!domain) return "NewsIcons";
+  const d = domain.toLowerCase();
+  if (d.includes('jejujapan')) return "Jeju Japan";
+  if (d.includes('jejuqq')) return "Jeju QQ";
+  if (d.includes('jejutime')) return "Jeju Times";
+  return "NewsIcons";
 }
 
