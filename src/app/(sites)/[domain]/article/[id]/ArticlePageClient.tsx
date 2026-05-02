@@ -14,6 +14,12 @@ import { normalizeCategoryName } from "@/lib/categoryDisplay";
 import { AdBanner } from "@/components/AdBanner";
 import type { Article } from "@/lib/types";
 import { extractYoutubeId } from "@/lib/utils";
+import TwitterStatusEmbed from "@/components/article/TwitterStatusEmbed";
+import {
+  isTweetSocialCommentaryMode,
+  splitReferenceLineFromContent,
+  stripOriginalPostBlock,
+} from "@/lib/tweetArticleDisplay";
 
 export default function ArticlePageClient({ 
   articleId, 
@@ -82,8 +88,25 @@ export default function ArticlePageClient({
 
   const hasYoutube = Boolean(youtubeId);
 
+  const rawTweet = article.rawTweet;
+  const isCommentaryTweetArticle =
+    article.sourceType === "TWEET" &&
+    isTweetSocialCommentaryMode(rawTweet?.generationMode);
+
+  const showTweetCommentaryEmbed =
+    isCommentaryTweetArticle && Boolean(rawTweet?.tweetId);
+
+  const bodyContent = isCommentaryTweetArticle
+    ? stripOriginalPostBlock(article.content)
+    : article.content;
+
+  const { main: layoutContent, referenceLine } = splitReferenceLineFromContent(
+    bodyContent,
+    isCommentaryTweetArticle
+  );
+
   // Prepare paragraphs for splitting and full content
-  const paragraphs = article.content
+  const paragraphs = layoutContent
     .split(/\n+/)
     .map((p) => p.trim())
     .filter(Boolean);
@@ -122,6 +145,15 @@ export default function ArticlePageClient({
                 <p className="text-gray-500">{formattedDate}</p>
               </header>
 
+              {showTweetCommentaryEmbed && rawTweet?.tweetId ? (
+                <div className="mt-6 mb-2">
+                  <TwitterStatusEmbed
+                    tweetId={rawTweet.tweetId}
+                    profileUrl={rawTweet.profileUrl}
+                  />
+                </div>
+              ) : null}
+
               {hasYoutube ? (
                 <>
                   {/* YouTube Embed at the top */}
@@ -158,6 +190,11 @@ export default function ArticlePageClient({
                       {secondHalf}
                     </div>
                   )}
+                  {referenceLine ? (
+                    <p className="mt-8 pt-6 border-t border-gray-200 text-sm text-gray-500">
+                      {referenceLine}
+                    </p>
+                  ) : null}
                 </>
               ) : (
                 <>
@@ -178,6 +215,11 @@ export default function ArticlePageClient({
                   <div className="mt-8 text-gray-700 leading-relaxed whitespace-pre-wrap">
                     {fullContent}
                   </div>
+                  {referenceLine ? (
+                    <p className="mt-8 pt-6 border-t border-gray-200 text-sm text-gray-500">
+                      {referenceLine}
+                    </p>
+                  ) : null}
                 </>
               )}
             </article>

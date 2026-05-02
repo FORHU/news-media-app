@@ -93,6 +93,13 @@ export const generatedArticlesService = {
               updatedAt: article.rawSourceUpload.updated_at,
             }
           : null,
+        rawTweet: article.rawTweet
+          ? {
+              tweetId: article.rawTweet.tweet_id,
+              generationMode: article.rawTweet.generation_mode,
+              profileUrl: article.rawTweet.profile_url,
+            }
+          : null,
       };
     });
 

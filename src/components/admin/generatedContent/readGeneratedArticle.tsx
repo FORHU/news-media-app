@@ -23,6 +23,12 @@ import { Article } from '@/lib/types';
 import { format } from 'date-fns';
 import { normalizeCategoryName } from '@/lib/categoryDisplay';
 import { extractYoutubeId } from '@/lib/utils';
+import TwitterStatusEmbed from '@/components/article/TwitterStatusEmbed';
+import {
+    isTweetSocialCommentaryMode,
+    splitReferenceLineFromContent,
+    stripOriginalPostBlock,
+} from '@/lib/tweetArticleDisplay';
 
 interface ReadGeneratedArticleProps {
     article: Article | null;
@@ -39,17 +45,34 @@ export default function ReadGeneratedArticle({
 
     if (!article) return null;
 
+    const publishDate = article.publishDate || article.createdAt;
+    const authorName = article.user ? `${article.user.firstName}` : 'System';
+    const originalUrl = article.rawArticle?.crawledUrl?.url || (article as any).rawVideo?.youtubeUrl || (article as any).youtubeUrl;
+
+    const rawTweet = article.rawTweet;
+    const isCommentaryTweetArticle =
+        article.sourceType === 'TWEET' &&
+        isTweetSocialCommentaryMode(rawTweet?.generationMode);
+
+    const showTweetCommentaryEmbed =
+        isCommentaryTweetArticle && Boolean(rawTweet?.tweetId);
+
+    const bodyContent = isCommentaryTweetArticle
+        ? stripOriginalPostBlock(article.content ?? '')
+        : (article.content ?? '');
+
+    const { main: layoutMain, referenceLine } = splitReferenceLineFromContent(
+        bodyContent,
+        isCommentaryTweetArticle
+    );
+
     const handleCopy = () => {
-        if (article.content) {
-            navigator.clipboard.writeText(article.content);
+        if (bodyContent) {
+            navigator.clipboard.writeText(bodyContent);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
         }
     };
-
-    const publishDate = article.publishDate || article.createdAt;
-    const authorName = article.user ? `${article.user.firstName}` : 'System';
-    const originalUrl = article.rawArticle?.crawledUrl?.url || (article as any).rawVideo?.youtubeUrl || (article as any).youtubeUrl;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -123,8 +146,34 @@ export default function ReadGeneratedArticle({
                         );
                     })()}
 
+                    {showTweetCommentaryEmbed && rawTweet?.tweetId ? (
+                        <div className="mb-6 flex justify-center">
+                            <TwitterStatusEmbed
+                                tweetId={rawTweet.tweetId}
+                                profileUrl={rawTweet.profileUrl}
+                            />
+                        </div>
+                    ) : null}
+
                     <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-gray-100 shadow-sm leading-relaxed text-gray-800 text-base sm:text-lg whitespace-pre-wrap font-medium contain-paint">
-                        {article.content || (
+                        {layoutMain || referenceLine ? (
+                            <>
+                                {layoutMain ? (
+                                    <div className="whitespace-pre-wrap">{layoutMain}</div>
+                                ) : null}
+                                {referenceLine ? (
+                                    <p
+                                        className={
+                                            layoutMain
+                                                ? "mt-8 pt-6 border-t border-gray-100 text-sm text-gray-500 font-normal"
+                                                : "text-sm text-gray-500 font-normal"
+                                        }
+                                    >
+                                        {referenceLine}
+                                    </p>
+                                ) : null}
+                            </>
+                        ) : (
                             <div className="flex flex-col items-center justify-center py-20 text-gray-400 italic">
                                 <Zap className="w-12 h-12 mb-4 opacity-20" />
                                 <p>No content generated for this article.</p>

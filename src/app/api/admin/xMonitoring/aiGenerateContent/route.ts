@@ -3,35 +3,66 @@ import { prisma } from "@/lib/db";
 import { generateUniqueArticleSlug } from "@/lib/slug";
 import { z } from "zod";
 import { resolveTenantIdFromRequest } from "@/lib/tenant";
+import { stripOriginalPostBlock } from "@/lib/tweetArticleDisplay";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
+
+const tweetGenerationModeSchema = z.enum(["standalone", "commentary"]);
 
 const RequestSchema = z.object({
   tweetId: z.string().min(1, "tweetId is required"),
   categoryId: z.string().min(1, "categoryId is required"),
   generationPrompt: z.string().optional().or(z.literal("")),
   language: z.string().optional(),
+  generationMode: z.preprocess((val: unknown) => {
+    // Legacy UI values → commentary
+    if (val === "commentary_support" || val === "commentary_oppose") return "commentary";
+    return val;
+  }, tweetGenerationModeSchema.optional().default("standalone")),
 });
 
-function getAiSystemInstruction(authorName: string, authorHandle: string, sourceUrl?: string, requestedLanguage?: string) {
+type TweetGenerationMode = z.infer<typeof tweetGenerationModeSchema>;
+
+function getAiSystemInstruction(
+  authorName: string,
+  authorHandle: string,
+  generationMode: TweetGenerationMode,
+  sourceUrl?: string,
+  requestedLanguage?: string
+) {
   const creditInstruction = sourceUrl
-    ? `\n9. SOURCE CREDITING: You MUST end the article with exactly one line: "Reference: ${sourceUrl}". This line must be inside the <content> tag and separated from the last paragraph by exactly two newlines.`
+    ? `\nSOURCE CREDITING: You MUST end <content> with exactly one line after the body: "Reference: ${sourceUrl}". Separate that line from the last paragraph by exactly two newlines (one blank line).`
     : "";
 
-  const languageInstruction = requestedLanguage 
+  const languageInstruction = requestedLanguage
     ? `By default, you MUST write the article in ${requestedLanguage}.`
     : `By default, you MUST write the article in English.`;
+
+  const modeConstraints =
+    generationMode === "standalone"
+      ? `8. STANDALONE NEWS: Write as a standard wire-style news article. Do NOT include a demarcated block that reproduces the source post as an embedded social item (no "--- ORIGINAL POST ---" section). Integrate facts into continuous reporting; the piece must read like independent journalism, not social round-up.
+9. NO SOCIAL FRAME: Do not paste or quote the post as a standalone embed. Brief indirect paraphrase is acceptable where needed for clarity.`
+      : `8. SOCIAL COMMENTARY: Write an opinion piece that engages with the source post. Match angle, stance, and emphasis to [USER REQUEST / ADDITIONAL CONTEXT] when instructions are provided; otherwise balanced, substantive commentary.
+9. NO REPRODUCTION BLOCK: NEVER use "--- ORIGINAL POST ---", "--- END ORIGINAL POST ---", horizontal-rule fences, quoted full transcripts of the post, attribution lines ("— @[handle]"), or the post URL in the body. The published page shows the real post in an embed above the article—write only your analysis in continuous paragraphs.
+10. NO FULL-POST PASTE: Do not paste the tweet text verbatim in the article; paraphrase or refer at most briefly if needed.
+11. BODY ENDS BEFORE REFERENCE: The prose must end at the final commentary paragraph, then SOURCE CREDITING adds the single Reference line—never end the body with a pasted quote block, status URL line, or "— @[handle]" line.`;
+
+  const personaLine =
+    generationMode === "standalone"
+      ? `- Your goal is to transform this brief report into a professional, authoritative, and comprehensive news article.`
+      : `- Your goal is to produce compelling commentary on a post from X/Twitter. Readers will see the post in an on-page embed; your text is analysis only, plus the single Reference line at the end.`;
 
   return `
 [PERSONA]:
 - You are a senior news editor and investigative journalist.
 - You have received a "First-Hand Report" from a social media source (X/Twitter).
-- Your goal is to transform this brief report into a professional, authoritative, and comprehensive news article.
+${personaLine}
 
 [SOURCE INFORMATION]:
 - Source Name: ${authorName}
 - Source Handle: @${authorHandle}
+${sourceUrl ? `- Canonical post URL: ${sourceUrl}` : ""}
 
 [FORMATTING RULES]:
 - STRUCTURE: Use ONLY these tags for your response:
@@ -41,11 +72,12 @@ function getAiSystemInstruction(authorName: string, authorHandle: string, source
 [WRITING CONSTRAINTS]:
 1. THE OBSERVER: Treat the [SOURCE TWEET] as your primary source of intelligence.
 2. EXPANSION: Use the information in the tweet as the core fact. Expand on the potential implications, context, or surrounding events naturally.
-3. NO META-COMMENTARY: NEVER mention that you are "writing an article based on a tweet" or "analyzing a post". Write the news as it is happening.
-4. TONE: Objective, professional, and serious. Avoid slang or social media language.
-5. PARAGRAPHS: Divide the content into 3-5 distinct paragraphs. Use exactly two newlines (an empty line) between each paragraph.
+3. NO META-COMMENTARY: NEVER mention that you are "writing an article based on a tweet" or "analyzing a post". Write as a finished piece for publication.
+4. TONE: Professional and serious. Avoid slang or social media language.
+5. PARAGRAPHS: Divide the content into 3-5 distinct paragraphs of flowing prose. Use exactly two newlines (an empty line) between each paragraph.
 6. NO MARKDOWN: Do not use bold, italics, or lists.
 7. LANGUAGE: ${languageInstruction}
+${modeConstraints}
 ${creditInstruction}
 `;
 }
@@ -77,7 +109,13 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    const { tweetId, categoryId, generationPrompt: customPrompt, language: requestedLanguage } = result.data;
+    const {
+      tweetId,
+      categoryId,
+      generationPrompt: customPrompt,
+      language: requestedLanguage,
+      generationMode,
+    } = result.data;
     const tenantId = await resolveTenantIdFromRequest(req);
     
     if (!tenantId) {
@@ -111,14 +149,22 @@ export async function POST(req: NextRequest) {
     }
 
     const authorHandle = tweet.profileUrl ? tweet.profileUrl.split('/').filter(Boolean).pop() || "X_User" : "X_User";
-    const tweetUrl = tweet.profileUrl ? `${tweet.profileUrl.replace(/\/$/, '')}/status/${tweet.tweetId}` : undefined;
+    const tweetUrl = tweet.profileUrl
+      ? `${tweet.profileUrl.replace(/\/$/, "")}/status/${tweet.tweetId}`
+      : `https://x.com/i/status/${tweet.tweetId}`;
 
     const instruction = getAiSystemInstruction(
-        tweet.sourceName || "Unknown Source", 
-        authorHandle,
-        tweetUrl, 
-        requestedLanguage
+      tweet.sourceName || "Unknown Source",
+      authorHandle,
+      generationMode,
+      tweetUrl,
+      requestedLanguage
     );
+
+    const defaultUserAsk =
+      generationMode === "standalone"
+        ? "Transform this primary source into a full investigative news article (standalone reporting, no embedded social post block)."
+        : "Write commentary only (no quoted post, no ORIGINAL POST section); develop the piece per any directions you added above, and end with the Reference line only.";
 
     let videoTranscript = "";
     const logs: string[] = [];
@@ -188,7 +234,7 @@ ${tweet.text}${videoTranscript}
 ${instruction}
 
 [USER REQUEST / ADDITIONAL CONTEXT]:
-${customPrompt || "Transform this primary source report into a full investigative news article."}
+${customPrompt || defaultUserAsk}
 
 CRITICAL: Generate the article now using the <title> and <content> tags.
 `,
@@ -218,7 +264,11 @@ CRITICAL: Generate the article now using the <title> and <content> tags.
         const { response } = await chatRes.json();
         if (!response) throw new Error("AI service returned an empty response");
 
-        const { title, content } = extractArticleData(response, `Analysis: ${tweet.sourceName} on X`);
+        let { title, content } = extractArticleData(response, `Analysis: ${tweet.sourceName} on X`);
+
+        if (generationMode === "commentary") {
+          content = stripOriginalPostBlock(content);
+        }
 
         if (!content || content.length < 50) {
             throw new Error("AI failed to generate a sufficient article. Try a more specific prompt.");
@@ -249,7 +299,7 @@ CRITICAL: Generate the article now using the <title> and <content> tags.
 
         await prisma.rawTweet.update({
           where: { id: tweetId },
-          data: { status: "generated" }
+          data: { status: "generated", generationMode },
         });
 
         return NextResponse.json({ article: contentArticle, logs });

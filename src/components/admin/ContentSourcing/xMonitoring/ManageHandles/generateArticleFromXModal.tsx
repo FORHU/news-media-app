@@ -27,10 +27,18 @@ import { articlesApi } from '@/lib/api';
 import CategorySelectWithOther from '@/components/admin/shared/CategorySelectWithOther';
 import { LANGUAGE_OPTIONS } from '@/components/admin/generatedContent/CreateArticleModal/ManualGenerationTab';
 
+/** Persisted on RawTweet.generationMode */
+export type TweetArticleGenerationMode = "standalone" | "commentary";
+
 interface GenerateArticleFromXModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onGenerate: (prompt: string, categoryId: string, language: string) => void;
+    onGenerate: (
+        prompt: string,
+        categoryId: string,
+        language: string,
+        generationMode: TweetArticleGenerationMode
+    ) => void;
     isPending: boolean;
     tweetText?: string;
     authorName?: string;
@@ -49,7 +57,11 @@ export default function GenerateArticleFromXModal({
     const [generationPrompt, setGenerationPrompt] = React.useState('');
     const [selectedCategory, setSelectedCategory] = React.useState<string>('');
     const [language, setLanguage] = React.useState<string>('English');
+    const [generationKind, setGenerationKind] = React.useState<"standalone" | "commentary">("standalone");
     const [fieldErrors, setFieldErrors] = React.useState<{ category?: string }>({});
+
+    const resolvedGenerationMode: TweetArticleGenerationMode =
+        generationKind === "standalone" ? "standalone" : "commentary";
 
     // Reset when opening
     React.useEffect(() => {
@@ -57,6 +69,7 @@ export default function GenerateArticleFromXModal({
             setGenerationPrompt('');
             setSelectedCategory('');
             setLanguage('English');
+            setGenerationKind("standalone");
             setFieldErrors({});
         }
     }, [open]);
@@ -78,7 +91,7 @@ export default function GenerateArticleFromXModal({
             setFieldErrors({ category: "Please select a category first" });
             return;
         }
-        onGenerate(generationPrompt, selectedCategory, language);
+        onGenerate(generationPrompt, selectedCategory, language, resolvedGenerationMode);
     };
 
     return (
@@ -135,10 +148,64 @@ export default function GenerateArticleFromXModal({
                         />
                     </div>
 
+                    {/* Generation mode */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-100 text-amber-700 font-black text-xs">02</span>
+                            <label className="text-sm font-black uppercase tracking-widest text-gray-900">Generation mode</label>
+                        </div>
+
+                        <div className="grid gap-3 sm:grid-cols-1">
+                            <div
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => setGenerationKind("commentary")}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" || e.key === " ") {
+                                        e.preventDefault();
+                                        setGenerationKind("commentary");
+                                    }
+                                }}
+                                className={`cursor-pointer text-left rounded-2xl border-2 p-4 transition-all outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
+                                    generationKind === "commentary"
+                                        ? "border-amber-400 bg-amber-50/80 shadow-sm ring-2 ring-amber-200/60"
+                                        : "border-gray-100 bg-gray-50/50 hover:border-gray-200"
+                                }`}
+                            >
+                                <p className="text-sm font-black uppercase tracking-wide text-gray-900">Social Commentary</p>
+                                <p className="mt-1 text-sm font-medium text-gray-600 leading-snug">
+                                    Includes an embedded reproduction of the post in the article. Use Custom Prompt below for angle, stance, or emphasis.
+                                </p>
+                            </div>
+
+                            <div
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => setGenerationKind("standalone")}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" || e.key === " ") {
+                                        e.preventDefault();
+                                        setGenerationKind("standalone");
+                                    }
+                                }}
+                                className={`cursor-pointer text-left rounded-2xl border-2 p-4 transition-all outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
+                                    generationKind === "standalone"
+                                        ? "border-blue-400 bg-blue-50/50 shadow-sm ring-2 ring-blue-200/50"
+                                        : "border-gray-100 bg-gray-50/50 hover:border-gray-200"
+                                }`}
+                            >
+                                <p className="text-sm font-black uppercase tracking-wide text-gray-900">Independent Report</p>
+                                <p className="mt-1 text-sm font-medium text-gray-600 leading-snug">
+                                    Full news article using the post as a primary source. No social-style embed block; reads like standard reporting.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Language Selection */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
-                            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 text-purple-600 font-black text-xs">02</span>
+                            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 text-purple-600 font-black text-xs">03</span>
                             <label className="text-sm font-black uppercase tracking-widest text-gray-900">Output Language</label>
                         </div>
                         
@@ -157,13 +224,19 @@ export default function GenerateArticleFromXModal({
                     {/* Instructions */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
-                            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 font-black text-xs">03</span>
-                            <label className="text-sm font-black uppercase tracking-widest text-gray-900">Custom Prompt (Optional)</label>
+                            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 font-black text-xs">04</span>
+                            <label className="text-sm font-black uppercase tracking-widest text-gray-900">
+                                Custom Prompt {generationKind === "commentary" ? "(Recommended)" : "(Optional)"}
+                            </label>
                         </div>
                         <Textarea
                             value={generationPrompt}
                             onChange={(e) => setGenerationPrompt(e.target.value.slice(0, GENERATION_PROMPT_MAX_LEN))}
-                            placeholder="e.g. Focus on the political implications, write for a tech-savvy audience..."
+                            placeholder={
+                                generationKind === "commentary"
+                                    ? "e.g. Take a supportive angle on the thesis; criticize the government's response; emphasize economic impact…"
+                                    : "e.g. Focus on the political implications, write for a tech-savvy audience…"
+                            }
                             className="min-h-[120px] rounded-2xl bg-gray-50 border-gray-100 p-4 text-base font-medium focus:ring-blue-500/20 resize-none transition-all"
                             disabled={isPending}
                         />

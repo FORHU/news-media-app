@@ -168,11 +168,11 @@ model RawTweet {
   mediaUrls      String[]        @default([]) @map("media_urls")
   thumbnailUrl   String?         @map("thumbnail_url")
   status         String          @default("pending")
+  generationMode String          @default("standalone") @map("generation_mode")
   createdAt      DateTime        @default(now()) @map("created_at")
   updatedAt      DateTime        @updatedAt @map("updated_at")
   contentArticle ContentArticle?
   tenant         Tenant          @relation(fields: [tenantId], references: [id])
-
   @@index([tenantId])
   @@map("raw_tweets")
 }
@@ -184,11 +184,11 @@ model RawVideo {
   youtubeUrl         String          @map("youtube_url")
   transcribedContent String          @map("transcribed_content")
   prompt             String?
+  generationMode     String          @default("standalone") @map("generation_mode")
   createdAt          DateTime        @default(now()) @map("created_at")
   updatedAt          DateTime        @updatedAt @map("updated_at")
   contentArticle     ContentArticle?
   tenant             Tenant          @relation(fields: [tenantId], references: [id])
-
   @@index([tenantId])
   @@map("raw_videos")
 }

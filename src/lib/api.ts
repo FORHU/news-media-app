@@ -112,7 +112,8 @@ export const articlesApi = {
     tweetId: string,
     generationPrompt?: string,
     categoryId?: string,
-    language?: string
+    language?: string,
+    generationMode?: "standalone" | "commentary"
   ): Promise<unknown> {
     const trimmed = typeof generationPrompt === "string" ? generationPrompt.trim() : "";
     const res = await fetch("/api/admin/xMonitoring/aiGenerateContent", {
@@ -123,6 +124,7 @@ export const articlesApi = {
         ...(trimmed.length > 0 ? { generationPrompt: trimmed } : {}),
         ...(categoryId ? { categoryId } : {}),
         ...(language ? { language } : {}),
+        ...(generationMode ? { generationMode } : {}),
       }),
     });
     if (!res.ok) {

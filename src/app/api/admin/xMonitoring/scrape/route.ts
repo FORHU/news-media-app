@@ -130,12 +130,44 @@ function getMediaObjects(post: XpozPost): Record<string, unknown>[] {
   ];
 }
 
+/**
+ * X embed and permalinks require the numeric status id (snowflake).
+ * XPOZ sometimes omits `id` but includes a full /status/{id} URL — parse that first.
+ */
+function extractTweetSnowflakeId(post: XpozPost, authorHandle: string, index: number): string {
+  const statusFromUrl = (u: string) =>
+    u.match(/(?:twitter|x)\.com\/[^/]+\/status\/(\d+)/i)?.[1];
+
+  const url =
+    getString(post.url) ??
+    getString(post.tweetUrl) ??
+    getString(post.permalink) ??
+    "";
+  const fromUrl = url ? statusFromUrl(url) : undefined;
+  if (fromUrl && /^\d{10,22}$/.test(fromUrl)) return fromUrl;
+
+  const restRaw = (post as Record<string, unknown>).restId ?? (post as Record<string, unknown>).rest_id;
+  const fromRest =
+    typeof restRaw === "number" && Number.isFinite(restRaw)
+      ? String(restRaw)
+      : typeof restRaw === "string"
+        ? restRaw.trim()
+        : "";
+  const candidates = [fromRest, getString(post.idStr), getString(post.id)];
+  for (const c of candidates) {
+    const t = c?.trim();
+    if (t && /^\d{10,22}$/.test(t)) return t;
+  }
+
+  return `${authorHandle}-${index}`;
+}
+
 function mapPostToTweet(post: XpozPost, fallbackHandle: string, index: number) {
-  const id = getString(post.id) ?? `${fallbackHandle}-${index}`;
   const authorHandle =
     getString(post.authorUsername) ??
     getString(post.username) ??
     fallbackHandle;
+  const id = extractTweetSnowflakeId(post, authorHandle, index);
   const text = extractTweetText(post);
   const url =
     getString(post.url) ??

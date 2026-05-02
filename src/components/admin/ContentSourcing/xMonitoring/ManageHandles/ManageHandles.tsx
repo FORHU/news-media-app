@@ -11,7 +11,9 @@ import {
 } from "@/components/ui/dialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
-import GenerateArticleFromXModal from "./generateArticleFromXModal";
+import GenerateArticleFromXModal, {
+  type TweetArticleGenerationMode,
+} from "./generateArticleFromXModal";
 // import CrawlXConfigurationModal from "./CrawlXConfigurationModal"; // TODO: Implement
 // import CrawlXJobsTable from "./CrawlXJobsTable"; // TODO: Implement
 
@@ -114,9 +116,25 @@ export default function ManageHandles() {
   const queryClient = useQueryClient();
 
   const generationMutation = useMutation({
-    mutationFn: ({ prompt, categoryId, language }: { prompt: string; categoryId: string; language: string }) => {
+    mutationFn: ({
+      prompt,
+      categoryId,
+      language,
+      generationMode,
+    }: {
+      prompt: string;
+      categoryId: string;
+      language: string;
+      generationMode: TweetArticleGenerationMode;
+    }) => {
       if (!tweetToGenerate) throw new Error("No tweet selected for generation");
-      return articlesApi.generateAiContentFromX(tweetToGenerate.id, prompt, categoryId, language);
+      return articlesApi.generateAiContentFromX(
+        tweetToGenerate.id,
+        prompt,
+        categoryId,
+        language,
+        generationMode
+      );
     },
     onSuccess: () => {
       fetchExistingTweets();
@@ -611,7 +629,9 @@ export default function ManageHandles() {
       <GenerateArticleFromXModal
         open={isGenerationModalOpen}
         onOpenChange={setIsGenerationModalOpen}
-        onGenerate={(prompt, categoryId, language) => generationMutation.mutate({ prompt, categoryId, language })}
+        onGenerate={(prompt, categoryId, language, generationMode) =>
+          generationMutation.mutate({ prompt, categoryId, language, generationMode })
+        }
         isPending={generationMutation.isPending}
         tweetText={tweetToGenerate?.text}
         authorName={tweetToGenerate?.source_name}
