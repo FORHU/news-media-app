@@ -133,12 +133,15 @@ export default async function ArticlePage({
     const article = await articlesService.getArticleBySlugOrId(articleId, tenantId);
     canonicalSlug = article.slug ?? article.id;
     queryClient.setQueryData(["article", canonicalSlug], article);
-  } catch (error) {
-    if (error instanceof ArticlesServiceError && error.status === 404) {
+  } catch (error: any) {
+    // Avoid using `instanceof` for custom errors in Server Components,
+    // as bundler boundaries can sometimes break the prototype chain.
+    if (error && typeof error === "object" && error.status === 404) {
       notFound();
     }
     // Re-throw any other unexpected errors (e.g. DB connection issues)
     // so they surface as proper 500 pages rather than silent failures.
+    console.error("ArticlePage unhandled error:", error);
     throw error;
   }
 
