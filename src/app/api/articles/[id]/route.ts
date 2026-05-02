@@ -29,8 +29,8 @@ export async function GET(
 
     const article = await articlesService.getArticleBySlugOrId(parsed.data.id, tenantId);
     return NextResponse.json(article);
-  } catch (error) {
-    if (error instanceof ArticlesServiceError) {
+  } catch (error: any) {
+    if (error && typeof error === "object" && typeof error.status === "number") {
       return NextResponse.json(
         { error: error.message },
         { status: error.status }

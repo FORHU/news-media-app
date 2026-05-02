@@ -60,9 +60,13 @@ export function SiteShell({ children, domain, footerBanners }: SiteShellProps) {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {renderHeader()}
+      <React.Suspense fallback={<div className="h-14 md:h-16 bg-white border-b border-gray-100" />}>
+        {renderHeader()}
+      </React.Suspense>
       <main className="flex-1">{children}</main>
-      {renderFooter()}
+      <React.Suspense fallback={<div className="h-48 bg-gray-50" />}>
+        {renderFooter()}
+      </React.Suspense>
       <NewsletterModal isOpen={isNewsletterOpen} onClose={closeNewsletter} domain={domain} />
     </div>
   );

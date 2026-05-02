@@ -126,26 +126,35 @@ export default async function ArticlePage({
 
   const queryClient = createQueryClient();
 
+  // Fetch article — separated from redirect() so Next.js's internal redirect
+  // error is never accidentally swallowed by this catch block.
+  let canonicalSlug: string;
   try {
     const article = await articlesService.getArticleBySlugOrId(articleId, tenantId);
-    const canonicalSlug = article.slug ?? article.id;
-
-    // Keep old id links working but redirect to canonical slug URLs.
-    if (articleId !== canonicalSlug) {
-      redirect(`/article/${canonicalSlug}`);
-    }
-
+    canonicalSlug = article.slug ?? article.id;
     queryClient.setQueryData(["article", canonicalSlug], article);
-  } catch (error) {
-    if (error instanceof ArticlesServiceError && error.status === 404) {
+  } catch (error: any) {
+    // Avoid using `instanceof` for custom errors in Server Components,
+    // as bundler boundaries can sometimes break the prototype chain.
+    if (error && typeof error === "object" && error.status === 404) {
       notFound();
     }
+    // Re-throw any other unexpected errors (e.g. DB connection issues)
+    // so they surface as proper 500 pages rather than silent failures.
+    console.error("ArticlePage unhandled error:", error);
+    throw error;
+  }
+
+  // redirect() throws a special Next.js internal error — it MUST be called
+  // outside of any try-catch block so it is never accidentally swallowed.
+  if (articleId !== canonicalSlug) {
+    redirect(`/article/${canonicalSlug}`);
   }
 
   const allArticles = await articlesService.getArticles({
     limit: 50,
     status: "published",
-  }, tenantId);
+  }, tenantId).catch(() => [] as Awaited<ReturnType<typeof articlesService.getArticles>>);
 
   const dehydratedState = dehydrate(queryClient);
 
@@ -153,13 +162,13 @@ export default async function ArticlePage({
     <Hydrate state={dehydratedState}>
       <Suspense fallback={<div className="min-h-[60vh] bg-white" />}>
         {domain === "jejujapan.com" ? (
-          <JejuJapanArticle articleId={articleId} initialOtherArticles={allArticles} />
+          <JejuJapanArticle articleId={canonicalSlug} initialOtherArticles={allArticles} />
         ) : domain === "jejuqq.com" ? (
-          <JejuQQArticle articleId={articleId} initialOtherArticles={allArticles} />
+          <JejuQQArticle articleId={canonicalSlug} initialOtherArticles={allArticles} />
         ) : domain === "jejutime.com" ? (
-          <JejuTimeArticle articleId={articleId} initialOtherArticles={allArticles} />
+          <JejuTimeArticle articleId={canonicalSlug} initialOtherArticles={allArticles} />
         ) : (
-          <ArticlePageClient articleId={articleId} initialOtherArticles={allArticles} domain={domain} />
+          <ArticlePageClient articleId={canonicalSlug} initialOtherArticles={allArticles} domain={domain} />
         )}
       </Suspense>
     </Hydrate>
