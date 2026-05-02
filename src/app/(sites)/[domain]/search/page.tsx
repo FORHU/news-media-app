@@ -93,17 +93,12 @@ export default async function SearchPage({
   return (
     <div className="bg-white">
       <LandingClientWrapper footerBanners={footerBanners}>
-        {domain !== "jejutime.com" && domain !== "jejuqq.com" && domain !== "jejujapan.com" && (
-          <Suspense fallback={<div className="hidden md:block h-12 bg-black" />}>
-            <NavBar />
-          </Suspense>
-        )}
-
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
           <FilterStatusBar
             searchQuery={searchQuery || null}
-            categoryName={categoryParam || null}
+            categoryName={categoryParam ? decodeURIComponent(categoryParam) : null}
             resultCount={articles.length}
+            domain={domain}
           />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
@@ -112,9 +107,13 @@ export default async function SearchPage({
               error={error}
               searchQuery={searchQuery || null}
               isLoading={false}
+              domain={domain}
             />
             <div className="space-y-8">
-              <TrendingSidebar articles={articles.slice(0, 5)} />
+              <TrendingSidebar 
+                articles={articles.slice(0, 5)} 
+                domain={domain}
+              />
               <AdBanner position="HOME_SIDEBAR" initialBanners={sidebarBanners} />
             </div>
           </div>

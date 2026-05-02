@@ -8,12 +8,15 @@ import { ChevronLeft, ChevronRight, Calendar, Clock } from "lucide-react";
 import { ArticleLink } from "@/components/home/ArticleLink";
 import type { Article } from "@/lib/types";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
+import { getDomainColor } from "@/lib/domainColors";
+
 
 interface LatestStoriesSectionProps {
   articles: Article[];
   error: string;
   searchQuery: string | null;
   isLoading?: boolean;
+  domain: string;
 }
 
 function formatDate(date: Date | string) {
@@ -32,17 +35,19 @@ function truncateContent(content: string | null, maxLength = 120): string {
 }
 
 import { StoryImage } from "@/components/StoryImage";
-import { useEffect } from "react";
 
 export function LatestStoriesSection({
   articles,
   error,
   searchQuery,
   isLoading = false,
+  domain,
 }: LatestStoriesSectionProps) {
   const router = useRouter();
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
+
+  const domainColor = getDomainColor(domain);
 
   const totalPages = Math.ceil(articles.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -90,7 +95,16 @@ export function LatestStoriesSection({
             <button
               type="button"
               onClick={clearSearch}
-              className="px-6 py-2.5 bg-[#ff4500] text-white rounded-lg hover:bg-[#e63e00] transition-colors font-medium"
+              className="px-6 py-2.5 text-white rounded-lg transition-colors font-medium"
+              style={{ backgroundColor: domainColor.hex }}
+              onMouseEnter={(e) => {
+                // Approximate darker version by reducing brightness or just using a simple overlay if needed, 
+                // but for now let's just stick to the main color to keep it simple and working.
+                e.currentTarget.style.opacity = '0.9';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = '1';
+              }}
             >
               Clear All Filters
             </button>
@@ -123,7 +137,11 @@ export function LatestStoriesSection({
                     </span>
                   ) : null}
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-[#ff4500] transition-colors line-clamp-2">
+                <h3 
+                  className="text-lg font-bold text-gray-900 mb-2 transition-colors line-clamp-2"
+                  onMouseEnter={(e) => e.currentTarget.style.color = domainColor.hex}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#111827'} // gray-900
+                >
                   {article.title}
                 </h3>
                 <p className="text-sm text-gray-600 mb-3 line-clamp-2">
@@ -204,9 +222,10 @@ export function LatestStoriesSection({
                           setCurrentPage(1);
                         }}
                         className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${itemsPerPage === count
-                          ? "bg-[#ff4500] text-white"
+                          ? "text-white"
                           : "text-gray-600 hover:bg-gray-100"
                           }`}
+                        style={itemsPerPage === count ? { backgroundColor: domainColor.hex } : {}}
                       >
                         {count}
                       </button>

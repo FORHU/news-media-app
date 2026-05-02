@@ -43,11 +43,12 @@ export default function NewsIconsLanding({ tenantId, articles, banners }: Props)
                 error=""
                 searchQuery={null}
                 isLoading={false}
+                domain="newsicons.com"
               />
             </div>
 
             <div className="space-y-8">
-              <TrendingSidebar articles={articles.slice(0, 5)} />
+              <TrendingSidebar articles={articles.slice(0, 5)} domain="newsicons.com" />
               <AdBanner position="HOME_SIDEBAR" initialBanners={banners.sidebar} />
             </div>
           </div>

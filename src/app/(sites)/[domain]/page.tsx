@@ -122,9 +122,10 @@ export default async function Page({
               error={error}
               searchQuery={null}
               isLoading={false}
+              domain={domain}
             />
             <div className="space-y-8">
-              <TrendingSidebar articles={articles.slice(0, 5)} />
+              <TrendingSidebar articles={articles.slice(0, 5)} domain={domain} />
               <AdBanner position="HOME_SIDEBAR" initialBanners={sidebarBanners} />
             </div>
           </div>

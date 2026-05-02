@@ -17,10 +17,12 @@ import { extractYoutubeId } from "@/lib/utils";
 
 export default function JejuTimeArticle({ 
   articleId, 
-  initialOtherArticles = [] 
+  initialOtherArticles = [],
+  domain = "jejutime.com"
 }: { 
   articleId: string;
   initialOtherArticles?: Article[];
+  domain?: string;
 }) {
   const router = useRouter();
 
@@ -87,17 +89,27 @@ export default function JejuTimeArticle({
                     <div className="mb-10 overflow-hidden bg-slate-900 aspect-video rounded-2xl shadow-lg ring-1 ring-black/5">
                     <iframe src={`https://www.youtube.com/embed/${youtubeId}`} title="YouTube video player" allowFullScreen className="w-full h-full border-0" />
                     </div>
-                    <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap mb-10">{firstHalf}</div>
-                    <div className="my-12 relative aspect-[16/9] bg-slate-100 rounded-2xl overflow-hidden shadow-lg ring-1 ring-black/5">
-                    <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" />
-                    </div>
-                    {secondHalf && <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap">{secondHalf}</div>}
+                    {article.imageUrl ? (
+                      <>
+                        <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap mb-10">{firstHalf}</div>
+                        <div className="my-12 relative aspect-[16/9] bg-slate-100 rounded-2xl overflow-hidden shadow-lg ring-1 ring-black/5">
+                        <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" />
+                        </div>
+                        {secondHalf && <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap">{secondHalf}</div>}
+                      </>
+                    ) : (
+                      <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-light">
+                        {fullContent}
+                      </div>
+                    )}
                 </>
                 ) : (
                 <>
-                    <div className="mb-12 -mt-4 relative aspect-[16/9] bg-slate-100 rounded-2xl overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] ring-1 ring-black/5">
-                    <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" />
-                    </div>
+                    {article.imageUrl && (
+                      <div className="mb-12 -mt-4 relative aspect-[16/9] bg-slate-100 rounded-2xl overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] ring-1 ring-black/5">
+                      <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" />
+                      </div>
+                    )}
                     <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-light">
                     {fullContent}
                     </div>
@@ -108,7 +120,7 @@ export default function JejuTimeArticle({
 
             <div className="lg:col-span-4 space-y-8">
             <div className="bg-white rounded-3xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] p-6 border border-slate-100">
-                <TrendingSidebar articles={trendingArticles} />
+                <TrendingSidebar articles={trendingArticles} domain={domain} />
             </div>
             <div className="bg-white rounded-3xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] p-4 border border-slate-100 flex items-center justify-center min-h-[250px]">
                 <AdBanner position="ARTICLE_SIDEBAR" />

@@ -48,7 +48,6 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                       fill
                       className="object-cover scale-105 transition-transform duration-1000"
                       variant="hero"
-                      hideTitle={true}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-blue-950/80 via-transparent to-transparent" />
                     <div className="absolute bottom-0 left-0 p-10 text-white max-w-2xl">
@@ -72,7 +71,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                {secondaryArticles.map((article) => (
                  <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group block flex-1">
                     <div className="relative h-full rounded-2xl overflow-hidden shadow-xl shadow-blue-100 group-hover:-translate-y-1 transition-all duration-500 bg-slate-100 border border-slate-100">
-                        <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" hideTitle={true} />
+                        <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" />
                         <div className="absolute inset-0 bg-gradient-to-t from-blue-950/90 via-blue-950/20 to-transparent" />
                         <div className="absolute bottom-0 left-0 p-6 text-white w-full">
                            <span className="text-[9px] font-bold text-blue-300 uppercase tracking-widest mb-2 block">Deep Blue</span>
@@ -103,7 +102,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                      <article key={article.id} className="group cursor-pointer">
                        <Link href={`/article/${article.slug || article.id}`}>
                          <div className="relative aspect-[4/3] rounded-2xl overflow-hidden mb-4 shadow-xl shadow-blue-50 transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-blue-200 bg-slate-100">
-                           <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" hideTitle={true} />
+                           <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" />
                            <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors pointer-events-none" />
                          </div>
                          <h4 className="text-lg font-bold mb-2 leading-tight group-hover:text-blue-600 transition-colors">{article.title}</h4>
@@ -168,7 +167,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                   {trendingProducts.map((article: any) => (
                      <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group flex items-center gap-4 bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
                         <div className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-slate-100">
-                           <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" hideTitle={true} />
+                           <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" />
                         </div>
                         <div className="flex-1 min-w-0">
                            <h4 className="text-sm font-bold leading-snug group-hover:text-blue-600 transition-colors line-clamp-2">{article.title}</h4>

@@ -17,10 +17,12 @@ import { extractYoutubeId } from "@/lib/utils";
 
 export default function JejuQQArticle({ 
   articleId, 
-  initialOtherArticles = [] 
+  initialOtherArticles = [],
+  domain = "jejuqq.com"
 }: { 
   articleId: string;
   initialOtherArticles?: Article[];
+  domain?: string;
 }) {
   const router = useRouter();
 
@@ -86,17 +88,27 @@ export default function JejuQQArticle({
                 <div className="mb-10 bg-black aspect-video shadow-xl">
                   <iframe src={`https://www.youtube.com/embed/${youtubeId}`} title="YouTube video player" allowFullScreen className="w-full h-full border-0" />
                 </div>
-                <div className="text-gray-700 text-xl leading-relaxed whitespace-pre-wrap font-serif mb-10">{firstHalf}</div>
-                <div className="my-12 relative aspect-[4/3] bg-gray-100 shadow-xl">
-                  <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" />
-                </div>
-                {secondHalf && <div className="text-gray-700 text-xl leading-relaxed whitespace-pre-wrap font-serif">{secondHalf}</div>}
+                {article.imageUrl ? (
+                  <>
+                    <div className="text-gray-700 text-xl leading-relaxed whitespace-pre-wrap font-serif mb-10">{firstHalf}</div>
+                    <div className="my-12 relative aspect-[4/3] bg-gray-100 shadow-xl">
+                      <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" />
+                    </div>
+                    {secondHalf && <div className="text-gray-700 text-xl leading-relaxed whitespace-pre-wrap font-serif">{secondHalf}</div>}
+                  </>
+                ) : (
+                  <div className="text-gray-700 text-xl leading-relaxed whitespace-pre-wrap font-serif">
+                    {fullContent}
+                  </div>
+                )}
               </>
             ) : (
               <>
-                <div className="mb-12 relative aspect-[4/3] bg-gray-100 shadow-xl">
-                  <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" />
-                </div>
+                {article.imageUrl && (
+                  <div className="mb-12 relative aspect-[4/3] bg-gray-100 shadow-xl">
+                    <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" />
+                  </div>
+                )}
                 <div className="text-gray-700 text-xl leading-relaxed whitespace-pre-wrap font-serif">
                   {fullContent}
                 </div>
@@ -107,7 +119,7 @@ export default function JejuQQArticle({
 
         <div className="lg:col-span-4 space-y-12">
           <div className="bg-gray-50 p-6 border-t-4 border-[#dc2626]">
-             <TrendingSidebar articles={trendingArticles} />
+             <TrendingSidebar articles={trendingArticles} domain={domain} />
           </div>
           <AdBanner position="ARTICLE_SIDEBAR" />
         </div>

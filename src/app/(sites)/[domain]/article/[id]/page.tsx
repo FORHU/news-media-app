@@ -161,7 +161,7 @@ export default async function ArticlePage({
           ) : domain === "jejutime.com" ? (
             <JejuTimeArticle articleId={articleId} initialOtherArticles={allArticles} />
           ) : (
-            <ArticlePageClient articleId={articleId} initialOtherArticles={allArticles} />
+            <ArticlePageClient articleId={articleId} initialOtherArticles={allArticles} domain={domain} />
           )}
         </Suspense>
       </Hydrate>

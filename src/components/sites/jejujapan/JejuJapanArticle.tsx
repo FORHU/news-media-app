@@ -17,10 +17,12 @@ import { extractYoutubeId } from "@/lib/utils";
 
 export default function JejuJapanArticle({ 
   articleId, 
-  initialOtherArticles = [] 
+  initialOtherArticles = [],
+  domain = "jejujapan.com"
 }: { 
   articleId: string;
   initialOtherArticles?: Article[];
+  domain?: string;
 }) {
   const router = useRouter();
 
@@ -82,17 +84,27 @@ export default function JejuJapanArticle({
                 <div className="mb-8 overflow-hidden bg-black aspect-video">
                   <iframe src={`https://www.youtube.com/embed/${youtubeId}`} title="YouTube video player" allowFullScreen className="w-full h-full border-0" />
                 </div>
-                <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-serif mb-8">{firstHalf}</div>
-                <div className="my-10 relative aspect-[21/9] bg-gray-100">
-                  <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" />
-                </div>
-                {secondHalf && <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-serif">{secondHalf}</div>}
+                {article.imageUrl ? (
+                  <>
+                    <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-serif mb-8">{firstHalf}</div>
+                    <div className="my-10 relative aspect-[21/9] bg-gray-100">
+                      <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" />
+                    </div>
+                    {secondHalf && <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-serif">{secondHalf}</div>}
+                  </>
+                ) : (
+                  <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-serif first-letter:text-6xl first-letter:font-black first-letter:text-[#bc002d] first-letter:float-left first-letter:mr-3">
+                    {fullContent}
+                  </div>
+                )}
               </>
             ) : (
               <>
-                <div className="mb-10 relative aspect-[21/9] bg-gray-100">
-                  <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" />
-                </div>
+                {article.imageUrl && (
+                  <div className="mb-10 relative aspect-[21/9] bg-gray-100">
+                    <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" />
+                  </div>
+                )}
                 <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-serif first-letter:text-6xl first-letter:font-black first-letter:text-[#bc002d] first-letter:float-left first-letter:mr-3">
                   {fullContent}
                 </div>
@@ -102,7 +114,7 @@ export default function JejuJapanArticle({
         </div>
 
         <div className="lg:col-span-1 space-y-10 border-l border-gray-100 pl-8">
-          <TrendingSidebar articles={trendingArticles} />
+          <TrendingSidebar articles={trendingArticles} domain={domain} />
           <AdBanner position="ARTICLE_SIDEBAR" />
         </div>
       </div>
