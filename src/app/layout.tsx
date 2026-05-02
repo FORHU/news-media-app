@@ -28,50 +28,41 @@ const roboto = Roboto({
   weight: ["400", "700"],
 });
 
-export async function generateMetadata(): Promise<Metadata> {
-  const host = (await headers()).get("host");
-  const domain = normalizeHostToDomain(host) || "";
-  const siteName = getSiteNameFromDomain(domain);
-
-  return {
-    metadataBase: new URL(SITE_URL),
-    title: {
-      default: siteName,
-      template: `%s | ${siteName}`,
-    },
-    icons: {
-      icon: domain.includes("jejutime") ? "/icons/jejutime.ico" :
-            domain.includes("jejuqq") ? "/icons/jejuqq.ico" :
-            domain.includes("jejujapan") ? "/icons/jejujapan.ico" :
-            "/icons/newsicons.ico",
-    },
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "NewsIcons",
+    template: `%s | NewsIcons`,
+  },
+  icons: {
+    icon: "/icons/newsicons.ico",
+  },
+  description: DEFAULT_SEO.description,
+  openGraph: {
+    title: "NewsIcons",
     description: DEFAULT_SEO.description,
-    openGraph: {
-      title: siteName,
-      description: DEFAULT_SEO.description,
-      url: "/",
-      siteName: siteName,
-      images: [
-        {
-          url: DEFAULT_OG_IMAGE,
-          width: 1200,
-          height: 630,
-          alt: siteName,
-        },
-      ],
-      type: "website",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: siteName,
-      description: DEFAULT_SEO.description,
-      images: [DEFAULT_OG_IMAGE],
-    },
-    alternates: {
-      canonical: "/",
-    },
-  };
-}
+    url: "/",
+    siteName: "NewsIcons",
+    images: [
+      {
+        url: DEFAULT_OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: "NewsIcons",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "NewsIcons",
+    description: DEFAULT_SEO.description,
+    images: [DEFAULT_OG_IMAGE],
+  },
+  alternates: {
+    canonical: "/",
+  },
+};
 
 export default function RootLayout({
   children,
