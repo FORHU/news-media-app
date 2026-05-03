@@ -108,19 +108,9 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
               <Menu size={24} />
             </button>
             <Link href="/">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-[#bc002d] rounded-full flex items-center justify-center shrink-0 shadow-lg shadow-[#bc002d]/20">
-                  <span className="text-white font-noto font-black text-xl">JJ</span>
-                </div>
-                <div className="flex flex-col">
-                  <h1 className="text-2xl md:text-3xl font-noto font-black tracking-widest text-black flex items-center gap-2">
-                    JEJU<span className="text-[#bc002d]">JAPAN</span>
-                  </h1>
-                  <div className="h-0.5 w-full bg-black/5 mt-1">
-                    <div className="h-full w-1/3 bg-[#bc002d]"></div>
-                  </div>
-                </div>
-              </div>
+              <h1 className="text-2xl md:text-3xl font-noto font-black tracking-widest text-black uppercase">
+                JEJU<span className="text-[#bc002d]">JAPAN</span>
+              </h1>
             </Link>
           </div>
  
