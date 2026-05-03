@@ -14,6 +14,13 @@ import { normalizeCategoryName } from "@/lib/categoryDisplay";
 import { AdBanner } from "@/components/AdBanner";
 import type { Article } from "@/lib/types";
 import { extractYoutubeId } from "@/lib/utils";
+import TwitterStatusEmbed from "@/components/article/TwitterStatusEmbed";
+import {
+  isSocialCommentaryGenerationMode,
+  splitReferenceLineFromContent,
+  stripOriginalPostBlock,
+} from "@/lib/tweetArticleDisplay";
+
 
 export default function JejuTimeArticle({ 
   articleId, 
@@ -63,12 +70,41 @@ export default function JejuTimeArticle({
 
   const createdAt = article.createdAt instanceof Date ? article.createdAt : new Date(article.createdAt as string);
   const formattedDate = createdAt.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-  const youtubeId = article.youtubeUrl ? extractYoutubeId(article.youtubeUrl) : null;
-  const paragraphs = article.content.split(/\n+/).map((p) => p.trim()).filter(Boolean);
+  
+  const rawTweet = article.rawTweet;
+  const rawVideo = article.rawVideo;
+  const youtubeUrl = article.youtubeUrl || rawVideo?.youtubeUrl || null;
+  const youtubeId = youtubeUrl ? extractYoutubeId(youtubeUrl) : null;
+
+  const isCommentaryTweetArticle =
+    article.sourceType === "TWEET" &&
+    isSocialCommentaryGenerationMode(rawTweet?.generationMode);
+
+  const isCommentaryVideoArticle =
+    article.sourceType === "VIDEO" &&
+    isSocialCommentaryGenerationMode(rawVideo?.generationMode);
+
+  const showTweetCommentaryEmbed =
+    isCommentaryTweetArticle && Boolean(rawTweet?.tweetId);
+
+  const isCommentaryLayoutArticle =
+    isCommentaryTweetArticle || isCommentaryVideoArticle;
+
+  const bodyContent = isCommentaryLayoutArticle
+    ? stripOriginalPostBlock(article.content)
+    : article.content;
+
+  const { main: layoutContent, referenceLine } = splitReferenceLineFromContent(
+    bodyContent,
+    isCommentaryLayoutArticle
+  );
+
+  const paragraphs = layoutContent.split(/\n+/).map((p) => p.trim()).filter(Boolean);
   const fullContent = paragraphs.join("\n\n");
   const midpoint = Math.ceil(paragraphs.length / 2);
   const firstHalf = paragraphs.slice(0, midpoint).join("\n\n");
   const secondHalf = paragraphs.slice(midpoint).join("\n\n");
+
 
   return (
     <main className="min-h-screen bg-[#F8FAFC] text-[#2D3748] font-roboto selection:bg-blue-100 pb-20">
@@ -80,36 +116,57 @@ export default function JejuTimeArticle({
         />
       </div>
       {/* Immersive Header Wrapper */}
-      <div className="bg-white border-b border-blue-100 pt-8 pb-12 shadow-sm mb-12">
+      <div className="bg-blue-900 border-b border-blue-950 pt-12 pb-16 shadow-lg mb-12 relative overflow-hidden">
+        {/* Deep Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-950/40 via-transparent to-transparent pointer-events-none" />
+        
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-            <div className="flex items-center justify-center relative mb-8 min-h-[40px]">
+            <div className="flex items-center justify-center relative mb-10 min-h-[40px]">
                 <button 
                   onClick={() => window.history.length > 1 ? router.back() : router.push("/")} 
-                  className="absolute left-0 inline-flex items-center gap-2 text-sm text-slate-500 hover:text-blue-600 transition-colors bg-slate-50 px-4 py-2 rounded-full hover:bg-blue-50"
+                  className="absolute left-0 inline-flex items-center gap-2 text-sm text-white/80 hover:text-white transition-all bg-white/5 px-4 py-2 rounded-full hover:bg-white/10 border border-white/10 backdrop-blur-md shadow-md"
                 >
                     <ArrowLeft className="w-4 h-4" /> Back
                 </button>
                 
                 {normalizeCategoryName(article.category?.categoryName) && (
-                    <span className="inline-block px-4 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-bold uppercase tracking-widest shadow-sm border border-blue-100">
+                    <span className="inline-block px-4 py-1.5 bg-blue-500/20 text-blue-50 rounded-full text-xs font-bold uppercase tracking-[0.2em] shadow-sm border border-white/10 backdrop-blur-md">
                     {normalizeCategoryName(article.category?.categoryName)}
                     </span>
                 )}
             </div>
 
             <div className="max-w-4xl mx-auto text-center">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-playfair font-bold text-slate-900 mb-6 leading-tight">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-playfair font-bold text-white mb-8 leading-tight tracking-tight drop-shadow-md">
                     {article.title}
                 </h1>
-                <p className="text-slate-500 font-medium tracking-wide">{formattedDate}</p>
+                <div className="flex items-center justify-center gap-6">
+                  <span className="h-[1px] w-12 bg-gradient-to-r from-transparent to-blue-400/30"></span>
+                  <p className="text-blue-200 font-medium tracking-[0.3em] uppercase text-[10px]">{formattedDate}</p>
+                  <span className="h-[1px] w-12 bg-gradient-to-l from-transparent to-blue-400/30"></span>
+                </div>
             </div>
         </div>
       </div>
+
+
+
+
+
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             <div className="lg:col-span-8">
             <article className="bg-white p-8 md:p-12 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-100">
+                {showTweetCommentaryEmbed && rawTweet?.tweetId ? (
+                  <div className="mb-12">
+                    <TwitterStatusEmbed
+                      tweetId={rawTweet.tweetId}
+                      profileUrl={rawTweet.profileUrl}
+                    />
+                  </div>
+                ) : null}
+
                 {youtubeId ? (
                 <>
                     <div className="mb-10 overflow-hidden bg-slate-900 aspect-video shadow-lg ring-1 ring-black/5">
@@ -141,6 +198,16 @@ export default function JejuTimeArticle({
                     </div>
                 </>
                 )}
+
+                {referenceLine && (
+                  <div className="mt-16 pt-10 border-t border-blue-50 bg-blue-50/30 p-8 rounded-2xl border-dashed">
+                    <p className="text-[10px] text-blue-600 font-bold uppercase tracking-[0.3em] mb-4">Verification Source</p>
+                    <p className="text-slate-600 font-playfair italic text-xl leading-relaxed">
+                      {referenceLine}
+                    </p>
+                  </div>
+                )}
+
             </article>
             </div>
 

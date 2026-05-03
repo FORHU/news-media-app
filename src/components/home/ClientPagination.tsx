@@ -72,12 +72,13 @@ export function ClientPagination({
         </div>
 
         <div className="flex items-center gap-1">
-          {[5, 10, 15]
+          {[10, 15, 20]
             .filter((count) => {
+              if (count === 20) return totalItems > 15;
               if (count === 15) return totalItems > 10;
-              if (count === 10) return totalItems > 5;
               return true;
             })
+
             .map((count) => (
               <button
                 key={count}

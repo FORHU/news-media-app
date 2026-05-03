@@ -45,7 +45,7 @@ export function LatestStoriesSection({
   domain,
 }: LatestStoriesSectionProps) {
   const router = useRouter();
-  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
   const domainColor = getDomainColor(domain);

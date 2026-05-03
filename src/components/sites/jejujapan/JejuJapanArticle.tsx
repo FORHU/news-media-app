@@ -14,6 +14,13 @@ import { normalizeCategoryName } from "@/lib/categoryDisplay";
 import { AdBanner } from "@/components/AdBanner";
 import type { Article } from "@/lib/types";
 import { extractYoutubeId } from "@/lib/utils";
+import TwitterStatusEmbed from "@/components/article/TwitterStatusEmbed";
+import {
+  isSocialCommentaryGenerationMode,
+  splitReferenceLineFromContent,
+  stripOriginalPostBlock,
+} from "@/lib/tweetArticleDisplay";
+
 
 export default function JejuJapanArticle({ 
   articleId, 
@@ -67,12 +74,41 @@ export default function JejuJapanArticle({
 
   const createdAt = article.createdAt instanceof Date ? article.createdAt : new Date(article.createdAt as string);
   const formattedDate = createdAt.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-  const youtubeId = article.youtubeUrl ? extractYoutubeId(article.youtubeUrl) : null;
-  const paragraphs = article.content.split(/\n+/).map((p) => p.trim()).filter(Boolean);
+  
+  const rawTweet = article.rawTweet;
+  const rawVideo = article.rawVideo;
+  const youtubeUrl = article.youtubeUrl || rawVideo?.youtubeUrl || null;
+  const youtubeId = youtubeUrl ? extractYoutubeId(youtubeUrl) : null;
+
+  const isCommentaryTweetArticle =
+    article.sourceType === "TWEET" &&
+    isSocialCommentaryGenerationMode(rawTweet?.generationMode);
+
+  const isCommentaryVideoArticle =
+    article.sourceType === "VIDEO" &&
+    isSocialCommentaryGenerationMode(rawVideo?.generationMode);
+
+  const showTweetCommentaryEmbed =
+    isCommentaryTweetArticle && Boolean(rawTweet?.tweetId);
+
+  const isCommentaryLayoutArticle =
+    isCommentaryTweetArticle || isCommentaryVideoArticle;
+
+  const bodyContent = isCommentaryLayoutArticle
+    ? stripOriginalPostBlock(article.content)
+    : article.content;
+
+  const { main: layoutContent, referenceLine } = splitReferenceLineFromContent(
+    bodyContent,
+    isCommentaryLayoutArticle
+  );
+
+  const paragraphs = layoutContent.split(/\n+/).map((p) => p.trim()).filter(Boolean);
   const fullContent = paragraphs.join("\n\n");
   const midpoint = Math.ceil(paragraphs.length / 2);
   const firstHalf = paragraphs.slice(0, midpoint).join("\n\n");
   const secondHalf = paragraphs.slice(midpoint).join("\n\n");
+
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 bg-white font-sans selection:bg-[#bc002d]/10">
@@ -102,6 +138,15 @@ export default function JejuJapanArticle({
               </h1>
               <p className="text-gray-500 text-sm">{formattedDate}</p>
             </header>
+
+            {showTweetCommentaryEmbed && rawTweet?.tweetId ? (
+              <div className="mb-12">
+                <TwitterStatusEmbed
+                  tweetId={rawTweet.tweetId}
+                  profileUrl={rawTweet.profileUrl}
+                />
+              </div>
+            ) : null}
 
             {youtubeId ? (
               <>
@@ -134,6 +179,16 @@ export default function JejuJapanArticle({
                 </div>
               </>
             )}
+
+            {referenceLine && (
+              <div className="mt-16 pt-10 border-t-2 border-gray-100">
+                <p className="text-[10px] text-[#bc002d] font-bold uppercase tracking-[0.4em] mb-4">Official Source</p>
+                <p className="text-gray-600 font-serif italic text-lg leading-relaxed bg-gray-50 p-6 border-l-4 border-[#bc002d]">
+                  {referenceLine}
+                </p>
+              </div>
+            )}
+
           </article>
         </div>
 
