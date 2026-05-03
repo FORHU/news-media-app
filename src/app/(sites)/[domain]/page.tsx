@@ -29,13 +29,13 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
   if (domain === "jejujapan.com") icon = "/icons/jejujapan.ico";
 
   return {
-    title: `Home | ${domain}`,
+    title: "Home",
     description: DEFAULT_SEO.description,
     icons: {
       icon: icon,
     },
     openGraph: {
-      title: `Home | ${domain}`,
+      title: "Home",
       description: DEFAULT_SEO.description,
       url: "/",
       type: "website",

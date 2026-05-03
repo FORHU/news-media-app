@@ -1,6 +1,22 @@
 import { SiteShell } from "@/components/SiteShell";
-import { resolveTenantIdFromDomain } from "@/lib/tenant";
+import { resolveTenantIdFromDomain, getSiteNameFromDomain } from "@/lib/tenant";
 import { bannersService } from "@/services/banners.service";
+import { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ domain: string }> }): Promise<Metadata> {
+  const { domain } = await params;
+  const siteName = getSiteNameFromDomain(domain);
+
+  return {
+    title: {
+      default: siteName,
+      template: `%s | ${siteName}`,
+    },
+    openGraph: {
+      siteName: siteName,
+    }
+  };
+}
 
 export default async function SiteLayout({
   children,

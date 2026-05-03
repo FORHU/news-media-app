@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: "NewsIcons",
-    template: `%s | NewsIcons`,
+    template: "%s",
   },
   icons: {
     icon: "/icons/newsicons.ico",
