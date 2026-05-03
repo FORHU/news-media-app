@@ -1,0 +1,22 @@
+export type ScrapedTweet = {
+  id: string;
+  tweet_id: string;
+  source_name: string;
+  profile_url: string;
+  text: string;
+  tweet_timestamp: string;
+  has_media: "video" | "image" | "none";
+  media_type: string | null;
+  media_urls: string[];
+  thumbnail_url: string | null;
+  status: string;
+  url: string;
+  createdAt: string;
+  authorHandle?: string;
+  authorName?: string;
+  likes?: number;
+  retweets?: number;
+  replies?: number;
+  detected_media_kind?: string;
+  detected_image_url_or_data?: string;
+};

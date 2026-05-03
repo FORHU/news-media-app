@@ -19,35 +19,11 @@ import {
 } from "@/components/ui/dialog";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
-import GenerateArticleFromXModal, {
-  type TweetArticleGenerationMode,
-} from "./generateArticleFromXModal";
 import Pagination from "@/components/admin/pagination";
-// import CrawlXConfigurationModal from "./CrawlXConfigurationModal"; // TODO: Implement
-// import CrawlXJobsTable from "./CrawlXJobsTable"; // TODO: Implement
 
-type ScrapedTweet = {
-  id: string;
-  tweet_id: string;
-  source_name: string;
-  profile_url: string;
-  text: string;
-  tweet_timestamp: string;
-  has_media: "video" | "image" | "none";
-  media_type: string | null;
-  media_urls: string[];
-  thumbnail_url: string | null;
-  status: string;
-  url: string;
-  createdAt: string;
-  authorHandle?: string;
-  authorName?: string;
-  likes?: number;
-  retweets?: number;
-  replies?: number;
-  detected_media_kind?: string;
-  detected_image_url_or_data?: string;
-};
+import TweetDetailsModal from "./TweetDetailsModal";
+import TransformXPostModal, { type TweetArticleGenerationMode } from "./TransformXPostModal";
+import type { ScrapedTweet } from "./types";
 
 type ScrapeDebug = {
   provider?: string;
@@ -114,11 +90,11 @@ export default function ManageHandles() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [debug, setDebug] = React.useState<ScrapeDebug | null>(null);
-  const [selectedTweet, setSelectedTweet] = React.useState<ScrapedTweet | null>(null);
   const [selectedAuthor, setSelectedAuthor] = React.useState<string | null>(null);
   const [isCrawlModalOpen, setIsCrawlModalOpen] = React.useState(false);
+  const [isMetadataModalOpen, setIsMetadataModalOpen] = React.useState(false);
   const [isGenerationModalOpen, setIsGenerationModalOpen] = React.useState(false);
-  const [tweetToGenerate, setTweetToGenerate] = React.useState<ScrapedTweet | null>(null);
+  const [selectedTweet, setSelectedTweet] = React.useState<ScrapedTweet | null>(null);
   const [channelPage, setChannelPage] = React.useState(1);
   const CHANNELS_PER_PAGE = 5;
 
@@ -152,9 +128,9 @@ export default function ManageHandles() {
       language: string;
       generationMode: TweetArticleGenerationMode;
     }) => {
-      if (!tweetToGenerate) throw new Error("No tweet selected for generation");
+      if (!selectedTweet) throw new Error("No tweet selected for generation");
       return articlesApi.generateAiContentFromX(
-        tweetToGenerate.id,
+        selectedTweet.id,
         prompt,
         categoryId,
         language,
@@ -164,7 +140,7 @@ export default function ManageHandles() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['xMonitoringTweets'] });
       setIsGenerationModalOpen(false);
-      setTweetToGenerate(null);
+      setSelectedTweet(null);
     },
     onError: (err: Error) => {
       setError(err.message || "Failed to generate article from X");
@@ -298,6 +274,7 @@ export default function ManageHandles() {
     channelPage * CHANNELS_PER_PAGE
   );
 
+  // Rendering main view
   return (
     <div className="space-y-10 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -450,7 +427,7 @@ export default function ManageHandles() {
                 <div
                   key={tweet.id}
                   className="group flex flex-col md:flex-row items-start md:items-center gap-4 px-8 py-5 hover:bg-gray-50 transition-all cursor-pointer border-l-4 border-transparent hover:border-gray-900"
-                  onClick={() => setSelectedTweet(tweet)}
+                  onClick={() => { setSelectedTweet(tweet); setIsMetadataModalOpen(true); }}
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-gray-600 line-clamp-1 group-hover:text-gray-900 transition-colors">
@@ -462,7 +439,7 @@ export default function ManageHandles() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        setTweetToGenerate(tweet);
+                        setSelectedTweet(tweet);
                         setIsGenerationModalOpen(true);
                       }}
                       disabled={tweet.status === 'generated' || generationMutation.isPending}
@@ -628,161 +605,25 @@ export default function ManageHandles() {
         )}
       </div>
 
-      <Dialog open={Boolean(selectedTweet)} onOpenChange={() => setSelectedTweet(null)}>
-        <DialogContent className="max-w-2xl rounded-2xl">
-          <DialogHeader>
-            <DialogTitle>Tweet Content</DialogTitle>
-            <DialogDescription>
-              Full crawled tweet details from X monitoring.
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedTweet ? (
-            <div className="space-y-4 text-sm">
-              <div className="rounded-xl border border-gray-200 p-4 bg-gray-50">
-                <p className="font-semibold text-gray-900">@{selectedTweet.authorHandle}</p>
-                <p className="text-gray-700 mt-2 whitespace-pre-wrap">{selectedTweet.text}</p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-gray-700">
-                <p>
-                  <span className="font-semibold">Tweet ID:</span> {selectedTweet.tweet_id}
-                </p>
-                <p>
-                  <span className="font-semibold">Source Name:</span> {selectedTweet.source_name}
-                </p>
-                <p>
-                  <span className="font-semibold">Timestamp:</span>{" "}
-                  {selectedTweet.tweet_timestamp}
-                </p>
-                <p>
-                  <span className="font-semibold">Status:</span> {selectedTweet.status}
-                </p>
-                <p>
-                  <span className="font-semibold">Likes:</span> {selectedTweet.likes}
-                </p>
-                <p>
-                  <span className="font-semibold">Retweets:</span> {selectedTweet.retweets}
-                </p>
-                <p>
-                  <span className="font-semibold">Replies:</span> {selectedTweet.replies}
-                </p>
-                <p>
-                  <span className="font-semibold">Has media:</span> {selectedTweet.has_media}
-                </p>
-                <p className="sm:col-span-2 break-all">
-                  <span className="font-semibold">Profile URL:</span>{" "}
-                  {selectedTweet.profile_url}
-                </p>
-                <p className="sm:col-span-2 break-all">
-                  <span className="font-semibold">Tweet URL:</span> {selectedTweet.url}
-                </p>
-                <p className="sm:col-span-2">
-                  <span className="font-semibold">Media type:</span>{" "}
-                  {selectedTweet.media_type ?? "N/A"}
-                </p>
-                <p className="sm:col-span-2">
-                  <span className="font-semibold">Detected media:</span>{" "}
-                  {selectedTweet.detected_media_kind ?? "none"}
-                </p>
-                {selectedTweet.detected_image_url_or_data ? (
-                  <p className="sm:col-span-2 break-all">
-                    <span className="font-semibold">Detected image URL/Data:</span>{" "}
-                    {selectedTweet.detected_image_url_or_data}
-                  </p>
-                ) : null}
-                {selectedTweet.thumbnail_url ? (
-                  <p className="sm:col-span-2 break-all">
-                    <span className="font-semibold">Thumbnail URL:</span>{" "}
-                    {selectedTweet.thumbnail_url}
-                  </p>
-                ) : null}
-              </div>
-
-              {(() => {
-                const isMediaUrl = (url: string) => {
-                  const lower = url.toLowerCase();
-                  if (lower.match(/x\.com\/[^\/]+\/status\//) || lower.match(/twitter\.com\/[^\/]+\/status\//)) return false;
-                  if (lower.match(/^https?:\/\/t\.co\//)) return false;
-                  return true;
-                };
-                const uniqueUrls = new Map<string, string>();
-
-                let targetUrls = selectedTweet.media_urls;
-                if (selectedTweet.has_media === 'video') {
-                  const vUrls = targetUrls.filter(u => /\.(mp4|mov|m4v|webm|mkv|m3u8)(\?|$)/i.test(u));
-                  if (vUrls.length > 0) targetUrls = vUrls;
-                }
-
-                targetUrls.filter(isMediaUrl).forEach(url => {
-                  try {
-                    const parsed = new URL(url);
-                    let basePath = parsed.origin + parsed.pathname;
-                    if (parsed.hostname.includes('twimg.com') && parsed.pathname.includes('/media/')) {
-                      basePath = basePath.replace(/\.(jpg|jpeg|png|webp|gif)$/i, '');
-                    }
-                    if (!uniqueUrls.has(basePath)) {
-                      uniqueUrls.set(basePath, url);
-                    } else {
-                      const existing = uniqueUrls.get(basePath)!;
-                      if (url.includes('name=large') || url.includes('name=orig') || (!existing.includes('name=large') && !existing.includes('name=orig') && url.length > existing.length)) {
-                        uniqueUrls.set(basePath, url);
-                      }
-                    }
-                  } catch {
-                    if (!uniqueUrls.has(url)) uniqueUrls.set(url, url);
-                  }
-                });
-
-                const finalUrls = Array.from(uniqueUrls.values());
-
-                if (finalUrls.length === 0) return null;
-
-                return (
-                  <div className="space-y-2">
-                    <p className="font-semibold text-gray-900">Media URLs</p>
-                    <div className="space-y-1">
-                      {finalUrls.map((mediaUrl, index) => (
-                        <p key={`${mediaUrl}-${index}`} className="break-all text-xs text-gray-600">
-                          {mediaUrl}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {selectedTweet.detected_image_url_or_data ? (
-                <div className="space-y-2">
-                  <p className="font-semibold text-gray-900">Detected Image Preview</p>
-                  <img
-                    src={selectedTweet.detected_image_url_or_data}
-                    alt="Detected tweet media"
-                    className="max-h-80 w-full rounded-lg object-contain border border-gray-200 bg-white"
-                  />
-                </div>
-              ) : null}
-            </div>
-          ) : null}
-        </DialogContent>
-      </Dialog>
-
-      {/* <CrawlXConfigurationModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ["crawlXJobs"] });
+      <TweetDetailsModal
+        tweet={selectedTweet}
+        open={isMetadataModalOpen}
+        onClose={() => {
+          setIsMetadataModalOpen(false);
+          setSelectedTweet(null);
         }}
-      /> */}
-      <GenerateArticleFromXModal
+      />
+
+      <TransformXPostModal
         open={isGenerationModalOpen}
         onOpenChange={setIsGenerationModalOpen}
         onGenerate={(prompt, categoryId, language, generationMode) =>
           generationMutation.mutate({ prompt, categoryId, language, generationMode })
         }
         isPending={generationMutation.isPending}
-        tweetText={tweetToGenerate?.text}
-        authorName={tweetToGenerate?.source_name}
+        tweetText={selectedTweet?.text}
+        authorName={selectedTweet?.source_name || selectedTweet?.authorName}
+        tweetUrl={selectedTweet?.url}
       />
     </div>
   );
