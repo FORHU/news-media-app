@@ -1,15 +1,29 @@
 "use client";
 
 import Link from "next/link";
+import { AdBanner } from "@/components/AdBanner";
 import { Globe, Mail, Phone, MapPin } from "lucide-react";
+
+interface Banner {
+  id: string;
+  imageUrl: string;
+  linkUrl: string;
+  altText: string | null;
+  positions: string[];
+}
 
 interface JejuJapanFooterProps {
   onOpenNewsletter?: () => void;
+  footerBanners?: Banner[];
 }
 
-export default function JejuJapanFooter({ onOpenNewsletter }: JejuJapanFooterProps) {
+export default function JejuJapanFooter({ onOpenNewsletter, footerBanners }: JejuJapanFooterProps) {
   return (
-    <footer className="bg-white border-t border-gray-200 pt-16 pb-8">
+    <>
+      <div className="max-w-7xl mx-auto px-6 w-full mb-4 mt-4">
+        <AdBanner position="GLOBAL_FOOTER" />
+      </div>
+      <footer className="bg-white border-t border-gray-200 pt-16 pb-8">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16">
           <div className="md:col-span-4">
@@ -73,5 +87,6 @@ export default function JejuJapanFooter({ onOpenNewsletter }: JejuJapanFooterPro
         </div>
       </div>
     </footer>
+    </>
   );
 }

@@ -21,10 +21,9 @@ const DefaultFooter = dynamic(() => import("./Footer").then(m => m.Footer), { ss
 interface SiteShellProps {
   children: React.ReactNode;
   domain: string;
-  footerBanners?: any[];
 }
 
-export function SiteShell({ children, domain, footerBanners }: SiteShellProps) {
+export function SiteShell({ children, domain }: SiteShellProps) {
   const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
   const openNewsletter = () => setIsNewsletterOpen(true);
   const closeNewsletter = () => setIsNewsletterOpen(false);
@@ -53,17 +52,17 @@ export function SiteShell({ children, domain, footerBanners }: SiteShellProps) {
       case "jejutime": return <JejuTimeFooter onOpenNewsletter={openNewsletter} />;
       case "jejuqq": return <JejuQQFooter onOpenNewsletter={openNewsletter} />;
       case "jejujapan": return <JejuJapanFooter onOpenNewsletter={openNewsletter} />;
-      case "newsicons": return <NewsIconsFooter onOpenNewsletter={openNewsletter} footerBanners={footerBanners} />;
+      case "newsicons": return <NewsIconsFooter onOpenNewsletter={openNewsletter} />;
       default: return <DefaultFooter onOpenNewsletter={openNewsletter} />;
     }
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col">
       <React.Suspense fallback={<div className="h-14 md:h-16 bg-white border-b border-gray-100" />}>
         {renderHeader()}
       </React.Suspense>
-      <main className="flex-1">{children}</main>
+      <main>{children}</main>
       <React.Suspense fallback={<div className="h-48 bg-gray-50" />}>
         {renderFooter()}
       </React.Suspense>

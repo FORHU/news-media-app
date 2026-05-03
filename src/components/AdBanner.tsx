@@ -39,7 +39,7 @@ export function AdBanner({
     }
     return 0;
   });
-  const [loading, setLoading] = useState(() => !initialBanners);
+  const [loading, setLoading] = useState(() => !initialBanners || (Array.isArray(initialBanners) && initialBanners.length === 0));
 
   useEffect(() => {
     // Skip the client-side fetch if the server already provided banners.
@@ -75,12 +75,6 @@ export function AdBanner({
     }
   }, [banners.length]); // Only length matters; avoid ref-equality resets
 
-  if (loading || banners.length === 0) {
-    return null;
-  }
-
-  const activeBanner = banners[currentIdx];
-
   // Determine aspect ratio based on position
   const getAspectRatioClasses = () => {
     switch (position) {
@@ -95,8 +89,18 @@ export function AdBanner({
     }
   };
 
+  if (loading) {
+    return null;
+  }
+
+  if (banners.length === 0) {
+    return null;
+  }
+
+  const activeBanner = banners[currentIdx];
+
   return (
-    <div className={`relative overflow-hidden group rounded-xl border border-gray-200 bg-gray-100 ${getAspectRatioClasses()} ${className}`}>
+    <div className={`w-full relative overflow-hidden group rounded-xl border border-gray-200 bg-gray-100 ${getAspectRatioClasses()} ${className}`}>
       <AnimatePresence initial={false}>
         <motion.div
           key={activeBanner.id}

@@ -32,16 +32,15 @@ interface Banner {
 
 interface FooterProps {
     onOpenNewsletter?: () => void;
-    footerBanners?: Banner[];
 }
 
-export function Footer({ onOpenNewsletter, footerBanners }: FooterProps) {
+export function Footer({ onOpenNewsletter }: FooterProps) {
     const currentYear = new Date().getFullYear();
 
     return (
         <>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 mb-2 -mt-4">
-                <AdBanner position="GLOBAL_FOOTER" initialBanners={footerBanners} />
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full mt-0 mb-0">
+                <AdBanner position="GLOBAL_FOOTER" />
             </div>
             <footer className="bg-[#1a1a1a] text-white border-t border-gray-800">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">

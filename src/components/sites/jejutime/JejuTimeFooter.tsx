@@ -1,15 +1,29 @@
 "use client";
 
 import Link from "next/link";
+import { AdBanner } from "@/components/AdBanner";
 import { Twitter, Instagram, Facebook, Mail, MapPin, Phone } from "lucide-react";
+
+interface Banner {
+  id: string;
+  imageUrl: string;
+  linkUrl: string;
+  altText: string | null;
+  positions: string[];
+}
 
 interface FooterProps {
   onOpenNewsletter?: () => void;
+  footerBanners?: Banner[];
 }
 
-export default function JejuTimeFooter({ onOpenNewsletter }: FooterProps) {
+export default function JejuTimeFooter({ onOpenNewsletter, footerBanners }: FooterProps) {
   return (
-    <footer className="bg-white border-t border-slate-100 pt-20 pb-12">
+    <>
+      <div className="max-w-7xl mx-auto px-6 w-full mt-0 mb-0">
+        <AdBanner position="GLOBAL_FOOTER" />
+      </div>
+      <footer className="bg-white border-t border-slate-100 pt-20 pb-12">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 mb-20">
           <div className="lg:col-span-4">
@@ -70,5 +84,6 @@ export default function JejuTimeFooter({ onOpenNewsletter }: FooterProps) {
         </div>
       </div>
     </footer>
+    </>
   );
 }

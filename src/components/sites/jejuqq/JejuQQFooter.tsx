@@ -1,17 +1,31 @@
 "use client";
 
 import Link from "next/link";
+import { AdBanner } from "@/components/AdBanner";
 import { Twitter, Youtube, Facebook, Instagram } from "lucide-react";
+
+interface Banner {
+  id: string;
+  imageUrl: string;
+  linkUrl: string;
+  altText: string | null;
+  positions: string[];
+}
 
 interface JejuQQFooterProps {
   onOpenNewsletter?: () => void;
+  footerBanners?: Banner[];
 }
 
-export default function JejuQQFooter({ onOpenNewsletter }: JejuQQFooterProps) {
+export default function JejuQQFooter({ onOpenNewsletter, footerBanners }: JejuQQFooterProps) {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-[#f8f8f8] border-t-2 border-black pt-12 pb-8">
+    <>
+      <div className="max-w-7xl mx-auto px-4 w-full mb-4 mt-4">
+        <AdBanner position="GLOBAL_FOOTER" />
+      </div>
+      <footer className="bg-[#f8f8f8] border-t-2 border-black pt-12 pb-8">
       <div className="max-w-7xl mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="md:col-span-1">
@@ -65,5 +79,6 @@ export default function JejuQQFooter({ onOpenNewsletter }: JejuQQFooterProps) {
         </div>
       </div>
     </footer>
+    </>
   );
 }
