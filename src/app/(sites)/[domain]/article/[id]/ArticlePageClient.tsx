@@ -163,13 +163,14 @@ export default function ArticlePageClient({
             </header>
 
             {showTweetCommentaryEmbed && rawTweet?.tweetId ? (
-              <div className="mt-6 mb-2">
+              <div className="mt-8 mb-10">
                 <TwitterStatusEmbed
                   tweetId={rawTweet.tweetId}
                   profileUrl={rawTweet.profileUrl}
                 />
               </div>
             ) : null}
+
 
             {showYoutubePlayer ? (
               <>
@@ -216,10 +217,14 @@ export default function ArticlePageClient({
                   </div>
                 )}
                 {referenceLine ? (
-                  <p className="mt-8 pt-6 border-t border-gray-200 text-sm text-gray-500">
-                    {referenceLine}
-                  </p>
+                  <div className="mt-12 pt-8 border-t border-gray-100">
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">Reference</p>
+                    <p className="text-sm text-gray-500 italic leading-relaxed">
+                      {referenceLine}
+                    </p>
+                  </div>
                 ) : null}
+
               </>
             ) : (
               <>
@@ -243,10 +248,14 @@ export default function ArticlePageClient({
                   {fullContent}
                 </div>
                 {referenceLine ? (
-                  <p className="mt-8 pt-6 border-t border-gray-200 text-sm text-gray-500">
-                    {referenceLine}
-                  </p>
+                  <div className="mt-12 pt-8 border-t border-gray-100">
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">Reference</p>
+                    <p className="text-sm text-gray-500 italic leading-relaxed">
+                      {referenceLine}
+                    </p>
+                  </div>
                 ) : null}
+
               </>
             )}
           </article>

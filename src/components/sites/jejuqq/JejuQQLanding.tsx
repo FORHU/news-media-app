@@ -19,18 +19,39 @@ interface Props {
 }
 
 export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
+  // ── Deduplication Logic ──
+  // 1. Hero takes the first 5
   const heroArticles = articles.slice(0, 5);
+  const heroIds = new Set(heroArticles.map(a => a.id));
+
+  // 2. Trending takes the next 5
+  const trendingArticles = articles.filter(a => !heroIds.has(a.id)).slice(0, 5);
+  const trendingIds = new Set(trendingArticles.map(a => a.id));
+
+  // 3. Featured takes the next 4
+  const featuredArticles = articles
+    .filter(a => !heroIds.has(a.id) && !trendingIds.has(a.id))
+    .slice(0, 4);
+  const featuredIds = new Set(featuredArticles.map(a => a.id));
+
+  // 4. Latest stories takes everything else
+  const allLatestArticles = articles.filter(
+    a => !heroIds.has(a.id) && !trendingIds.has(a.id) && !featuredIds.has(a.id)
+  );
+
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   
-  const totalPages = Math.ceil(articles.length / itemsPerPage) || 1;
+  const totalPages = Math.ceil(allLatestArticles.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const latestStories = articles.slice(startIndex, endIndex);
-  const trendingArticles = articles.slice(0, 5);
-  const featuredArticles = articles.slice(0, 4);
+  const latestStories = allLatestArticles.slice(startIndex, endIndex);
+
   const trendingProducts = articles.filter((a: any) => a.status === "blog").slice(0, 4);
+
+
+
 
   const [[page, direction], setPage] = useState([0, 0]);
   const index = heroArticles.length > 0 ? Math.abs(page % heroArticles.length) : 0;
