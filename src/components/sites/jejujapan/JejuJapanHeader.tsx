@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Search, Menu, Globe, User, X, ChevronDown, Mail } from "lucide-react";
+import { Search, Menu, Globe, LogIn, X, ChevronDown, Mail } from "lucide-react";
 import { getCoreCategories, HOME_CATEGORY_LABEL, normalizeCategoryKey } from "@/config/categories";
 import { motion, AnimatePresence } from "framer-motion";
 import { RemoveScroll } from "react-remove-scroll";
@@ -23,7 +23,6 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isMoreOpen, setIsMoreOpen] = useState(false);
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
@@ -84,15 +83,15 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="SEARCH NEWS..."
-                  className="bg-white/30 border-2 border-white/40 rounded-full px-10 py-1.5 text-[10px] w-full outline-none focus:bg-white focus:text-black transition-all text-white focus:placeholder:text-gray-400 placeholder:text-white/90 shadow-sm"
+                  className="bg-white/30 border-2 border-white/40 rounded-none px-10 py-1.5 text-[10px] w-full outline-none focus:bg-white focus:text-black transition-all text-white focus:placeholder:text-gray-400 placeholder:text-white/90 shadow-sm"
                 />
                 <Search size={12} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/90" />
               </form>
             </div>
 
             <div className="flex justify-end">
-              <Link href="/admin/dashboard" className="hover:text-white/80 transition-colors p-1 bg-white/10 rounded-full" title="Admin">
-                <User size={16} />
+              <Link href="/admin/login" className="hover:text-white/80 transition-colors p-1 bg-white/10" title="Admin Login">
+                <LogIn size={16} />
               </Link>
             </div>
           </div>

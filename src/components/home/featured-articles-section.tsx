@@ -44,7 +44,7 @@ export function FeaturedArticlesSection({
           key={article.id}
           articleIdentifier={article.slug ?? article.id}
           href={`/article/${article.slug ?? article.id}`}
-          className="group cursor-pointer bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 block"
+          className={`group cursor-pointer bg-white border-2 ${domain === 'jejuqq.com' ? 'border-[#dc2626]' : 'border-gray-100'} rounded-none overflow-hidden hover:shadow-xl transition-all duration-300 block`}
         >
           <div className="relative h-32 bg-gray-200 overflow-hidden">
             <StoryImage

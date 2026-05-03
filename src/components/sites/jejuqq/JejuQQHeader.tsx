@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Search, Menu, Youtube, Mail, FileText, X, ChevronDown, User } from "lucide-react";
+import { Search, Mail, X, ChevronDown, UserCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
 import { getCoreCategories, HOME_CATEGORY_LABEL, normalizeCategoryKey } from "@/config/categories";
@@ -80,7 +80,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
 
   return (
     <>
-      <header className="bg-[#fdf2f2] border-b-2 border-[#dc2626]/10 shadow-sm sticky top-0 z-50">
+      <header className="bg-[#fee2e2] border-b-2 border-[#dc2626]/10 shadow-sm sticky top-0 z-50">
         <div className="bg-[#dc2626] h-1.5 w-full"></div>
         <div className="max-w-7xl mx-auto px-4 h-16 md:h-24 flex items-center justify-between gap-4">
           {/* Left: Burger & Logo */}
@@ -101,7 +101,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
 
             <Link href="/" className="hover:opacity-90 transition-opacity">
               <div className="flex flex-col leading-none">
-                <span className="text-[28px] md:text-[42px] font-serif font-black tracking-tighter text-black leading-none">Jeju</span>
+                <span className="text-[28px] md:text-[42px] font-serif font-black tracking-tighter text-[#dc2626] leading-none">Jeju</span>
                 <span className="text-[22px] md:text-[32px] font-serif font-black tracking-tighter text-black md:-mt-2 leading-none">QQ Daily</span>
               </div>
             </Link>
@@ -117,7 +117,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="SEARCH FOR STORIES..."
-                  className="w-full pl-11 pr-4 bg-gray-50 border-2 border-transparent rounded-none h-11 text-[11px] font-bold outline-none focus:bg-white focus:border-[#dc2626] focus:ring-4 focus:ring-[#dc2626]/10 transition-all shadow-inner"
+                  className="w-full pl-11 pr-4 bg-gray-50 border-2 border-[#dc2626] rounded-none h-11 text-[11px] font-bold outline-none focus:bg-white focus:border-[#dc2626] focus:ring-4 focus:ring-[#dc2626]/10 transition-all shadow-inner"
                 />
               </div>
             </form>
@@ -138,44 +138,34 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
               <Mail size={14} strokeWidth={3} />
               <span className="hidden sm:block">Newsletter</span>
             </button>
-            <Link href="/admin/login" className="text-gray-400 hover:text-[#dc2626] transition-colors p-2 rounded-none hover:bg-gray-50" title="Login">
-              <User size={20} strokeWidth={2.5} />
+            <Link href="/admin/login" className="text-[#dc2626] transition-colors p-2 rounded-none hover:bg-gray-50 flex items-center justify-center" title="Admin Login">
+              <UserCircle size={24} strokeWidth={2} />
             </Link>
           </div>
         </div>
 
         {/* Mobile Search Overlay */}
-        <AnimatePresence>
-          {isSearchOpen && (
-            <motion.div 
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="lg:hidden border-t border-gray-100 bg-white overflow-hidden"
-            >
-              <form onSubmit={handleSearch} className="p-4">
-                <div className="relative flex items-center">
-                  <Search size={16} className="absolute left-4 text-gray-400" />
-                  <input
-                    type="text"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    autoFocus
-                    placeholder="SEARCH FOR STORIES..."
-                    className="w-full pl-11 pr-4 bg-gray-50 border-0 rounded-none h-12 text-[12px] font-bold outline-none focus:bg-gray-100 transition-all"
-                  />
-                  <button 
-                    type="button" 
-                    onClick={() => setIsSearchOpen(false)}
-                    className="ml-2 p-2 text-gray-400"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <div className={`lg:hidden border-t border-gray-100 bg-white overflow-hidden transition-all duration-200 ${isSearchOpen ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
+          <form onSubmit={handleSearch} className="p-4">
+            <div className="relative flex items-center">
+              <Search size={16} className="absolute left-4 text-gray-400" />
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="SEARCH FOR STORIES..."
+                className="w-full pl-11 pr-4 bg-gray-50 border-2 border-[#dc2626] rounded-none h-12 text-[12px] font-bold outline-none focus:bg-white focus:border-[#dc2626] transition-all"
+              />
+              <button 
+                type="button" 
+                onClick={() => setIsSearchOpen(false)}
+                className="ml-2 p-2 text-gray-400"
+              >
+                <X size={20} />
+              </button>
+            </div>
+          </form>
+        </div>
 
         <div className="border-t border-gray-100 hidden lg:block">
           <div className="max-w-7xl mx-auto px-4 flex flex-row justify-center items-center py-4">
@@ -194,7 +184,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                 <div className="relative group cursor-pointer flex items-center gap-1 hover:text-[#dc2626] py-2">
                    MORE <ChevronDown size={14} />
                    <div className="absolute top-full right-0 pt-2 hidden group-hover:block z-50">
-                      <div className="bg-white shadow-2xl border border-gray-100 p-6 rounded-xl grid grid-cols-2 gap-x-10 gap-y-4 min-w-[350px]">
+                      <div className="bg-white shadow-2xl border border-gray-100 p-6 rounded-none grid grid-cols-2 gap-x-10 gap-y-4 min-w-[350px]">
                          {coreCategories.slice(6).map((cat) => (
                            <Link 
                               key={cat} 
@@ -212,13 +202,10 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
           </div>
         </div>
         
-        <div className="absolute bottom-0 left-0 w-full h-1 bg-transparent">
-          <motion.div 
-            className="h-full bg-[#dc2626] shadow-[0_0_10px_rgba(220,38,38,0.3)]"
-            style={{ width: `${scrollProgress}%` }}
-            initial={{ width: 0 }}
-            animate={{ width: `${scrollProgress}%` }}
-            transition={{ type: "spring", stiffness: 100, damping: 20 }}
+        <div className="absolute bottom-0 left-0 w-full h-0.5 bg-transparent">
+          <div 
+            className="h-full bg-[#dc2626]"
+            style={{ width: `${scrollProgress}%`, transition: 'width 0.1s linear' }}
           />
         </div>
       </header>

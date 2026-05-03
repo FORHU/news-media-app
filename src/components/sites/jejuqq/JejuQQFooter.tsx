@@ -21,16 +21,16 @@ export default function JejuQQFooter({ onOpenNewsletter, footerBanners }: JejuQQ
   const currentYear = new Date().getFullYear();
 
   return (
-    <>
-      <div className="max-w-7xl mx-auto px-4 w-full mb-4 mt-4">
+    <div className="bg-[#fdf2f2]">
+      <div className="max-w-7xl mx-auto px-4 w-full pt-4 mb-4">
         <AdBanner position="GLOBAL_FOOTER" />
       </div>
-      <footer className="bg-[#fdf2f2] border-t-4 border-[#dc2626] pt-16 pb-12">
+      <footer className="bg-[#fee2e2] border-t-4 border-[#dc2626] pt-16 pb-12">
       <div className="max-w-7xl mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-16">
           <div className="md:col-span-1">
              <div className="flex flex-col leading-none mb-8">
-                <span className="text-[40px] font-serif font-black tracking-tighter text-black">Jeju</span>
+                <span className="text-[40px] font-serif font-black tracking-tighter text-[#dc2626]">Jeju</span>
                 <span className="text-[32px] font-serif font-black tracking-tighter text-black -mt-3">QQ Daily</span>
              </div>
              <div className="flex space-x-5 text-gray-400">
@@ -78,7 +78,7 @@ export default function JejuQQFooter({ onOpenNewsletter, footerBanners }: JejuQQ
           </div>
         </div>
       </div>
-    </footer>
-    </>
+      </footer>
+    </div>
   );
 }

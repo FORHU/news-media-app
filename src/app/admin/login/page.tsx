@@ -14,15 +14,21 @@ type Theme = {
   card: string;
   topBar: string;
   logo: React.ReactNode;
-  accent: string;          // tailwind arbitrary e.g. "#ff4500"
-  accentCls: string;       // tailwind class for bg
+  accent: string;
+  accentCls: string;
   accentHover: string;
   inputFocus: string;
   inputBorder: string;
+  inputBgCls: string;
+  inputRounded: string;
   labelCls: string;
   btnCls: string;
   errorCls: string;
   backCls: string;
+  backIconCls: string;
+  headingCls: string;
+  subtextCls: string;
+  footerCls: string;
   tagline: string;
   footerText: string;
   siteName: string;
@@ -55,10 +61,16 @@ const newsIconsTheme: Theme = {
   accentHover: 'hover:bg-[#e63e00]',
   inputFocus: 'focus:border-[#ff4500]',
   inputBorder: 'border-gray-100 hover:border-gray-200',
+  inputBgCls: 'bg-gray-50',
+  inputRounded: 'rounded-2xl',
   labelCls: 'text-xs font-black text-gray-900 uppercase tracking-widest',
   btnCls: 'w-full bg-[#ff4500] text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-[#e63e00] disabled:opacity-60 transition-all shadow-xl shadow-orange-100 hover:-translate-y-1 active:scale-[0.98] flex items-center justify-center gap-2 group relative overflow-hidden',
   errorCls: 'text-xs text-red-600 bg-red-50 p-4 rounded-2xl border-2 border-red-100 font-black flex items-center gap-3',
   backCls: 'fixed top-8 left-8 flex items-center gap-2 text-gray-800 hover:text-[#ff4500] transition-all group z-10',
+  backIconCls: 'p-2 bg-white rounded-none shadow-sm border border-gray-200 group-hover:border-[#ff4500]/50 group-hover:shadow-md transition-all',
+  headingCls: 'text-2xl font-black text-gray-900 tracking-tight mb-1',
+  subtextCls: 'text-sm text-gray-500',
+  footerCls: 'text-center mt-8 text-gray-400 font-bold text-[10px] uppercase tracking-[0.25em]',
   tagline: 'Welcome Back',
   footerText: '© FORHU AI Technologies',
   siteName: 'NewsIcons',
@@ -66,26 +78,32 @@ const newsIconsTheme: Theme = {
 
 /* ── JejuJapan ── */
 const jejuJapanTheme: Theme = {
-  bg: 'min-h-screen bg-[#fafafa] flex items-center justify-center px-4 relative overflow-hidden',
-  card: 'bg-white border border-gray-200 p-10 md:p-12 relative overflow-hidden shadow-sm',
-  topBar: 'absolute top-0 left-0 w-full h-[3px] bg-[#bc002d]',
+  bg: 'min-h-screen bg-[#111] flex items-center justify-center px-4 relative overflow-hidden',
+  card: 'bg-[#1a1a1a] border-l-4 border-[#bc002d] p-8 md:p-10 relative overflow-hidden shadow-2xl',
+  topBar: '',
   logo: (
     <div className="text-center mb-10">
-      <h1 className="text-4xl font-serif font-black tracking-tighter text-black">
-        <span className="text-[#bc002d]">JEJU</span> JAPAN
+      <h1 className="text-4xl font-serif font-black tracking-tighter">
+        <span className="text-[#bc002d]">JEJU</span><span className="text-white"> JAPAN</span>
       </h1>
-      <span className="text-[10px] font-bold tracking-[0.3em] text-gray-400 uppercase">News Network · Admin</span>
+      <span className="text-[10px] font-bold tracking-[0.3em] text-white/40 uppercase mt-2 block">News Network · Admin</span>
     </div>
   ),
   accent: '#bc002d',
   accentCls: 'bg-[#bc002d]',
   accentHover: 'hover:bg-[#a0001f]',
   inputFocus: 'focus:border-[#bc002d]',
-  inputBorder: 'border-gray-200 hover:border-gray-300',
-  labelCls: 'text-[10px] font-bold text-gray-700 uppercase tracking-widest',
-  btnCls: 'w-full bg-[#bc002d] text-white py-3.5 font-black text-xs uppercase tracking-widest hover:bg-[#a0001f] disabled:opacity-60 transition-colors flex items-center justify-center gap-2 group',
-  errorCls: 'text-xs text-red-600 bg-red-50 p-3 border border-red-200 font-bold flex items-center gap-2',
-  backCls: 'fixed top-8 left-8 flex items-center gap-2 text-gray-700 hover:text-[#bc002d] transition-all group z-10',
+  inputBorder: 'border-white/10 hover:border-white/20',
+  inputBgCls: 'bg-white/5 text-white placeholder:text-white/30',
+  inputRounded: 'rounded-none',
+  labelCls: 'text-[10px] font-bold text-white/50 uppercase tracking-widest',
+  btnCls: 'w-full bg-[#bc002d] text-white py-3.5 font-black text-xs uppercase tracking-widest hover:bg-[#a0001f] disabled:opacity-50 transition-colors flex items-center justify-center gap-2 group rounded-none',
+  errorCls: 'text-xs text-red-400 bg-red-950/40 p-3 border border-red-800/50 font-bold flex items-center gap-2',
+  backCls: 'fixed top-8 left-8 flex items-center gap-2 text-white/50 hover:text-white transition-all group z-10',
+  backIconCls: 'p-2 bg-white/5 rounded-none border border-white/10 group-hover:bg-white/10 group-hover:border-[#bc002d]/50 transition-all',
+  headingCls: 'text-2xl font-black text-white tracking-tight mb-1',
+  subtextCls: 'text-sm text-white/40',
+  footerCls: 'text-center mt-8 text-white/20 font-bold text-[10px] uppercase tracking-[0.25em]',
   tagline: 'Secure Access',
   footerText: '© Jeju Japan News Network',
   siteName: 'Jeju Japan',
@@ -94,27 +112,33 @@ const jejuJapanTheme: Theme = {
 
 /* ── JejuQQ ── */
 const jejuQQTheme: Theme = {
-  bg: 'min-h-screen bg-white flex items-center justify-center px-4 relative overflow-hidden',
-  card: 'bg-white border-t-4 border-[#e60012] shadow-lg p-10 md:p-12 relative overflow-hidden',
+  bg: 'min-h-screen bg-[#fdf2f2] flex items-center justify-center px-4 relative overflow-hidden',
+  card: 'bg-[#fee2e2] border-t-4 border-[#dc2626] shadow-lg p-10 md:p-12 relative overflow-hidden rounded-none',
   topBar: '',
   logo: (
     <div className="text-center mb-10">
       <div className="flex flex-col leading-none items-center">
-        <span className="text-[42px] font-serif font-black tracking-tighter text-black">Jeju</span>
+        <span className="text-[42px] font-serif font-black tracking-tighter text-[#dc2626]">Jeju</span>
         <span className="text-[32px] font-serif font-black tracking-tighter text-black -mt-3">QQ Daily</span>
       </div>
       <p className="text-[10px] font-bold tracking-[0.3em] text-gray-500 uppercase mt-2">Admin Portal</p>
     </div>
   ),
-  accent: '#e60012',
-  accentCls: 'bg-[#e60012]',
+  accent: '#dc2626',
+  accentCls: 'bg-[#dc2626]',
   accentHover: 'hover:bg-[#cc0010]',
-  inputFocus: 'focus:border-[#e60012]',
-  inputBorder: 'border-gray-200 hover:border-gray-300',
+  inputFocus: 'focus:border-[#dc2626]',
+  inputBorder: 'border-[#dc2626]',
+  inputBgCls: 'bg-white',
+  inputRounded: 'rounded-none',
   labelCls: 'text-[11px] font-bold text-black uppercase tracking-widest',
-  btnCls: 'w-full bg-black text-white py-3.5 font-black text-xs uppercase tracking-widest hover:bg-[#e60012] disabled:opacity-60 transition-colors flex items-center justify-center gap-2 group',
+  btnCls: 'w-full bg-black text-white py-3.5 font-black text-xs uppercase tracking-widest hover:bg-[#dc2626] disabled:opacity-60 transition-colors flex items-center justify-center gap-2 group rounded-none',
   errorCls: 'text-xs text-red-600 bg-red-50 p-3 border border-red-200 font-bold flex items-center gap-2',
-  backCls: 'fixed top-8 left-8 flex items-center gap-2 text-gray-800 hover:text-[#e60012] transition-all group z-10',
+  backCls: 'fixed top-8 left-8 flex items-center gap-2 text-gray-800 hover:text-[#dc2626] transition-all group z-10',
+  backIconCls: 'p-2 bg-white rounded-none shadow-sm border border-gray-200 group-hover:border-[#dc2626]/50 group-hover:shadow-md transition-all',
+  headingCls: 'text-2xl font-black text-gray-900 tracking-tight mb-1',
+  subtextCls: 'text-sm text-gray-500',
+  footerCls: 'text-center mt-8 text-gray-400 font-bold text-[10px] uppercase tracking-[0.25em]',
   tagline: 'Welcome Back',
   footerText: '© Jeju QQ Daily',
   siteName: 'Jeju QQ',
@@ -138,10 +162,16 @@ const jejuTimeTheme: Theme = {
   accentHover: 'hover:bg-blue-700',
   inputFocus: 'focus:border-blue-400 focus:ring-2 focus:ring-blue-100',
   inputBorder: 'border-slate-200 hover:border-slate-300',
+  inputBgCls: 'bg-gray-50',
+  inputRounded: 'rounded-2xl',
   labelCls: 'text-xs font-bold text-slate-600 uppercase tracking-widest',
   btnCls: 'w-full bg-blue-600 text-white py-3.5 rounded-2xl font-bold text-sm uppercase tracking-widest hover:bg-blue-700 disabled:opacity-60 transition-all shadow-lg shadow-blue-200 hover:-translate-y-0.5 flex items-center justify-center gap-2 group',
   errorCls: 'text-xs text-red-500 bg-red-50 p-3 rounded-xl border border-red-100 font-bold flex items-center gap-2',
   backCls: 'fixed top-8 left-8 flex items-center gap-2 text-slate-600 hover:text-blue-600 transition-all group z-10',
+  backIconCls: 'p-2 bg-white rounded-none shadow-sm border border-gray-200 group-hover:border-blue-600/50 group-hover:shadow-md transition-all',
+  headingCls: 'text-2xl font-black text-gray-900 tracking-tight mb-1',
+  subtextCls: 'text-sm text-gray-500',
+  footerCls: 'text-center mt-8 text-gray-400 font-bold text-[10px] uppercase tracking-[0.25em]',
   tagline: 'Welcome Back',
   footerText: '© Jeju Times · Coastal Edition',
   siteName: 'Jeju Times',
@@ -242,7 +272,7 @@ function LoginContent() {
     }
   };
 
-  const inputBase = `w-full pl-11 pr-4 py-4 bg-gray-50 border-2 rounded-2xl outline-none text-gray-900 font-bold transition-all duration-300 ${theme.inputFocus}`;
+  const inputBase = `w-full pl-11 pr-4 py-4 ${theme.inputBgCls} border-2 ${theme.inputRounded} outline-none text-gray-900 font-bold transition-all duration-300 ${theme.inputFocus}`;
 
   return (
     <div className={theme.bg}>
@@ -252,7 +282,7 @@ function LoginContent() {
 
       {/* Back link */}
       <Link href="/" className={theme.backCls}>
-        <div className="p-2 bg-white rounded-full shadow-sm border border-gray-200 group-hover:shadow-md transition-all">
+        <div className={theme.backIconCls}>
           <Home className="w-4 h-4" />
         </div>
         <span className="text-xs font-black uppercase tracking-widest">Back</span>
@@ -270,8 +300,8 @@ function LoginContent() {
           {theme.topBar && <div className={theme.topBar} />}
 
           <div className="mb-8">
-            <h2 className="text-2xl font-black text-gray-900 tracking-tight mb-1">{theme.tagline}</h2>
-            <p className="text-sm text-gray-500">Secure access for administrators.</p>
+            <h2 className={theme.headingCls}>{theme.tagline}</h2>
+            <p className={theme.subtextCls}>Secure access for administrators.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -348,7 +378,7 @@ function LoginContent() {
           </form>
         </div>
 
-        <p className="text-center mt-8 text-gray-400 font-bold text-[10px] uppercase tracking-[0.25em]">
+        <p className={theme.footerCls}>
           {theme.footerText}
         </p>
       </motion.div>

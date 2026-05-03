@@ -42,7 +42,7 @@ export function ClientPagination({
             type="button"
             onClick={() => onPageChange(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
-            className={`p-2 rounded-md transition-colors ${
+            className={`p-2 rounded-none transition-colors ${
               currentPage === 1
                 ? "text-gray-300 cursor-not-allowed"
                 : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
@@ -60,7 +60,7 @@ export function ClientPagination({
             type="button"
             onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
-            className={`p-2 rounded-md transition-colors ${
+            className={`p-2 rounded-none transition-colors ${
               currentPage === totalPages
                 ? "text-gray-300 cursor-not-allowed"
                 : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
@@ -86,7 +86,7 @@ export function ClientPagination({
                   onItemsPerPageChange(count);
                   onPageChange(1);
                 }}
-                className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
+                className={`px-2.5 py-1 text-xs font-medium rounded-none transition-colors ${
                   itemsPerPage === count
                     ? "text-white shadow-sm"
                     : "text-gray-600 hover:bg-gray-100"
