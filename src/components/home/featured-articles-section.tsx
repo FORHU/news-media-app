@@ -53,14 +53,7 @@ export function FeaturedArticlesSection({
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
-            <div className="absolute top-2 right-2">
-              <span 
-                className="inline-block text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase"
-                style={{ backgroundColor: domainColor.hex }}
-              >
-                {article.status ?? "article"}
-              </span>
-            </div>
+
           </div>
           <div className="p-3">
             {normalizeCategoryName(article.category?.categoryName) ? (

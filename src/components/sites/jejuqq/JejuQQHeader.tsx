@@ -23,6 +23,19 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (totalHeight > 0) {
+        setScrollProgress((window.scrollY / totalHeight) * 100);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
@@ -67,89 +80,149 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
 
   return (
     <>
-      <header className="bg-white border-b-4 border-[#dc2626]">
-        {/* Top Utility Bar */}
-        <div className="max-w-7xl mx-auto px-4 h-10 grid grid-cols-3 items-center border-b border-gray-100">
-          <div className="flex items-center gap-4">
+      <header className="bg-[#fdf2f2] border-b-2 border-[#dc2626]/10 shadow-sm sticky top-0 z-50">
+        <div className="bg-[#dc2626] h-1.5 w-full"></div>
+        <div className="max-w-7xl mx-auto px-4 h-16 md:h-24 flex items-center justify-between gap-4">
+          {/* Left: Burger & Logo */}
+          <div className="flex items-center gap-4 lg:gap-8">
             <button
               type="button"
               onClick={() => setIsSidebarOpen(true)}
               aria-label="Open menu"
-              className="bg-[#dc2626] p-2 hover:bg-[#e03d00] transition-colors"
+              className="group flex items-center gap-2 hover:text-[#dc2626] transition-all duration-300"
             >
-              <Menu size={20} className="text-white" />
+              <div className="relative flex flex-col justify-between w-5 h-3.5 group-hover:gap-1 transition-all">
+                <span className="w-full h-0.5 bg-black group-hover:bg-[#dc2626] transition-colors"></span>
+                <span className="w-3/4 h-0.5 bg-black group-hover:bg-[#dc2626] transition-colors"></span>
+                <span className="w-full h-0.5 bg-black group-hover:bg-[#dc2626] transition-colors"></span>
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] hidden sm:block">Menu</span>
             </button>
+
+            <Link href="/" className="hover:opacity-90 transition-opacity">
+              <div className="flex flex-col leading-none">
+                <span className="text-[28px] md:text-[42px] font-serif font-black tracking-tighter text-black leading-none">Jeju</span>
+                <span className="text-[22px] md:text-[32px] font-serif font-black tracking-tighter text-black md:-mt-2 leading-none">QQ Daily</span>
+              </div>
+            </Link>
           </div>
 
-          <div className="flex justify-center">
-            <form onSubmit={handleSearch} className="relative w-full max-w-[280px]">
-              <div className="relative flex items-center">
-                <Search size={12} className="absolute left-3 text-gray-400" />
+          {/* Center: Search Bar (Desktop) */}
+          <div className="flex-1 max-w-xl hidden lg:block">
+            <form onSubmit={handleSearch} className="relative w-full">
+              <div className="relative flex items-center group">
+                <Search size={16} className="absolute left-4 text-gray-400 group-focus-within:text-[#dc2626] transition-colors" />
                 <input
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="SEARCH..."
-                  className="pl-9 pr-4 bg-gray-50 border border-gray-200 rounded-full h-8 text-[10px] font-bold outline-none w-full focus:bg-white focus:ring-1 focus:ring-[#dc2626]/20 transition-all"
+                  placeholder="SEARCH FOR STORIES..."
+                  className="w-full pl-11 pr-4 bg-gray-50 border-2 border-transparent rounded-none h-11 text-[11px] font-bold outline-none focus:bg-white focus:border-[#dc2626] focus:ring-4 focus:ring-[#dc2626]/10 transition-all shadow-inner"
                 />
               </div>
             </form>
           </div>
 
-          <div className="flex items-center justify-end space-x-6 text-[11px] font-bold text-gray-500 uppercase tracking-tighter">
-            <button onClick={onOpenNewsletter} className="hover:text-[#dc2626] flex items-center gap-1">
-              <Mail size={14} /> Newsletter
+          {/* Right: Actions */}
+          <div className="flex items-center gap-2 sm:gap-6">
+            <button 
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+              className="lg:hidden text-gray-400 hover:text-[#dc2626] p-2 transition-colors"
+            >
+              <Search size={22} />
             </button>
-            <Link href="/admin/login" className="hover:text-[#dc2626] flex items-center gap-1">
-              <User size={14} /> Login
+            <button 
+              onClick={onOpenNewsletter} 
+              className="bg-[#dc2626] hover:bg-black text-white px-3 sm:px-5 py-2.5 rounded-none text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-lg shadow-[#dc2626]/20 flex items-center gap-2"
+            >
+              <Mail size={14} strokeWidth={3} />
+              <span className="hidden sm:block">Newsletter</span>
+            </button>
+            <Link href="/admin/login" className="text-gray-400 hover:text-[#dc2626] transition-colors p-2 rounded-none hover:bg-gray-50" title="Login">
+              <User size={20} strokeWidth={2.5} />
             </Link>
           </div>
         </div>
 
-        {/* Logo & Main Nav */}
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="flex flex-col items-center lg:flex-row lg:justify-between lg:items-end">
-            <Link href="/" className="lg:mb-0 shrink-0 mb-6 lg:mb-0">
-              <div className="flex flex-col leading-none">
-                <span className="text-[52px] font-serif font-black tracking-tighter text-black">Jeju</span>
-                <span className="text-[42px] font-serif font-black tracking-tighter text-black -mt-4">QQ Daily</span>
-              </div>
-            </Link>
- 
-            <nav className="hidden lg:flex flex-1 justify-center items-center space-x-6 text-[13px] font-bold uppercase tracking-tighter text-gray-600">
-            {coreCategories.slice(0, 5).map((cat) => (
-              <Link 
-                key={cat} 
-                href={`/search?category=${encodeURIComponent(cat)}`}
-                className="hover:text-[#dc2626] transition-colors whitespace-nowrap"
-              >
-                {cat}
-              </Link>
-            ))}
-            {coreCategories.length > 5 && (
-              <div className="relative group cursor-pointer flex items-center gap-1 hover:text-[#dc2626] py-2">
-                 MORE <ChevronDown size={14} />
-                 <div className="absolute top-full right-0 pt-2 hidden group-hover:block z-50">
-                    <div className="bg-white shadow-2xl border border-gray-100 p-4 rounded-sm grid grid-cols-2 gap-x-8 gap-y-3 min-w-[300px]">
-                       {coreCategories.slice(5).map((cat) => (
-                         <Link 
-                            key={cat} 
-                            href={categoryHref(cat)} 
-                            className="text-gray-600 hover:text-[#dc2626] text-xs font-medium whitespace-nowrap transition-colors"
-                         >
-                            {cat}
-                         </Link>
-                       ))}
-                    </div>
-                 </div>
-              </div>
-            )}
-          </nav>
+        {/* Mobile Search Overlay */}
+        <AnimatePresence>
+          {isSearchOpen && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="lg:hidden border-t border-gray-100 bg-white overflow-hidden"
+            >
+              <form onSubmit={handleSearch} className="p-4">
+                <div className="relative flex items-center">
+                  <Search size={16} className="absolute left-4 text-gray-400" />
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    autoFocus
+                    placeholder="SEARCH FOR STORIES..."
+                    className="w-full pl-11 pr-4 bg-gray-50 border-0 rounded-none h-12 text-[12px] font-bold outline-none focus:bg-gray-100 transition-all"
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setIsSearchOpen(false)}
+                    className="ml-2 p-2 text-gray-400"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="border-t border-gray-100 hidden lg:block">
+          <div className="max-w-7xl mx-auto px-4 flex flex-row justify-center items-center py-4">
+            <nav className="flex flex-wrap justify-center gap-x-12 gap-y-4 text-[13px] font-black uppercase tracking-tighter text-gray-600">
+              {coreCategories.slice(0, 6).map((cat) => (
+                <Link 
+                  key={cat} 
+                  href={`/search?category=${encodeURIComponent(cat)}`}
+                  className="relative group py-2 hover:text-black transition-colors"
+                >
+                  {cat}
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#dc2626] group-hover:w-full transition-all duration-300"></span>
+                </Link>
+              ))}
+              {coreCategories.length > 6 && (
+                <div className="relative group cursor-pointer flex items-center gap-1 hover:text-[#dc2626] py-2">
+                   MORE <ChevronDown size={14} />
+                   <div className="absolute top-full right-0 pt-2 hidden group-hover:block z-50">
+                      <div className="bg-white shadow-2xl border border-gray-100 p-6 rounded-xl grid grid-cols-2 gap-x-10 gap-y-4 min-w-[350px]">
+                         {coreCategories.slice(6).map((cat) => (
+                           <Link 
+                              key={cat} 
+                              href={categoryHref(cat)} 
+                              className="text-gray-500 hover:text-[#dc2626] text-xs font-bold whitespace-nowrap transition-colors uppercase tracking-widest"
+                           >
+                              {cat}
+                           </Link>
+                         ))}
+                      </div>
+                   </div>
+                </div>
+              )}
+            </nav>
           </div>
+        </div>
+        
+        <div className="absolute bottom-0 left-0 w-full h-1 bg-transparent">
+          <motion.div 
+            className="h-full bg-[#dc2626] shadow-[0_0_10px_rgba(220,38,38,0.3)]"
+            style={{ width: `${scrollProgress}%` }}
+            initial={{ width: 0 }}
+            animate={{ width: `${scrollProgress}%` }}
+            transition={{ type: "spring", stiffness: 100, damping: 20 }}
+          />
         </div>
       </header>
 
-      {/* JejuQQ Sidebar Drawer */}
       <AnimatePresence>
         {isSidebarOpen && (
           <>
@@ -168,7 +241,6 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                 transition={{ type: "spring", damping: 25, stiffness: 200 }}
                 className="fixed left-0 top-0 h-[100dvh] w-full sm:w-80 max-w-[85vw] bg-white z-[70] shadow-2xl flex flex-col overflow-hidden"
               >
-                {/* Sidebar Header */}
                 <div className="flex-shrink-0 bg-[#dc2626] h-14 px-5 flex items-center justify-between">
                   <button
                     onClick={() => setIsSidebarOpen(false)}
@@ -181,7 +253,6 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                   <div className="w-8" />
                 </div>
 
-                {/* Nav Links */}
                 <div className="flex-1 overflow-y-auto">
                   <nav className="py-2">
                     {categoryLinks.map((cat) => (
@@ -217,7 +288,6 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                   </nav>
                 </div>
 
-                {/* Footer */}
                 <div className="flex-shrink-0 border-t border-gray-100 p-5">
                   <button
                     type="button"

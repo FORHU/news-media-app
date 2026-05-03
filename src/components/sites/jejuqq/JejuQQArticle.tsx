@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, TrendingUp } from "lucide-react";
+import { motion } from "framer-motion";
 
 import { TrendingSidebar } from "@/components/home/trending-sidebar";
 import { FeaturedArticlesSection } from "@/components/home/featured-articles-section";
@@ -25,6 +26,7 @@ export default function JejuQQArticle({
   domain?: string;
 }) {
   const router = useRouter();
+  const [readingProgress, setReadingProgress] = useState(0);
 
   const { data: article, isError } = useQuery({
     queryKey: ["article", articleId],
@@ -32,12 +34,25 @@ export default function JejuQQArticle({
     enabled: Boolean(articleId),
   });
 
+  useEffect(() => {
+    const updateReadingProgress = () => {
+      const currentProgress = window.scrollY;
+      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (scrollHeight) {
+        setReadingProgress(Number((currentProgress / scrollHeight).toFixed(2)) * 100);
+      }
+    };
+
+    window.addEventListener("scroll", updateReadingProgress);
+    return () => window.removeEventListener("scroll", updateReadingProgress);
+  }, []);
+
   if (isError || !article) {
     return (
       <div className="flex items-center justify-center py-32 px-6">
         <div className="text-center max-w-md">
-          <p className="text-[#222] font-semibold mb-2">We couldn’t load this article.</p>
-          <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#dc2626] transition-colors">
+          <p className="text-[#222] font-black mb-2 uppercase tracking-widest">We couldn’t load this article.</p>
+          <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#dc2626] transition-colors font-bold uppercase tracking-widest">
             <ArrowLeft className="w-4 h-4" /> Back to home
           </Link>
         </div>
@@ -59,80 +74,124 @@ export default function JejuQQArticle({
   const secondHalf = paragraphs.slice(midpoint).join("\n\n");
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 bg-white text-[#222]">
-      <button onClick={() => window.history.length > 1 ? router.back() : router.push("/")} className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#dc2626] mb-8 transition-colors uppercase tracking-wider font-bold">
-        <ArrowLeft className="w-4 h-4" /> Back
-      </button>
+    <>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-24 bg-white text-[#222]">
+        <button onClick={() => window.history.length > 1 ? router.back() : router.push("/")} className="inline-flex items-center gap-3 text-xs text-gray-400 hover:text-[#dc2626] mb-12 transition-all group font-black uppercase tracking-[0.3em]">
+          <div className="w-8 h-8 rounded-none border border-gray-100 flex items-center justify-center group-hover:border-[#dc2626] group-hover:bg-[#dc2626] group-hover:text-white transition-all">
+            <ArrowLeft className="w-4 h-4" />
+          </div>
+          Back to feed
+        </button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-        <div className="lg:col-span-8">
-          <article>
-            <header className="mb-10">
-              {normalizeCategoryName(article.category?.categoryName) && (
-                <span className="text-[12px] text-[#dc2626] font-bold uppercase mb-4 block tracking-[0.2em]">
-                  {normalizeCategoryName(article.category?.categoryName)}
-                </span>
-              )}
-              <h1 className="text-4xl sm:text-6xl font-serif font-black leading-[1.1] mb-6">
-                {article.title}
-              </h1>
-              <div className="flex items-center gap-4 text-sm text-gray-500 font-medium uppercase tracking-wider border-y border-gray-100 py-3">
-                <span>{formattedDate}</span>
-                <span className="w-1 h-1 bg-[#dc2626] rounded-full"></span>
-                <span>By JejuQQ Team</span>
-              </div>
-            </header>
-
-            {youtubeId ? (
-              <>
-                <div className="mb-10 bg-black aspect-video shadow-xl">
-                  <iframe src={`https://www.youtube.com/embed/${youtubeId}`} title="YouTube video player" allowFullScreen className="w-full h-full border-0" />
-                </div>
-                {article.imageUrl ? (
-                  <>
-                    <div className="text-gray-700 text-xl leading-relaxed whitespace-pre-wrap font-serif mb-10">{firstHalf}</div>
-                    <div className="my-12 relative aspect-[4/3] bg-gray-100 shadow-xl">
-                      <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+          <div className="lg:col-span-8">
+            <article>
+              <header className="mb-12">
+                {normalizeCategoryName(article.category?.categoryName) && (
+                  <div className="flex items-center gap-3 mb-6">
+                    <span className="h-0.5 w-10 bg-[#dc2626]"></span>
+                    <span className="text-[12px] text-[#dc2626] font-black uppercase tracking-[0.4em]">
+                      {normalizeCategoryName(article.category?.categoryName)}
+                    </span>
+                  </div>
+                )}
+                <h1 className="text-5xl sm:text-7xl font-serif font-black leading-[1.05] mb-8 tracking-tighter">
+                  {article.title}
+                </h1>
+                <div className="flex items-center justify-between border-y border-gray-100 py-6">
+                  <div className="flex items-center gap-5">
+                    <div className="w-10 h-10 rounded-none bg-[#dc2626] flex items-center justify-center text-white font-black text-xs shadow-lg">QQ</div>
+                    <div className="flex flex-col">
+                      <span className="text-[11px] font-black uppercase tracking-widest text-black">JejuQQ Editorial</span>
+                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{formattedDate}</span>
                     </div>
-                    {secondHalf && <div className="text-gray-700 text-xl leading-relaxed whitespace-pre-wrap font-serif">{secondHalf}</div>}
-                  </>
-                ) : (
-                  <div className="text-gray-700 text-xl leading-relaxed whitespace-pre-wrap font-serif">
+                  </div>
+                </div>
+              </header>
+
+              {youtubeId ? (
+                <>
+                  <div className="mb-12 bg-black aspect-video rounded-none overflow-hidden shadow-2xl border-4 border-gray-50">
+                    <iframe src={`https://www.youtube.com/embed/${youtubeId}`} title="YouTube video player" allowFullScreen className="w-full h-full border-0" />
+                  </div>
+                  <div className="prose prose-xl prose-serif max-w-none prose-headings:font-black prose-p:leading-relaxed prose-p:text-gray-700">
+                    {article.imageUrl ? (
+                      <>
+                        <div className="whitespace-pre-wrap mb-12">{firstHalf}</div>
+                        <div className="my-16 relative aspect-[16/9] bg-gray-100 rounded-none overflow-hidden shadow-2xl group">
+                          <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-1000" variant="hero" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                        </div>
+                        {secondHalf && <div className="whitespace-pre-wrap">{secondHalf}</div>}
+                      </>
+                    ) : (
+                      <div className="whitespace-pre-wrap">{fullContent}</div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  {article.imageUrl && (
+                    <div className="mb-16 relative aspect-[16/9] bg-gray-100 rounded-none overflow-hidden shadow-2xl group">
+                      <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover group-hover:scale-105 transition-transform duration-1000" variant="hero" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                    </div>
+                  )}
+                  <div className="prose prose-xl prose-serif max-w-none prose-headings:font-black prose-p:leading-relaxed prose-p:text-gray-700 whitespace-pre-wrap">
                     {fullContent}
                   </div>
-                )}
-              </>
-            ) : (
-              <>
-                {article.imageUrl && (
-                  <div className="mb-12 relative aspect-[4/3] bg-gray-100 shadow-xl">
-                    <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" />
-                  </div>
-                )}
-                <div className="text-gray-700 text-xl leading-relaxed whitespace-pre-wrap font-serif">
-                  {fullContent}
-                </div>
-              </>
-            )}
-          </article>
-        </div>
-
-        <div className="lg:col-span-4 space-y-12">
-          <div className="bg-gray-50 p-6 border-t-4 border-[#dc2626]">
-             <TrendingSidebar articles={trendingArticles} domain={domain} />
+                </>
+              )}
+            </article>
           </div>
-          <AdBanner position="ARTICLE_SIDEBAR" />
-        </div>
-      </div>
 
-      {recommendedArticles.length > 0 && (
-        <div className="mt-20 pt-12 border-t-2 border-black">
-          <h2 className="text-3xl font-serif font-black mb-10 uppercase tracking-widest text-center">
-            More to Discover
-          </h2>
-          <FeaturedArticlesSection articles={recommendedArticles} domain="jejuqq.com" />
+          <div className="lg:col-span-4 space-y-16">
+            <div className="bg-gray-50 rounded-none p-10 border border-gray-100 sticky top-40">
+              <div className="flex items-center justify-between mb-10 pb-6 border-b border-gray-200">
+                 <h3 className="text-2xl font-serif font-black flex items-center gap-3">
+                    Trending <TrendingUp size={24} className="text-[#dc2626]" />
+                 </h3>
+                 <div className="flex gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-none bg-[#dc2626] animate-pulse"></span>
+                    <span className="w-2.5 h-2.5 rounded-none bg-gray-200"></span>
+                 </div>
+              </div>
+
+              <div className="space-y-10">
+                 {trendingArticles.map((article, i) => (
+                    <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex gap-6 items-start group">
+                       <span className="text-4xl font-serif font-black text-gray-300 group-hover:text-[#dc2626]/30 transition-colors tabular-nums">
+                          {String(i + 1).padStart(2, '0')}
+                       </span>
+                       <div>
+                         <span className="text-[9px] font-black text-[#dc2626] uppercase tracking-[0.2em] block mb-2">{article.category?.categoryName}</span>
+                         <h4 className="text-[16px] font-bold leading-snug group-hover:text-[#dc2626] transition-colors line-clamp-2">
+                            {article.title}
+                         </h4>
+                       </div>
+                    </Link>
+                 ))}
+              </div>
+            </div>
+            <div className="rounded-none overflow-hidden shadow-2xl">
+              <AdBanner position="ARTICLE_SIDEBAR" />
+            </div>
+          </div>
         </div>
-      )}
-    </main>
+
+        {recommendedArticles.length > 0 && (
+          <div className="mt-32 pt-20 border-t border-gray-100">
+            <div className="flex items-center justify-center gap-8 mb-16">
+              <div className="h-0.5 w-24 bg-gray-100"></div>
+              <h2 className="text-4xl font-serif font-black uppercase tracking-tight text-center">
+                More to Discover
+              </h2>
+              <div className="h-0.5 w-24 bg-gray-100"></div>
+            </div>
+            <FeaturedArticlesSection articles={recommendedArticles} domain="jejuqq.com" />
+          </div>
+        )}
+      </main>
+    </>
   );
 }

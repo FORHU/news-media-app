@@ -30,9 +30,9 @@ export async function middleware(request: NextRequest) {
     // 1. PUBLIC ROUTE REWRITING
     // If it's not an admin or API route, rewrite to the domain-specific path
     if (!isAdminPage && !isAdminApi && !pathname.startsWith("/api") && !pathname.includes(".")) {
-        return NextResponse.rewrite(
-            new URL(`/${tenantDomain}${pathname}`, request.url)
-        );
+        const url = request.nextUrl.clone();
+        url.pathname = `/${tenantDomain}${pathname}`;
+        return NextResponse.rewrite(url);
     }
 
     // 2. ADMIN AUTHENTICATION LOGIC (Preserved)

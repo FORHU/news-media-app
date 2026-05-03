@@ -61,8 +61,8 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
               
               {/* Hero Section Carousel */}
               {heroArticle && (
-                <div className="mb-12 group relative">
-                  <div className="relative aspect-[21/9] overflow-hidden mb-6 bg-gray-100">
+                <div className="mb-16 group relative">
+                  <div className="relative aspect-video lg:aspect-[21/9] overflow-hidden mb-6 bg-gray-100 shadow-xl group-hover:shadow-2xl transition-all duration-500">
                     <AnimatePresence initial={false} custom={direction} mode="wait">
                       <motion.div
                         key={page}
@@ -86,18 +86,18 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                       </motion.div>
                     </AnimatePresence>
 
-                    <div className="absolute top-4 left-4 bg-[#bc002d] text-white text-[10px] font-bold px-3 py-1 uppercase tracking-widest z-10">
+                    <div className="absolute top-4 left-4 bg-[#bc002d] text-white text-[10px] font-black px-4 py-1.5 uppercase tracking-[0.2em] z-10 shadow-lg">
                        Top Story
                     </div>
 
-                    <button type="button" onClick={() => paginate(-1)} className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/80 hover:bg-white text-[#bc002d] flex items-center justify-center shadow-lg transition-colors" aria-label="Previous">
-                      <ChevronLeft className="w-5 h-5" />
+                    <button type="button" onClick={() => paginate(-1)} className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 hover:bg-white text-[#bc002d] flex items-center justify-center shadow-2xl transition-all hover:scale-110 active:scale-95" aria-label="Previous">
+                      <ChevronLeft className="w-6 h-6" />
                     </button>
-                    <button type="button" onClick={() => paginate(1)} className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/80 hover:bg-white text-[#bc002d] flex items-center justify-center shadow-lg transition-colors" aria-label="Next">
-                      <ChevronRight className="w-5 h-5" />
+                    <button type="button" onClick={() => paginate(1)} className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 hover:bg-white text-[#bc002d] flex items-center justify-center shadow-2xl transition-all hover:scale-110 active:scale-95" aria-label="Next">
+                      <ChevronRight className="w-6 h-6" />
                     </button>
 
-                    <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
+                    <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-3 z-10">
                       {heroArticles.map((_, i) => (
                         <button
                           key={i}
@@ -106,43 +106,50 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                             const newDirection = i > index ? 1 : -1;
                             setPage([i, newDirection]);
                           }}
-                          className={`h-1.5 transition-all duration-300 ${i === index ? "w-8 bg-[#bc002d]" : "w-4 bg-white/50 hover:bg-white/80"}`}
+                          className={`h-1.5 transition-all duration-300 rounded-full ${i === index ? "w-10 bg-[#bc002d]" : "w-4 bg-white/50 hover:bg-white/80"}`}
                           aria-label={`Go to slide ${i + 1}`}
                         />
                       ))}
                     </div>
                   </div>
 
-                  <Link href={`/article/${heroArticle.slug || heroArticle.id}`}>
-                    <h2 className="text-4xl font-serif font-black leading-tight mb-4 hover:text-[#bc002d] transition-colors">
+                  <Link href={`/article/${heroArticle.slug || heroArticle.id}`} className="block max-w-4xl">
+                    <h2 className="text-3xl lg:text-5xl font-serif font-black leading-[1.1] mb-5 hover:text-[#bc002d] transition-colors tracking-tight">
                       {heroArticle.title}
                     </h2>
-                    <p className="text-gray-600 text-lg leading-relaxed line-clamp-3 font-light">
+                    <p className="text-gray-600 text-lg lg:text-xl leading-relaxed line-clamp-3 font-light mb-6 opacity-90">
                       {heroArticle.content}
                     </p>
+                    <span className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.3em] text-[#bc002d] hover:gap-4 transition-all">
+                      Read Full Report <ChevronRight size={14} />
+                    </span>
                   </Link>
                 </div>
               )}
 
               {/* Latest Stories List (JejuJapan UI) */}
-              <div className="space-y-8 border-t border-gray-100 pt-8 mt-12">
+              <div className="space-y-12 border-t border-gray-100 pt-12 mt-12">
                  {latestStories.map((article) => (
-                    <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex flex-col md:flex-row gap-8 group">
-                       <div className="relative w-full md:w-60 aspect-[16/10] overflow-hidden shrink-0 bg-gray-100">
+                    <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex flex-col md:flex-row gap-8 group border-b border-gray-50 pb-12 last:border-0 last:pb-0">
+                       <div className="relative w-full md:w-72 aspect-[16/10] overflow-hidden shrink-0 bg-gray-100 shadow-sm group-hover:shadow-md transition-shadow">
                           <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-700" />
                        </div>
-                       <div className="flex flex-col justify-center">
-                          <span className="text-[10px] font-bold text-[#bc002d] uppercase tracking-widest mb-2">{article.category?.categoryName}</span>
-                          <h3 className="text-xl font-bold leading-tight mb-3 group-hover:text-[#bc002d] transition-colors">{article.title}</h3>
-                          <p className="text-sm text-gray-500 line-clamp-2 font-light mb-3">{article.content}</p>
+                       <div className="flex flex-col justify-center flex-1">
+                          <span className="text-[10px] font-black text-[#bc002d] uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+                             <span className="w-4 h-[1px] bg-[#bc002d]"></span>
+                             {article.category?.categoryName}
+                          </span>
+                          <h3 className="text-2xl font-bold leading-tight mb-4 group-hover:text-[#bc002d] transition-colors">{article.title}</h3>
+                          <p className="text-sm text-gray-500 line-clamp-2 font-light mb-5 leading-relaxed">{article.content}</p>
                           <div className="flex items-center text-[10px] text-gray-400 font-bold gap-4 uppercase mt-auto">
                              <span className="flex items-center gap-1"><Clock size={10} /> 2 hours ago</span>
+                             <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
                              <span>By Bureau Tokyo</span>
                           </div>
                        </div>
                     </Link>
                  ))}
-                  </div>
+              </div>
                   {articles.length > 0 && (
                      <div className="mt-4">
                         <ClientPagination
@@ -166,19 +173,19 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                   <h3 className="text-lg font-serif font-black flex items-center gap-2 mb-8 uppercase tracking-widest border-b border-white/20 pb-4">
                      <TrendingUp size={20} className="text-[#bc002d]" /> Trending
                   </h3>
-                  <div className="space-y-8">
-                     {trendingArticles.map((article, i) => (
-                        <Link key={article.id} href={`/article/${article.slug || article.id}`} className="block group">
-                           <div className="flex gap-4">
-                              <span className="text-3xl font-serif font-black text-white/20 group-hover:text-[#bc002d] transition-colors">0{i + 1}</span>
-                              <div>
-                                 <span className="text-[9px] text-gray-500 uppercase tracking-widest block mb-1">{article.category?.categoryName}</span>
-                                 <h4 className="text-sm font-bold leading-snug group-hover:text-white/80 line-clamp-2">{article.title}</h4>
-                              </div>
-                           </div>
-                        </Link>
-                     ))}
-                  </div>
+                   <div className="space-y-8">
+                      {trendingArticles.map((article, i) => (
+                         <Link key={article.id} href={`/article/${article.slug || article.id}`} className="block group">
+                            <div className="flex gap-4">
+                               <span className="text-4xl font-serif font-black text-white/10 group-hover:text-[#bc002d] transition-colors duration-500 shrink-0">0{i + 1}</span>
+                               <div>
+                                  <span className="text-[9px] text-gray-500 uppercase tracking-[0.2em] block mb-1.5">{article.category?.categoryName}</span>
+                                  <h4 className="text-sm font-bold leading-snug group-hover:text-white/80 line-clamp-2 transition-colors">{article.title}</h4>
+                               </div>
+                            </div>
+                         </Link>
+                      ))}
+                   </div>
                </div>
 
                <div className="sticky top-24">
@@ -190,19 +197,29 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
 
           {/* Bottom Grid: Featured Articles */}
           {featuredArticles.length > 0 && (
-            <section className="mt-24 border-t-4 border-black pt-12">
-               <div className="flex items-center justify-between mb-12">
-                  <h3 className="text-2xl font-serif font-black uppercase tracking-widest">Featured Report</h3>
-                  <Link href="#" className="text-xs font-bold flex items-center gap-1 hover:text-[#bc002d]">View All <ChevronRight size={14}/></Link>
+            <section className="mt-24 bg-[#111] text-white p-12 lg:p-16 relative overflow-hidden">
+               <div className="absolute top-0 right-0 w-96 h-96 bg-[#bc002d]/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-[100px]"></div>
+               
+               <div className="flex items-center justify-between mb-12 relative z-10 border-b border-white/10 pb-8">
+                  <h3 className="text-3xl font-serif font-black uppercase tracking-[0.2em] flex items-center gap-4">
+                     <TrendingUp size={28} className="text-[#bc002d]" />
+                     Featured Report
+                  </h3>
+                  <Link href="/" className="text-[10px] font-black uppercase tracking-[0.3em] flex items-center gap-3 hover:text-[#bc002d] transition-all group">
+                    View All <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                  </Link>
                </div>
-               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                  {featuredArticles.map((article) => (
-                     <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group">
-                        <div className="relative aspect-[16/10] overflow-hidden mb-6 bg-gray-100">
-                           <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-700" />
+               
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 relative z-10">
+                  {featuredArticles.map((article, i) => (
+                     <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group block">
+                        <div className="relative aspect-[16/10] overflow-hidden mb-6 bg-white/5 shadow-2xl">
+                           <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-110 transition-transform duration-1000 opacity-80 group-hover:opacity-100" />
+                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
+                           <span className="absolute bottom-4 left-4 text-5xl font-serif font-black text-white/10 group-hover:text-[#bc002d] transition-all duration-500 transform group-hover:-translate-y-2">0{i + 1}</span>
                         </div>
-                        <span className="text-[10px] text-[#bc002d] font-bold uppercase mb-2 block tracking-widest">{article.category?.categoryName}</span>
-                        <h4 className="text-lg font-bold leading-tight group-hover:text-[#bc002d] transition-colors">{article.title}</h4>
+                        <span className="text-[10px] text-[#bc002d] font-black uppercase mb-3 block tracking-[0.3em]">{article.category?.categoryName}</span>
+                        <h4 className="text-xl font-bold leading-tight group-hover:text-[#bc002d] transition-colors line-clamp-2">{article.title}</h4>
                      </Link>
                   ))}
                </div>

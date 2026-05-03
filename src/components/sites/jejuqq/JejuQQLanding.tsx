@@ -53,111 +53,109 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
         <AdBanner position="HOME_TOP" initialBanners={banners.top} />
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 py-12">
-          
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-            
-            {/* Left Content Area (Hero + Latest) */}
-            <div className="lg:col-span-8">
-              {/* Main Article Section (Hero) */}
-              {mainArticle && (
-                <div className="mb-12 relative group">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                        <div className="block relative aspect-[4/3] overflow-hidden bg-gray-100">
-                          <AnimatePresence initial={false} custom={direction} mode="wait">
-                            <motion.div
-                              key={page}
-                              custom={direction}
-                              variants={variants}
-                              initial="enter"
-                              animate="center"
-                              exit="exit"
-                              transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
-                              className="absolute inset-0 h-full w-full"
-                            >
-                              <Link href={`/article/${mainArticle.slug || mainArticle.id}`} className="block h-full w-full">
-                                <StoryImage 
-                                    src={mainArticle.imageUrl} 
-                                    alt={mainArticle.title}
-                                    fill
-                                    className="object-cover transition-transform duration-700"
-                                    variant="hero"
-                                />
-                              </Link>
-                            </motion.div>
-                          </AnimatePresence>
+      <main className="max-w-7xl mx-auto px-4 py-8 md:py-12">
+          {/* Main Article Section (Hero) - Full Width */}
+          {mainArticle && (
+            <div className="mb-16 md:mb-24 relative group">
+                <div className="flex flex-col lg:flex-row gap-12 items-center">
+                    <div className="relative w-full lg:w-3/5 aspect-[16/9] overflow-hidden rounded-none bg-gray-100 shadow-2xl group/image shrink-0">
+                      <AnimatePresence initial={false} custom={direction} mode="wait">
+                        <motion.div
+                          key={page}
+                          custom={direction}
+                          variants={variants}
+                          initial="enter"
+                          animate="center"
+                          exit="exit"
+                          transition={{ x: { type: "spring", stiffness: 200, damping: 25 }, opacity: { duration: 0.3 } }}
+                          className="absolute inset-0 h-full w-full"
+                        >
+                          <Link href={`/article/${mainArticle.slug || mainArticle.id}`} className="block h-full w-full">
+                            <StoryImage 
+                                src={mainArticle.imageUrl} 
+                                alt={mainArticle.title}
+                                fill
+                                className="object-cover transition-transform duration-1000 group-hover/image:scale-105"
+                                variant="hero"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity duration-500"></div>
+                          </Link>
+                        </motion.div>
+                      </AnimatePresence>
 
-                          {/* Navigation Buttons */}
-                          <button type="button" onClick={() => paginate(-1)} className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/80 hover:bg-white text-[#dc2626] flex items-center justify-center shadow-lg transition-colors" aria-label="Previous">
-                            <ChevronLeft className="w-5 h-5" />
-                          </button>
-                          <button type="button" onClick={() => paginate(1)} className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/80 hover:bg-white text-[#dc2626] flex items-center justify-center shadow-lg transition-colors" aria-label="Next">
-                            <ChevronRight className="w-5 h-5" />
-                          </button>
+                      {/* Navigation Buttons */}
+                      <button type="button" onClick={() => paginate(-1)} className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white/90 hover:bg-[#dc2626] text-black hover:text-white rounded-none flex items-center justify-center shadow-2xl transition-all duration-300 scale-90 group-hover/image:scale-100 opacity-0 group-hover/image:opacity-100" aria-label="Previous">
+                        <ChevronLeft className="w-6 h-6" />
+                      </button>
+                      <button type="button" onClick={() => paginate(1)} className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white/90 hover:bg-[#dc2626] text-black hover:text-white rounded-none flex items-center justify-center shadow-2xl transition-all duration-300 scale-90 group-hover/image:scale-100 opacity-0 group-hover/image:opacity-100" aria-label="Next">
+                        <ChevronRight className="w-6 h-6" />
+                      </button>
 
-                          {/* Dots */}
-                          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
-                            {heroArticles.map((_, i) => (
-                              <button
-                                key={i}
-                                type="button"
-                                onClick={() => {
-                                  const newDirection = i > index ? 1 : -1;
-                                  setPage([i, newDirection]);
-                                }}
-                                className={`h-1.5 transition-all duration-300 ${i === index ? "w-8 bg-[#dc2626]" : "w-4 bg-white/50 hover:bg-white/80"}`}
-                                aria-label={`Go to slide ${i + 1}`}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                        <div className="flex flex-col justify-center h-full py-4">
-                            <Link href={`/article/${mainArticle.slug || mainArticle.id}`} className="group">
-                                <span className="text-[10px] text-[#dc2626] font-bold uppercase mb-2 block tracking-widest">{mainArticle.category?.categoryName}</span>
-                                <h2 className="text-[34px] font-serif font-bold leading-tight mb-4 group-hover:underline decoration-[#dc2626]">
-                                    {mainArticle.title}
-                                </h2>
-                            </Link>
-                            <p className="text-gray-600 leading-relaxed mb-4 line-clamp-4">
-                                {mainArticle.content}
-                            </p>
-                        </div>
+                      {/* Dots */}
+                      <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-3 z-10">
+                        {heroArticles.map((_, i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => {
+                              const newDirection = i > index ? 1 : -1;
+                              setPage([i, newDirection]);
+                            }}
+                            className={`h-1.5 transition-all duration-500 rounded-none ${i === index ? "w-10 bg-[#dc2626]" : "w-2 bg-white/60 hover:bg-white"}`}
+                            aria-label={`Go to slide ${i + 1}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex-1 flex flex-col justify-center py-4 min-w-0">
+                        <Link href={`/article/${mainArticle.slug || mainArticle.id}`} className="group">
+                            <div className="flex items-center gap-3 mb-6">
+                              <span className="h-0.5 w-8 bg-[#dc2626]"></span>
+                              <span className="text-[11px] text-[#dc2626] font-black uppercase tracking-[0.3em]">{mainArticle.category?.categoryName}</span>
+                            </div>
+                            <h2 className="text-[42px] md:text-[56px] font-serif font-black leading-[1.05] mb-6 group-hover:text-[#dc2626] transition-colors tracking-tighter">
+                                {mainArticle.title}
+                            </h2>
+                        </Link>
+                        <p className="text-gray-600 text-lg leading-relaxed mb-8 line-clamp-3 font-medium">
+                            {mainArticle.content}
+                        </p>
+                        <Link href={`/article/${mainArticle.slug || mainArticle.id}`} className="inline-flex items-center gap-2 text-[12px] font-black uppercase tracking-widest text-black hover:text-[#dc2626] transition-colors group/link">
+                          Read Full Story <ChevronRight size={16} className="group-hover/link:translate-x-1 transition-transform" />
+                        </Link>
                     </div>
                 </div>
-              )}
+            </div>
+          )}
 
-              {/* Gallery Strip (Preserving JejuQQ UI) */}
-              <div className="grid grid-cols-3 gap-6 mb-12">
-                 {galleryArticles.map((article) => (
-                    <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group">
-                        <div className="relative aspect-[4/3] overflow-hidden mb-3 bg-gray-100">
-                            <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" />
-                        </div>
-                        <h4 className="text-sm font-bold leading-tight line-clamp-2 group-hover:text-[#dc2626]">
-                            {article.title}
-                        </h4>
-                    </Link>
-                 ))}
-              </div>
-
-              {/* Latest Stories Section (JejuQQ UI) */}
-              <div className="border-t-2 border-black pt-8">
-                 <h3 className="text-2xl font-serif font-bold mb-8 uppercase tracking-tighter">Latest Stories</h3>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-12">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+            {/* Left Content Area (Latest Stories) */}
+            <div className="lg:col-span-8">
+              {/* Latest Stories Section */}
+              <div className="pt-12 border-t border-gray-100">
+                 <div className="flex items-center justify-between mb-12">
+                    <h3 className="text-3xl font-serif font-black uppercase tracking-tight">Latest Stories</h3>
+                    <div className="h-1 flex-1 mx-8 bg-gray-50 rounded-none overflow-hidden">
+                      <div className="h-full w-24 bg-[#dc2626]"></div>
+                    </div>
+                 </div>
+                 
+                 <div className="grid grid-cols-1 gap-10">
                     {latestStories.map((article) => (
-                        <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex gap-4 group">
-                            <div className="relative w-24 aspect-square shrink-0 rounded-full overflow-hidden border-2 border-[#dc2626]/20 group-hover:border-[#dc2626] transition-colors bg-gray-100">
-                                <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" />
+                        <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex flex-col md:flex-row gap-8 group items-center">
+                            <div className="relative w-full md:w-56 aspect-[4/3] shrink-0 rounded-none overflow-hidden shadow-xl group-hover:shadow-2xl transition-all duration-500">
+                                <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
                             </div>
-                            <div className="flex flex-col justify-center">
-                                <span className="text-[10px] text-[#dc2626] font-bold uppercase mb-1 block tracking-widest">{article.category?.categoryName}</span>
-                                <h5 className="text-[15px] font-bold leading-snug group-hover:underline">{article.title}</h5>
+                            <div className="flex-1 text-center md:text-left">
+                                <span className="text-[10px] text-[#dc2626] font-black uppercase mb-3 block tracking-[0.2em]">{article.category?.categoryName}</span>
+                                <h5 className="text-[22px] font-serif font-black leading-tight group-hover:text-[#dc2626] transition-colors mb-3">{article.title}</h5>
+                                <p className="text-gray-500 text-sm line-clamp-2 leading-relaxed">{article.content}</p>
                             </div>
                         </Link>
                     ))}
                  </div>
                  {articles.length > 0 && (
-                    <div className="mt-8">
+                    <div className="mt-16">
                        <ClientPagination
                           currentPage={currentPage}
                           totalPages={totalPages}
@@ -174,57 +172,62 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
               </div>
             </div>
 
-            {/* Right Sidebar (JejuQQ UI: Trending + Ad) */}
+            {/* Right Sidebar (Trending + Ad) */}
             <aside className="lg:col-span-4">
-               <div className="border-t-4 border-black pt-4">
-                  <div className="flex items-center justify-between mb-8">
-                     <h3 className="text-xl font-bold flex items-center gap-2">
-                        Trending <TrendingUp size={18} className="text-[#dc2626]" />
+               <div className="bg-gray-50 rounded-none p-8 border border-gray-100 sticky top-32">
+                  <div className="flex items-center justify-between mb-10 pb-6 border-b border-gray-200">
+                     <h3 className="text-2xl font-serif font-black flex items-center gap-3">
+                        Trending <TrendingUp size={24} className="text-[#dc2626]" />
                      </h3>
-                     <div className="flex gap-1">
-                        <span className="w-2 h-2 rounded-full bg-[#dc2626]"></span>
-                        <span className="w-2 h-2 rounded-full bg-gray-200"></span>
+                     <div className="flex gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-none bg-[#dc2626] animate-pulse"></span>
+                        <span className="w-2.5 h-2.5 rounded-none bg-gray-200"></span>
                      </div>
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-10">
                      {trendingArticles.map((article, i) => (
-                        <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex gap-4 items-start group">
-                           <span className="w-6 h-6 bg-black text-white text-[11px] font-bold flex items-center justify-center shrink-0">
-                              {i + 1}
+                        <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex gap-6 items-start group">
+                           <span className="text-4xl font-serif font-black text-gray-300 group-hover:text-[#dc2626]/30 transition-colors tabular-nums">
+                              {String(i + 1).padStart(2, '0')}
                            </span>
                            <div>
-                             <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">{article.category?.categoryName}</span>
-                             <h4 className="text-[14px] font-medium leading-snug group-hover:text-[#dc2626] transition-colors line-clamp-2">
+                             <span className="text-[9px] font-black text-[#dc2626] uppercase tracking-[0.2em] block mb-2">{article.category?.categoryName}</span>
+                             <h4 className="text-[16px] font-bold leading-snug group-hover:text-[#dc2626] transition-colors line-clamp-2">
                                 {article.title}
                              </h4>
                            </div>
                         </Link>
                      ))}
                   </div>
-               </div>
 
-               <div className="mt-12 sticky top-24">
-                  <AdBanner position="HOME_SIDEBAR" initialBanners={banners.sidebar} />
+                  <div className="mt-16 rounded-none overflow-hidden shadow-2xl">
+                    <AdBanner position="HOME_SIDEBAR" initialBanners={banners.sidebar} />
+                  </div>
                </div>
             </aside>
-
           </div>
 
-          {/* Bottom Sections (JejuQQ UI) */}
-          <div className="mt-16 space-y-16">
+          {/* Bottom Sections */}
+          <div className="mt-24 space-y-24">
             {/* Featured Articles */}
             {featuredArticles.length > 0 && (
-              <section className="border-t-4 border-black pt-8">
-                <h3 className="text-2xl font-serif font-bold mb-8 uppercase tracking-widest">Featured Report</h3>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+              <section className="pt-16 border-t border-gray-100">
+                <div className="flex items-center gap-6 mb-12">
+                  <h3 className="text-4xl font-serif font-black uppercase tracking-tight whitespace-nowrap">Featured Report</h3>
+                  <div className="h-1.5 w-full bg-[#dc2626]/10 rounded-none overflow-hidden">
+                    <div className="h-full w-1/4 bg-[#dc2626]"></div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
                   {featuredArticles.map((article) => (
                     <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group">
-                      <div className="relative aspect-[4/3] overflow-hidden mb-4 border border-gray-100 bg-gray-50">
-                        <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <div className="relative aspect-[4/3] overflow-hidden rounded-none mb-6 bg-gray-50 shadow-lg group-hover:shadow-2xl transition-all duration-500">
+                        <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#dc2626]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                       </div>
-                      <span className="text-[10px] text-[#dc2626] font-bold uppercase mb-2 block">{article.category?.categoryName}</span>
-                      <h4 className="text-lg font-bold leading-tight group-hover:underline">{article.title}</h4>
+                      <span className="text-[10px] text-[#dc2626] font-black uppercase mb-3 block tracking-widest">{article.category?.categoryName}</span>
+                      <h4 className="text-xl font-serif font-black leading-tight group-hover:text-[#dc2626] transition-colors">{article.title}</h4>
                     </Link>
                   ))}
                 </div>
@@ -233,17 +236,20 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
 
             {/* Trending Products / Blogs */}
             {trendingProducts.length > 0 && (
-              <section className="border-t border-gray-200 pt-8 pb-8">
-                <h3 className="text-xl font-bold mb-6 flex items-center gap-2">Explore <ChevronRight size={18} className="text-[#dc2626]"/></h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <section className="bg-black rounded-none p-12 lg:p-20 text-white overflow-hidden relative">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[#dc2626]/20 blur-[120px] rounded-none"></div>
+                <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#dc2626]/10 blur-[150px] rounded-none"></div>
+                
+                <h3 className="text-3xl font-serif font-black mb-12 flex items-center gap-4 relative z-10">Explore More <span className="h-1 w-20 bg-[#dc2626]"></span></h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 relative z-10">
                   {trendingProducts.map((article: any) => (
-                    <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex gap-4 group bg-gray-50 p-4 hover:bg-black hover:text-white transition-colors">
-                      <div className="relative w-16 h-16 shrink-0 overflow-hidden rounded-md bg-gray-200">
-                         <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" />
+                    <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-none hover:bg-[#dc2626] transition-all duration-500 hover:-translate-y-2">
+                      <div className="relative w-full aspect-square mb-6 overflow-hidden rounded-none shadow-2xl">
+                         <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
                       </div>
-                      <div className="flex flex-col justify-center">
-                        <h4 className="text-sm font-bold leading-snug line-clamp-2">{article.title}</h4>
-                        <span className="text-[10px] text-gray-500 group-hover:text-gray-400 mt-1 block">Read more</span>
+                      <div className="flex flex-col">
+                        <h4 className="text-[16px] font-bold leading-tight line-clamp-2 mb-3">{article.title}</h4>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[#dc2626] group-hover:text-white transition-colors">Discover</span>
                       </div>
                     </Link>
                   ))}
