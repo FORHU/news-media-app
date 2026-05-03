@@ -68,31 +68,32 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
 
   return (
     <>
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         {/* Top Thin Bar */}
-        <div className="border-b border-gray-100 py-2 bg-[#fafafa]">
-          <div className="max-w-7xl mx-auto px-6 grid grid-cols-3 items-center text-[10px] font-bold uppercase tracking-widest text-gray-500">
+        <div className="border-b border-white/10 py-2 bg-[#bc002d] text-white shadow-sm">
+          <div className="max-w-7xl mx-auto px-6 grid grid-cols-3 items-center text-[10px] font-bold uppercase tracking-widest">
             <div className="flex space-x-6">
-              <span className="flex items-center gap-1"><Globe size={12} className="text-[#bc002d]" /> Tokyo - Jeju Bridge</span>
+              <span className="flex items-center gap-1"><Globe size={12} /> Tokyo - Jeju Bridge</span>
               <span className="hidden xl:inline">{new Date().toLocaleDateString('ja-JP', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
             </div>
             
             <div className="flex justify-center">
-              <form onSubmit={handleSearch} className="relative w-full max-w-[280px]">
+              <form onSubmit={handleSearch} className="relative w-full max-w-[320px]">
                 <input
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="SEARCH NEWS..."
-                  className="bg-white border border-gray-200 rounded-full px-8 py-1 text-[9px] w-full outline-none focus:border-[#bc002d]/30 transition-all shadow-sm"
+                  className="bg-white/30 border-2 border-white/40 rounded-full px-10 py-1.5 text-[10px] w-full outline-none focus:bg-white focus:text-black transition-all text-white focus:placeholder:text-gray-400 placeholder:text-white/90 shadow-sm"
                 />
-                <Search size={10} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Search size={12} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/90" />
               </form>
             </div>
 
-            <div className="flex justify-end space-x-4">
-              <Link href="/admin/dashboard" className="hover:text-[#bc002d] transition-colors">Admin</Link>
-              <button onClick={onOpenNewsletter} className="hover:text-[#bc002d] transition-colors">Newsletter</button>
+            <div className="flex justify-end">
+              <Link href="/admin/dashboard" className="hover:text-white/80 transition-colors p-1 bg-white/10 rounded-full" title="Admin">
+                <User size={16} />
+              </Link>
             </div>
           </div>
         </div>
@@ -146,6 +147,21 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
               </div>
             )}
           </nav>
+        </div>
+
+        {/* Mobile Categories Scroll Bar */}
+        <div className="lg:hidden border-t border-gray-50 bg-white overflow-hidden">
+          <div className="flex overflow-x-auto scrollbar-hide py-3 px-6 space-x-6 text-[10px] font-bold uppercase tracking-widest text-gray-500">
+            {coreCategories.map((cat) => (
+              <Link 
+                key={cat} 
+                href={categoryHref(cat)}
+                className="hover:text-[#bc002d] transition-colors whitespace-nowrap"
+              >
+                {cat}
+              </Link>
+            ))}
+          </div>
         </div>
       </header>
 

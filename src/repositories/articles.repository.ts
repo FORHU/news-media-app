@@ -65,6 +65,10 @@ export const articlesRepository = {
       and.push({
         status: status,
       });
+    } else {
+      and.push({
+        status: { in: ["published", "blog"] },
+      });
     }
 
     return prisma.contentArticle.findMany({
@@ -82,7 +86,8 @@ export const articlesRepository = {
   },
 
   async findById(id: string, tenantId?: string | null): Promise<Article | null> {
-    const where = tenantId ? { id, tenantId } : { id };
+    const where: Prisma.ContentArticleWhereInput = tenantId ? { id, tenantId } : { id };
+    where.status = { in: ["published", "blog"] };
     return (await prisma.contentArticle.findFirst({
       where: where as any,
       include: articleInclude,
@@ -91,8 +96,10 @@ export const articlesRepository = {
 
   async findBySlug(slug: string, tenantId?: string | null): Promise<Article | null> {
     try {
+      const where: Prisma.ContentArticleWhereInput = tenantId ? { slug, tenantId } : { slug };
+      where.status = { in: ["published", "blog"] };
       return (await prisma.contentArticle.findFirst({
-        where: tenantId ? ({ slug, tenantId } as any) : ({ slug } as any),
+        where: where as any,
         include: articleInclude,
       })) as Article | null;
     } catch {

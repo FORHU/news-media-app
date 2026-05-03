@@ -38,7 +38,7 @@ export function FeaturedArticlesSection({
   const domainColor = getDomainColor(domain);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-0">
       {articles.map((article) => (
         <ArticleLink
           key={article.id}
@@ -53,14 +53,7 @@ export function FeaturedArticlesSection({
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
-            <div className="absolute top-2 right-2">
-              <span 
-                className="inline-block text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase"
-                style={{ backgroundColor: domainColor.hex }}
-              >
-                {article.status ?? "article"}
-              </span>
-            </div>
+
           </div>
           <div className="p-3">
             {normalizeCategoryName(article.category?.categoryName) ? (

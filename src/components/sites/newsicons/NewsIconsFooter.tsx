@@ -17,6 +17,6 @@ interface NewsIconsFooterProps {
 
 export default function NewsIconsFooter({ onOpenNewsletter, footerBanners }: NewsIconsFooterProps) {
   return (
-    <Footer onOpenNewsletter={onOpenNewsletter} footerBanners={footerBanners} />
+    <Footer onOpenNewsletter={onOpenNewsletter} />
   );
 }

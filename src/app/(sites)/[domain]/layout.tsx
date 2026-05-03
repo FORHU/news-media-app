@@ -12,16 +12,9 @@ export default async function SiteLayout({
   const { domain } = await params;
   const tenantId = await resolveTenantIdFromDomain(domain);
 
-  // Fetch footer banners once for the entire site
-  const footerBanners = tenantId
-    ? await bannersService
-        .getBanners({ position: "GLOBAL_FOOTER", isActive: true, tenantId })
-        .catch(() => [])
-    : [];
-
   return (
     <div className={`site-theme-${domain.replace(".", "-")}`}>
-      <SiteShell domain={domain} footerBanners={footerBanners}>
+      <SiteShell domain={domain}>
         {children}
       </SiteShell>
     </div>

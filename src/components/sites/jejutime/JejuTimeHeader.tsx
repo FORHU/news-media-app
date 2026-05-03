@@ -25,6 +25,7 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
   const [query, setQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<Article[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -99,94 +100,112 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
   return (
     <>
     <div className="flex flex-col">
-      {/* Top Black Bar (Shared with NewsIcons style but Jeju branded) */}
-      <div className="bg-[#1a1a1a] text-white py-1.5">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-3 items-center text-[10px] font-bold tracking-widest uppercase">
-          <div className="opacity-60">
-            {/* Left side info if any */}
-          </div>
-          
-          <div className="flex justify-center">
-            <form onSubmit={handleSearch} className="relative w-full max-w-[280px]">
-              <input 
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="SEARCH..."
-                className="bg-white/10 border border-white/10 rounded-full px-8 py-1 text-[9px] w-full outline-none focus:bg-white/20 focus:border-blue-400/50 transition-all text-white placeholder:text-white/40"
-              />
-              <Search size={10} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
-            </form>
-          </div>
 
-          <div className="flex justify-end space-x-4 opacity-60">
-             <Link href="/admin/dashboard" className="hover:text-white transition-colors flex items-center gap-1">
-                <User size={12} /> Admin
-             </Link>
-          </div>
-        </div>
-      </div>
 
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-blue-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-8">
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-blue-50 shadow-sm flex flex-col">
+        {/* Main Header Top */}
+        <div className="max-w-7xl mx-auto px-6 h-20 w-full flex items-center justify-between lg:grid lg:grid-cols-3">
           
-          <div className="flex items-center space-x-8 shrink-0">
+          {/* Left: Menu & Logo (Mobile) / Menu & Logo (Desktop) */}
+          <div className="flex items-center space-x-5 lg:space-x-8">
             <button
               type="button"
               onClick={() => setIsSidebarOpen(true)}
               aria-label="Open menu"
               className="text-blue-900 hover:scale-110 transition-transform"
             >
-              <Menu size={20} />
+              <Menu size={22} />
             </button>
-            <Link href="/">
-              <h1 className="text-3xl font-playfair font-black tracking-tighter text-blue-950">
+            <Link href="/" className={`${isMobileSearchOpen ? 'hidden md:block' : 'block'}`}>
+              <h1 className="text-2xl lg:text-3xl font-playfair font-black tracking-tighter text-blue-950">
                 Jeju <span className="text-blue-600/80">Time</span>
               </h1>
             </Link>
           </div>
- 
-          {/* Dynamic Categories Nav */}
-          <nav className="hidden lg:flex flex-1 justify-center items-center space-x-6 text-[12px] font-bold uppercase tracking-widest text-slate-500">
-            {coreCategories.slice(0, 5).map((cat) => (
-              <Link 
-                key={cat} 
-                href={`/search?category=${encodeURIComponent(cat)}`}
-                className="hover:text-blue-600 transition-colors whitespace-nowrap"
-              >
-                {cat}
-              </Link>
-            ))}
-            {coreCategories.length > 5 && (
-              <div className="relative group cursor-pointer flex items-center gap-1 hover:text-blue-600 py-2">
-                 MORE <ChevronDown size={14} />
-                 <div className="absolute top-full right-0 pt-2 hidden group-hover:block z-50">
-                    <div className="bg-white shadow-2xl border border-slate-100 p-6 rounded-2xl grid grid-cols-2 gap-x-8 gap-y-4 min-w-[350px]">
-                       {coreCategories.slice(5).map((cat) => (
-                         <Link 
-                            key={cat} 
-                            href={categoryHref(cat)} 
-                            className="text-slate-500 hover:text-blue-600 lowercase tracking-normal text-sm font-light whitespace-nowrap transition-colors"
-                         >
-                            {cat}
-                         </Link>
-                       ))}
-                    </div>
-                 </div>
-              </div>
-            )}
-          </nav>
- 
-          <div className="flex items-center space-x-5 shrink-0">
-            {/* Search Container */}
 
-            <button 
-              onClick={onOpenNewsletter}
-              className="bg-blue-600 text-white px-5 py-2 rounded-full text-xs font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all hover:-translate-y-0.5"
-            >
-              SUBSCRIBE
-            </button>
+          {/* Center: Search (Desktop) / Search Toggle (Mobile) */}
+          <div className={`flex-1 flex justify-center items-center ${isMobileSearchOpen ? 'flex' : 'hidden md:flex'}`}>
+            <form onSubmit={handleSearch} className="relative w-full max-w-[280px] lg:max-w-[320px]">
+              <input 
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="SEARCH..."
+                className="bg-slate-50 border border-slate-200 rounded-full px-8 py-2 text-[10px] w-full outline-none focus:bg-white focus:border-blue-400/50 transition-all text-slate-800 placeholder:text-slate-400 font-bold uppercase tracking-widest"
+              />
+              <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              {isMobileSearchOpen && (
+                <button 
+                  type="button" 
+                  onClick={() => setIsMobileSearchOpen(false)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 md:hidden"
+                >
+                  <X size={14} className="text-slate-400" />
+                </button>
+              )}
+            </form>
           </div>
+ 
+          {/* Right: Actions (Desktop) / Search Icon (Mobile) */}
+          <div className="flex items-center space-x-4 justify-end">
+            {!isMobileSearchOpen && (
+              <button 
+                onClick={() => setIsMobileSearchOpen(true)}
+                className="md:hidden text-blue-900 p-2"
+                aria-label="Search"
+              >
+                <Search size={22} />
+              </button>
+            )}
+
+            <div className="hidden md:flex items-center space-x-4">
+              <button 
+                onClick={onOpenNewsletter}
+                className="bg-blue-600 text-white px-5 py-2 rounded-full text-xs font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all hover:-translate-y-0.5"
+              >
+                SUBSCRIBE
+              </button>
+              
+              <Link href="/admin/dashboard" className="text-slate-500 hover:text-blue-600 transition-colors flex items-center justify-center w-9 h-9 bg-slate-50 border border-slate-200 rounded-full" title="Admin">
+                <User size={14} />
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Categories Secondary Bar - Now with Native Mobile Scroll */}
+        <div className="bg-black border-t border-white/10 overflow-hidden">
+           <div className="max-w-7xl mx-auto px-6 h-11 lg:h-12 flex items-center">
+             <nav className="flex items-center space-x-8 lg:space-x-10 text-[10px] lg:text-[11px] font-bold uppercase tracking-[0.15em] lg:tracking-[0.2em] text-white/60 overflow-x-auto no-scrollbar scroll-smooth whitespace-nowrap py-1">
+                {coreCategories.map((cat) => (
+                  <Link 
+                    key={cat} 
+                    href={`/search?category=${encodeURIComponent(cat)}`}
+                    className="hover:text-blue-400 transition-colors"
+                  >
+                    {cat}
+                  </Link>
+                ))}
+                {overflowCategories.length > 0 && (
+                  <div className="relative group cursor-pointer flex items-center gap-1 hover:text-blue-400 py-2 hidden lg:flex">
+                     MORE <ChevronDown size={14} />
+                     <div className="absolute top-full right-0 pt-2 hidden group-hover:block z-50">
+                        <div className="bg-slate-900 shadow-2xl border border-white/10 p-6 rounded-2xl grid grid-cols-2 gap-x-8 gap-y-4 min-w-[350px]">
+                           {overflowCategories.map((cat) => (
+                             <Link 
+                                key={cat} 
+                                href={categoryHref(cat)} 
+                                className="text-white/60 hover:text-blue-400 lowercase tracking-normal text-sm font-light transition-colors"
+                             >
+                                {cat}
+                             </Link>
+                           ))}
+                        </div>
+                     </div>
+                  </div>
+                )}
+             </nav>
+           </div>
         </div>
       </header>
     </div>
@@ -199,7 +218,7 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-blue-950/60 backdrop-blur-sm z-[60]"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]"
               onClick={() => setIsSidebarOpen(false)}
             />
             <RemoveScroll enabled={isSidebarOpen}>
@@ -208,10 +227,10 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
                 animate={{ x: 0 }}
                 exit={{ x: "-100%" }}
                 transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                className="fixed left-0 top-0 h-[100dvh] w-full sm:w-80 max-w-[85vw] bg-white z-[70] shadow-2xl flex flex-col overflow-hidden rounded-r-3xl"
+                className="fixed left-0 top-0 h-[100dvh] w-full sm:w-80 max-w-[85vw] bg-white z-[70] shadow-2xl flex flex-col overflow-hidden"
               >
                 {/* Sidebar Header */}
-                <div className="flex-shrink-0 bg-blue-950 h-16 px-5 flex items-center justify-between rounded-tr-3xl">
+                <div className="flex-shrink-0 bg-black h-16 px-5 flex items-center justify-between">
                   <button
                     onClick={() => setIsSidebarOpen(false)}
                     className="p-1.5 text-blue-200 hover:text-white transition-colors"
@@ -264,11 +283,20 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
                   <button
                     type="button"
                     onClick={() => { setIsSidebarOpen(false); onOpenNewsletter?.(); }}
-                    className="w-full flex items-center justify-center gap-3 py-3 bg-blue-600 text-white text-xs font-bold rounded-2xl uppercase tracking-widest hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all mb-4"
+                    className="w-full flex items-center justify-center gap-3 py-3 bg-blue-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all mb-3"
                   >
                     <Mail className="w-4 h-4" />
                     Subscribe
                   </button>
+
+                  <Link
+                    href="/admin/dashboard"
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="w-full flex items-center justify-center gap-3 py-3 bg-slate-50 text-slate-600 text-xs font-bold border border-slate-200 uppercase tracking-widest hover:bg-slate-100 transition-all mb-6"
+                  >
+                    <User className="w-4 h-4" />
+                    Admin Panel
+                  </Link>
                   <div className="text-center">
                     <p className="text-[10px] text-blue-500 font-black uppercase tracking-[0.2em] mb-3">Follow Us</p>
                     <div className="flex items-center justify-center gap-5">

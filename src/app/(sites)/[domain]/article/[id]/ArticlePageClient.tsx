@@ -21,11 +21,11 @@ import {
   stripOriginalPostBlock,
 } from "@/lib/tweetArticleDisplay";
 
-export default function ArticlePageClient({ 
-  articleId, 
+export default function ArticlePageClient({
+  articleId,
   initialOtherArticles = [],
   domain
-}: { 
+}: {
   articleId: string;
   initialOtherArticles?: Article[];
   domain: string;
@@ -134,138 +134,138 @@ export default function ArticlePageClient({
   const secondHalf = paragraphs.slice(midpoint).join("\n\n");
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
-        <button
-          type="button"
-          onClick={() =>
-            window.history.length > 1 ? router.back() : router.push("/")
-          }
-          className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#ff4500] mb-6 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </button>
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-8">
+      <button
+        type="button"
+        onClick={() =>
+          window.history.length > 1 ? router.back() : router.push("/")
+        }
+        className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#ff4500] mb-6 transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back
+      </button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <article>
-              {/* ── Header: category, title, date ── */}
-              <header>
-                {normalizeCategoryName(article.category?.categoryName) ? (
-                  <span className="inline-block px-2 py-0.5 bg-[#ff4500] text-white rounded text-xs font-semibold uppercase mb-4">
-                    {normalizeCategoryName(article.category?.categoryName)}
-                  </span>
-                ) : null}
-                <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-                  {article.title}
-                </h1>
-                <p className="text-gray-500">{formattedDate}</p>
-              </header>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          <article>
+            {/* ── Header: category, title, date ── */}
+            <header>
+              {normalizeCategoryName(article.category?.categoryName) ? (
+                <span className="inline-block px-2 py-0.5 bg-[#ff4500] text-white rounded text-xs font-semibold uppercase mb-4">
+                  {normalizeCategoryName(article.category?.categoryName)}
+                </span>
+              ) : null}
+              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+                {article.title}
+              </h1>
+              <p className="text-gray-500">{formattedDate}</p>
+            </header>
 
-              {showTweetCommentaryEmbed && rawTweet?.tweetId ? (
-                <div className="mt-6 mb-2">
-                  <TwitterStatusEmbed
-                    tweetId={rawTweet.tweetId}
-                    profileUrl={rawTweet.profileUrl}
+            {showTweetCommentaryEmbed && rawTweet?.tweetId ? (
+              <div className="mt-6 mb-2">
+                <TwitterStatusEmbed
+                  tweetId={rawTweet.tweetId}
+                  profileUrl={rawTweet.profileUrl}
+                />
+              </div>
+            ) : null}
+
+            {showYoutubePlayer ? (
+              <>
+                {/* YouTube Embed at the top (commentary / legacy); hidden for standalone VIDEO */}
+                <div className="mt-6 mb-8 rounded-xl overflow-hidden bg-black aspect-video shadow-lg">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${youtubeId}`}
+                    title="YouTube video player"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full border-0"
                   />
                 </div>
-              ) : null}
 
-              {showYoutubePlayer ? (
-                <>
-                  {/* YouTube Embed at the top (commentary / legacy); hidden for standalone VIDEO */}
-                  <div className="mt-6 mb-8 rounded-xl overflow-hidden bg-black aspect-video shadow-lg">
-                    <iframe
-                      src={`https://www.youtube.com/embed/${youtubeId}`}
-                      title="YouTube video player"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      className="w-full h-full border-0"
-                    />
-                  </div>
-
-                  {article.imageUrl ? (
-                    <>
-                      {/* Article content — first half */}
-                      <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                        {firstHalf}
-                      </div>
-
-                      {/* Hero image — inside the article */}
-                      <div className="my-8 rounded-xl overflow-hidden bg-gray-200 relative aspect-video shadow-sm">
-                        <StoryImage
-                          src={article.imageUrl}
-                          alt={article.title}
-                          fill
-                          sizes="(max-width: 1024px) 100vw, 80vw"
-                          className="object-cover"
-                          variant="hero"
-                        />
-                      </div>
-
-                      {/* Article content — second half */}
-                      {secondHalf && (
-                        <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                          {secondHalf}
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="mt-8 text-gray-700 leading-relaxed whitespace-pre-wrap">
-                      {fullContent}
+                {article.imageUrl ? (
+                  <>
+                    {/* Article content — first half */}
+                    <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      {firstHalf}
                     </div>
-                  )}
-                  {referenceLine ? (
-                    <p className="mt-8 pt-6 border-t border-gray-200 text-sm text-gray-500">
-                      {referenceLine}
-                    </p>
-                  ) : null}
-                </>
-              ) : (
-                <>
 
-                  {/* Hero image — at the top for standard articles (and standalone YouTube articles) */}
-                  <div className="mt-6 rounded-xl overflow-hidden bg-gray-200 relative aspect-video shadow-sm">
-                    <StoryImage
-                      src={article.imageUrl}
-                      alt={article.title}
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 80vw"
-                      priority
-                      className="object-cover"
-                      variant="hero"
-                    />
-                  </div>
+                    {/* Hero image — inside the article */}
+                    <div className="my-8 rounded-xl overflow-hidden bg-gray-200 relative aspect-video shadow-sm">
+                      <StoryImage
+                        src={article.imageUrl}
+                        alt={article.title}
+                        fill
+                        sizes="(max-width: 1024px) 100vw, 80vw"
+                        className="object-cover"
+                        variant="hero"
+                      />
+                    </div>
 
-
-                  {/* Article content — full */}
+                    {/* Article content — second half */}
+                    {secondHalf && (
+                      <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                        {secondHalf}
+                      </div>
+                    )}
+                  </>
+                ) : (
                   <div className="mt-8 text-gray-700 leading-relaxed whitespace-pre-wrap">
                     {fullContent}
                   </div>
-                  {referenceLine ? (
-                    <p className="mt-8 pt-6 border-t border-gray-200 text-sm text-gray-500">
-                      {referenceLine}
-                    </p>
-                  ) : null}
-                </>
-              )}
-            </article>
-          </div>
+                )}
+                {referenceLine ? (
+                  <p className="mt-8 pt-6 border-t border-gray-200 text-sm text-gray-500">
+                    {referenceLine}
+                  </p>
+                ) : null}
+              </>
+            ) : (
+              <>
 
-          <div className="lg:col-span-1 space-y-8">
-            <TrendingSidebar articles={trendingArticles} domain={domain} />
-            <AdBanner position="ARTICLE_SIDEBAR" />
-          </div>
+                {/* Hero image — at the top for standard articles (and standalone YouTube articles) */}
+                <div className="mt-6 rounded-xl overflow-hidden bg-gray-200 relative aspect-video shadow-sm">
+                  <StoryImage
+                    src={article.imageUrl}
+                    alt={article.title}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 80vw"
+                    priority
+                    className="object-cover"
+                    variant="hero"
+                  />
+                </div>
+
+
+                {/* Article content — full */}
+                <div className="mt-8 text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  {fullContent}
+                </div>
+                {referenceLine ? (
+                  <p className="mt-8 pt-6 border-t border-gray-200 text-sm text-gray-500">
+                    {referenceLine}
+                  </p>
+                ) : null}
+              </>
+            )}
+          </article>
         </div>
 
-        {recommendedArticles.length > 0 && (
-          <div className="mt-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Recommended articles
-            </h2>
-            <FeaturedArticlesSection articles={recommendedArticles} domain={domain} />
-          </div>
-        )}
-      </main>
+        <div className="lg:col-span-1 space-y-8">
+          <TrendingSidebar articles={trendingArticles} domain={domain} />
+          <AdBanner position="ARTICLE_SIDEBAR" />
+        </div>
+      </div>
+
+      {recommendedArticles.length > 0 && (
+        <div className="mt-0">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Recommended articles
+          </h2>
+          <FeaturedArticlesSection articles={recommendedArticles} domain={domain} />
+        </div>
+      )}
+    </main>
   );
 }
