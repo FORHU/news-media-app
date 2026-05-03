@@ -114,7 +114,7 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                   </div>
 
                   <Link href={`/article/${heroArticle.slug || heroArticle.id}`} className="block max-w-4xl">
-                    <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-serif font-black leading-[1.1] mb-4 hover:text-[#bc002d] transition-colors tracking-tight">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-noto font-black leading-[1.1] mb-4 hover:text-[#bc002d] transition-colors tracking-tight">
                       {heroArticle.title}
                     </h2>
                     <p className="text-gray-600 text-base lg:text-lg leading-relaxed line-clamp-3 font-light mb-5 opacity-90">
@@ -170,14 +170,14 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
             {/* Right Sidebar */}
             <aside className="lg:col-span-4">
                <div className="bg-[#111] text-white p-6 mb-6">
-                  <h3 className="text-base font-serif font-black flex items-center gap-2 mb-6 uppercase tracking-widest border-b border-white/20 pb-4">
+                  <h3 className="text-base font-noto font-black flex items-center gap-2 mb-6 uppercase tracking-widest border-b border-white/20 pb-4">
                      <TrendingUp size={18} className="text-[#bc002d]" /> Trending
                   </h3>
                    <div className="space-y-6">
                       {trendingArticles.map((article, i) => (
                          <Link key={article.id} href={`/article/${article.slug || article.id}`} className="block group">
                             <div className="flex gap-4">
-                               <span className="text-3xl font-serif font-black text-white/10 group-hover:text-[#bc002d] transition-colors shrink-0">0{i + 1}</span>
+                               <span className="text-3xl font-noto font-black text-white/10 group-hover:text-[#bc002d] transition-colors shrink-0">0{i + 1}</span>
                                <div className="min-w-0">
                                   <span className="text-[9px] text-gray-500 uppercase tracking-[0.2em] block mb-1">{article.category?.categoryName}</span>
                                   <h4 className="text-sm font-bold leading-snug group-hover:text-white/80 line-clamp-2 transition-colors">{article.title}</h4>
@@ -199,7 +199,7 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
           {featuredArticles.length > 0 && (
             <section className="mt-14 md:mt-20 bg-[#111] text-white p-8 md:p-12 lg:p-14 relative overflow-hidden">
                <div className="flex items-center justify-between mb-8 relative z-10 border-b border-white/10 pb-6">
-                  <h3 className="text-xl sm:text-2xl md:text-3xl font-serif font-black uppercase tracking-[0.1em] flex items-center gap-3">
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-noto font-black uppercase tracking-[0.1em] flex items-center gap-3">
                      <TrendingUp size={22} className="text-[#bc002d]" />
                      Featured Report
                   </h3>
@@ -214,7 +214,7 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                         <div className="relative aspect-[16/10] overflow-hidden mb-4 bg-white/5">
                            <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300" />
                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                           <span className="absolute bottom-3 left-3 text-4xl font-serif font-black text-white/10 group-hover:text-[#bc002d] transition-colors">0{i + 1}</span>
+                           <span className="absolute bottom-3 left-3 text-4xl font-noto font-black text-white/10 group-hover:text-[#bc002d] transition-colors">0{i + 1}</span>
                         </div>
                         <span className="text-[10px] text-[#bc002d] font-black uppercase mb-2 block tracking-[0.3em]">{article.category?.categoryName}</span>
                         <h4 className="text-base md:text-lg font-bold leading-tight group-hover:text-[#bc002d] transition-colors line-clamp-2">{article.title}</h4>

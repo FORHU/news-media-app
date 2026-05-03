@@ -27,9 +27,16 @@ export default function JejuTimeFooter({ onOpenNewsletter, footerBanners }: Foot
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 mb-20">
           <div className="lg:col-span-4">
-            <h2 className="text-2xl font-playfair font-black tracking-tighter text-white mb-6">
-              Jeju <span className="text-blue-500">Time</span>
-            </h2>
+            <div className="flex items-center gap-3 mb-8">
+              <div className="relative w-10 h-10 border-2 border-blue-500 rounded-full flex items-center justify-center">
+                <div className="absolute w-0.5 h-3 bg-blue-500 top-2 rounded-full origin-bottom"></div>
+                <div className="absolute w-0.5 h-2.5 bg-blue-500 left-1/2 top-1/2 -translate-y-full origin-bottom rotate-90 rounded-full"></div>
+                <div className="w-1 h-1 bg-blue-500 rounded-full z-10"></div>
+              </div>
+              <h2 className="text-2xl font-baskerville font-bold tracking-tight text-white leading-none">
+                Jeju <span className="italic text-blue-500">Time</span>
+              </h2>
+            </div>
             <p className="text-slate-400 text-sm leading-relaxed max-w-sm mb-8 font-light">
               Capturing the weightless essence of Jeju's volcanic soul and coastal rhythm. Premium journalism for the modern islander.
             </p>

@@ -114,7 +114,7 @@ export default function JejuQQArticle({
                     </span>
                   </div>
                 )}
-                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif font-black leading-[1.05] mb-6 tracking-tighter">
+                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-garamond font-black leading-[1.05] mb-6 tracking-tighter">
                   {article.title}
                 </h1>
                 <div className="flex items-center justify-between border-y border-gray-200 py-5">
@@ -139,7 +139,7 @@ export default function JejuQQArticle({
                   <div className="mb-10 bg-black aspect-video rounded-none overflow-hidden shadow-lg border-2 border-[#dc2626]">
                     <iframe src={`https://www.youtube.com/embed/${youtubeId}`} title="YouTube video player" allowFullScreen className="w-full h-full border-0" />
                   </div>
-                  <div className="prose prose-lg prose-serif max-w-none prose-headings:font-black prose-p:leading-relaxed prose-p:text-gray-700">
+                  <div className="prose prose-lg font-garamond max-w-none prose-headings:font-black prose-p:leading-relaxed prose-p:text-gray-700">
                     {article.imageUrl ? (
                       <>
                         <div className="whitespace-pre-wrap mb-10">{firstHalf}</div>
@@ -160,7 +160,7 @@ export default function JejuQQArticle({
                       <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" />
                     </div>
                   )}
-                  <div className="prose prose-lg prose-serif max-w-none prose-headings:font-black prose-p:leading-relaxed prose-p:text-gray-700 whitespace-pre-wrap">
+                  <div className="prose prose-lg font-garamond max-w-none prose-headings:font-black prose-p:leading-relaxed prose-p:text-gray-700 whitespace-pre-wrap">
                     {fullContent}
                   </div>
                 </>
@@ -169,7 +169,7 @@ export default function JejuQQArticle({
               {referenceLine && (
                 <div className="mt-16 pt-10 border-t border-gray-100">
                   <p className="text-sm text-gray-400 font-bold uppercase tracking-[0.2em] mb-4">Original Reference</p>
-                  <p className="text-gray-500 font-serif italic text-lg leading-relaxed">
+                  <p className="text-gray-500 font-garamond italic text-lg leading-relaxed">
                     {referenceLine}
                   </p>
                 </div>
@@ -181,7 +181,7 @@ export default function JejuQQArticle({
           <div className="lg:col-span-4 space-y-10">
             <div className="bg-gray-50 rounded-none p-6 border-2 border-[#dc2626] lg:sticky lg:top-28">
               <div className="flex items-center justify-between mb-8 pb-5 border-b border-gray-200">
-                 <h3 className="text-xl font-serif font-black flex items-center gap-2">
+                 <h3 className="text-xl font-garamond font-black flex items-center gap-2">
                     Trending <TrendingUp size={20} className="text-[#dc2626]" />
                  </h3>
                  <span className="w-2 h-2 bg-[#dc2626]"></span>
@@ -190,7 +190,7 @@ export default function JejuQQArticle({
               <div className="space-y-7">
                  {trendingArticles.map((article, i) => (
                     <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex gap-4 items-start group">
-                        <span className="text-3xl font-serif font-black text-[#dc2626]/30 group-hover:text-[#dc2626]/60 transition-colors tabular-nums shrink-0">
+                        <span className="text-3xl font-garamond font-black text-[#dc2626]/30 group-hover:text-[#dc2626]/60 transition-colors tabular-nums shrink-0">
                           {String(i + 1).padStart(2, '0')}
                        </span>
                        <div className="min-w-0">
@@ -213,7 +213,7 @@ export default function JejuQQArticle({
           <div className="mt-16 pt-12 border-t border-gray-200 lg:mt-24 lg:pt-16">
             <div className="flex items-center justify-center gap-6 mb-10">
               <div className="h-0.5 w-16 bg-gray-200"></div>
-              <h2 className="text-2xl md:text-3xl font-serif font-black uppercase tracking-tight text-center">
+              <h2 className="text-2xl md:text-3xl font-garamond font-black uppercase tracking-tight text-center">
                 More to Discover
               </h2>
               <div className="h-0.5 w-16 bg-gray-200"></div>
