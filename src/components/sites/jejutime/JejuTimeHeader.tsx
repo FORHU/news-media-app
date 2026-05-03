@@ -117,19 +117,9 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
               <Menu size={22} />
             </button>
             <Link href="/" className={`${isMobileSearchOpen ? 'hidden md:block' : 'block'}`}>
-              <div className="flex items-center gap-4 group">
-                <div className="relative w-10 h-10 border-2 border-blue-600 rounded-full flex items-center justify-center group-hover:rotate-12 transition-transform duration-500">
-                  <div className="absolute w-0.5 h-3 bg-blue-600 top-2 rounded-full origin-bottom"></div>
-                  <div className="absolute w-0.5 h-2.5 bg-blue-600 left-1/2 top-1/2 -translate-y-full origin-bottom rotate-90 rounded-full"></div>
-                  <div className="w-1 h-1 bg-blue-600 rounded-full z-10"></div>
-                </div>
-                <div className="flex flex-col">
-                  <h1 className="text-2xl lg:text-3xl font-baskerville font-bold tracking-tight text-blue-950 leading-none">
-                    Jeju <span className="italic text-blue-600">Time</span>
-                  </h1>
-                  <span className="text-[9px] font-black uppercase tracking-[0.4em] text-blue-400 mt-1">Est. 2024</span>
-                </div>
-              </div>
+              <h1 className="text-2xl lg:text-3xl font-baskerville font-bold tracking-tight text-blue-950 leading-none">
+                Jeju <span className="text-blue-600">Time</span>
+              </h1>
             </Link>
           </div>
 

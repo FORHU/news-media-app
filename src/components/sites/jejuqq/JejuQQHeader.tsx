@@ -99,14 +99,11 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
               <span className="text-[10px] font-black uppercase tracking-[0.2em] hidden sm:block">Menu</span>
             </button>
 
-            <Link href="/" className="hover:opacity-90 transition-opacity border-y-2 border-black py-1 px-2">
-              <div className="flex flex-col items-center leading-none">
-                <span className="text-[12px] font-black uppercase tracking-[0.5em] text-gray-500 mb-1">The Daily</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-[28px] md:text-[42px] font-garamond font-black tracking-tighter text-black leading-none italic">Jeju</span>
-                  <span className="text-[28px] md:text-[42px] font-garamond font-black tracking-tighter text-[#dc2626] leading-none">QQ</span>
-                </div>
-              </div>
+            <Link href="/" className="hover:opacity-90 transition-opacity">
+              <h1 className="flex items-center gap-1">
+                <span className="text-[28px] md:text-[42px] font-garamond font-black tracking-tighter text-black leading-none">Jeju</span>
+                <span className="text-[28px] md:text-[42px] font-garamond font-black tracking-tighter text-[#dc2626] leading-none">QQ</span>
+              </h1>
             </Link>
           </div>
 

@@ -27,14 +27,10 @@ export default function JejuJapanFooter({ onOpenNewsletter, footerBanners }: Jej
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16">
           <div className="md:col-span-4">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-10 h-10 bg-[#bc002d] rounded-full flex items-center justify-center shrink-0">
-                <span className="text-white font-noto font-black text-lg">JJ</span>
-              </div>
-              <h1 className="text-xl font-noto font-black tracking-widest text-white flex flex-col">
-                 <span>JEJU<span className="text-[#bc002d]">JAPAN</span></span>
-                 <span className="text-[9px] font-bold tracking-[0.3em] text-gray-500 mt-1 uppercase">News Network</span>
-              </h1>
+            <div className="mb-6">
+              <h2 className="text-xl font-noto font-black tracking-widest text-white uppercase">
+                JEJU<span className="text-[#bc002d]">JAPAN</span>
+              </h2>
             </div>
             <p className="text-gray-400 text-sm leading-relaxed mb-8 max-w-sm">
                Revolutionizing storytelling through AI-powered insights and high-quality journalism. Delivering truth at the speed of tech.
