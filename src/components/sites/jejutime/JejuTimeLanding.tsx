@@ -74,15 +74,16 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                   {/* Main Floating Feature */}
                   <div className="lg:col-span-8 group">
                      {mainArticle && (
-                        <div className="relative aspect-[16/9] overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] group-hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.15)] transition-all duration-700 hover:-translate-y-2 bg-slate-100 h-full">
+                        <div className="relative aspect-[16/9] overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] group-hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.15)] transition-all duration-300 hover:-translate-y-1 bg-slate-100 h-full">
                            <Link href={`/article/${mainArticle.slug || mainArticle.id}`} className="block h-full w-full relative">
                               <StoryImage
                                  src={mainArticle.imageUrl}
                                  alt={mainArticle.title}
                                  fill
-                                 className="object-cover scale-105 transition-transform duration-1000"
+                                 className="object-cover group-hover:scale-105 transition-transform duration-300"
                                  variant="hero"
                                  hideTitle={true}
+                                 priority={true}
                               />
                               <div className="absolute inset-0 bg-gradient-to-t from-blue-950/80 via-transparent to-transparent" />
                               <div className="absolute bottom-0 left-0 p-10 text-white max-w-2xl">
@@ -105,7 +106,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                   <div className="lg:col-span-4 flex flex-col gap-6">
                      {secondaryArticles.map((article) => (
                         <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group block flex-1">
-                           <div className="relative h-full overflow-hidden shadow-xl shadow-blue-100 group-hover:-translate-y-1 transition-all duration-500 bg-slate-100 border border-slate-100">
+                           <div className="relative h-full overflow-hidden shadow-xl shadow-blue-100 group-hover:-translate-y-1 transition-all duration-300 bg-slate-100 border border-slate-100">
                               <StoryImage
                                  src={article.imageUrl}
                                  alt={article.title}
@@ -146,7 +147,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                               {latestStories.slice(0, 4).map((article) => (
                                  <article key={article.id} className="group cursor-pointer">
                                     <Link href={`/article/${article.slug || article.id}`}>
-                                       <div className="relative aspect-[16/10] overflow-hidden mb-5 shadow-xl shadow-blue-50 transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-blue-100 bg-slate-100 border border-slate-100">
+                                       <div className="relative aspect-[16/10] overflow-hidden mb-5 shadow-xl shadow-blue-50 transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-blue-100 bg-slate-100 border border-slate-100">
                                           <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" />
                                           <div className="absolute inset-0 bg-blue-600/0 group-hover:bg-blue-600/5 transition-colors pointer-events-none" />
                                        </div>
@@ -164,7 +165,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                                  <article key={article.id} className="group">
                                     <Link href={`/article/${article.slug || article.id}`} className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
                                        <div className="relative w-full sm:w-36 aspect-[16/10] sm:aspect-[4/3] overflow-hidden shrink-0 shadow-md shadow-blue-50 group-hover:shadow-blue-100 transition-all bg-slate-100 border border-slate-50">
-                                          <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
+                                          <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                                        </div>
                                        <div className="flex-1">
                                           <div className="flex items-center gap-2 mb-2 text-[9px] font-bold uppercase tracking-widest text-slate-400">
@@ -187,7 +188,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                               <article key={article.id} className="group">
                                  <Link href={`/article/${article.slug || article.id}`} className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
                                     <div className="relative w-full sm:w-36 aspect-[16/10] sm:aspect-[4/3] overflow-hidden shrink-0 shadow-md shadow-blue-50 group-hover:shadow-blue-100 transition-all bg-slate-100 border border-slate-50">
-                                       <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
+                                       <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                                     </div>
                                     <div className="flex-1">
                                        <div className="flex items-center gap-2 mb-2 text-[9px] font-bold uppercase tracking-widest text-slate-400">
@@ -244,9 +245,9 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                          <h3 className="text-xl font-playfair font-black text-blue-950 px-2 border-l-4 border-blue-600">Must Read</h3>
                          <div className="grid grid-cols-1 gap-6">
                             {sidebarPicks.map((article) => (
-                               <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group block bg-white overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-slate-100">
+                               <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group block bg-white overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100">
                                   <div className="relative aspect-video overflow-hidden bg-slate-100">
-                                     <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
+                                     <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                                      <div className="absolute inset-0 bg-gradient-to-t from-blue-950/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                   </div>
                                   <div className="p-5">
@@ -278,7 +279,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                         {featuredArticles.map((article) => (
                            <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group block bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
                               <div className="relative aspect-video overflow-hidden mb-4 bg-slate-100">
-                                 <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                                 <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                               </div>
                               <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest block mb-2">{article.category?.categoryName}</span>
                               <h4 className="text-md font-bold leading-tight group-hover:text-blue-600 transition-colors">{article.title}</h4>
