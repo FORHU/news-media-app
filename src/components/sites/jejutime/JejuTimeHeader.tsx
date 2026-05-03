@@ -226,7 +226,7 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
                 initial={{ x: "-100%" }}
                 animate={{ x: 0 }}
                 exit={{ x: "-100%" }}
-                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                transition={{ duration: 0.2 }}
                 className="fixed left-0 top-0 h-[100dvh] w-full sm:w-80 max-w-[85vw] bg-white z-[70] shadow-2xl flex flex-col overflow-hidden"
               >
                 {/* Sidebar Header */}
