@@ -19,38 +19,18 @@ interface Props {
 }
 
 export default function JejuJapanLanding({ tenantId, articles, banners }: Props) {
-  // ── Deduplication Logic ──
-  // 1. Hero takes the first 5
   const heroArticles = articles.slice(0, 5);
-  const heroIds = new Set(heroArticles.map(a => a.id));
-
-  // 2. Trending takes the next 5
-  const trendingArticles = articles.filter(a => !heroIds.has(a.id)).slice(0, 5);
-  const trendingIds = new Set(trendingArticles.map(a => a.id));
-
-  // 3. Featured takes the next 4
-  const featuredArticles = articles
-    .filter(a => !heroIds.has(a.id) && !trendingIds.has(a.id))
-    .slice(0, 4);
-  const featuredIds = new Set(featuredArticles.map(a => a.id));
-
-  // 4. Latest stories takes everything else
-  const allLatestArticles = articles.filter(
-    a => !heroIds.has(a.id) && !trendingIds.has(a.id) && !featuredIds.has(a.id)
-  );
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   
-  const totalPages = Math.ceil(allLatestArticles.length / itemsPerPage) || 1;
+  const totalPages = Math.ceil(articles.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const latestStories = allLatestArticles.slice(startIndex, endIndex);
-
+  const latestStories = articles.slice(startIndex, endIndex);
+  const trendingArticles = articles.slice(0, 5);
+  const featuredArticles = articles.slice(0, 4);
   const trendingProducts = articles.filter((a: any) => a.status === "blog").slice(0, 4);
-
-
-
 
   const [[page, direction], setPage] = useState([0, 0]);
   const index = heroArticles.length > 0 ? Math.abs(page % heroArticles.length) : 0;
@@ -72,7 +52,7 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
         <AdBanner position="HOME_TOP" initialBanners={banners.top} />
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-4 md:py-6">
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
             
@@ -81,8 +61,8 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
               
               {/* Hero Section Carousel */}
               {heroArticle && (
-                <div className="mb-10 md:mb-14">
-                  <div className="relative aspect-video lg:aspect-[21/9] overflow-hidden mb-5 bg-gray-100 shadow-md">
+                <div className="mb-6 md:mb-8">
+                  <div className="relative aspect-video lg:aspect-[21/9] overflow-hidden mb-3 bg-gray-100 shadow-md">
                     <AnimatePresence initial={false} custom={direction} mode="wait">
                       <motion.div
                         key={page}
@@ -148,20 +128,20 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
               )}
 
               {/* Latest Stories List */}
-              <div className="space-y-8 border-t border-gray-100 pt-10">
+              <div className="space-y-4 border-t border-gray-100 pt-4">
                  {latestStories.map((article) => (
-                    <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex flex-row gap-5 group border-b border-gray-50 pb-8 last:border-0 last:pb-0 items-start">
+                    <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex flex-row gap-3 group border-b border-gray-50 pb-4 last:border-0 last:pb-0 items-start">
                        <div className="relative w-28 sm:w-40 md:w-56 aspect-[16/10] overflow-hidden shrink-0 bg-gray-100">
                           <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" />
                        </div>
                        <div className="flex flex-col justify-center flex-1 min-w-0">
-                          <span className="text-[10px] font-black text-[#bc002d] uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+                          <span className="text-[10px] font-black text-[#bc002d] uppercase tracking-[0.2em] mb-0.5 flex items-center gap-2">
                              <span className="w-4 h-[1px] bg-[#bc002d]"></span>
                              {article.category?.categoryName}
                           </span>
-                          <h3 className="text-lg sm:text-xl md:text-2xl font-bold leading-tight mb-3 group-hover:text-[#bc002d] transition-colors">{article.title}</h3>
-                          <p className="text-sm text-gray-500 line-clamp-2 font-light leading-relaxed mb-3">{article.content}</p>
-                          <div className="flex items-center text-[10px] text-gray-400 font-bold gap-3 uppercase mt-auto">
+                          <h3 className="text-lg sm:text-xl md:text-2xl font-bold leading-tight mb-1 group-hover:text-[#bc002d] transition-colors">{article.title}</h3>
+                          <p className="text-sm text-gray-500 line-clamp-2 font-light leading-relaxed mb-2">{article.content}</p>
+                          <div className="flex items-center text-[10px] text-gray-400 font-bold gap-3 uppercase mt-1">
                              <span className="flex items-center gap-1"><Clock size={10} /> 2 hours ago</span>
                              <span className="w-1 h-1 bg-gray-300"></span>
                              <span>By Bureau Tokyo</span>

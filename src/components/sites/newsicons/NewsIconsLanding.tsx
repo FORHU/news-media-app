@@ -18,28 +18,6 @@ interface Props {
 }
 
 export default function NewsIconsLanding({ tenantId, articles, banners }: Props) {
-  // ── Deduplication Logic ──
-  // 1. Hero takes the first 5
-  const heroArticles = articles.slice(0, 5);
-  const heroIds = new Set(heroArticles.map(a => a.id));
-
-  // 2. Featured takes the next 4 (not in Hero)
-  const featuredArticles = articles
-    .filter(a => !heroIds.has(a.id))
-    .slice(0, 4);
-  const featuredIds = new Set(featuredArticles.map(a => a.id));
-
-  // 3. Trending takes another set (distinct from Hero and Featured)
-  const trendingArticles = articles
-    .filter(a => !heroIds.has(a.id) && !featuredIds.has(a.id))
-    .slice(0, 5);
-  const trendingIds = new Set(trendingArticles.map(a => a.id));
-
-  // 4. Latest stories takes everything else
-  const latestArticles = articles.filter(
-    a => !heroIds.has(a.id) && !featuredIds.has(a.id) && !trendingIds.has(a.id)
-  );
-
   return (
     <div className="bg-slate-50">
       {/* Top Ad Banner */}
@@ -50,9 +28,9 @@ export default function NewsIconsLanding({ tenantId, articles, banners }: Props)
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
 
         {/* Hero Carousel */}
-        {heroArticles.length > 0 && (
+        {articles.length > 0 && (
           <div className="mb-10">
-            <HeroSection articles={heroArticles} />
+            <HeroSection articles={articles.slice(0, 5)} />
           </div>
         )}
 
@@ -60,7 +38,7 @@ export default function NewsIconsLanding({ tenantId, articles, banners }: Props)
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
           <div className="lg:col-span-2">
             <LatestStoriesSection
-              articles={latestArticles}
+              articles={articles}
               error=""
               searchQuery={null}
               isLoading={false}
@@ -69,21 +47,18 @@ export default function NewsIconsLanding({ tenantId, articles, banners }: Props)
           </div>
 
           <div className="space-y-8">
-            <TrendingSidebar articles={trendingArticles} domain="newsicons.com" />
+            <TrendingSidebar articles={articles.slice(0, 5)} domain="newsicons.com" />
             <AdBanner position="HOME_SIDEBAR" initialBanners={banners.sidebar} />
           </div>
         </div>
 
         {/* Featured Articles */}
-        <FeaturedArticlesSection articles={featuredArticles} domain="newsicons.com" />
+        <FeaturedArticlesSection articles={articles.slice(0, 4)} domain="newsicons.com" />
 
         {/* Trending / Blog Posts */}
         <TrendingProductsSection
           articles={articles.filter((a: any) => a.status === "blog").slice(0, 4)}
         />
-
-
-
 
       </main>
     </div>
