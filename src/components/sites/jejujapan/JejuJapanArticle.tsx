@@ -132,7 +132,7 @@ export default function JejuJapanArticle({
                   {normalizeCategoryName(article.category?.categoryName)}
                 </span>
               )}
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-black text-black mb-6 leading-tight">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-noto font-black text-black mb-6 leading-tight">
                 {article.title}
               </h1>
               <p className="text-gray-500 text-sm">{formattedDate}</p>
@@ -154,14 +154,14 @@ export default function JejuJapanArticle({
                 </div>
                 {article.imageUrl ? (
                   <>
-                    <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-serif mb-8">{firstHalf}</div>
+                    <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto mb-8">{firstHalf}</div>
                     <div className="my-10 relative aspect-[21/9] bg-gray-100">
                       <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" />
                     </div>
-                    {secondHalf && <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-serif">{secondHalf}</div>}
+                    {secondHalf && <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto">{secondHalf}</div>}
                   </>
                 ) : (
-                  <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-serif first-letter:text-6xl first-letter:font-black first-letter:text-[#bc002d] first-letter:float-left first-letter:mr-3">
+                  <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto first-letter:text-6xl first-letter:font-black first-letter:text-[#bc002d] first-letter:float-left first-letter:mr-3">
                     {fullContent}
                   </div>
                 )}
@@ -173,7 +173,7 @@ export default function JejuJapanArticle({
                     <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" />
                   </div>
                 )}
-                <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-serif first-letter:text-6xl first-letter:font-black first-letter:text-[#bc002d] first-letter:float-left first-letter:mr-3">
+                <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto first-letter:text-6xl first-letter:font-black first-letter:text-[#bc002d] first-letter:float-left first-letter:mr-3">
                   {fullContent}
                 </div>
               </>
@@ -182,7 +182,7 @@ export default function JejuJapanArticle({
             {referenceLine && (
               <div className="mt-16 pt-10 border-t-2 border-gray-100">
                 <p className="text-[10px] text-[#bc002d] font-bold uppercase tracking-[0.4em] mb-4">Official Source</p>
-                <p className="text-gray-600 font-serif italic text-lg leading-relaxed bg-gray-50 p-6 border-l-4 border-[#bc002d]">
+                <p className="text-gray-600 font-noto italic text-lg leading-relaxed bg-gray-50 p-6 border-l-4 border-[#bc002d]">
                   {referenceLine}
                 </p>
               </div>
@@ -193,14 +193,14 @@ export default function JejuJapanArticle({
 
         <div className="lg:col-span-1 space-y-8">
           <div className="bg-[#111] text-white p-6 lg:sticky lg:top-28">
-            <h3 className="text-base font-serif font-black flex items-center gap-2 mb-6 uppercase tracking-widest border-b border-white/20 pb-4">
+            <h3 className="text-base font-noto font-black flex items-center gap-2 mb-6 uppercase tracking-widest border-b border-white/20 pb-4">
                <TrendingUp size={18} className="text-[#bc002d]" /> Trending
             </h3>
             <div className="space-y-6">
                {trendingArticles.map((article, i) => (
                   <Link key={article.id} href={`/article/${article.slug || article.id}`} className="block group">
                      <div className="flex gap-4">
-                        <span className="text-3xl font-serif font-black text-white/10 group-hover:text-[#bc002d] transition-colors shrink-0">0{i + 1}</span>
+                        <span className="text-3xl font-noto font-black text-white/10 group-hover:text-[#bc002d] transition-colors shrink-0">0{i + 1}</span>
                         <div className="min-w-0">
                            <span className="text-[9px] text-gray-500 uppercase tracking-[0.2em] block mb-1">{article.category?.categoryName}</span>
                            <h4 className="text-sm font-bold leading-snug group-hover:text-white/80 line-clamp-2 transition-colors">{article.title}</h4>
@@ -217,7 +217,7 @@ export default function JejuJapanArticle({
       {recommendedArticles.length > 0 && (
         <section className="mt-12 md:mt-20 bg-[#111] text-white p-8 md:p-12 lg:p-14 relative overflow-hidden">
            <div className="flex items-center justify-between mb-8 relative z-10 border-b border-white/10 pb-6">
-              <h3 className="text-xl sm:text-2xl md:text-3xl font-serif font-black uppercase tracking-[0.1em] flex items-center gap-3">
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-noto font-black uppercase tracking-[0.1em] flex items-center gap-3">
                  <TrendingUp size={22} className="text-[#bc002d]" />
                  More to Discover
               </h3>
@@ -232,7 +232,7 @@ export default function JejuJapanArticle({
                     <div className="relative aspect-[16/10] overflow-hidden mb-4 bg-white/5">
                        <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300" />
                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                       <span className="absolute bottom-3 left-3 text-4xl font-serif font-black text-white/10 group-hover:text-[#bc002d] transition-colors">0{i + 1}</span>
+                       <span className="absolute bottom-3 left-3 text-4xl font-noto font-black text-white/10 group-hover:text-[#bc002d] transition-colors">0{i + 1}</span>
                     </div>
                     <span className="text-[10px] text-[#bc002d] font-black uppercase mb-2 block tracking-[0.3em]">{article.category?.categoryName}</span>
                     <h4 className="text-base md:text-lg font-bold leading-tight group-hover:text-[#bc002d] transition-colors line-clamp-2">{article.title}</h4>

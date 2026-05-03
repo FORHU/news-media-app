@@ -144,7 +144,7 @@ export default function JejuTimeArticle({
             </div>
 
             <div className="max-w-4xl mx-auto text-center">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-playfair font-bold text-white mb-8 leading-tight tracking-tight drop-shadow-md">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-baskerville font-bold text-white mb-8 leading-tight tracking-tight drop-shadow-md">
                     {article.title}
                 </h1>
                 <div className="flex items-center justify-center gap-6">
@@ -209,7 +209,7 @@ export default function JejuTimeArticle({
                 {referenceLine && (
                   <div className="mt-16 pt-10 border-t border-blue-50 bg-blue-50/30 p-8 rounded-2xl border-dashed">
                     <p className="text-[10px] text-blue-600 font-bold uppercase tracking-[0.3em] mb-4">Verification Source</p>
-                    <p className="text-slate-600 font-playfair italic text-xl leading-relaxed">
+                    <p className="text-slate-600 font-baskerville italic text-xl leading-relaxed">
                       {referenceLine}
                     </p>
                   </div>

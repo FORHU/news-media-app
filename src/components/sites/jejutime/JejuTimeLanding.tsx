@@ -90,7 +90,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                                  <span className="inline-block bg-blue-500/30 backdrop-blur-md px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest mb-4 border border-white/20">
                                     Primary Story
                                  </span>
-                                 <h2 className="text-4xl font-playfair font-bold leading-tight mb-4 group-hover:text-blue-200 transition-colors">
+                                 <h2 className="text-4xl font-baskerville font-bold leading-tight mb-4 group-hover:text-blue-200 transition-colors">
                                     {mainArticle.title}
                                  </h2>
                                  <p className="text-white/80 line-clamp-2 text-lg font-light leading-relaxed">
@@ -136,7 +136,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                   {/* Latest Stories (JejuTime UI) */}
                   <div className="lg:col-span-8">
                      <div className="flex items-center justify-between mb-8 border-b border-slate-200 pb-4">
-                        <h3 className="text-3xl font-playfair font-black text-blue-950">Latest Updates</h3>
+                        <h3 className="text-3xl font-baskerville font-black text-blue-950">Latest Updates</h3>
                      </div>
                      
                      {/* Display logic: Mixed layout only on Page 1, Rows only on subsequent pages */}
@@ -225,7 +225,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                   {/* Trending Sidebar (JejuTime UI) */}
                   <div className="lg:col-span-4">
                      <div className="bg-white p-8 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-100 mb-8">
-                        <h3 className="text-xl font-playfair font-black text-blue-950 mb-6">Trending</h3>
+                        <h3 className="text-xl font-baskerville font-black text-blue-950 mb-6">Trending</h3>
                         <div className="space-y-6">
                            {trendingArticles.map((article, i) => (
                               <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex gap-4 group">
@@ -242,7 +242,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
 
                       {/* Prominent Sidebar Cards (Sidebar Picks) */}
                       <div className="space-y-6 mb-12">
-                         <h3 className="text-xl font-playfair font-black text-blue-950 px-2 border-l-4 border-blue-600">Must Read</h3>
+                         <h3 className="text-xl font-baskerville font-black text-blue-950 px-2 border-l-4 border-blue-600">Must Read</h3>
                          <div className="grid grid-cols-1 gap-6">
                             {sidebarPicks.map((article) => (
                                <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group block bg-white overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100">
@@ -273,7 +273,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                {featuredArticles.length > 0 && (
                   <section className="mb-24">
                      <div className="flex items-center justify-between mb-8 border-b border-slate-200 pb-4">
-                        <h3 className="text-2xl font-playfair font-black text-blue-950">Featured Collections</h3>
+                        <h3 className="text-2xl font-baskerville font-black text-blue-950">Featured Collections</h3>
                      </div>
                      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                         {featuredArticles.map((article) => (
@@ -293,7 +293,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                {trendingProducts.length > 0 && (
                   <section className="mb-12">
                      <div className="flex items-center justify-between mb-8 border-b border-slate-200 pb-4">
-                        <h3 className="text-xl font-playfair font-black text-blue-950">Discover More</h3>
+                        <h3 className="text-xl font-baskerville font-black text-blue-950">Discover More</h3>
                      </div>
                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         {trendingProducts.map((article: any) => (
