@@ -74,7 +74,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                   {/* Main Floating Feature */}
                   <div className="lg:col-span-8 group">
                      {mainArticle && (
-                        <div className="relative aspect-[16/9] overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] group-hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.15)] transition-all duration-300 hover:-translate-y-1 bg-slate-100 h-full">
+                        <div className="relative aspect-[4/5] sm:aspect-[16/9] overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] group-hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.15)] transition-all duration-300 hover:-translate-y-1 bg-slate-100 h-full">
                            <Link href={`/article/${mainArticle.slug || mainArticle.id}`} className="block h-full w-full relative">
                               <StoryImage
                                  src={mainArticle.imageUrl}
@@ -85,15 +85,15 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                                  hideTitle={true}
                                  priority={true}
                               />
-                              <div className="absolute inset-0 bg-gradient-to-t from-blue-950/80 via-transparent to-transparent" />
-                              <div className="absolute bottom-0 left-0 p-10 text-white max-w-2xl">
-                                 <span className="inline-block bg-blue-500/30 backdrop-blur-md px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest mb-4 border border-white/20">
+                              <div className="absolute inset-0 bg-gradient-to-t from-blue-950/90 via-blue-950/20 to-transparent" />
+                              <div className="absolute bottom-0 left-0 p-6 sm:p-10 text-white w-full">
+                                 <span className="inline-block bg-blue-500/30 backdrop-blur-md px-3 py-1 rounded-md text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-3 sm:mb-4 border border-white/20">
                                     Primary Story
                                  </span>
-                                 <h2 className="text-4xl font-baskerville font-bold leading-tight mb-4 group-hover:text-blue-200 transition-colors">
+                                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-baskerville font-bold leading-tight mb-3 sm:mb-4 group-hover:text-blue-200 transition-colors">
                                     {mainArticle.title}
                                  </h2>
-                                 <p className="text-white/80 line-clamp-2 text-lg font-light leading-relaxed">
+                                 <p className="text-white/80 line-clamp-2 text-sm sm:text-lg font-light leading-relaxed">
                                     {mainArticle.content}
                                  </p>
                               </div>

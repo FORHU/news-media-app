@@ -10,7 +10,7 @@ import { AdBanner } from "@/components/AdBanner";
 import { articlesService } from "@/services/articles.service";
 import { bannersService } from "@/services/banners.service";
 import { DEFAULT_OG_IMAGE, DEFAULT_SEO } from "@/config/site";
-import { resolveTenantIdFromDomain } from "@/lib/tenant";
+import { resolveTenantIdFromDomain, getSiteNameFromDomain } from "@/lib/tenant";
 
 // Domain-specific designs
 import NewsIconsLanding from "@/components/sites/newsicons/NewsIconsLanding";
@@ -28,14 +28,16 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
   if (domain === "jejuqq.com") icon = "/icons/jejuqq.ico";
   if (domain === "jejujapan.com") icon = "/icons/jejujapan.ico";
 
+  const siteName = getSiteNameFromDomain(domain);
+  
   return {
-    title: "Home",
+    title: siteName,
     description: DEFAULT_SEO.description,
     icons: {
       icon: icon,
     },
     openGraph: {
-      title: "Home",
+      title: siteName,
       description: DEFAULT_SEO.description,
       url: "/",
       type: "website",
