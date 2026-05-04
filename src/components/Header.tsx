@@ -184,10 +184,10 @@ function HeaderContent({ onOpenNewsletter }: HeaderProps) {
             </button>
             <Link
               href="/admin/dashboard"
-              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg shrink-0"
+              className="p-2 text-gray-600 hover:text-[#ff4500] transition-colors shrink-0"
               aria-label="Profile"
             >
-              <User className="w-5 h-5" />
+              <User className="w-6 h-6" />
             </Link>
           </div>
         </div>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Search, Menu, Globe, LogIn, X, ChevronDown, Mail } from "lucide-react";
+import { Search, Menu, Globe, User, X, ChevronDown, Mail } from "lucide-react";
 import { getCoreCategories, HOME_CATEGORY_LABEL, normalizeCategoryKey } from "@/config/categories";
 import { motion, AnimatePresence } from "framer-motion";
 import { RemoveScroll } from "react-remove-scroll";
@@ -71,7 +71,7 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         {/* Top Thin Bar */}
         <div className="border-b border-white/10 py-2 bg-[#bc002d] text-white shadow-sm">
-          <div className="max-w-7xl mx-auto px-6 flex lg:grid lg:grid-cols-3 items-center justify-between text-[10px] font-bold uppercase tracking-widest">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 flex lg:grid lg:grid-cols-3 items-center justify-between text-[10px] font-bold uppercase tracking-widest">
             <div className="flex space-x-6 items-center">
               <span className="flex items-center gap-1"><Globe size={12} /> Tokyo - Jeju Bridge</span>
               <span className="hidden xl:inline">{new Date().toLocaleDateString('ja-JP', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
@@ -99,14 +99,14 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
               >
                 <Search size={18} />
               </button>
-              <Link href="/admin/login" className="hover:text-white/80 transition-colors p-1 bg-white/10" title="Admin Login">
-                <LogIn size={16} />
+              <Link href="/admin/login" className="hover:text-white/80 transition-colors" title="Admin Login">
+                <User size={18} />
               </Link>
             </div>
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 py-5 md:py-6 flex items-center justify-between relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 md:py-6 flex items-center justify-between relative">
           <div className="flex items-center w-full lg:w-auto">
             <button
               type="button"
@@ -159,7 +159,7 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
 
         {/* Mobile Categories Scroll Bar */}
         <div className="lg:hidden border-t border-gray-50 bg-white overflow-hidden">
-          <div className="flex overflow-x-auto scrollbar-hide py-3 px-6 space-x-6 text-[10px] font-bold uppercase tracking-widest text-gray-500">
+          <div className="flex overflow-x-auto scrollbar-hide py-3 px-4 sm:px-6 space-x-6 text-[10px] font-bold uppercase tracking-widest text-gray-500">
             {coreCategories.map((cat) => (
               <Link 
                 key={cat} 

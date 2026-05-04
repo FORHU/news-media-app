@@ -47,6 +47,10 @@ export default function JejuJapanArticle({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [articleId]);
+
   const { data: article, isError } = useQuery({
     queryKey: ["article", articleId],
     queryFn: () => articlesApi.getArticle(articleId),
@@ -154,14 +158,14 @@ export default function JejuJapanArticle({
                 </div>
                 {article.imageUrl ? (
                   <>
-                    <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto mb-8">{firstHalf}</div>
+                    <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto mb-8 break-words">{firstHalf}</div>
                     <div className="my-10 relative aspect-[21/9] bg-gray-100">
                       <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" />
                     </div>
-                    {secondHalf && <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto">{secondHalf}</div>}
+                    {secondHalf && <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto break-words">{secondHalf}</div>}
                   </>
                 ) : (
-                  <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto first-letter:text-6xl first-letter:font-black first-letter:text-[#bc002d] first-letter:float-left first-letter:mr-3">
+                  <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto first-letter:text-6xl first-letter:font-black first-letter:text-[#bc002d] first-letter:float-left first-letter:mr-3 break-words">
                     {fullContent}
                   </div>
                 )}
@@ -173,7 +177,7 @@ export default function JejuJapanArticle({
                     <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" />
                   </div>
                 )}
-                <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto first-letter:text-6xl first-letter:font-black first-letter:text-[#bc002d] first-letter:float-left first-letter:mr-3">
+                <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto first-letter:text-6xl first-letter:font-black first-letter:text-[#bc002d] first-letter:float-left first-letter:mr-3 break-words">
                   {fullContent}
                 </div>
               </>

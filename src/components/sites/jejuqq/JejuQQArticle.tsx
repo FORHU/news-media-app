@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -30,6 +31,10 @@ export default function JejuQQArticle({
   domain?: string;
 }) {
   const router = useRouter();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [articleId]);
 
   const { data: article, isError } = useQuery({
     queryKey: ["article", articleId],
@@ -142,11 +147,11 @@ export default function JejuQQArticle({
                   <div className="prose prose-lg font-garamond max-w-none prose-headings:font-black prose-p:leading-relaxed prose-p:text-gray-700">
                     {article.imageUrl ? (
                       <>
-                        <div className="whitespace-pre-wrap mb-10">{firstHalf}</div>
+                        <div className="whitespace-pre-wrap mb-10 break-words">{firstHalf}</div>
                         <div className="my-12 relative aspect-[16/9] bg-gray-100 rounded-none overflow-hidden shadow-lg border-2 border-[#dc2626]">
                           <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" />
                         </div>
-                        {secondHalf && <div className="whitespace-pre-wrap">{secondHalf}</div>}
+                        {secondHalf && <div className="whitespace-pre-wrap break-words">{secondHalf}</div>}
                       </>
                     ) : (
                       <div className="whitespace-pre-wrap">{fullContent}</div>
@@ -160,7 +165,7 @@ export default function JejuQQArticle({
                       <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" />
                     </div>
                   )}
-                  <div className="prose prose-lg font-garamond max-w-none prose-headings:font-black prose-p:leading-relaxed prose-p:text-gray-700 whitespace-pre-wrap">
+                  <div className="prose prose-lg font-garamond max-w-none prose-headings:font-black prose-p:leading-relaxed prose-p:text-gray-700 whitespace-pre-wrap break-words">
                     {fullContent}
                   </div>
                 </>

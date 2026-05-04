@@ -52,6 +52,10 @@ export default function JejuTimeArticle({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [articleId]);
+
   const { data: article, isError } = useQuery({
     queryKey: ["article", articleId],
     queryFn: () => articlesApi.getArticle(articleId),
@@ -181,14 +185,14 @@ export default function JejuTimeArticle({
                     </div>
                     {article.imageUrl ? (
                       <>
-                        <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap mb-10">{firstHalf}</div>
+                        <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap mb-10 break-words">{firstHalf}</div>
                         <div className="my-12 relative aspect-[16/9] bg-slate-100 overflow-hidden shadow-lg ring-1 ring-black/5">
                         <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" />
                         </div>
-                        {secondHalf && <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap">{secondHalf}</div>}
+                        {secondHalf && <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap break-words">{secondHalf}</div>}
                       </>
                     ) : (
-                      <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-light">
+                      <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-light break-words">
                         {fullContent}
                       </div>
                     )}
@@ -200,7 +204,7 @@ export default function JejuTimeArticle({
                       <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" />
                       </div>
                     )}
-                    <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-light">
+                    <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-light break-words">
                     {fullContent}
                     </div>
                 </>

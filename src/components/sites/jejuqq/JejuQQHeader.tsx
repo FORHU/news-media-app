@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Search, Mail, X, ChevronDown, UserCircle } from "lucide-react";
+import { Search, Mail, X, ChevronDown, User } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
 import { getCoreCategories, HOME_CATEGORY_LABEL, normalizeCategoryKey } from "@/config/categories";
@@ -138,8 +138,8 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
               <Mail size={14} strokeWidth={3} />
               <span className="hidden sm:block">Newsletter</span>
             </button>
-            <Link href="/admin/login" className="text-[#dc2626] transition-colors p-2 rounded-none hover:bg-gray-50 flex items-center justify-center" title="Admin Login">
-              <UserCircle size={24} strokeWidth={2} />
+            <Link href="/admin/login" className="text-[#dc2626] hover:text-black transition-colors flex items-center justify-center" title="Admin Login">
+              <User size={22} strokeWidth={2} />
             </Link>
           </div>
         </div>
