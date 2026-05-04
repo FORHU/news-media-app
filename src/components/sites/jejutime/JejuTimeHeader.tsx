@@ -141,7 +141,7 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
 
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-blue-50 shadow-sm flex flex-col">
         {/* Main Header Top */}
-        <div className="max-w-7xl mx-auto px-6 h-20 w-full flex items-center justify-between lg:grid lg:grid-cols-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 w-full flex items-center justify-between lg:grid lg:grid-cols-3">
           
           {/* Left: Menu & Logo (Mobile) / Menu & Logo (Desktop) */}
           <div className="flex items-center space-x-5 lg:space-x-8">
@@ -203,8 +203,8 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
                 SUBSCRIBE
               </button>
               
-              <Link href="/admin/dashboard" className="text-slate-500 hover:text-blue-600 transition-colors flex items-center justify-center w-9 h-9 bg-slate-50 border border-slate-200 rounded-full" title="Admin">
-                <User size={14} />
+              <Link href="/admin/dashboard" className="text-slate-500 hover:text-blue-600 transition-colors" title="Admin">
+                <User size={18} />
               </Link>
             </div>
           </div>

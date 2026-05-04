@@ -52,6 +52,10 @@ export default function JejuTimeArticle({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [articleId]);
+
   const { data: article, isError } = useQuery({
     queryKey: ["article", articleId],
     queryFn: () => articlesApi.getArticle(articleId),
@@ -181,14 +185,14 @@ export default function JejuTimeArticle({
                     </div>
                     {article.imageUrl ? (
                       <>
-                        <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap mb-10">{firstHalf}</div>
+                        <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap mb-10 break-words">{firstHalf}</div>
                         <div className="my-12 relative aspect-[16/9] bg-slate-100 overflow-hidden shadow-lg ring-1 ring-black/5">
                         <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" />
                         </div>
-                        {secondHalf && <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap">{secondHalf}</div>}
+                        {secondHalf && <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap break-words">{secondHalf}</div>}
                       </>
                     ) : (
-                      <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-light">
+                      <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-light break-words">
                         {fullContent}
                       </div>
                     )}
@@ -200,7 +204,7 @@ export default function JejuTimeArticle({
                       <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" />
                       </div>
                     )}
-                    <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-light">
+                    <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-light break-words">
                     {fullContent}
                     </div>
                 </>
@@ -209,7 +213,7 @@ export default function JejuTimeArticle({
                 {referenceLine && (
                   <div className="mt-16 pt-10 border-t border-blue-50 bg-blue-50/30 p-8 rounded-2xl border-dashed">
                     <p className="text-[10px] text-blue-600 font-bold uppercase tracking-[0.3em] mb-4">Verification Source</p>
-                    <p className="text-slate-600 font-baskerville italic text-xl leading-relaxed">
+                    <p className="text-slate-600 font-baskerville italic text-xl leading-relaxed break-all">
                       {referenceLine}
                     </p>
                   </div>
