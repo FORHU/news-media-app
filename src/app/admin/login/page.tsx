@@ -3,6 +3,7 @@
 import React, { useState, useEffect, FormEvent, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, ChevronRight, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { adminLoginSchema } from '@/lib/validation/login';
@@ -150,10 +151,16 @@ const jejuTimeTheme: Theme = {
   card: 'bg-white rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] p-10 md:p-12 relative overflow-hidden border border-slate-100',
   topBar: 'absolute top-0 left-0 w-full h-1 bg-blue-600 rounded-t-3xl',
   logo: (
-    <div className="text-center mb-10">
-      <h1 className="text-4xl font-baskerville font-black tracking-tighter text-blue-950">
-        Jeju<span className="text-blue-500">Time</span>
-      </h1>
+    <div className="text-center mb-10 flex flex-col items-center">
+      <div className="relative h-24 w-full max-w-[320px] sm:h-32 sm:max-w-[480px] mb-2">
+        <Image
+          src="/Logo/JEJUTIMELOGO.png"
+          alt="JejuTime Logo"
+          fill
+          className="object-contain"
+          priority
+        />
+      </div>
       <p className="text-[10px] font-baskerville font-bold tracking-[0.25em] text-slate-400 uppercase mt-1">Admin Portal</p>
     </div>
   ),

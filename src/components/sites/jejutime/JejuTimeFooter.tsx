@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { AdBanner } from "@/components/AdBanner";
 import { Twitter, Instagram, Facebook, Mail, MapPin, Phone } from "lucide-react";
 
@@ -28,9 +29,14 @@ export default function JejuTimeFooter({ onOpenNewsletter, footerBanners }: Foot
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 mb-20">
           <div className="lg:col-span-4">
             <div className="mb-8">
-              <h2 className="text-2xl font-baskerville font-bold tracking-tight text-white leading-none">
-                Jeju<span className="text-blue-500">Time</span>
-              </h2>
+              <div className="relative h-20 w-80 sm:h-28 sm:w-[400px]">
+                <Image
+                  src="/Logo/JEJUTIMELOGO.png"
+                  alt="JejuTime Logo"
+                  fill
+                  className="object-contain object-left brightness-0 invert"
+                />
+              </div>
             </div>
             <p className="text-slate-400 text-sm leading-relaxed max-w-sm mb-8 font-light">
               Capturing the weightless essence of Jeju's volcanic soul and coastal rhythm. Premium journalism for the modern islander.

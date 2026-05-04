@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { Search, Bell, Menu, ChevronDown, User, Loader2, X, Mail, ChevronLeft, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -154,9 +155,15 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
               <Menu size={22} />
             </button>
             <Link href="/" className={`${isMobileSearchOpen ? 'hidden md:block' : 'block'}`}>
-              <h1 className="text-2xl lg:text-3xl font-baskerville font-bold tracking-tight text-blue-950 leading-none">
-                Jeju<span className="text-blue-600">Time</span>
-              </h1>
+              <div className="relative h-14 w-52 sm:h-18 sm:w-64 lg:h-20 lg:w-[450px]">
+                <Image
+                  src="/Logo/JEJUTIMELOGO.png"
+                  alt="JejuTime Logo"
+                  fill
+                  className="object-contain object-left"
+                  priority
+                />
+              </div>
             </Link>
           </div>
 
@@ -304,7 +311,14 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
                   >
                     <X className="w-5 h-5" />
                   </button>
-                  <span className="text-sm font-black text-white tracking-[0.3em] uppercase font-baskerville">Menu</span>
+                  <div className="relative h-12 w-48">
+                    <Image
+                      src="/Logo/JEJUTIMELOGO.png"
+                      alt="JejuTime Logo"
+                      fill
+                      className="object-contain object-center brightness-0 invert"
+                    />
+                  </div>
                   <div className="w-8" />
                 </div>
 
