@@ -234,29 +234,53 @@ function LoginContent() {
       });
 
       if (!verifyResponse.ok) {
-        if (verifyResponse.status === 403) { router.replace('/'); return; }
-        setFieldErrors({ general: 'Verification service unavailable. Please try again.' });
+        if (verifyResponse.status === 403) {
+          setFieldErrors({ email: 'Your account does not have admin access for this domain.' });
+        } else {
+          setFieldErrors({ general: 'Verification service unavailable. Please try again.' });
+        }
         return;
       }
 
-      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      const { data: { session }, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      
       if (signInError) {
         const msg = signInError.message?.toLowerCase() ?? '';
         if (msg.includes('rate') || msg.includes('too many')) {
           setFieldErrors({ general: 'Too many login attempts. Please wait a moment.' });
         } else if (msg.includes('email not confirmed')) {
           setFieldErrors({ general: 'Email not confirmed. Please contact your admin.' });
-        } else {
+        } else if (msg.includes('invalid login credentials')) {
           setFieldErrors({ password: 'The password you entered is incorrect.' });
+        } else {
+          setFieldErrors({ general: signInError.message });
         }
         return;
       }
 
-      const roleCheck = await fetch('/api/admin/auth/session', { method: 'POST' });
+      if (!session) {
+        setFieldErrors({ general: 'Failed to establish session. Please try again.' });
+        return;
+      }
+
+      // Small delay for cookie settling, but we pass token for robustness
+      await new Promise(r => setTimeout(r, 100));
+
+      const roleCheck = await fetch('/api/admin/auth/session', { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessToken: session.access_token })
+      });
+
       if (!roleCheck.ok) {
         await supabase.auth.signOut();
-        if (roleCheck.status === 403) { router.replace('/'); return; }
-        setFieldErrors({ general: 'Access denied. Your account is not an admin.' });
+        const errorData = await roleCheck.json().catch(() => ({}));
+        
+        if (roleCheck.status === 403) {
+           setFieldErrors({ general: 'Access denied. Your account is not authorized for this domain.' });
+        } else {
+           setFieldErrors({ general: errorData.error || 'Access denied. Your account is not an admin.' });
+        }
         return;
       }
 
@@ -265,7 +289,6 @@ function LoginContent() {
         ? redirectTo : '/admin/dashboard';
       router.push(safePath);
     } catch (err) {
-      console.error('Login error:', err);
       setFieldErrors({ general: 'An unexpected error occurred. Please try again.' });
     } finally {
       setIsSubmitting(false);
