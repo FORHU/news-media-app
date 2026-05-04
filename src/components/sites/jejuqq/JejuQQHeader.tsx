@@ -92,17 +92,17 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
               className="group flex items-center gap-2 hover:text-[#dc2626] transition-all duration-300"
             >
               <div className="relative flex flex-col justify-between w-5 h-3.5 group-hover:gap-1 transition-all">
-                <span className="w-full h-0.5 bg-black group-hover:bg-[#dc2626] transition-colors"></span>
-                <span className="w-3/4 h-0.5 bg-black group-hover:bg-[#dc2626] transition-colors"></span>
-                <span className="w-full h-0.5 bg-black group-hover:bg-[#dc2626] transition-colors"></span>
+                <span className="w-full h-0.5 bg-black group-hover:bg-primary transition-colors"></span>
+                <span className="w-3/4 h-0.5 bg-black group-hover:bg-primary transition-colors"></span>
+                <span className="w-full h-0.5 bg-black group-hover:bg-primary transition-colors"></span>
               </div>
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] hidden sm:block">Menu</span>
+              <span className="text-[10px] font-bold font-serif uppercase tracking-[0.2em] hidden sm:block">Menu</span>
             </button>
 
             <Link href="/" className="hover:opacity-90 transition-opacity">
               <h1 className="flex items-center gap-1">
-                <span className="text-[28px] md:text-[42px] font-garamond font-black tracking-tighter text-black leading-none">Jeju</span>
-                <span className="text-[28px] md:text-[42px] font-garamond font-black tracking-tighter text-[#dc2626] leading-none">QQ</span>
+                <span className="text-[28px] md:text-[42px] font-serif font-bold tracking-tighter text-black leading-none">Jeju</span>
+                <span className="text-[28px] md:text-[42px] font-serif font-bold tracking-tighter text-primary leading-none">QQ</span>
               </h1>
             </Link>
           </div>
@@ -117,7 +117,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="SEARCH FOR STORIES..."
-                  className="w-full pl-11 pr-4 bg-gray-50 border-2 border-[#dc2626] rounded-none h-11 text-[11px] font-bold outline-none focus:bg-white focus:border-[#dc2626] focus:ring-4 focus:ring-[#dc2626]/10 transition-all shadow-inner"
+                  className="w-full pl-11 pr-4 bg-gray-50 border-2 border-primary rounded-none h-11 text-[11px] font-bold outline-none focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
                 />
               </div>
             </form>
@@ -133,7 +133,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
             </button>
             <button 
               onClick={onOpenNewsletter} 
-              className="bg-[#dc2626] hover:bg-black text-white px-3 sm:px-5 py-2.5 rounded-none text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-lg shadow-[#dc2626]/20 flex items-center gap-2"
+              className="bg-[#dc2626] hover:bg-black text-white px-3 sm:px-5 py-2.5 rounded-none text-[10px] font-bold font-serif uppercase tracking-widest transition-all duration-300 shadow-lg shadow-[#dc2626]/20 flex items-center gap-2"
             >
               <Mail size={14} strokeWidth={3} />
               <span className="hidden sm:block">Newsletter</span>
@@ -169,7 +169,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
 
         <div className="border-t border-gray-100 hidden lg:block">
           <div className="max-w-7xl mx-auto px-4 flex flex-row justify-center items-center py-4">
-            <nav className="flex flex-wrap justify-center gap-x-12 gap-y-4 text-[13px] font-black uppercase tracking-tighter text-gray-600">
+            <nav className="flex flex-wrap justify-center gap-x-12 gap-y-4 text-[13px] font-bold font-serif uppercase tracking-tighter text-gray-600">
               {coreCategories.slice(0, 6).map((cat) => (
                 <Link 
                   key={cat} 
@@ -236,7 +236,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                   >
                     <X className="w-5 h-5" />
                   </button>
-                  <span className="text-sm font-black text-white tracking-[0.4em] uppercase">Menu</span>
+                  <span className="text-sm font-bold font-serif text-white tracking-[0.4em] uppercase">Menu</span>
                   <div className="w-8" />
                 </div>
 
@@ -247,14 +247,14 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                         key={cat.name}
                         href={cat.link}
                         onClick={() => setIsSidebarOpen(false)}
-                        className="block px-6 py-3.5 text-[15px] font-bold text-gray-900 hover:text-[#dc2626] hover:bg-[#dc2626]/5 border-b border-gray-100 transition-colors"
+                        className="block px-6 py-3.5 text-[15px] font-bold font-serif text-gray-900 hover:text-[#dc2626] hover:bg-[#dc2626]/5 border-b border-gray-100 transition-colors"
                       >
                         {cat.name}
                       </Link>
                     ))}
                     {overflowCategories.length > 0 && (
                       <details className="group">
-                        <summary className="flex items-center justify-between px-6 py-3.5 text-[15px] font-bold text-gray-900 hover:text-[#dc2626] hover:bg-[#dc2626]/5 border-b border-gray-100 transition-colors cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                        <summary className="flex items-center justify-between px-6 py-3.5 text-[15px] font-bold font-serif text-gray-900 hover:text-[#dc2626] hover:bg-[#dc2626]/5 border-b border-gray-100 transition-colors cursor-pointer list-none [&::-webkit-details-marker]:hidden">
                           <span>More</span>
                           <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-[#dc2626] group-open:rotate-180 transition-transform" />
                         </summary>
@@ -279,13 +279,13 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                   <button
                     type="button"
                     onClick={() => { setIsSidebarOpen(false); onOpenNewsletter?.(); }}
-                    className="w-full flex items-center justify-center gap-3 py-3 bg-black text-white text-xs font-black uppercase tracking-widest hover:bg-[#dc2626] transition-colors mb-4"
+                    className="w-full flex items-center justify-center gap-3 py-3 bg-black text-white text-xs font-bold font-serif uppercase tracking-widest hover:bg-[#dc2626] transition-colors mb-4"
                   >
                     <Mail className="w-4 h-4" />
                     Newsletter
                   </button>
                   <div className="text-center">
-                    <p className="text-[10px] text-[#dc2626] font-black uppercase tracking-[0.2em] mb-3">Follow Us</p>
+                    <p className="text-[10px] text-[#dc2626] font-bold font-serif uppercase tracking-[0.2em] mb-3">Follow Us</p>
                     <div className="flex items-center justify-center gap-5">
                       <a href="#" className="text-gray-700 hover:text-[#dc2626] transition-colors">
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>

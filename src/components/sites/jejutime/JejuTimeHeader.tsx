@@ -198,7 +198,7 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
             <div className="hidden md:flex items-center space-x-4">
               <button 
                 onClick={onOpenNewsletter}
-                className="bg-blue-600 text-white px-5 py-2 rounded-full text-xs font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all hover:-translate-y-0.5"
+                className="bg-blue-600 text-white px-5 py-2 rounded-full text-xs font-baskerville font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all hover:-translate-y-0.5"
               >
                 SUBSCRIBE
               </button>
@@ -228,7 +228,7 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
 
              <nav 
                ref={navRef}
-               className="flex items-center space-x-8 lg:space-x-10 text-[10px] lg:text-[11px] font-bold uppercase tracking-[0.15em] lg:tracking-[0.2em] text-white/60 overflow-x-auto no-scrollbar scroll-smooth whitespace-nowrap py-1 flex-1 scrollbar-hide"
+               className="flex items-center space-x-8 lg:space-x-10 text-[10px] lg:text-[11px] font-baskerville font-bold uppercase tracking-[0.15em] lg:tracking-[0.2em] text-white overflow-x-auto no-scrollbar scroll-smooth whitespace-nowrap py-1 flex-1 scrollbar-hide"
              >
                 {coreCategories.map((cat) => (
                   <Link 
@@ -248,7 +248,7 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
                              <Link 
                                 key={cat} 
                                 href={categoryHref(cat)} 
-                                className="text-white/60 hover:text-blue-400 lowercase tracking-normal text-sm font-light transition-colors"
+                                className="text-white hover:text-blue-400 lowercase tracking-normal text-sm font-light transition-colors"
                              >
                                 {cat}
                              </Link>
@@ -316,14 +316,14 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
                         key={cat.name}
                         href={cat.link}
                         onClick={() => setIsSidebarOpen(false)}
-                        className="block px-7 py-3 text-[15px] font-bold text-slate-800 hover:text-blue-600 hover:bg-blue-50 border-b border-slate-100 transition-colors"
+                        className="block px-7 py-3 text-[15px] font-mono font-bold text-slate-800 hover:text-blue-600 hover:bg-blue-50 border-b border-slate-100 transition-colors"
                       >
                         {cat.name}
                       </Link>
                     ))}
                     {overflowCategories.length > 0 && (
                       <details className="group">
-                        <summary className="flex items-center justify-between px-7 py-3 text-[15px] font-bold text-slate-800 hover:text-blue-600 hover:bg-blue-50 border-b border-slate-100 transition-colors cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                        <summary className="flex items-center justify-between px-7 py-3 text-[15px] font-mono font-bold text-slate-800 hover:text-blue-600 hover:bg-blue-50 border-b border-slate-100 transition-colors cursor-pointer list-none [&::-webkit-details-marker]:hidden">
                           <span>More</span>
                           <ChevronDown className="w-4 h-4 text-slate-400 group-hover:text-blue-600 group-open:rotate-180 transition-transform" />
                         </summary>
@@ -349,7 +349,7 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
                   <button
                     type="button"
                     onClick={() => { setIsSidebarOpen(false); onOpenNewsletter?.(); }}
-                    className="w-full flex items-center justify-center gap-3 py-3 bg-blue-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all mb-3"
+                    className="w-full flex items-center justify-center gap-3 py-3 bg-blue-600 text-white text-xs font-baskerville font-bold uppercase tracking-widest hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all mb-3"
                   >
                     <Mail className="w-4 h-4" />
                     Subscribe

@@ -65,7 +65,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
         {mainArticle && (
           <div className="mb-10 md:mb-16 lg:mb-24 relative group">
             <div className="flex flex-col lg:flex-row-reverse gap-6 lg:gap-12 items-center">
-              <div className="relative w-full lg:w-3/5 aspect-[16/9] overflow-hidden rounded-none bg-gray-100 shadow-lg group/image shrink-0 border-2 border-[#dc2626]">
+              <div className="relative w-full lg:w-3/5 aspect-[16/9] overflow-hidden rounded-none bg-gray-100 shadow-lg group/image shrink-0 border-2 border-primary">
                 <AnimatePresence initial={false} custom={direction} mode="wait">
                   <motion.div
                     key={page}
@@ -107,7 +107,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                         const newDirection = i > index ? 1 : -1;
                         setPage([i, newDirection]);
                       }}
-                      className={`h-1.5 transition-all duration-300 rounded-none ${i === index ? "w-8 bg-[#dc2626]" : "w-2 bg-white/60 hover:bg-white"}`}
+                      className={`h-1.5 transition-all duration-300 rounded-none ${i === index ? "w-8 bg-primary" : "w-2 bg-white/60 hover:bg-white"}`}
                       aria-label={`Go to slide ${i + 1}`}
                     />
                   ))}
@@ -116,10 +116,10 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
               <div className="flex-1 flex flex-col justify-center py-2 min-w-0 w-full">
                 <Link href={`/article/${mainArticle.slug || mainArticle.id}`} className="group">
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="h-0.5 w-8 bg-[#dc2626]"></span>
-                    <span className="text-[11px] text-[#dc2626] font-black uppercase tracking-[0.3em]">{mainArticle.category?.categoryName}</span>
+                    <span className="h-0.5 w-8 bg-primary"></span>
+                    <span className="text-[11px] text-primary font-bold font-serif uppercase tracking-[0.3em]">{mainArticle.category?.categoryName}</span>
                   </div>
-                  <h2 className="text-[26px] sm:text-[36px] md:text-[44px] lg:text-[52px] font-garamond font-black leading-[1.08] mb-4 group-hover:text-[#dc2626] transition-colors tracking-tighter">
+                  <h2 className="text-[26px] sm:text-[36px] md:text-[44px] lg:text-[52px] font-serif font-bold leading-[1.08] mb-4 group-hover:text-primary transition-colors tracking-tighter">
                     {mainArticle.title}
                   </h2>
                 </Link>
@@ -140,21 +140,21 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
             {/* Latest Stories Section */}
             <div className="pt-10 border-t border-gray-200">
               <div className="flex items-center justify-between mb-8">
-                <h3 className="text-2xl md:text-3xl font-garamond font-black uppercase tracking-tight">Latest Stories</h3>
+                <h3 className="text-2xl md:text-3xl font-serif font-bold uppercase tracking-tight">Latest Stories</h3>
                 <div className="h-1 flex-1 mx-6 bg-gray-100 overflow-hidden">
-                  <div className="h-full w-24 bg-[#dc2626]"></div>
+                  <div className="h-full w-24 bg-primary"></div>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 gap-8">
                 {latestStories.map((article) => (
-                  <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex flex-row gap-5 group items-start">
+                  <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex flex-row-reverse gap-5 group items-start">
                     <div className="relative w-28 sm:w-40 md:w-48 aspect-[4/3] shrink-0 rounded-none overflow-hidden border-2 border-[#dc2626]">
                       <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <span className="text-[10px] text-[#dc2626] font-black uppercase mb-2 block tracking-[0.2em]">{article.category?.categoryName}</span>
-                      <h5 className="text-[17px] sm:text-[20px] font-garamond font-black leading-tight group-hover:text-[#dc2626] transition-colors mb-2">{article.title}</h5>
+                      <span className="text-[10px] text-primary font-bold font-serif uppercase mb-2 block tracking-[0.2em]">{article.category?.categoryName}</span>
+                      <h5 className="text-[17px] sm:text-[20px] font-serif font-bold leading-tight group-hover:text-primary transition-colors mb-2">{article.title}</h5>
                       <p className="text-gray-500 text-sm line-clamp-2 leading-relaxed">{article.content}</p>
                     </div>
                   </Link>
@@ -180,23 +180,23 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
 
           {/* Right Sidebar (Trending + Ad) */}
           <aside className="lg:col-span-4">
-            <div className="bg-gray-50 rounded-none p-6 border-2 border-[#dc2626] lg:sticky lg:top-32">
+            <div className="bg-gray-50 rounded-none p-6 border-2 border-primary lg:sticky lg:top-32">
               <div className="flex items-center justify-between mb-8 pb-5 border-b border-gray-200">
-                <h3 className="text-xl font-garamond font-black flex items-center gap-2">
-                  Trending <TrendingUp size={20} className="text-[#dc2626]" />
+                <h3 className="text-xl font-serif font-bold flex items-center gap-2">
+                  Trending <TrendingUp size={20} className="text-primary" />
                 </h3>
-                <span className="w-2 h-2 rounded-none bg-[#dc2626]"></span>
+                <span className="w-2 h-2 rounded-none bg-primary"></span>
               </div>
 
               <div className="space-y-7">
                 {trendingArticles.map((article, i) => (
                   <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex gap-4 items-start group">
-                    <span className="text-3xl font-garamond font-black text-[#dc2626]/30 group-hover:text-[#dc2626]/60 transition-colors tabular-nums shrink-0">
+                    <span className="text-3xl font-serif font-bold text-primary/30 group-hover:text-primary/60 transition-colors tabular-nums shrink-0">
                       {String(i + 1).padStart(2, '0')}
                     </span>
                     <div className="min-w-0">
-                      <span className="text-[9px] font-black text-[#dc2626] uppercase tracking-[0.2em] block mb-1">{article.category?.categoryName}</span>
-                      <h4 className="text-[15px] font-bold leading-snug group-hover:text-[#dc2626] transition-colors line-clamp-2">
+                      <span className="text-[9px] font-bold font-serif text-primary uppercase tracking-[0.2em] block mb-1">{article.category?.categoryName}</span>
+                      <h4 className="text-[15px] font-bold leading-snug group-hover:text-primary transition-colors line-clamp-2">
                         {article.title}
                       </h4>
                     </div>
@@ -217,7 +217,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
           {featuredArticles.length > 0 && (
             <section className="pt-10 border-t border-gray-200">
               <div className="flex items-center gap-5 mb-8">
-                <h3 className="text-2xl md:text-3xl font-garamond font-black uppercase tracking-tight whitespace-nowrap">Featured Report</h3>
+                <h3 className="text-2xl md:text-3xl font-garamond font-bold uppercase tracking-tight whitespace-nowrap">Featured Report</h3>
                 <div className="h-1 w-full bg-[#dc2626]/10 overflow-hidden">
                   <div className="h-full w-1/4 bg-[#dc2626]"></div>
                 </div>
@@ -229,7 +229,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                       <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" />
                     </div>
                     <span className="text-[10px] text-[#dc2626] font-black uppercase mb-2 block tracking-widest">{article.category?.categoryName}</span>
-                    <h4 className="text-base md:text-lg font-garamond font-black leading-tight group-hover:text-[#dc2626] transition-colors">{article.title}</h4>
+                    <h4 className="text-base md:text-lg font-garamond font-bold leading-tight group-hover:text-[#dc2626] transition-colors">{article.title}</h4>
                   </Link>
                 ))}
               </div>
@@ -239,7 +239,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
           {/* Trending Products / Blogs */}
           {trendingProducts.length > 0 && (
             <section className="bg-black rounded-none p-8 lg:p-16 text-white overflow-hidden relative">
-              <h3 className="text-2xl md:text-3xl font-garamond font-black mb-8 flex items-center gap-4 relative z-10">Explore More <span className="h-1 w-16 bg-[#dc2626]"></span></h3>
+              <h3 className="text-2xl md:text-3xl font-garamond font-bold mb-8 flex items-center gap-4 relative z-10">Explore More <span className="h-1 w-16 bg-[#dc2626]"></span></h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
                 {trendingProducts.map((article: any) => (
                   <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group bg-white/5 border border-white/10 p-5 rounded-none hover:bg-[#dc2626] transition-colors">

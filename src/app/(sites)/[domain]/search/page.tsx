@@ -74,7 +74,10 @@ export default async function SearchPage({
       )
     : [];
 
-  const [sidebarBanners, footerBanners] = await Promise.all([
+  const [trendingArticles, sidebarBanners, footerBanners] = await Promise.all([
+    tenantId
+      ? articlesService.getArticles({ limit: 10, status: "published" }, tenantId)
+      : Promise.resolve([]),
     tenantId
       ? bannersService
           .getBanners({ position: "HOME_SIDEBAR", isActive: true, tenantId })
@@ -109,7 +112,7 @@ export default async function SearchPage({
           />
           <div className="space-y-8">
             <TrendingSidebar 
-              articles={articles.slice(0, 5)} 
+              articles={trendingArticles} 
               domain={domain}
             />
             <AdBanner position="HOME_SIDEBAR" initialBanners={sidebarBanners} />
