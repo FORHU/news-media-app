@@ -116,7 +116,7 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
             {/* Thumbnail Image Container */}
             <div className="relative w-full md:w-64 h-48 md:h-44 rounded-[1.5rem] overflow-hidden shadow-inner bg-gray-50 flex-shrink-0">
                 <StoryImage
-                    src={article.imageUrl}
+                    src={article.imageUrl || article.rawArticle?.imageUrl}
                     alt={article.title}
                     fill
                     sizes="(max-width: 768px) 100vw, 256px"
