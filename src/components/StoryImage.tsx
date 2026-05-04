@@ -13,20 +13,12 @@ interface StoryImageProps {
   className?: string;
   priority?: boolean;
   sizes?: string;
+  hideTitle?: boolean;
   variant?: "hero" | "featured" | "thumbnail";
 }
 
-export function StoryImage({ 
-  src, 
-  alt, 
-  fill, 
-  width, 
-  height, 
-  className, 
-  priority,
-  sizes,
-  variant = "featured"
-}: StoryImageProps) {
+export function StoryImage(props: StoryImageProps) {
+  const { src, alt, fill, width, height, className, priority, sizes, variant = "featured", hideTitle } = props;
   const [imgSrc, setImgSrc] = useState<string | null>(src || null);
   const [error, setError] = useState(false);
   const isBlockedS3Origin = (imgSrc ?? "").includes("chumme-dev.s3.amazonaws.com");
@@ -41,10 +33,10 @@ export function StoryImage({
   // Variant-specific base configurations
   const config = {
     hero: {
-      padding: "p-8 md:p-16",
-      minFont: "1.5rem",
-      maxFont: "3.5rem",
-      lineClamp: "line-clamp-4"
+      padding: "p-4 sm:p-8 md:p-16",
+      minFont: "1.25rem",
+      maxFont: "3rem",
+      lineClamp: "line-clamp-3"
     },
     featured: {
       padding: "p-4 md:p-8",
@@ -75,16 +67,18 @@ export function StoryImage({
           containerType: 'inline-size'
         }}
       >
-        <span 
-          className={`font-black uppercase tracking-tighter drop-shadow-xl ${config.lineClamp}`}
-          style={{ 
-            // Scales exactly based on the container width now
-            fontSize: `clamp(${config.minFont}, 8cqw, ${config.maxFont})`,
-            lineHeight: '1.1'
-          }}
-        >
-          {alt}
-        </span>
+        {!hideTitle && (
+          <span 
+            className={`font-black uppercase tracking-tighter drop-shadow-xl ${config.lineClamp}`}
+            style={{ 
+              // Scales exactly based on the container width now
+              fontSize: `clamp(${config.minFont}, 8cqw, ${config.maxFont})`,
+              lineHeight: '1.1'
+            }}
+          >
+            {alt}
+          </span>
+        )}
       </div>
     );
   }

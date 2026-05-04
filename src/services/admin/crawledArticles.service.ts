@@ -24,9 +24,10 @@ type GetCrawledArticlesParams = {
 
 type TriggerCrawlParams = {
   urls: string[];
+  tenant_id: string;
   start_date?: string;
   end_date?: string;
-  max_requests_per_crawl?: number;
+  max_articles?: number;
 };
 
 export class CrawledArticlesServiceError extends Error {
@@ -110,8 +111,9 @@ function isIsoDateString(value: unknown) {
 }
 
 export const crawledArticlesService = {
-  async getCrawledArticles(params: GetCrawledArticlesParams) {
+  async getCrawledArticles(params: GetCrawledArticlesParams, tenantId: string) {
     const offset = (params.page - 1) * params.limit;
+
     const range = normalizeDateRange(params);
 
     const repositoryParams: FetchCrawledArticlesParams = {
@@ -121,15 +123,16 @@ export const crawledArticlesService = {
       q: params.q,
       offset,
       limit: params.limit,
+      tenantId,
     };
 
     const [{ data, count }, sourceUrls] = await Promise.all([
       crawledArticlesRepository.fetchCrawledArticles(repositoryParams),
-      crawledArticlesRepository.fetchCrawledSources(),
+      crawledArticlesRepository.fetchCrawledSources(tenantId),
     ]);
 
     const articles = data.map((article) => {
-      const rawImg = article.image_url;
+      const rawImg = article.imageUrl;
       const imageUrl =
         typeof rawImg === "string" && rawImg.trim().length > 0
           ? rawImg.trim()
@@ -140,11 +143,11 @@ export const crawledArticlesService = {
         title: article.title,
         content: article.content,
         imageUrl,
-        publishDate: article.publish_date,
-        createdAt: article.created_at,
+        publishDate: article.publishDate,
+        createdAt: article.createdAt,
         status: article.status,
         category: {
-          categoryName: normalizeCategoryName(article.category?.category_name) || "",
+          categoryName: normalizeCategoryName(article.category?.categoryName) || "",
         },
         crawledUrl: {
           url: article.crawledUrl?.url || "",
@@ -183,17 +186,15 @@ export const crawledArticlesService = {
       throw new CrawledArticlesServiceError("urls is required", 400);
     }
 
-    const payload: TriggerCrawlParams = { urls };
+    const payload: any = { 
+      urls,
+      tenant_id: params.tenant_id 
+    };
     if (isIsoDateString(params.start_date)) payload.start_date = params.start_date;
     if (isIsoDateString(params.end_date)) payload.end_date = params.end_date;
-    if (
-      typeof params.max_requests_per_crawl === "number" &&
-      Number.isFinite(params.max_requests_per_crawl)
-    ) {
-      payload.max_requests_per_crawl = Math.max(
-        1,
-        Math.floor(params.max_requests_per_crawl)
-      );
+    
+    if (typeof params.max_articles === "number" && Number.isFinite(params.max_articles)) {
+      payload.max_articles = Math.max(1, Math.floor(params.max_articles));
     }
 
     try {
@@ -213,15 +214,15 @@ export const crawledArticlesService = {
       if (!upstream.ok) {
         const message =
           upstreamData &&
-          typeof upstreamData === "object" &&
-          ("error" in upstreamData || "message" in upstreamData) &&
-          (
-            (upstreamData as { error?: string; message?: string }).error ||
-            (upstreamData as { error?: string; message?: string }).message
-          )
+            typeof upstreamData === "object" &&
+            ("error" in upstreamData || "message" in upstreamData) &&
+            (
+              (upstreamData as { error?: string; message?: string }).error ||
+              (upstreamData as { error?: string; message?: string }).message
+            )
             ? (upstreamData as { error?: string; message?: string }).error ||
-              (upstreamData as { error?: string; message?: string }).message ||
-              `Upstream error (${upstream.status})`
+            (upstreamData as { error?: string; message?: string }).message ||
+            `Upstream error (${upstream.status})`
             : `Upstream error (${upstream.status})`;
 
         throw new CrawledArticlesServiceError(message, 502, {
@@ -242,4 +243,5 @@ export const crawledArticlesService = {
     }
   },
 };
+
 

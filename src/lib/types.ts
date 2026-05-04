@@ -13,6 +13,13 @@ export type Article = Prisma.ContentArticleGetPayload<{
     };
     rawVideo: true;
     rawSourceUpload: true;
+    rawTweet: {
+      select: {
+        tweetId: true;
+        generationMode: true;
+        profileUrl: true;
+      };
+    };
   };
 }>;
 
@@ -75,3 +82,5 @@ export interface AdminUser {
   role: string;
   createdAt: string | Date;
 }
+
+export type Tenant = Prisma.TenantGetPayload<{}>;

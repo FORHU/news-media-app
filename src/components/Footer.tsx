@@ -32,16 +32,15 @@ interface Banner {
 
 interface FooterProps {
     onOpenNewsletter?: () => void;
-    footerBanners?: Banner[];
 }
 
-export function Footer({ onOpenNewsletter, footerBanners }: FooterProps) {
+export function Footer({ onOpenNewsletter }: FooterProps) {
     const currentYear = new Date().getFullYear();
 
     return (
         <>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 mb-2 -mt-4">
-                <AdBanner position="GLOBAL_FOOTER" initialBanners={footerBanners} />
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full mt-0 mb-0">
+                <AdBanner position="GLOBAL_FOOTER" />
             </div>
             <footer className="bg-[#1a1a1a] text-white border-t border-gray-800">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
@@ -49,7 +48,7 @@ export function Footer({ onOpenNewsletter, footerBanners }: FooterProps) {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-12 sm:mb-16">
                         {/* Explore Column */}
                         <div>
-                            <h3 className="text-[#ff4500] font-bold text-xs uppercase tracking-[0.2em] mb-6">
+                            <h3 className="text-primary font-serif font-bold text-xs uppercase tracking-[0.2em] mb-6">
                                 Explore
                             </h3>
                             <ul className="space-y-4">
@@ -68,7 +67,7 @@ export function Footer({ onOpenNewsletter, footerBanners }: FooterProps) {
 
                         {/* Company Column */}
                         <div>
-                            <h3 className="text-[#ff4500] font-bold text-xs uppercase tracking-[0.2em] mb-6">
+                            <h3 className="text-primary font-serif font-bold text-xs uppercase tracking-[0.2em] mb-6">
                                 Company
                             </h3>
                             <ul className="space-y-4">
@@ -87,7 +86,7 @@ export function Footer({ onOpenNewsletter, footerBanners }: FooterProps) {
 
                         {/* Legal Column */}
                         <div>
-                            <h3 className="text-[#ff4500] font-bold text-xs uppercase tracking-[0.2em] mb-6">
+                            <h3 className="text-primary font-serif font-bold text-xs uppercase tracking-[0.2em] mb-6">
                                 Legal
                             </h3>
                             <ul className="space-y-4">
@@ -106,7 +105,7 @@ export function Footer({ onOpenNewsletter, footerBanners }: FooterProps) {
 
                         {/* Subscription / Info Column */}
                         <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
-                            <h3 className="text-white font-bold text-sm uppercase tracking-wider mb-4">
+                            <h3 className="text-white font-serif font-bold text-sm uppercase tracking-wider mb-4">
                                 Stay Connected
                             </h3>
                             <p className="text-gray-400 text-sm mb-6 leading-relaxed">
@@ -115,7 +114,7 @@ export function Footer({ onOpenNewsletter, footerBanners }: FooterProps) {
                             <button
                                 type="button"
                                 onClick={() => onOpenNewsletter?.()}
-                                className="w-full bg-[#ff4500] text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-[#e03d00] transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#ff4500]/20"
+                                className="w-full bg-primary text-white px-6 py-3 rounded-xl font-bold font-serif text-sm hover:opacity-90 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/20"
                             >
                                 SUBSCRIBE NOW
                             </button>
@@ -128,7 +127,7 @@ export function Footer({ onOpenNewsletter, footerBanners }: FooterProps) {
                             {/* Logo & Copyright */}
                             <div className="text-center lg:text-left max-w-md">
                                 <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 mb-4 justify-center lg:justify-start">
-                                    <span className="font-black text-3xl tracking-tighter text-[#ff4500]">NEWSICONS</span>
+                                    <span className="font-serif font-bold text-3xl tracking-tighter text-primary">NEWSICONS</span>
                                     <span className="hidden sm:block h-6 w-px bg-gray-700"></span>
                                     <span className="text-gray-400 text-sm font-medium">Next-Gen Media Hub</span>
                                 </div>
@@ -144,7 +143,7 @@ export function Footer({ onOpenNewsletter, footerBanners }: FooterProps) {
                             <div className="flex items-center gap-6">
                                 <a
                                     href="#"
-                                    className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-[#ff4500] hover:bg-white/10 transition-all duration-300 border border-white/5"
+                                    className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-primary hover:bg-white/10 transition-all duration-300 border border-white/5"
                                     aria-label="Twitter"
                                 >
                                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -153,7 +152,7 @@ export function Footer({ onOpenNewsletter, footerBanners }: FooterProps) {
                                 </a>
                                 <a
                                     href="#"
-                                    className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-[#ff4500] hover:bg-white/10 transition-all duration-300 border border-white/5"
+                                    className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-primary hover:bg-white/10 transition-all duration-300 border border-white/5"
                                     aria-label="LinkedIn"
                                 >
                                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -162,7 +161,7 @@ export function Footer({ onOpenNewsletter, footerBanners }: FooterProps) {
                                 </a>
                                 <a
                                     href="#"
-                                    className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-[#ff4500] hover:bg-white/10 transition-all duration-300 border border-white/5"
+                                    className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-primary hover:bg-white/10 transition-all duration-300 border border-white/5"
                                     aria-label="Facebook"
                                 >
                                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -171,7 +170,7 @@ export function Footer({ onOpenNewsletter, footerBanners }: FooterProps) {
                                 </a>
                                 <a
                                     href="#"
-                                    className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-[#ff4500] hover:bg-white/10 transition-all duration-300 border border-white/5"
+                                    className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-primary hover:bg-white/10 transition-all duration-300 border border-white/5"
                                     aria-label="Instagram"
                                 >
                                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

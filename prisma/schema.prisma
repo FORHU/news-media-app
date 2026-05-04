@@ -7,47 +7,71 @@ datasource db {
   provider = "postgresql"
 }
 
-// --- Enums ---
+model Tenant {
+  id               String            @id @default(cuid())
+  slug             String            @unique
+  domain           String            @unique @map("domain")
+  siteName         String            @map("site_name")
+  defaultLanguage  String            @default("en") @map("default_language")
+  logoUrl          String?           @map("logo_url")
+  faviconUrl       String?           @map("favicon_url")
+  isActive         Boolean           @default(true) @map("is_active")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  banners          Banner[]
+  categories       Category[]
+  contentArticles  ContentArticle[]
+  crawlJobs        CrawlJob[]
+  crawledUrls      CrawledUrl[]
+  rawArticles      RawArticle[]
+  rawSourceUploads RawSourceUpload[]
+  rawTweets        RawTweet[]
+  rawVideos        RawVideo[]
+  socialChannels   SocialChannel[]
+  subscribers      Subscriber[]
+  users            User[]
 
-enum SourceType {
-  ARTICLE
-  TWEET
-  VIDEO
-  UPLOAD
-  MANUAL
+  @@map("tenants")
 }
-
-// --- Core User & Subscription Models ---
 
 model User {
   id              String           @id @default(cuid())
+  tenantId        String           @map("tenant_id")
   firstName       String           @map("first_name")
   lastName        String           @map("last_name")
-  email           String           @unique
+  email           String
   password        String
   role            String           @default("user")
   createdAt       DateTime         @default(now()) @map("created_at")
   updatedAt       DateTime         @updatedAt @map("updated_at")
   contentArticles ContentArticle[]
+  tenant          Tenant           @relation(fields: [tenantId], references: [id])
 
+  @@unique([tenantId, email])
+  @@index([tenantId])
   @@map("users")
 }
 
 model Category {
   id                    String                 @id @default(cuid())
-  categoryName          String                 @unique(map: "unique_category_name") @map("category_name")
+  tenantId              String                 @map("tenant_id")
+  categoryName          String                 @map("category_name")
   updatedAt             DateTime               @updatedAt @map("updated_at")
   createdAt             DateTime               @default(now()) @map("created_at")
+  tenant                Tenant                 @relation(fields: [tenantId], references: [id])
   contentArticles       ContentArticle[]
   rawArticles           RawArticle[]
   subscriberPreferences SubscriberPreference[]
 
+  @@unique([tenantId, categoryName])
+  @@index([tenantId])
   @@map("categories")
 }
 
 model Subscriber {
   id            String                 @id @default(cuid())
-  email         String                 @unique
+  tenantId      String                 @map("tenant_id")
+  email         String
   isVerified    Boolean                @default(false) @map("is_verified")
   createdAt     DateTime               @default(now()) @map("created_at")
   updatedAt     DateTime               @updatedAt @map("updated_at")
@@ -56,7 +80,10 @@ model Subscriber {
   otpCode       String?                @map("otp_code")
   lastOtpSentAt DateTime?              @map("last_otp_sent_at")
   preferences   SubscriberPreference[]
+  tenant        Tenant                 @relation(fields: [tenantId], references: [id])
 
+  @@unique([tenantId, email])
+  @@index([tenantId])
   @@map("subscribers")
 }
 
@@ -72,121 +99,121 @@ model SubscriberPreference {
   @@map("subscriber_preferences")
 }
 
-// --- The "Published" Layer ---
-
 model ContentArticle {
-  id         String @id @default(cuid())
-  usersId    String @map("users_id")
-  categoryId String @map("category_id")
+  id                String                  @id @default(cuid())
+  tenantId          String                  @map("tenant_id")
+  usersId           String                  @map("users_id")
+  categoryId        String                  @map("category_id")
+  rawArticleId      String?                 @unique @map("raw_article_id")
+  rawTweetId        String?                 @unique @map("raw_tweets_id")
+  rawVideoId        String?                 @unique @map("raw_youtube_id")
+  rawSourceUploadId String?                 @unique @map("raw_source_uploads_id")
+  title             String
+  slug              String?                 @unique
+  publishDate       DateTime?               @map("publish_date")
+  imageUrl          String?                 @map("image_url")
+  content           String
+  youtubeUrl        String?                 @map("youtube_url")
+  sourceType        SourceType              @default(ARTICLE) @map("source_type")
+  status            String
+  createdAt         DateTime                @default(now()) @map("created_at")
+  updatedAt         DateTime                @updatedAt @map("updated_at")
+  viewCount         Int                     @default(0) @map("view_count")
+  trendingScore     Float                   @default(0.0) @map("trending_score")
+  category          Category                @relation(fields: [categoryId], references: [id])
+  rawArticle        RawArticle?             @relation(fields: [rawArticleId], references: [id])
+  rawSourceUpload   RawSourceUpload?        @relation(fields: [rawSourceUploadId], references: [id])
+  rawTweet          RawTweet?               @relation(fields: [rawTweetId], references: [id])
+  rawVideo          RawVideo?               @relation(fields: [rawVideoId], references: [id])
+  tenant            Tenant                  @relation(fields: [tenantId], references: [id])
+  user              User                    @relation(fields: [usersId], references: [id])
+  transformations   ContentTransformation[]
 
-  // Sources (Exclusive Foreign Keys)
-  rawArticleId      String? @unique @map("raw_article_id")
-  rawTweetId        String? @unique @map("raw_tweets_id")
-  rawVideoId        String? @unique @map("raw_youtube_id")
-  rawSourceUploadId String? @unique @map("raw_source_uploads_id")
-
-  title       String
-  slug        String?    @unique
-  publishDate DateTime?  @map("publish_date")
-  imageUrl    String?    @map("image_url")
-  content     String     @db.Text
-  youtubeUrl  String?    @map("youtube_url")
-  sourceType  SourceType @default(ARTICLE) @map("source_type")
-  status      String
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  category Category @relation(fields: [categoryId], references: [id])
-  user     User     @relation(fields: [usersId], references: [id])
-
-  rawArticle      RawArticle?      @relation(fields: [rawArticleId], references: [id])
-  rawTweet        RawTweet?        @relation(fields: [rawTweetId], references: [id])
-  rawVideo        RawVideo?        @relation(fields: [rawVideoId], references: [id])
-  rawSourceUpload RawSourceUpload? @relation(fields: [rawSourceUploadId], references: [id])
-
-  transformations ContentTransformation[]
-
+  @@index([tenantId])
   @@map("content_articles")
 }
 
-// --- Raw Data Sources ---
-
 model RawArticle {
-  id           String    @id @default(cuid())
-  crawledUrlId String    @map("crawled_url_id")
-  categoryId   String    @map("category_id")
-  crawlJobId   String?   @map("crawl_jobs_id")
-  title        String
-  author       String?
-  publishDate  DateTime? @map("publish_date")
-  imageUrl     String?   @map("image_url")
-  content      String?   @db.Text
-  status       String    @default("pending")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-
-  category       Category        @relation(fields: [categoryId], references: [id])
-  crawledUrl     CrawledUrl      @relation(fields: [crawledUrlId], references: [id])
-  crawlJob       CrawlJob?       @relation(fields: [crawlJobId], references: [id])
+  id             String          @id @default(cuid())
+  tenantId       String          @map("tenant_id")
+  crawledUrlId   String          @map("crawled_url_id")
+  categoryId     String          @map("category_id")
+  crawlJobId     String?         @map("crawl_jobs_id")
+  title          String
+  author         String?
+  publishDate    DateTime?       @map("publish_date")
+  imageUrl       String?         @map("image_url")
+  content        String?
+  status         String          @default("pending")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
   contentArticle ContentArticle?
+  category       Category        @relation(fields: [categoryId], references: [id])
+  crawlJob       CrawlJob?       @relation(fields: [crawlJobId], references: [id])
+  crawledUrl     CrawledUrl      @relation(fields: [crawledUrlId], references: [id])
+  tenant         Tenant          @relation(fields: [tenantId], references: [id])
 
+  @@index([tenantId])
   @@map("raw_articles")
 }
 
 model RawTweet {
-  id             String   @id @default(cuid())
-  tweetId        String   @unique @map("tweet_id")
-  sourceName     String?  @map("source_name")
-  profileUrl     String?  @map("profile_url")
-  text           String   @db.Text
-  tweetTimestamp String?  @map("tweet_timestamp")
-  hasMedia       Boolean  @default(false) @map("has_media")
-  mediaType      String?  @map("media_type")
-  mediaUrls      String[] @default([]) @map("media_urls")
-  thumbnailUrl   String?  @map("thumbnail_url")
-  status         String   @default("pending")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-
+  id             String          @id @default(cuid())
+  tenantId       String          @map("tenant_id")
+  tweetId        String          @unique @map("tweet_id")
+  sourceName     String?         @map("source_name")
+  profileUrl     String?         @map("profile_url")
+  text           String
+  tweetTimestamp String?         @map("tweet_timestamp")
+  hasMedia       Boolean         @default(false) @map("has_media")
+  mediaType      String?         @map("media_type")
+  mediaUrls      String[]        @default([]) @map("media_urls")
+  thumbnailUrl   String?         @map("thumbnail_url")
+  status         String          @default("pending")
+  generationMode String          @default("standalone") @map("generation_mode")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
   contentArticle ContentArticle?
-
+  tenant         Tenant          @relation(fields: [tenantId], references: [id])
+  @@index([tenantId])
   @@map("raw_tweets")
 }
 
 model RawVideo {
-  id                 String   @id @default(cuid())
+  id                 String          @id @default(cuid())
+  tenantId           String          @map("tenant_id")
   language           String?
-  youtubeUrl         String   @map("youtube_url")
-  transcribedContent String   @map("transcribed_content") @db.Text
-  prompt             String?  @db.Text
-  createdAt          DateTime @default(now()) @map("created_at")
-  updatedAt          DateTime @updatedAt @map("updated_at")
-
-  contentArticle ContentArticle?
-
+  youtubeUrl         String          @map("youtube_url")
+  transcribedContent String          @map("transcribed_content")
+  prompt             String?
+  generationMode     String          @default("standalone") @map("generation_mode")
+  createdAt          DateTime        @default(now()) @map("created_at")
+  updatedAt          DateTime        @updatedAt @map("updated_at")
+  contentArticle     ContentArticle?
+  tenant             Tenant          @relation(fields: [tenantId], references: [id])
+  @@index([tenantId])
   @@map("raw_videos")
 }
 
 model RawSourceUpload {
-  id            String   @id @default(cuid())
-  prompt        String?  @db.Text
-  s3ImageUrl    String?  @map("s3_image_url")
-  language      String?
-  extractedText String?  @map("extracted_text") @db.Text
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
+  id             String          @id @default(cuid())
+  tenantId       String          @map("tenant_id")
+  prompt         String?
+  s3ImageUrl     String?         @map("s3_image_url")
+  language       String?
+  extractedText  String?         @map("extracted_text")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
   contentArticle ContentArticle?
+  tenant         Tenant          @relation(fields: [tenantId], references: [id])
 
+  @@index([tenantId])
   @@map("raw_source_uploads")
 }
 
-// --- Crawling & Automation Support ---
-
 model CrawlJob {
   id                 String       @id @default(uuid())
+  tenantId           String       @map("tenant_id")
   status             String       @default("PENDING")
   urls               String[]     @default([]) @map("urls")
   maxArticlesRequest Int          @default(10) @map("max_articles_request")
@@ -194,23 +221,27 @@ model CrawlJob {
   createdAt          DateTime     @default(now()) @map("created_at")
   startedAt          DateTime?    @map("started_at")
   finishedAt         DateTime?    @map("finished_at")
+  tenant             Tenant       @relation(fields: [tenantId], references: [id])
   rawArticles        RawArticle[]
 
+  @@index([tenantId])
   @@map("crawl_jobs")
 }
 
 model CrawledUrl {
   id          String       @id @default(cuid())
-  url         String       @unique
+  tenantId    String       @map("tenant_id")
+  url         String
   status      String
   createdAt   DateTime     @default(now()) @map("created_at")
   updatedAt   DateTime     @updatedAt @map("updated_at")
+  tenant      Tenant       @relation(fields: [tenantId], references: [id])
   rawArticles RawArticle[]
 
+  @@unique([tenantId, url])
+  @@index([tenantId])
   @@map("crawled_urls")
 }
-
-// --- Social Media Distribution ---
 
 model ContentTransformation {
   id                 String            @id @default(cuid())
@@ -232,11 +263,14 @@ model ContentTransformation {
 
 model SocialChannel {
   id              String                  @id @default(cuid())
+  tenantId        String                  @map("tenant_id")
   socialMediaName String                  @map("social_media_name")
   createdAt       DateTime                @default(now()) @map("created_at")
   updatedAt       DateTime                @updatedAt @map("updated_at")
   transformations ContentTransformation[]
+  tenant          Tenant                  @relation(fields: [tenantId], references: [id])
 
+  @@index([tenantId])
   @@map("social_channels")
 }
 
@@ -255,14 +289,25 @@ model SocialMediaPost {
 
 model Banner {
   id        String   @id @default(cuid())
+  tenantId  String   @map("tenant_id")
   name      String   @map("name")
   imageUrl  String   @map("image_url")
   linkUrl   String   @map("link_url")
   altText   String?  @map("alt_text")
-  positions String[] @map("positions") // e.g., ['HOME_TOP', 'HOME_SIDEBAR']
+  positions String[] @map("positions")
   isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
 
+  @@index([tenantId])
   @@map("banners")
+}
+
+enum SourceType {
+  ARTICLE
+  TWEET
+  VIDEO
+  UPLOAD
+  MANUAL
 }

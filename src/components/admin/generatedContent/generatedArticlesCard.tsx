@@ -65,7 +65,7 @@ function getSourceMeta(sourceType?: string | null) {
         case 'VIDEO':
             return { label: 'YouTube', Icon: Youtube, className: 'bg-red-50 text-red-600 border-red-100' };
         case 'TWEET':
-            return { label: 'Twitter', Icon: Twitter, className: 'bg-sky-50 text-sky-600 border-sky-100' };
+            return { label: 'X', Icon: Twitter, className: 'bg-gray-900 text-white border-gray-800' };
         case 'UPLOAD':
             return { label: 'Upload', Icon: Upload, className: 'bg-violet-50 text-violet-600 border-violet-100' };
         case 'MANUAL':
@@ -116,7 +116,7 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
             {/* Thumbnail Image Container */}
             <div className="relative w-full md:w-64 h-48 md:h-44 rounded-[1.5rem] overflow-hidden shadow-inner bg-gray-50 flex-shrink-0">
                 <StoryImage
-                    src={article.imageUrl}
+                    src={article.imageUrl || article.rawArticle?.imageUrl}
                     alt={article.title}
                     fill
                     sizes="(max-width: 768px) 100vw, 256px"

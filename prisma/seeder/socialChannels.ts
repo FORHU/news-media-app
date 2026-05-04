@@ -6,17 +6,20 @@ const socialChannels = [
   { socialMediaName: "Facebook" },
 ];
 
-export async function seedSocialChannels(prisma: PrismaClient): Promise<string[]> {
+export async function seedSocialChannels(
+  prisma: PrismaClient,
+  tenantId: string
+): Promise<string[]> {
   const ids: string[] = [];
   for (const ch of socialChannels) {
     const existing = await prisma.socialChannel.findFirst({
-      where: { socialMediaName: ch.socialMediaName },
+      where: { tenantId, socialMediaName: ch.socialMediaName },
     });
     if (existing) {
       ids.push(String(existing.id));
     } else {
       const created = await prisma.socialChannel.create({
-        data: { socialMediaName: ch.socialMediaName },
+        data: { tenantId, socialMediaName: ch.socialMediaName },
       });
       ids.push(String(created.id));
     }

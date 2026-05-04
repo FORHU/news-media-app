@@ -29,6 +29,7 @@ import { Article } from "@/lib/types";
 import { StoryImage } from "@/components/StoryImage";
 import CategorySelectWithOther from "@/components/admin/shared/CategorySelectWithOther";
 import { extractYoutubeId } from "@/lib/utils";
+import TwitterStatusEmbed from "@/components/article/TwitterStatusEmbed";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -187,7 +188,11 @@ export default function PublishArticleModal({
             setError(null);
             setSuccessMsg(null);
 
-            let finalImageUrl = article.imageUrl ?? null; // Start with current image
+            // Logic: 
+            // 1. If user uploaded a new file, use that.
+            // 2. Otherwise, check if we had a current image (generated or raw fallback).
+            // 3. If neither, use null.
+            let finalImageUrl = article.imageUrl || article.rawArticle?.imageUrl || null; 
             
             if (imageFile) {
                 setIsUploadingImage(true);
@@ -198,8 +203,6 @@ export default function PublishArticleModal({
                 } finally {
                     setIsUploadingImage(false);
                 }
-            } else if (imagePreview === null && !article.imageUrl) {
-                finalImageUrl = null;
             }
 
             return articlesApi.updateArticle(article.id, {
@@ -233,14 +236,16 @@ export default function PublishArticleModal({
     };
 
     const isBusy = mutation.isPending || isUploadingImage;
-    const currentImage = imagePreview ?? article.imageUrl;
+    const currentImage = imagePreview ?? article.imageUrl ?? article.rawArticle?.imageUrl;
+    const isTweet = article.sourceType === "TWEET";
+    const tweetId = article.rawTweet?.tweetId;
 
     // ── view ──
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
                 showCloseButton={false}
-                className="w-[95vw] sm:max-w-[780px] max-h-[92vh] p-0 overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] border-none bg-white shadow-2xl flex flex-col"
+                className={`w-[95vw] ${isTweet && tweetId ? 'sm:max-w-[1200px]' : 'sm:max-w-[780px]'} max-h-[92vh] p-0 overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] border-none bg-white shadow-2xl flex flex-col transition-all duration-500`}
             >
                 {/* ── header ── */}
                 <div className="relative bg-gray-900 px-6 sm:px-8 py-7 overflow-hidden flex-shrink-0">
@@ -270,229 +275,254 @@ export default function PublishArticleModal({
                 </div>
 
                 {/* ── scrollable body ── */}
-                <div className="flex-1 overflow-y-auto overscroll-contain px-5 sm:px-8 py-6 space-y-6 bg-gray-50/40">
-
-                    {/* success banner */}
-                    {successMsg && (
-                        <div className="flex items-start gap-3 p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm font-semibold animate-in fade-in slide-in-from-top-2">
-                            <Check className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                            {successMsg}
-                        </div>
-                    )}
-
-                    {/* error banner */}
-                    {error && (
-                        <div className="flex items-start gap-3 p-4 rounded-2xl bg-red-50 border border-red-100 text-red-700 text-sm font-semibold animate-in fade-in slide-in-from-top-2">
-                            <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                            <div className="flex-1">
-                                <p className="font-bold">Execution Failed</p>
-                                <p className="text-xs opacity-80 mt-0.5">{error}</p>
-                            </div>
-                            <button onClick={() => setError(null)} className="p-1 hover:bg-red-100 rounded-lg transition-colors">
-                                <X className="w-4 h-4" />
-                            </button>
-                        </div>
-                    )}
-
-                    {/* ── TITLE ── */}
-                    <div>
-                        <SectionLabel icon={<FileText className="w-4 h-4" />} label="Title" />
-                        <Input
-                            id="publish-modal-title"
-                            value={title}
-                            onChange={(e) => {
-                                setTitle(e.target.value);
-                                if (fieldErrors.title) setFieldErrors(prev => ({ ...prev, title: "" }));
-                            }}
-                            placeholder="Article headline..."
-                            className={`h-12 rounded-xl bg-white border-gray-200 text-gray-900 font-semibold text-sm focus-visible:ring-orange-500/20 focus-visible:border-orange-300 shadow-sm ${
-                                fieldErrors.title ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/10" : ""
-                            }`}
-                        />
-                        {fieldErrors.title && (
-                            <p className="mt-1.5 text-xs text-red-500 font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
-                                <AlertCircle className="w-3 h-3" />
-                                {fieldErrors.title}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* ── CATEGORY ── */}
-                    <div>
-                        <SectionLabel icon={<Tag className="w-4 h-4" />} label="Category" />
-                        <CategorySelectWithOther
-                            value={categoryId}
-                            onValueChange={(val) => {
-                                setCategoryId(val);
-                                if (fieldErrors.categoryId) setFieldErrors(prev => ({ ...prev, categoryId: "" }));
-                            }}
-                            categories={categories ?? []}
-                            isLoading={isLoadingCategories}
-                            placeholder="Select Category"
-                            triggerClassName={`h-12 w-full rounded-xl bg-white border-gray-200 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm ${
-                                fieldErrors.categoryId ? "border-red-500 focus-visible:ring-red-500/10" : ""
-                            }`}
-                            contentClassName="max-h-[380px]"
-                            error={fieldErrors.categoryId}
-                        />
-                        {fieldErrors.categoryId && (
-                            <p className="mt-1.5 text-xs text-red-500 font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
-                                <AlertCircle className="w-3 h-3" />
-                                {fieldErrors.categoryId}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* ── CONTENT ── */}
-                    <div>
-                        <SectionLabel
-                            icon={<FileText className="w-4 h-4" />}
-                            label="Article Content"
-                        />
-                        <textarea
-                            id="publish-modal-content"
-                            value={content}
-                            onChange={(e) => {
-                                setContent(e.target.value);
-                                if (fieldErrors.content) setFieldErrors(prev => ({ ...prev, content: "" }));
-                            }}
-                            rows={10}
-                            placeholder="Edit article content here..."
-                            className={`w-full px-4 py-3 rounded-xl bg-white border border-gray-200 text-sm text-gray-800 font-medium leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-300 shadow-sm transition-all placeholder:text-gray-400 ${
-                                fieldErrors.content ? "border-red-500 focus:ring-red-500/10 focus:border-red-500" : ""
-                            }`}
-                        />
-                        {fieldErrors.content && (
-                            <p className="mt-1.5 text-xs text-red-500 font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
-                                <AlertCircle className="w-3 h-3" />
-                                {fieldErrors.content}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* ── MAIN IMAGE (Optional) ── */}
-                    <div>
-                        <SectionLabel
-                            icon={<ImageIcon className="w-4 h-4" />}
-                            label="Main Image (Optional)"
-                        />
-
-                        {/* current / preview */}
-                        <div className="relative w-full h-44 rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 shadow-sm mb-3">
-                            {currentImage ? (
-                                <>
-                                    <StoryImage
-                                        src={currentImage}
-                                        alt="Article image"
-                                        fill
-                                        sizes="700px"
-                                        className="object-cover"
-                                    />
-                                    {imagePreview && (
-                                        <div className="absolute top-3 left-3 px-3 py-1 rounded-lg bg-orange-500 text-white text-[10px] font-black uppercase tracking-widest shadow">
-                                            New Upload
-                                        </div>
-                                    )}
-                                </>
-                            ) : (
-                                <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-2">
-                                    <ImageIcon className="w-10 h-10 opacity-30" />
-                                    <span className="text-xs font-semibold">No image set</span>
+                <div className="flex-1 overflow-y-auto overscroll-contain bg-gray-50/40">
+                    <div className={`px-5 sm:px-8 py-6 flex flex-col ${isTweet && tweetId ? 'lg:flex-row' : ''} gap-8`}>
+                        
+                        {/* Left Side: Form Fields */}
+                        <div className={`flex-1 space-y-6 ${isTweet && tweetId ? 'lg:max-w-[650px]' : ''}`}>
+                            {/* success banner */}
+                            {successMsg && (
+                                <div className="flex items-start gap-3 p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm font-semibold animate-in fade-in slide-in-from-top-2">
+                                    <Check className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                    {successMsg}
                                 </div>
                             )}
-                        </div>
 
-                        <div className="flex items-center gap-3">
-                            <input
-                                ref={fileInputRef}
-                                id="publish-modal-image-upload"
-                                type="file"
-                                accept=".jpg,.jpeg,.png,.webp"
-                                className="hidden"
-                                onChange={handleImageChange}
-                            />
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => fileInputRef.current?.click()}
-                                className="flex items-center gap-2 rounded-xl font-bold text-sm border-gray-200 hover:bg-gray-50 shadow-sm h-10"
-                            >
-                                <Upload className="w-4 h-4 text-orange-500" />
-                                {imageFile ? "Replace Image" : "Upload New Image"}
-                            </Button>
-                            {imageFile && (
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    onClick={clearImage}
-                                    className="flex items-center gap-2 rounded-xl font-bold text-sm text-red-500 hover:bg-red-50 h-10"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                    Remove
-                                </Button>
+                            {/* error banner */}
+                            {error && (
+                                <div className="flex items-start gap-3 p-4 rounded-2xl bg-red-50 border border-red-100 text-red-700 text-sm font-semibold animate-in fade-in slide-in-from-top-2">
+                                    <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                    <div className="flex-1">
+                                        <p className="font-bold">Execution Failed</p>
+                                        <p className="text-xs opacity-80 mt-0.5">{error}</p>
+                                    </div>
+                                    <button onClick={() => setError(null)} className="p-1 hover:bg-red-100 rounded-lg transition-colors">
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
                             )}
-                            <span className="text-xs text-gray-400 font-medium">
-                                {imageFile
-                                    ? imageFile.name
-                                    : article.imageUrl
-                                    ? "Using current image"
-                                    : "No image — default will be used"}
-                            </span>
-                        </div>
-                        {fieldErrors.imageUrl && (
-                            <p className="mt-2 text-xs text-red-500 font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
-                                <AlertCircle className="w-3 h-3" />
-                                {fieldErrors.imageUrl}
-                            </p>
-                        )}
-                    </div>
 
-                    {/* ── YOUTUBE URL (Optional) ── */}
-                    <div className="space-y-4 p-5 rounded-2xl bg-white border border-gray-100 shadow-sm transition-all hover:shadow-md">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
-                                <Youtube className="w-4 h-4 text-red-600" />
-                            </div>
-                            <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">
-                                YouTube Video (Optional)
-                            </label>
-                        </div>
-
-                        <div className="relative group">
-                            <Input
-                                value={youtubeUrl}
-                                onChange={(e) => {
-                                    setYoutubeUrl(e.target.value);
-                                    if (fieldErrors.youtubeUrl) {
-                                        setFieldErrors((prev) => ({ ...prev, youtubeUrl: "" }));
-                                    }
-                                }}
-                                placeholder="https://www.youtube.com/watch?v=..."
-                                className={`h-12 bg-gray-50 border-gray-100 rounded-xl pl-4 pr-10 text-sm font-semibold focus-visible:ring-red-500/20 transition-all ${
-                                    fieldErrors.youtubeUrl ? "border-red-500 bg-red-50/30" : ""
-                                }`}
-                            />
-                            <Youtube className={`absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${youtubeId ? 'text-red-500' : 'text-gray-300'}`} />
-                        </div>
-
-                        {/* live embed preview */}
-                        {youtubeId && !fieldErrors.youtubeUrl && (
-                            <div className="mt-3 rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-black aspect-video animate-in zoom-in-95 duration-300">
-                                <iframe
-                                    src={`https://www.youtube.com/embed/${youtubeId}`}
-                                    title="YouTube preview"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                    className="w-full h-full"
+                            {/* ── TITLE ── */}
+                            <div>
+                                <SectionLabel icon={<FileText className="w-4 h-4" />} label="Title" />
+                                <Input
+                                    id="publish-modal-title"
+                                    value={title}
+                                    onChange={(e) => {
+                                        setTitle(e.target.value);
+                                        if (fieldErrors.title) setFieldErrors(prev => ({ ...prev, title: "" }));
+                                    }}
+                                    placeholder="Article headline..."
+                                    className={`h-12 rounded-xl bg-white border-gray-200 text-gray-900 font-semibold text-sm focus-visible:ring-orange-500/20 focus-visible:border-orange-300 shadow-sm ${
+                                        fieldErrors.title ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/10" : ""
+                                    }`}
                                 />
+                                {fieldErrors.title && (
+                                    <p className="mt-1.5 text-xs text-red-500 font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                        <AlertCircle className="w-3 h-3" />
+                                        {fieldErrors.title}
+                                    </p>
+                                )}
                             </div>
-                        )}
 
-                        {fieldErrors.youtubeUrl && (
-                            <p className="mt-2 text-xs text-red-500 font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
-                                <AlertCircle className="w-3 h-3" />
-                                {fieldErrors.youtubeUrl}
-                            </p>
+                            {/* ── CATEGORY ── */}
+                            <div>
+                                <SectionLabel icon={<Tag className="w-4 h-4" />} label="Category" />
+                                <CategorySelectWithOther
+                                    value={categoryId}
+                                    onValueChange={(val) => {
+                                        setCategoryId(val);
+                                        if (fieldErrors.categoryId) setFieldErrors(prev => ({ ...prev, categoryId: "" }));
+                                    }}
+                                    categories={categories ?? []}
+                                    isLoading={isLoadingCategories}
+                                    placeholder="Select Category"
+                                    triggerClassName={`h-12 w-full rounded-xl bg-white border-gray-200 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm ${
+                                        fieldErrors.categoryId ? "border-red-500 focus-visible:ring-red-500/10" : ""
+                                    }`}
+                                    contentClassName="max-h-[380px]"
+                                    error={fieldErrors.categoryId}
+                                />
+                                {fieldErrors.categoryId && (
+                                    <p className="mt-1.5 text-xs text-red-500 font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                        <AlertCircle className="w-3 h-3" />
+                                        {fieldErrors.categoryId}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* ── CONTENT ── */}
+                            <div>
+                                <SectionLabel
+                                    icon={<FileText className="w-4 h-4" />}
+                                    label="Article Content"
+                                />
+                                <textarea
+                                    id="publish-modal-content"
+                                    value={content}
+                                    onChange={(e) => {
+                                        setContent(e.target.value);
+                                        if (fieldErrors.content) setFieldErrors(prev => ({ ...prev, content: "" }));
+                                    }}
+                                    rows={10}
+                                    placeholder="Edit article content here..."
+                                    className={`w-full px-4 py-3 rounded-xl bg-white border border-gray-200 text-sm text-gray-800 font-medium leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-300 shadow-sm transition-all placeholder:text-gray-400 ${
+                                        fieldErrors.content ? "border-red-500 focus:ring-red-500/10 focus:border-red-500" : ""
+                                    }`}
+                                />
+                                {fieldErrors.content && (
+                                    <p className="mt-1.5 text-xs text-red-500 font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                        <AlertCircle className="w-3 h-3" />
+                                        {fieldErrors.content}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* ── MAIN IMAGE (Optional) ── */}
+                            <div>
+                                <SectionLabel
+                                    icon={<ImageIcon className="w-4 h-4" />}
+                                    label="Main Image (Optional)"
+                                />
+
+                                {/* current / preview */}
+                                <div className="relative w-full h-44 rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 shadow-sm mb-3">
+                                    {currentImage ? (
+                                        <>
+                                            <StoryImage
+                                                src={currentImage}
+                                                alt="Article image"
+                                                fill
+                                                sizes="700px"
+                                                className="object-cover"
+                                            />
+                                            {imagePreview && (
+                                                <div className="absolute top-3 left-3 px-3 py-1 rounded-lg bg-orange-500 text-white text-[10px] font-black uppercase tracking-widest shadow">
+                                                    New Upload
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-2">
+                                            <ImageIcon className="w-10 h-10 opacity-30" />
+                                            <span className="text-xs font-semibold">No image set</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        ref={fileInputRef}
+                                        id="publish-modal-image-upload"
+                                        type="file"
+                                        accept=".jpg,.jpeg,.png,.webp"
+                                        className="hidden"
+                                        onChange={handleImageChange}
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="flex items-center gap-2 rounded-xl font-bold text-sm border-gray-200 hover:bg-gray-50 shadow-sm h-10"
+                                    >
+                                        <Upload className="w-4 h-4 text-orange-500" />
+                                        {imageFile ? "Replace Image" : "Upload New Image"}
+                                    </Button>
+                                    {imageFile && (
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            onClick={clearImage}
+                                            className="flex items-center gap-2 rounded-xl font-bold text-sm text-red-500 hover:bg-red-50 h-10"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                            Remove
+                                        </Button>
+                                    )}
+                                    <span className="text-xs text-gray-400 font-medium">
+                                        {imageFile
+                                            ? imageFile.name
+                                            : (article.imageUrl || article.rawArticle?.imageUrl)
+                                            ? "Using current image"
+                                            : "No image — default will be used"}
+                                    </span>
+                                </div>
+                                {fieldErrors.imageUrl && (
+                                    <p className="mt-2 text-xs text-red-500 font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                        <AlertCircle className="w-3 h-3" />
+                                        {fieldErrors.imageUrl}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* ── YOUTUBE URL (Optional) ── */}
+                            <div className="space-y-4 p-5 rounded-2xl bg-white border border-gray-100 shadow-sm transition-all hover:shadow-md">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
+                                        <Youtube className="w-4 h-4 text-red-600" />
+                                    </div>
+                                    <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">
+                                        YouTube Video (Optional)
+                                    </label>
+                                </div>
+
+                                <div className="relative group">
+                                    <Input
+                                        value={youtubeUrl}
+                                        onChange={(e) => {
+                                            setYoutubeUrl(e.target.value);
+                                            if (fieldErrors.youtubeUrl) {
+                                                setFieldErrors((prev) => ({ ...prev, youtubeUrl: "" }));
+                                            }
+                                        }}
+                                        placeholder="https://www.youtube.com/watch?v=..."
+                                        className={`h-12 bg-gray-50 border-gray-100 rounded-xl pl-4 pr-10 text-sm font-semibold focus-visible:ring-red-500/20 transition-all ${
+                                            fieldErrors.youtubeUrl ? "border-red-500 bg-red-50/30" : ""
+                                        }`}
+                                    />
+                                    <Youtube className={`absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${youtubeId ? 'text-red-500' : 'text-gray-300'}`} />
+                                </div>
+
+                                {/* live embed preview */}
+                                {youtubeId && !fieldErrors.youtubeUrl && (
+                                    <div className="mt-3 rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-black aspect-video animate-in zoom-in-95 duration-300">
+                                        <iframe
+                                            src={`https://www.youtube.com/embed/${youtubeId}`}
+                                            title="YouTube preview"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                            className="w-full h-full"
+                                        />
+                                    </div>
+                                )}
+
+                                {fieldErrors.youtubeUrl && (
+                                    <p className="mt-2 text-xs text-red-500 font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                        <AlertCircle className="w-3 h-3" />
+                                        {fieldErrors.youtubeUrl}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Right Side: Twitter Embed Overview */}
+                        {isTweet && tweetId && (
+                            <div className="lg:w-[450px] space-y-4 animate-in slide-in-from-right-4 duration-500">
+                                <SectionLabel 
+                                    icon={<Send className="w-4 h-4 rotate-[-45deg]" />} 
+                                    label="Original X Post Overview" 
+                                />
+                                <div className="sticky top-0">
+                                    <TwitterStatusEmbed 
+                                        tweetId={tweetId} 
+                                        profileUrl={article.rawTweet?.profileUrl}
+                                        className="shadow-xl border-orange-100"
+                                    />
+                                    <p className="mt-4 text-[11px] text-gray-400 font-medium italic text-center px-4">
+                                        Reference the original post while editing your generated article content.
+                                    </p>
+                                </div>
+                            </div>
                         )}
                     </div>
                 </div>

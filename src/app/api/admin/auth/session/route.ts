@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { resolveTenantIdFromRequest } from "@/lib/tenant";
 
-const ADMIN_ROLE_COOKIE = "admin-role";
+const ADMIN_ROLE_COOKIE = "admin_verified";
 
 /**
  * POST /api/admin/auth/session
@@ -20,31 +21,41 @@ const ADMIN_ROLE_COOKIE = "admin-role";
  */
 export async function POST(_request: NextRequest) {
     try {
-        // Read the current user from the Supabase session cookies
+        const tenantId = await resolveTenantIdFromRequest(_request);
+        if (!tenantId) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+
+        const body = await _request.json().catch(() => ({}));
+        const accessToken = body.accessToken;
+
+        // Read the current user from the Supabase session cookies or provided token
         const supabase = await createSupabaseServerClient();
-        const {
-            data: { user },
-            error: authError,
-        } = await supabase.auth.getUser();
+        
+        let user;
+        let authError;
+
+        if (accessToken) {
+            const { data, error } = await supabase.auth.getUser(accessToken);
+            user = data.user;
+            authError = error;
+        } else {
+            const { data, error } = await supabase.auth.getUser();
+            user = data.user;
+            authError = error;
+        }
 
         if (authError || !user?.email) {
-            console.error("[POST /api/admin/auth/session] No valid session in cookies", {
-                authErrorMessage: authError?.message ?? null,
-            });
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         // Verify admin role in database
-        const dbUser = await prisma.user.findUnique({
-            where: { email: user.email },
+        const dbUser = await prisma.user.findFirst({
+            where: { email: user.email, role: "admin", tenantId },
             select: { role: true },
         });
 
-        if (!dbUser || dbUser.role !== "admin") {
-            console.warn("[POST /api/admin/auth/session] Role check failed", {
-                email: user.email,
-                dbRole: dbUser?.role ?? null,
-            });
+        if (!dbUser) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
@@ -58,10 +69,8 @@ export async function POST(_request: NextRequest) {
             path: "/",
             maxAge: 60 * 60 * 24, // 24 hours
         });
-
         return response;
     } catch (error) {
-        console.error("[POST /api/admin/auth/session] Error:", error);
         return NextResponse.json(
             { error: "Failed to validate admin session." },
             { status: 500 }

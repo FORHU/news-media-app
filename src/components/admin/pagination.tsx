@@ -7,6 +7,7 @@ interface PaginationProps {
     totalPages: number;
     onPageChange: (page: number) => void;
     alwaysShow?: boolean;
+    activeColor?: 'orange' | 'blue' | 'black';
 }
 
 export default function Pagination({
@@ -14,6 +15,7 @@ export default function Pagination({
     totalPages,
     onPageChange,
     alwaysShow = false,
+    activeColor = 'orange',
 }: PaginationProps) {
     const safeTotal = alwaysShow ? Math.max(1, totalPages) : totalPages;
     const safeCurrent = Math.max(1, Math.min(currentPage, safeTotal));
@@ -37,12 +39,24 @@ export default function Pagination({
         return pages;
     };
 
+    const activeBg = activeColor === 'blue'
+        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+        : activeColor === 'black'
+            ? 'bg-gray-900 text-white shadow-lg shadow-gray-900/20'
+            : 'bg-orange-600 text-white shadow-lg shadow-orange-600/20';
+    const hoverText = activeColor === 'blue'
+        ? 'hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50'
+        : activeColor === 'black'
+            ? 'hover:text-gray-900 hover:border-gray-300 hover:bg-gray-50'
+            : 'hover:text-orange-600 hover:border-orange-200 hover:bg-orange-50';
+    const prevNextHover = hoverText;
+
     return (
         <div className="flex items-center justify-center gap-2 mt-12 py-8 border-t border-gray-100">
             <button
                 onClick={() => onPageChange(safeCurrent - 1)}
                 disabled={safeTotal <= 1 || safeCurrent <= 1}
-                className="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-gray-100 text-gray-400 hover:text-orange-600 hover:border-orange-200 hover:bg-orange-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className={`flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-gray-100 text-gray-400 ${prevNextHover} disabled:opacity-50 disabled:cursor-not-allowed transition-all`}
             >
                 <ChevronLeft className="w-5 h-5" />
             </button>
@@ -59,8 +73,8 @@ export default function Pagination({
                             onClick={() => onPageChange(page as number)}
                             className={`min-w-[40px] h-10 px-3 rounded-xl font-bold text-sm transition-all ${
                                 safeCurrent === page
-                                    ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/20'
-                                    : 'bg-white border border-gray-100 text-gray-500 hover:border-orange-200 hover:text-orange-600 hover:bg-orange-50'
+                                    ? activeBg
+                                    : `bg-white border border-gray-100 text-gray-500 ${hoverText}`
                             }`}
                         >
                             {page}
@@ -72,7 +86,7 @@ export default function Pagination({
             <button
                 onClick={() => onPageChange(safeCurrent + 1)}
                 disabled={safeTotal <= 1 || safeCurrent >= safeTotal}
-                className="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-gray-100 text-gray-400 hover:text-orange-600 hover:border-orange-200 hover:bg-orange-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className={`flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-gray-100 text-gray-400 ${prevNextHover} disabled:opacity-50 disabled:cursor-not-allowed transition-all`}
             >
                 <ChevronRight className="w-5 h-5" />
             </button>

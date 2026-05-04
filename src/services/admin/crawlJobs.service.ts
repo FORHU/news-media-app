@@ -20,27 +20,25 @@ function normalizeUrls(raw: unknown): string[] {
 }
 
 export const crawlJobsService = {
-  async getJobs(params: { page: number; limit: number }) {
+  async getJobs(params: { page: number; limit: number; tenantId: string }) {
     const offset = (params.page - 1) * params.limit;
+
 
     const { rows, count } = await crawlJobsRepository.fetchJobs({
       offset,
       limit: params.limit,
+      tenantId: params.tenantId,
     });
 
     const jobs = rows.map((job) => ({
       id: job.id,
       status: job.status || "Pending",
       urls: normalizeUrls(job.urls),
-      maxArticlesRequest:
-        typeof job.max_articles_request === "number"
-          ? job.max_articles_request
-          : 0,
-      articlesSaved:
-        typeof job.articles_saved === "number" ? job.articles_saved : 0,
-      createdAt: job.created_at,
-      startedAt: job.started_at,
-      finishedAt: job.finished_at,
+      maxArticlesRequest: job.maxArticlesRequest || 0,
+      articlesSaved: (job as any)._count?.rawArticles || 0,
+      createdAt: job.createdAt,
+      startedAt: job.startedAt,
+      finishedAt: job.finishedAt,
     }));
 
     return {

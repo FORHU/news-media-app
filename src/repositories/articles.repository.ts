@@ -3,16 +3,38 @@ import type { Article } from "@/lib/types";
 import { Prisma } from "@/generated/prisma/client";
 import { getCategoryFilterVariants } from "@/config/categories";
 
+const articleInclude = {
+  category: true,
+  user: { select: { firstName: true, lastName: true } },
+  rawArticle: {
+    include: {
+      category: true,
+      crawledUrl: true,
+    },
+  },
+  rawVideo: true,
+  rawSourceUpload: true,
+  rawTweet: {
+    select: {
+      tweetId: true,
+      generationMode: true,
+      profileUrl: true,
+    },
+  },
+} satisfies Prisma.ContentArticleInclude;
+
 export const articlesRepository = {
   async findMany(params: {
     limit: number;
     search?: string | null;
     category?: string | null;
     status?: string | null;
+    tenantId?: string;
   }): Promise<Article[]> {
-    const { limit, search, category, status } = params;
+    const { limit, search, category, status, tenantId } = params;
 
     const and: Prisma.ContentArticleWhereInput[] = [];
+    if (tenantId) and.push({ tenantId });
 
     if (search) {
       and.push({
@@ -43,6 +65,10 @@ export const articlesRepository = {
       and.push({
         status: status,
       });
+    } else {
+      and.push({
+        status: { in: ["published", "blog"] },
+      });
     }
 
     return prisma.contentArticle.findMany({
@@ -55,22 +81,26 @@ export const articlesRepository = {
         { publishDate: { sort: "desc", nulls: "last" } },
         { createdAt: "desc" }
       ],
-      include: { category: true },
+      include: articleInclude,
     }) as Promise<Article[]>;
   },
 
-  async findById(id: string): Promise<Article | null> {
-    return (await prisma.contentArticle.findUnique({
-      where: { id },
-      include: { category: true },
+  async findById(id: string, tenantId?: string | null): Promise<Article | null> {
+    const where: Prisma.ContentArticleWhereInput = tenantId ? { id, tenantId } : { id };
+    where.status = { in: ["published", "blog"] };
+    return (await prisma.contentArticle.findFirst({
+      where: where as any,
+      include: articleInclude,
     })) as Article | null;
   },
 
-  async findBySlug(slug: string): Promise<Article | null> {
+  async findBySlug(slug: string, tenantId?: string | null): Promise<Article | null> {
     try {
+      const where: Prisma.ContentArticleWhereInput = tenantId ? { slug, tenantId } : { slug };
+      where.status = { in: ["published", "blog"] };
       return (await prisma.contentArticle.findFirst({
-        where: { slug },
-        include: { category: true },
+        where: where as any,
+        include: articleInclude,
       })) as Article | null;
     } catch {
       // Temporary compatibility fallback when Prisma client
@@ -80,13 +110,26 @@ export const articlesRepository = {
     }
   },
 
-  async findBySlugOrId(identifier: string): Promise<Article | null> {
-    const bySlug = await this.findBySlug(identifier);
+  async findBySlugOrId(
+    identifier: string,
+    tenantId?: string | null
+  ): Promise<Article | null> {
+    const bySlug = await this.findBySlug(identifier, tenantId);
     if (bySlug) {
       return bySlug;
     }
 
-    return this.findById(identifier);
+    return this.findById(identifier, tenantId);
+  },
+
+  async incrementViewCount(id: string): Promise<void> {
+    const article = await this.findBySlugOrId(id);
+    if (!article) return;
+
+    await prisma.contentArticle.update({
+      where: { id: article.id },
+      data: { viewCount: { increment: 1 } },
+    });
   },
 };
 

@@ -61,10 +61,24 @@ export function HeroSection({ articles }: HeroSectionProps) {
     ?.toUpperCase()
     .replace(/\s+/g, " ");
 
+  const nextIndex = (index + 1) % articles.length;
+  const nextArticle = articles[nextIndex];
+
   return (
-    <section className="bg-white border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h2 className="text-2xl font-bold text-black mb-6">Latest News</h2>
+    <section className="bg-white">
+      {/* Pre-load next image for smoother transitions */}
+      {nextArticle?.imageUrl && (
+        <div className="hidden" aria-hidden="true">
+          <StoryImage 
+            src={nextArticle.imageUrl} 
+            alt="preload" 
+            width={10} 
+            height={10} 
+            priority={true} 
+          />
+        </div>
+      )}
+      <div className="py-4">
 
         <div>
           {/* Main article carousel */}
@@ -101,9 +115,9 @@ export function HeroSection({ articles }: HeroSectionProps) {
                       href={`/article/${article.slug ?? article.id}`}
                       className="block h-full bg-white"
                     >
-                      <div className="grid grid-cols-1 md:grid-cols-2 h-full min-h-0">
+                      <div className="flex flex-col md:grid md:grid-cols-2 h-full min-h-0">
                         {/* Image side */}
-                        <div className="relative w-full h-full bg-gray-200 flex items-center justify-center">
+                        <div className="relative w-full aspect-video md:aspect-auto md:h-full bg-gray-200 flex items-center justify-center shrink-0">
                           <StoryImage
                             src={article.imageUrl}
                             alt={article.title}
@@ -114,14 +128,14 @@ export function HeroSection({ articles }: HeroSectionProps) {
                             variant="hero"
                           />
                           {categoryLabel ? (
-                            <span className="absolute top-3 left-3 px-2 py-1 bg-[#ff4500] text-white text-xs font-bold uppercase rounded z-10">
+                            <span className="absolute top-3 left-3 px-2 py-1 bg-[#ff4500] text-white text-[10px] font-bold uppercase rounded z-10">
                               {categoryLabel}
                             </span>
                           ) : null}
                         </div>
 
                         {/* Content side */}
-                        <div className="p-4 sm:p-6 md:p-8 flex flex-col justify-center min-h-0 min-w-0 overflow-hidden">
+                        <div className="p-4 sm:p-6 md:p-8 flex flex-col justify-center min-h-0 min-w-0 overflow-hidden flex-1">
                           <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3 shrink-0 flex-wrap">
                             <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-[#ff4500] text-white flex items-center justify-center text-[10px] sm:text-xs font-bold shrink-0">
                               AI
@@ -136,13 +150,13 @@ export function HeroSection({ articles }: HeroSectionProps) {
                               5 min read
                             </span>
                           </div>
-                          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-black mb-2 sm:mb-3 line-clamp-2 md:line-clamp-3 group-hover:text-[#ff4500] transition-colors">
+                          <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-black mb-1 sm:mb-2 line-clamp-2 md:line-clamp-3 group-hover:text-[#ff4500] transition-colors">
                             {article.title}
                           </h1>
-                          <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3">
-                            {truncateContent(article.content)}
+                          <p className="text-gray-600 text-[11px] sm:text-xs mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3 md:block">
+                            {truncateContent(article.content, 120)}
                           </p>
-                          <span className="inline-flex items-center gap-1 text-[#ff4500] font-medium text-xs sm:text-sm">
+                          <span className="inline-flex items-center gap-1 text-[#ff4500] font-medium text-xs sm:text-sm mt-auto">
                             Read Full Article
                             <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                           </span>

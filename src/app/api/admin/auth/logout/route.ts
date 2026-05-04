@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 
-const ADMIN_ROLE_COOKIE = "admin-role";
+const ADMIN_ROLE_COOKIE = "admin_verified";
 
 /**
  * POST /api/admin/auth/logout
  *
- * Clears the admin-role cookie. The Supabase session cookies (sb-*) are
+ * Clears the admin_verified cookie. The Supabase session cookies (sb-*) are
  * cleared on the client side by supabase.auth.signOut() in AdminSidebar,
  * which uses the SSR browser client and handles its own cookie cleanup.
  */

@@ -369,6 +369,7 @@ export { articles };
 
 export async function seedArticles(
   prisma: PrismaClient,
+  tenantId: string,
   userId: string,
   categoryMap: Record<string, string>,
   rawArticleIds: string[] = []
@@ -381,6 +382,7 @@ export async function seedArticles(
     const rawArticleId = rawArticleIds[index] ?? undefined;
     const created = await prisma.contentArticle.create({
       data: {
+        tenantId,
         usersId: userId,
         categoryId,
         rawArticleId: rawArticleId || undefined,

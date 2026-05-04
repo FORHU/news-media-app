@@ -2,9 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { generateUniqueArticleSlug } from "@/lib/slug";
 import { z } from "zod";
+import { resolveTenantIdFromRequest } from "@/lib/tenant";
+import { stripOriginalPostBlock } from "@/lib/tweetArticleDisplay";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
+
+const generationModeSchema = z.enum(["standalone", "commentary"]);
 
 const RequestSchema = z.object({
   topic: z.string().optional(),
@@ -16,6 +20,10 @@ const RequestSchema = z.object({
   imageUrl: z.string().url().optional().or(z.literal("")),
   youtubeUrl: z.string().url().optional().or(z.literal("")),
   type: z.enum(["manual", "youtube"]).optional(),
+  generationMode: z.preprocess((val: unknown) => {
+    if (val === "commentary_support" || val === "commentary_oppose") return "commentary";
+    return val;
+  }, generationModeSchema.optional().default("standalone")),
 }).refine(data => {
   const hasTopic = data.topic && data.topic.trim().length > 0;
   const hasContent = data.content && data.content.trim().length > 0;
@@ -33,7 +41,34 @@ function truncateContent(text: string, limit: number = 12000): string {
 }
 
 // AI persona/instruction
-function getAiSystemInstruction(isYoutube: boolean = false, youtubeUrl: string = "") {
+function getAiSystemInstruction(params: {
+  isYoutube: boolean;
+  youtubeUrl: string;
+  generationMode: "standalone" | "commentary";
+}) {
+  const { isYoutube, youtubeUrl, generationMode } = params;
+  const ytRef = (youtubeUrl || "").trim() || "(URL not provided)";
+
+  const creditYoutube =
+    isYoutube && youtubeUrl
+      ? `\nSOURCE CREDITING: You MUST end <content> with exactly one line: "Reference: ${youtubeUrl.trim()}". Separate that line from the last paragraph by exactly two newlines (one blank line).`
+      : "";
+
+  let youtubeBlock = "";
+  if (isYoutube && generationMode === "standalone") {
+    youtubeBlock = `
+11. YOUTUBE STANDALONE: The story is based on a transcript from ${ytRef}. Write a standard news article; integrate ideas from the material without pasting the transcript as a block or fenced section.
+12. NO ARTIFACT BLOCKS: Do not use "--- ORIGINAL POST ---" or similar delimiters; do not dump long verbatim transcript.`;
+  } else if (isYoutube && generationMode === "commentary") {
+    youtubeBlock = `
+11. YOUTUBE COMMENTARY: Write opinion or analysis grounded in the video’s ideas. Match angle and emphasis to [ADDITIONAL USER COMMAND / PROMPT] when present.
+12. NO TRANSCRIPT DUMP: NEVER paste the full transcript, "--- ORIGINAL POST ---", or long verbatim quotes—the site shows the video player above your text.
+13. NO REPRODUCTION BLOCK: End with commentary paragraphs only, then SOURCE CREDITING.`;
+  } else if (isYoutube) {
+    youtubeBlock = `
+11. YOUTUBE CONTEXT: This article is based on a video at ${ytRef}. Summarize key points while maintaining the journalistic persona.`;
+  }
+
   return `
 [PERSONA]:
 - You are a senior investigative journalist and professional news editor.
@@ -54,8 +89,8 @@ function getAiSystemInstruction(isYoutube: boolean = false, youtubeUrl: string =
 7. NO MARKDOWN: Do not use bold, italics, or lists.
 8. HEADLINE: The headline must be punchy and news-worthy, reflecting the provided Topic.
 9. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use exactly two newlines (an empty line) between each paragraph for consistent spacing.
-10. LANGUAGE: By default, you MUST write the article in the SAME LANGUAGE as the provided [SOURCE MATERIALS] (e.g., if the transcript or content is in Korean, write the article in Korean). HOWEVER, if the [ADDITIONAL USER COMMAND / PROMPT] explicitly commands a different language (e.g., "write in English"), you MUST follow that command and generate the article in the requested language.
-${isYoutube ? `11. YOUTUBE CONTEXT: This article is based on a video at ${youtubeUrl}. Summarize the key points while maintaining the journalistic persona.` : ""}
+10. LANGUAGE: By default, you MUST write the article in the SAME LANGUAGE as the provided [SOURCE MATERIALS] (e.g., if the transcript or content is in Korean, write the article in Korean). HOWEVER, if the [ADDITIONAL USER COMMAND / PROMPT] explicitly commands a different language (e.g., "write in English"), you MUST follow that command and generate the article in the requested language.${youtubeBlock}
+${creditYoutube}
 `;
 }
 
@@ -93,6 +128,11 @@ function extractArticleData(
 
 export async function POST(req: NextRequest) {
   try {
+    const tenantId = await resolveTenantIdFromRequest(req);
+    if (!tenantId) {
+      return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+    }
+
     const json = await req.json();
     const result = RequestSchema.safeParse(json);
 
@@ -112,7 +152,8 @@ export async function POST(req: NextRequest) {
       fileContent,
       imageUrl,
       youtubeUrl,
-      type: requestType
+      type: requestType,
+      generationMode,
     } = result.data;
 
     // Verify category exists
@@ -132,10 +173,14 @@ export async function POST(req: NextRequest) {
     const { session_id } = await sessionRes.json();
 
     const isYoutube = requestType === "youtube" || topic === "YouTube Video Article";
-    const instruction = getAiSystemInstruction(isYoutube, youtubeUrl);
+    const instruction = getAiSystemInstruction({
+      isYoutube,
+      youtubeUrl: (youtubeUrl || "").trim(),
+      generationMode,
+    });
 
     const user =
-      (await prisma.user.findUnique({ where: { email: "admin@newsmedia.app" } })) ||
+      (await prisma.user.findFirst({ where: { email: "admin@newsmedia.app" } })) ||
       (await prisma.user.findFirst());
 
     if (!user) throw new Error("No system user found for attribution");
@@ -144,10 +189,12 @@ export async function POST(req: NextRequest) {
     const rawVideo = shouldCreateRawVideo
       ? await prisma.rawVideo.create({
           data: {
+            tenantId,
             language: typeof language === "string" && language.trim().length > 0 ? language.trim() : null,
             youtubeUrl: youtubeUrl!,
             transcribedContent: rawContent!,
             prompt: typeof customPrompt === "string" && customPrompt.trim().length > 0 ? customPrompt.trim() : null,
+            generationMode,
           },
         })
       : null;
@@ -254,7 +301,11 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
 
       const extracted = extractArticleData(response, topic || "New Article");
       const title = extracted.title;
-      const content = extracted.content;
+      let content = extracted.content;
+
+      if (isYoutube && generationMode === "commentary") {
+        content = stripOriginalPostBlock(content);
+      }
 
       if (!content || content.length < 50) {
         throw new Error("AI failed to generate a complete article. Please refine your prompt or materials and try again.");
@@ -265,6 +316,7 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
 
       const contentArticle = await prisma.contentArticle.create({
         data: {
+          tenantId,
           title,
           slug,
           content,

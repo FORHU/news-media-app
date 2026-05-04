@@ -7,10 +7,15 @@ export const bannersRepository = {
   async findMany(params: {
     position?: string | null;
     isActive?: boolean | null;
+    tenantId?: string | null;
   }): Promise<Banner[]> {
-    const { position, isActive } = params;
+    const { position, isActive, tenantId } = params;
 
     const where: Prisma.BannerWhereInput = {};
+
+    if (tenantId) {
+      where.tenantId = tenantId;
+    }
 
     if (position) {
       where.positions = { has: position };
@@ -28,13 +33,18 @@ export const bannersRepository = {
     });
   },
 
-  async findById(id: string): Promise<Banner | null> {
+  async findById(id: string, tenantId?: string | null): Promise<Banner | null> {
+    if (tenantId) {
+      return prisma.banner.findFirst({
+        where: { id, tenantId },
+      }) as Promise<Banner | null>;
+    }
     return prisma.banner.findUnique({
       where: { id },
     });
   },
 
-  async create(data: Prisma.BannerCreateInput): Promise<Banner> {
+  async create(data: Prisma.BannerUncheckedCreateInput): Promise<Banner> {
     return prisma.banner.create({
       data,
     });

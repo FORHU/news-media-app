@@ -13,7 +13,10 @@ type GetGeneratedArticlesParams = {
 };
 
 export const generatedArticlesService = {
-  async getGeneratedArticles(params: GetGeneratedArticlesParams) {
+  async getGeneratedArticles(
+    params: GetGeneratedArticlesParams,
+    tenantId?: string | null
+  ) {
     const offset = (params.page - 1) * params.limit;
 
     const repositoryParams: FetchGeneratedArticlesParams = {
@@ -22,6 +25,7 @@ export const generatedArticlesService = {
       limit: params.limit,
       category: params.category,
       status: params.status,
+      tenantId: tenantId ?? undefined,
     };
 
     const { data, count } = await generatedArticlesRepository.fetchGeneratedArticles(repositoryParams);
@@ -56,7 +60,7 @@ export const generatedArticlesService = {
           id: article.rawArticle.id || "",
           title: article.rawArticle.title || "",
           content: article.rawArticle.content || "",
-          imageUrl: article.rawArticle.image_url || "",
+          imageUrl: article.rawArticle.image_url || null,
           publishDate: article.rawArticle.publish_date || article.rawArticle.created_at,
           createdAt: article.rawArticle.created_at,
           status: article.rawArticle.status,
@@ -74,6 +78,7 @@ export const generatedArticlesService = {
               youtubeUrl: article.rawVideo.youtube_url,
               transcribedContent: article.rawVideo.transcribed_content,
               prompt: article.rawVideo.prompt,
+              generationMode: article.rawVideo.generation_mode,
               createdAt: article.rawVideo.created_at,
               updatedAt: article.rawVideo.updated_at,
             }
@@ -87,6 +92,13 @@ export const generatedArticlesService = {
               extractedText: article.rawSourceUpload.extracted_text,
               createdAt: article.rawSourceUpload.created_at,
               updatedAt: article.rawSourceUpload.updated_at,
+            }
+          : null,
+        rawTweet: article.rawTweet
+          ? {
+              tweetId: article.rawTweet.tweet_id,
+              generationMode: article.rawTweet.generation_mode,
+              profileUrl: article.rawTweet.profile_url,
             }
           : null,
       };
@@ -103,11 +115,19 @@ export const generatedArticlesService = {
     };
   },
 
-  async publishArticle(id: string) {
-    return generatedArticlesRepository.updateStatus(id, "published");
+  async publishArticle(id: string, tenantId?: string | null) {
+    return generatedArticlesRepository.updateStatus(
+      id,
+      "published",
+      tenantId ?? undefined
+    );
   },
 
-  async unpublishArticle(id: string) {
-    return generatedArticlesRepository.updateStatus(id, "pending");
+  async unpublishArticle(id: string, tenantId?: string | null) {
+    return generatedArticlesRepository.updateStatus(
+      id,
+      "pending",
+      tenantId ?? undefined
+    );
   },
 };

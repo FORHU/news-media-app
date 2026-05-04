@@ -1,11 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import {
   crawledArticlesService,
   CrawledArticlesServiceError,
 } from "@/services/admin/crawledArticles.service";
 import { crawlTriggerBodySchema } from "@/lib/validation/crawl";
+import { resolveTenantIdFromRequest } from "@/lib/tenant";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const tenantId = await resolveTenantIdFromRequest(req);
+  if (!tenantId) {
+    return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+  }
+
   let json: unknown;
   try {
     json = await req.json();
@@ -13,7 +19,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const parsed = crawlTriggerBodySchema.safeParse(json);
+  const parsed = crawlTriggerBodySchema.safeParse({
+    ...(json as any),
+    // Map frontend's max_requests_per_crawl to the new max_articles field
+    max_articles: (json as any)?.max_articles ?? (json as any)?.max_requests_per_crawl,
+    tenant_id: tenantId,
+  });
+  
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid request body", details: parsed.error.flatten() },
@@ -23,9 +35,10 @@ export async function POST(req: Request) {
 
   const body = {
     urls: parsed.data.urls,
+    tenant_id: parsed.data.tenant_id,
     start_date: parsed.data.start_date,
     end_date: parsed.data.end_date,
-    max_requests_per_crawl: parsed.data.max_requests_per_crawl,
+    max_articles: parsed.data.max_articles,
   };
 
   try {

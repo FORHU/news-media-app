@@ -7,6 +7,7 @@ export type FetchGeneratedArticlesParams = {
   limit: number;
   category?: string;
   status?: string;
+  tenantId?: string;
 };
 
 type ContentArticleSupabase = {
@@ -40,6 +41,7 @@ type ContentArticleSupabase = {
     youtube_url: string;
     transcribed_content: string;
     prompt: string | null;
+    generation_mode: string;
     created_at: string;
     updated_at: string;
   } | null;
@@ -52,6 +54,11 @@ type ContentArticleSupabase = {
     created_at: string;
     updated_at: string;
   } | null;
+  rawTweet: {
+    tweet_id: string;
+    generation_mode: string;
+    profile_url: string | null;
+  } | null;
 };
 
 export const generatedArticlesRepository = {
@@ -59,9 +66,13 @@ export const generatedArticlesRepository = {
     data: ContentArticleSupabase[];
     count: number;
   }> {
-    const { q, offset, limit, category, status } = params;
+    const { q, offset, limit, category, status, tenantId } = params;
     const where: Prisma.ContentArticleWhereInput = {};
     const and: Prisma.ContentArticleWhereInput[] = [];
+
+    if (tenantId) {
+      and.push({ tenantId });
+    }
 
     if (q?.trim()) {
       and.push({
@@ -89,9 +100,7 @@ export const generatedArticlesRepository = {
       });
     }
 
-    if (and.length > 0) {
-      where.AND = and;
-    }
+    if (and.length > 0) where.AND = and;
 
     const [rows, count] = await prisma.$transaction([
       prisma.contentArticle.findMany({
@@ -113,6 +122,13 @@ export const generatedArticlesRepository = {
           },
           rawVideo: true,
           rawSourceUpload: true,
+          rawTweet: {
+            select: {
+              tweetId: true,
+              generationMode: true,
+              profileUrl: true,
+            },
+          },
         },
       }),
       prisma.contentArticle.count({ where }),
@@ -163,6 +179,7 @@ export const generatedArticlesRepository = {
             youtube_url: row.rawVideo.youtubeUrl,
             transcribed_content: row.rawVideo.transcribedContent,
             prompt: row.rawVideo.prompt,
+            generation_mode: row.rawVideo.generationMode,
             created_at: row.rawVideo.createdAt.toISOString(),
             updated_at: row.rawVideo.updatedAt.toISOString(),
           }
@@ -178,6 +195,13 @@ export const generatedArticlesRepository = {
             updated_at: row.rawSourceUpload.updatedAt.toISOString(),
           }
         : null,
+      rawTweet: row.rawTweet
+        ? {
+            tweet_id: row.rawTweet.tweetId,
+            generation_mode: row.rawTweet.generationMode,
+            profile_url: row.rawTweet.profileUrl,
+          }
+        : null,
     }));
 
     return {
@@ -186,7 +210,15 @@ export const generatedArticlesRepository = {
     };
   },
 
-  async updateStatus(id: string, status: string): Promise<void> {
+  async updateStatus(id: string, status: string, tenantId?: string): Promise<void> {
+    if (tenantId) {
+      await prisma.contentArticle.updateMany({
+        where: { id, tenantId },
+        data: { status },
+      });
+      return;
+    }
+
     await prisma.contentArticle.update({
       where: { id },
       data: { status },

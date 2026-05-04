@@ -10,10 +10,27 @@ const users = [
   },
 ];
 
-export async function seedUsers(prisma: PrismaClient): Promise<string[]> {
+export async function seedUsers(prisma: PrismaClient, tenantId?: string): Promise<string[]> {
+  let targetTenantId = tenantId;
+  if (!targetTenantId) {
+    const firstTenant = await prisma.tenant.findFirst();
+    if (!firstTenant) {
+      console.warn("No tenants found to seed users into.");
+      return [];
+    }
+    targetTenantId = firstTenant.id;
+  }
+
   const userIds: string[] = [];
   for (const user of users) {
-    const existing = await prisma.user.findUnique({ where: { email: user.email } });
+    const existing = await prisma.user.findUnique({
+      where: {
+        tenantId_email: {
+          tenantId: targetTenantId,
+          email: user.email,
+        },
+      },
+    });
     if (existing) {
       userIds.push(String(existing.id));
       continue;
@@ -21,6 +38,7 @@ export async function seedUsers(prisma: PrismaClient): Promise<string[]> {
     const hashedPassword = await bcrypt.hash(user.password, 10);
     const created = await prisma.user.create({
       data: {
+        tenantId: targetTenantId,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,

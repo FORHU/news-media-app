@@ -3,6 +3,7 @@ import { articles } from "./articles";
 
 export async function seedRawArticles(
   prisma: PrismaClient,
+  tenantId: string,
   categoryMap: Record<string, string>,
   crawledUrlIds: string[]
 ): Promise<string[]> {
@@ -15,6 +16,7 @@ export async function seedRawArticles(
     const crawledUrlId = crawledUrlIds[i % crawledUrlIds.length];
     const created = await prisma.rawArticle.create({
       data: {
+        tenantId,
         crawledUrl: { connect: { id: crawledUrlId } },
         category: { connect: { id: categoryId } },
         title: `Raw: ${articles[i].title.slice(0, 50)}`,

@@ -72,15 +72,13 @@ export default function AdminSidebar({
                 {
                     label: 'X Monitoring',
                     items: [
-                        { label: 'Manage Handles', href: '/admin/dashboard/x/urls' },
-                        { label: 'Scraped Tweets', href: '/admin/dashboard/x/content' },
+                        { label: 'X Feed Sources', href: '/admin/dashboard/x/urls' },
                     ]
                 },
                 {
                     label: 'YouTube Conversion',
                     items: [
                         { label: 'Transcribe', href: '/admin/dashboard/youtube' },
-                        { label: 'Transcribe History', href: '/admin/dashboard/youtube?view=history' },
                     ]
                 }
             ]
@@ -199,21 +197,21 @@ export default function AdminSidebar({
 
                                     {/* Sub Sections */}
                                     {sidebarOpen && isExpanded && item.subSections && (
-                                        <div className="mt-2 ml-4 flex flex-col gap-1 border-l border-gray-800 pl-4">
+                                        <div className="mt-2 ml-4 flex flex-col gap-2 border-l border-gray-700 pl-4 py-1">
                                             {item.subSections.map((section, sIdx) => {
                                                 const isSubExpanded = expandedSubSections.includes(section.label);
                                                 return (
-                                                    <div key={sIdx} className="mb-1 last:mb-0">
+                                                    <div key={sIdx} className="mb-2 last:mb-0">
                                                         <button
                                                             onClick={() => toggleSubSection(section.label)}
-                                                            className="w-full flex items-center justify-between px-2 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider hover:text-white hover:bg-gray-800/30 rounded-lg transition-all"
+                                                            className="w-full flex items-center justify-between px-2 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider hover:text-white hover:bg-gray-800/50 rounded-lg transition-all"
                                                         >
                                                             <span>{section.label}</span>
                                                             {isSubExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
                                                         </button>
                                                         
                                                         {isSubExpanded && (
-                                                            <div className="flex flex-col gap-1 mt-1 ml-2 border-l border-gray-800 pl-3">
+                                                            <div className="flex flex-col gap-1 mt-1 ml-2 border-l border-gray-700 pl-3">
                                                                 {section.items.map((subItem, siIdx) => {
                                                                     const isSubActive = pathname === subItem.href;
                                                                     return (
@@ -223,9 +221,9 @@ export default function AdminSidebar({
                                                                             onClick={() => {
                                                                                 if (window.innerWidth < 1024) setSidebarOpen(false);
                                                                             }}
-                                                                            className={`px-3 py-2 rounded-lg text-sm transition-all duration-200 ${isSubActive
+                                                                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${isSubActive
                                                                                 ? 'text-orange-500 font-bold bg-orange-500/10'
-                                                                                : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
+                                                                                : 'text-gray-300 hover:text-white hover:bg-gray-800/50'
                                                                                 }`}
                                                                         >
                                                                             {subItem.label}

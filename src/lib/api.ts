@@ -35,6 +35,10 @@ export const articlesApi = {
     return res.json();
   },
 
+  async recordView(id: string): Promise<void> {
+    await fetch(`/api/articles/${id}/view`, { method: "POST" });
+  },
+
   async getCrawledArticles(params: z.infer<typeof crawledArticlesParamsSchema>): Promise<CrawledArticlesResponse> {
     const validated = crawledArticlesParamsSchema.parse(params);
     const searchParams = new URLSearchParams();
@@ -108,6 +112,32 @@ export const articlesApi = {
     return res.json();
   },
 
+  async generateAiContentFromX(
+    tweetId: string,
+    generationPrompt?: string,
+    categoryId?: string,
+    language?: string,
+    generationMode?: "standalone" | "commentary"
+  ): Promise<unknown> {
+    const trimmed = typeof generationPrompt === "string" ? generationPrompt.trim() : "";
+    const res = await fetch("/api/admin/xMonitoring/aiGenerateContent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tweetId,
+        ...(trimmed.length > 0 ? { generationPrompt: trimmed } : {}),
+        ...(categoryId ? { categoryId } : {}),
+        ...(language ? { language } : {}),
+        ...(generationMode ? { generationMode } : {}),
+      }),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to generate AI content from X");
+    }
+    return res.json();
+  },
+
   async generateManualArticle(params: {
     topic?: string;
     categoryId?: string;
@@ -118,6 +148,7 @@ export const articlesApi = {
     imageUrl?: string;
     youtubeUrl?: string;
     type?: "manual" | "youtube";
+    generationMode?: "standalone" | "commentary";
   }): Promise<unknown> {
     const res = await fetch("/api/admin/generatedArticles/createManualYoutubeUrlArticle", {
       method: "POST",

@@ -1,4 +1,5 @@
-import { supabase } from "@/lib/supabaseClient";
+import { prisma } from "@/lib/db";
+import { Prisma } from "@/generated/prisma/client";
 
 export type FetchCrawledArticlesParams = {
   source: string;
@@ -7,83 +8,75 @@ export type FetchCrawledArticlesParams = {
   q: string;
   offset: number;
   limit: number;
-};
-
-type RawArticleSupabase = {
-  id: string;
-  title: string;
-  content: string | null;
-  image_url: string | null;
-  publish_date: string | null;
-  created_at: string;
-  status: string;
-  category: { category_name: string } | null;
-  crawledUrl: { url: string } | null;
-  contentArticle: { id: string }[] | { id: string } | null;
+  tenantId: string;
 };
 
 export const crawledArticlesRepository = {
-  async fetchCrawledArticles(params: FetchCrawledArticlesParams): Promise<{
-    data: RawArticleSupabase[];
-    count: number;
-  }> {
-    const { source, from, to, q, offset, limit } = params;
+  async fetchCrawledArticles(params: FetchCrawledArticlesParams) {
+    const { source, from, to, q, offset, limit, tenantId } = params;
 
-    const isSourceFilter = source && source !== "All Sources";
-    const select = `
-      *,
-      category:categories(*),
-      crawledUrl:crawled_urls${isSourceFilter ? "!inner" : ""}(*),
-      contentArticle:content_articles(id)
-    `;
+    const where: Prisma.RawArticleWhereInput = {
+      tenantId,
+    };
 
-    let query = supabase
-      .from("raw_articles")
-      .select(select, { count: "exact" });
-
-    if (from) {
-      query = query.gte("created_at", from);
+    if (from || to) {
+      const createdAtFilter: any = {};
+      if (from) createdAtFilter.gte = new Date(from);
+      if (to) createdAtFilter.lte = new Date(to);
+      where.createdAt = createdAtFilter;
     }
 
-    if (to) {
-      query = query.lte("created_at", to);
-    }
-
-    if (source !== "All Sources") {
-      query = query.filter("crawledUrl.url", "ilike", `%${source}%`);
+    if (source && source !== "All Sources") {
+      where.crawledUrl = {
+        url: {
+          contains: source,
+          mode: "insensitive",
+        },
+      };
     }
 
     if (q) {
-      query = query.or(`title.ilike.%${q}%,content.ilike.%${q}%`);
+      where.OR = [
+        { title: { contains: q, mode: "insensitive" } },
+        { content: { contains: q, mode: "insensitive" } },
+      ];
     }
 
-    const { data, error, count } = await query
-      .order("publish_date", { ascending: false, nullsFirst: false })
-      .order("created_at", { ascending: false })
-      .range(offset, offset + limit - 1);
+    const [data, count] = await Promise.all([
+      prisma.rawArticle.findMany({
+        where,
+        include: {
+          category: true,
+          crawledUrl: true,
+          contentArticle: true,
+        },
+        orderBy: [
+          { publishDate: { sort: "desc", nulls: "last" } },
+          { createdAt: "desc" },
+        ],
+        skip: offset,
+        take: limit,
+      }),
+      prisma.rawArticle.count({ where }),
+    ]);
 
-    if (error) {
-      throw error;
-    }
-
-    return {
-      data: (data as unknown as RawArticleSupabase[]) || [],
-      count: count || 0,
-    };
+    return { data, count };
   },
 
-  async fetchCrawledSources(): Promise<string[]> {
-    // Only fetch sources from the associated crawled_urls table
-    const { data } = await supabase
-      .from("raw_articles")
-      .select(`crawledUrl:crawled_urls(url)`);
+  async fetchCrawledSources(tenantId: string) {
+    const data = await prisma.rawArticle.findMany({
+      where: { tenantId },
+      select: {
+        crawledUrl: {
+          select: {
+            url: true,
+          },
+        },
+      },
+    });
 
-    return (data || [])
-      .map((item: { crawledUrl: { url: string } | { url: string }[] | null }) => {
-        const cu = item.crawledUrl;
-        return Array.isArray(cu) ? cu[0]?.url : cu?.url;
-      })
+    return data
+      .map((item) => item.crawledUrl?.url)
       .filter((url): url is string => typeof url === "string");
   },
 };
-

@@ -2,10 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import bcrypt from 'bcryptjs';
+import { resolveTenantIdFromRequest } from '@/lib/tenant';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const tenantId = await resolveTenantIdFromRequest(request);
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 400 });
+    }
+
     const users = await prisma.user.findMany({
+      where: { tenantId },
       select: {
         id: true,
         firstName: true,
@@ -38,8 +45,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 });
     }
 
-    // Check if email already exists in Prisma to avoid messy partial creations
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const tenantId = await resolveTenantIdFromRequest(request);
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 400 });
+    }
+
+    // Check if email already exists in Prisma for this tenant to avoid messy partial creations
+    const existingUser = await prisma.user.findFirst({ 
+      where: { 
+        email,
+        tenantId
+      } 
+    });
     if (existingUser) {
       return NextResponse.json({ error: 'Email already exists' }, { status: 400 });
     }
@@ -68,6 +85,7 @@ export async function POST(request: NextRequest) {
     // 3. Create user in Prisma
     const newUser = await prisma.user.create({
       data: {
+        tenantId,
         firstName,
         lastName,
         email,
@@ -101,8 +119,16 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Missing user ID' }, { status: 400 });
     }
 
-    // 1. Find user in Prisma to get the email
-    const user = await prisma.user.findUnique({ where: { id } });
+    const tenantId = await resolveTenantIdFromRequest(request);
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 400 });
+    }
+
+    // 1. Find user in Prisma to get the email, scoped to tenant
+    const user = await prisma.user.findFirst({
+      where: { id, tenantId }
+    });
+
     if (!user) {
       return NextResponse.json({ error: 'User not found in database' }, { status: 404 });
     }
@@ -124,7 +150,12 @@ export async function DELETE(request: NextRequest) {
     }
 
     // 4. Delete from Prisma
-    await prisma.user.delete({ where: { id } });
+    await prisma.user.delete({ 
+      where: { 
+        id,
+        // tenantId // delete where doesn't support non-unique fields unless it's a compound unique
+      } 
+    });
 
     return NextResponse.json({ message: 'User deleted successfully' });
   } catch (error: any) {
@@ -141,7 +172,14 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Missing user ID' }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({ where: { id } });
+    const tenantId = await resolveTenantIdFromRequest(request);
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 400 });
+    }
+
+    const user = await prisma.user.findFirst({ 
+      where: { id, tenantId } 
+    });
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
