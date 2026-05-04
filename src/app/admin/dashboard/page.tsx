@@ -33,13 +33,13 @@ export default function DashboardPage() {
         let iconPath = "/icons/newsicons.ico";
         
         if (hostname.includes('jejujapan')) {
-            siteName = "Jeju Japan";
+            siteName = "JejuJapan";
             iconPath = "/icons/jejujapan.ico";
         } else if (hostname.includes('jejuqq')) {
-            siteName = "Jeju QQ";
+            siteName = "JejuQQ";
             iconPath = "/icons/jejuqq.ico";
         } else if (hostname.includes('jejutime')) {
-            siteName = "Jeju Times";
+            siteName = "JejuTime";
             iconPath = "/icons/jejutime.ico";
         }
         

@@ -53,7 +53,16 @@ export function getSiteNameFromDomain(domain: string | null): string {
   const d = domain.toLowerCase();
   if (d.includes('jejujapan')) return "JejuJapan";
   if (d.includes('jejuqq')) return "JejuQQ";
-  if (d.includes('jejutime')) return "JejuTimes";
+  if (d.includes('jejutime')) return "JejuTime";
   return "NewsIcons";
+}
+
+export function getSiteIconFromDomain(domain: string | null): string {
+  if (!domain) return "/icons/newsicons.ico";
+  const d = domain.toLowerCase();
+  if (d.includes('jejujapan')) return "/icons/jejujapan.ico";
+  if (d.includes('jejuqq')) return "/icons/jejuqq.ico";
+  if (d.includes('jejutime')) return "/icons/jejutime.ico";
+  return "/icons/newsicons.ico";
 }
 
