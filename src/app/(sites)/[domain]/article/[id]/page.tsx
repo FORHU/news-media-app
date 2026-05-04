@@ -15,12 +15,9 @@ import JejuQQArticle from "@/components/sites/jejuqq/JejuQQArticle";
 import JejuTimeArticle from "@/components/sites/jejutime/JejuTimeArticle";
 import { resolveTenantIdFromDomain } from "@/lib/tenant";
 
-export const revalidate = 5;
-
-// Dynamic rendering for multi-tenant articles
-export async function generateStaticParams() {
-  return [];
-}
+// Force dynamic rendering — article pages query the DB (Prisma) at request time.
+// Static/ISR pre-rendering triggers DYNAMIC_SERVER_USAGE on Vercel.
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({
   params,
