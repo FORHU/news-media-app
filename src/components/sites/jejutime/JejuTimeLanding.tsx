@@ -66,10 +66,10 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
             <AdBanner position="HOME_TOP" initialBanners={banners.top} />
          </div>
 
-         <main className="max-w-7xl mx-auto px-6 py-12">
+         <main className="max-w-7xl mx-auto px-6 py-8 sm:py-12">
 
                {/* Hero Section: Fixed Composition */}
-               <section className="grid grid-cols-1 lg:grid-cols-12 gap-10 mb-24">
+               <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 mb-10 sm:mb-16">
 
                   {/* Main Floating Feature */}
                   <div className="lg:col-span-8 group">
@@ -132,7 +132,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                </section>
 
                {/* Main Content Grid (Latest + Sidebar) */}
-               <section className="grid grid-cols-1 lg:grid-cols-12 gap-10 mb-24">
+               <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 mb-10 sm:mb-16">
                   {/* Latest Stories (JejuTime UI) */}
                   <div className="lg:col-span-8">
                      <div className="flex items-center justify-between mb-8 border-b border-slate-200 pb-4">
@@ -271,7 +271,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
 
                {/* Featured Articles */}
                {featuredArticles.length > 0 && (
-                  <section className="mb-24">
+                  <section className="mb-10 sm:mb-16">
                      <div className="flex items-center justify-between mb-8 border-b border-slate-200 pb-4">
                         <h3 className="text-2xl font-baskerville font-black text-blue-950">Featured Collections</h3>
                      </div>
