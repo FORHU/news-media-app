@@ -202,8 +202,6 @@ export default function PublishArticleModal({
                 } finally {
                     setIsUploadingImage(false);
                 }
-            } else if (imagePreview === null && !article.imageUrl) {
-                finalImageUrl = null;
             }
 
             return articlesApi.updateArticle(article.id, {

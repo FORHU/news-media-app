@@ -84,7 +84,7 @@ const jejuJapanTheme: Theme = {
   logo: (
     <div className="text-center mb-10">
       <h1 className="text-4xl font-serif font-black tracking-tighter">
-        <span className="text-[#bc002d]">JEJU</span><span className="text-white"> JAPAN</span>
+        <span className="text-[#bc002d]">JEJU</span><span className="text-white">JAPAN</span>
       </h1>
       <span className="text-[10px] font-bold tracking-[0.3em] text-white/40 uppercase mt-2 block">News Network · Admin</span>
     </div>
@@ -152,7 +152,7 @@ const jejuTimeTheme: Theme = {
   logo: (
     <div className="text-center mb-10">
       <h1 className="text-4xl font-black tracking-tighter text-blue-950">
-        Jeju <span className="text-blue-500">Times</span>
+        Jeju<span className="text-blue-500">Time</span>
       </h1>
       <p className="text-[10px] font-bold tracking-[0.25em] text-slate-400 uppercase mt-1">Admin Portal</p>
     </div>
@@ -173,8 +173,8 @@ const jejuTimeTheme: Theme = {
   subtextCls: 'text-sm text-gray-500',
   footerCls: 'text-center mt-8 text-gray-400 font-bold text-[10px] uppercase tracking-[0.25em]',
   tagline: 'Welcome Back',
-  footerText: '© Jeju Times · Coastal Edition',
-  siteName: 'JejuTimes',
+  footerText: '© JejuTime · Coastal Edition',
+  siteName: 'JejuTime',
 };
 
 /* ─── Shared form logic ─── */

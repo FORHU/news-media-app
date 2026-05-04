@@ -29,7 +29,7 @@ export default function JejuTimeFooter({ onOpenNewsletter, footerBanners }: Foot
           <div className="lg:col-span-4">
             <div className="mb-8">
               <h2 className="text-2xl font-baskerville font-bold tracking-tight text-white leading-none">
-                Jeju <span className="text-blue-500">Time</span>
+                Jeju<span className="text-blue-500">Time</span>
               </h2>
             </div>
             <p className="text-slate-400 text-sm leading-relaxed max-w-sm mb-8 font-light">
@@ -77,7 +77,7 @@ export default function JejuTimeFooter({ onOpenNewsletter, footerBanners }: Foot
         </div>
 
         <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center text-[10px] font-bold uppercase tracking-widest text-slate-500 space-y-4 md:space-y-0">
-          <p>© 2026 Jeju Time. All rights reserved.</p>
+          <p>© 2026 JejuTime. All rights reserved.</p>
           <div className="flex space-x-8">
             <Link href="#" className="hover:text-slate-600">Privacy Policy</Link>
             <Link href="#" className="hover:text-slate-600">Terms of Service</Link>

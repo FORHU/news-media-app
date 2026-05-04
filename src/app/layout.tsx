@@ -4,7 +4,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { DEFAULT_OG_IMAGE, DEFAULT_SEO, SITE_URL } from "@/config/site";
 import { headers } from "next/headers";
-import { normalizeHostToDomain, getSiteNameFromDomain } from "@/lib/tenant";
+import { normalizeHostToDomain, getSiteNameFromDomain, getSiteIconFromDomain } from "@/lib/tenant";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,41 +46,48 @@ const libreBaskerville = Libre_Baskerville({
   weight: ["400", "700"],
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: {
-    default: "NewsIcons",
-    template: "%s",
-  },
-  icons: {
-    icon: "/icons/newsicons.ico",
-  },
-  description: DEFAULT_SEO.description,
-  openGraph: {
-    title: "NewsIcons",
+export async function generateMetadata(): Promise<Metadata> {
+  const host = (await headers()).get("host");
+  const domain = normalizeHostToDomain(host);
+  const siteName = getSiteNameFromDomain(domain);
+  const icon = getSiteIconFromDomain(domain);
+
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: {
+      default: siteName,
+      template: `%s | ${siteName}`,
+    },
+    icons: {
+      icon: icon,
+    },
     description: DEFAULT_SEO.description,
-    url: "/",
-    siteName: "NewsIcons",
-    images: [
-      {
-        url: DEFAULT_OG_IMAGE,
-        width: 1200,
-        height: 630,
-        alt: "NewsIcons",
-      },
-    ],
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "NewsIcons",
-    description: DEFAULT_SEO.description,
-    images: [DEFAULT_OG_IMAGE],
-  },
-  alternates: {
-    canonical: "/",
-  },
-};
+    openGraph: {
+      title: siteName,
+      description: DEFAULT_SEO.description,
+      url: "/",
+      siteName: siteName,
+      images: [
+        {
+          url: DEFAULT_OG_IMAGE,
+          width: 1200,
+          height: 630,
+          alt: siteName,
+        },
+      ],
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: siteName,
+      description: DEFAULT_SEO.description,
+      images: [DEFAULT_OG_IMAGE],
+    },
+    alternates: {
+      canonical: "/",
+    },
+  };
+}
 
 export default function RootLayout({
   children,

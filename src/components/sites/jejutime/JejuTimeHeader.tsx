@@ -155,7 +155,7 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
             </button>
             <Link href="/" className={`${isMobileSearchOpen ? 'hidden md:block' : 'block'}`}>
               <h1 className="text-2xl lg:text-3xl font-baskerville font-bold tracking-tight text-blue-950 leading-none">
-                Jeju <span className="text-blue-600">Time</span>
+                Jeju<span className="text-blue-600">Time</span>
               </h1>
             </Link>
           </div>
