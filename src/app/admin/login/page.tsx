@@ -3,7 +3,7 @@
 import React, { useState, useEffect, FormEvent, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Mail, Lock, Eye, EyeOff, AlertCircle, ChevronRight, Home } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, ChevronRight, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { adminLoginSchema } from '@/lib/validation/login';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -66,8 +66,8 @@ const newsIconsTheme: Theme = {
   labelCls: 'text-xs font-black text-gray-900 uppercase tracking-widest',
   btnCls: 'w-full bg-[#ff4500] text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-[#e63e00] disabled:opacity-60 transition-all shadow-xl shadow-orange-100 hover:-translate-y-1 active:scale-[0.98] flex items-center justify-center gap-2 group relative overflow-hidden',
   errorCls: 'text-xs text-red-600 bg-red-50 p-4 rounded-2xl border-2 border-red-100 font-black flex items-center gap-3',
-  backCls: 'fixed top-8 left-8 flex items-center gap-2 text-gray-800 hover:text-[#ff4500] transition-all group z-10',
-  backIconCls: 'p-2 bg-white rounded-none shadow-sm border border-gray-200 group-hover:border-[#ff4500]/50 group-hover:shadow-md transition-all',
+  backCls: 'fixed top-6 left-6 sm:top-10 sm:left-10 flex items-center gap-3 text-gray-800 hover:text-[#ff4500] transition-all group z-10 font-black uppercase tracking-widest text-[10px]',
+  backIconCls: 'transition-transform group-hover:-translate-x-1',
   headingCls: 'text-2xl font-black text-gray-900 tracking-tight mb-1',
   subtextCls: 'text-sm text-gray-500',
   footerCls: 'text-center mt-8 text-gray-400 font-bold text-[10px] uppercase tracking-[0.25em]',
@@ -99,14 +99,14 @@ const jejuJapanTheme: Theme = {
   labelCls: 'text-[10px] font-bold text-white/50 uppercase tracking-widest',
   btnCls: 'w-full bg-[#bc002d] text-white py-3.5 font-black text-xs uppercase tracking-widest hover:bg-[#a0001f] disabled:opacity-50 transition-colors flex items-center justify-center gap-2 group rounded-none',
   errorCls: 'text-xs text-red-400 bg-red-950/40 p-3 border border-red-800/50 font-bold flex items-center gap-2',
-  backCls: 'fixed top-8 left-8 flex items-center gap-2 text-white/50 hover:text-white transition-all group z-10',
-  backIconCls: 'p-2 bg-white/5 rounded-none border border-white/10 group-hover:bg-white/10 group-hover:border-[#bc002d]/50 transition-all',
+  backCls: 'fixed top-6 left-6 sm:top-10 sm:left-10 flex items-center gap-3 text-white/50 hover:text-white transition-all group z-10 font-bold uppercase tracking-[0.2em] text-[10px]',
+  backIconCls: 'transition-transform group-hover:-translate-x-1',
   headingCls: 'text-2xl font-black text-white tracking-tight mb-1',
   subtextCls: 'text-sm text-white/40',
   footerCls: 'text-center mt-8 text-white/20 font-bold text-[10px] uppercase tracking-[0.25em]',
   tagline: 'Secure Access',
   footerText: '© Jeju Japan News Network',
-  siteName: 'Jeju Japan',
+  siteName: 'JejuJapan',
   fontStyle: "@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Playfair+Display:wght@900&display=swap');",
 };
 
@@ -134,14 +134,14 @@ const jejuQQTheme: Theme = {
   labelCls: 'text-[11px] font-bold text-black uppercase tracking-widest',
   btnCls: 'w-full bg-black text-white py-3.5 font-black text-xs uppercase tracking-widest hover:bg-[#dc2626] disabled:opacity-60 transition-colors flex items-center justify-center gap-2 group rounded-none',
   errorCls: 'text-xs text-red-600 bg-red-50 p-3 border border-red-200 font-bold flex items-center gap-2',
-  backCls: 'fixed top-8 left-8 flex items-center gap-2 text-gray-800 hover:text-[#dc2626] transition-all group z-10',
-  backIconCls: 'p-2 bg-white rounded-none shadow-sm border border-gray-200 group-hover:border-[#dc2626]/50 group-hover:shadow-md transition-all',
+  backCls: 'fixed top-6 left-6 sm:top-10 sm:left-10 flex items-center gap-3 text-gray-800 hover:text-[#dc2626] transition-all group z-10 font-bold uppercase tracking-widest text-[10px]',
+  backIconCls: 'transition-transform group-hover:-translate-x-1',
   headingCls: 'text-2xl font-black text-gray-900 tracking-tight mb-1',
   subtextCls: 'text-sm text-gray-500',
   footerCls: 'text-center mt-8 text-gray-400 font-bold text-[10px] uppercase tracking-[0.25em]',
   tagline: 'Welcome Back',
   footerText: '© Jeju QQ Daily',
-  siteName: 'Jeju QQ',
+  siteName: 'JejuQQ',
 };
 
 /* ── JejuTime ── */
@@ -167,14 +167,14 @@ const jejuTimeTheme: Theme = {
   labelCls: 'text-xs font-bold text-slate-600 uppercase tracking-widest',
   btnCls: 'w-full bg-blue-600 text-white py-3.5 rounded-2xl font-bold text-sm uppercase tracking-widest hover:bg-blue-700 disabled:opacity-60 transition-all shadow-lg shadow-blue-200 hover:-translate-y-0.5 flex items-center justify-center gap-2 group',
   errorCls: 'text-xs text-red-500 bg-red-50 p-3 rounded-xl border border-red-100 font-bold flex items-center gap-2',
-  backCls: 'fixed top-8 left-8 flex items-center gap-2 text-slate-600 hover:text-blue-600 transition-all group z-10',
-  backIconCls: 'p-2 bg-white rounded-none shadow-sm border border-gray-200 group-hover:border-blue-600/50 group-hover:shadow-md transition-all',
+  backCls: 'fixed top-6 left-6 sm:top-10 sm:left-10 flex items-center gap-3 text-slate-600 hover:text-blue-600 transition-all group z-10 font-bold uppercase tracking-widest text-[10px]',
+  backIconCls: 'transition-transform group-hover:-translate-x-1',
   headingCls: 'text-2xl font-black text-gray-900 tracking-tight mb-1',
   subtextCls: 'text-sm text-gray-500',
   footerCls: 'text-center mt-8 text-gray-400 font-bold text-[10px] uppercase tracking-[0.25em]',
   tagline: 'Welcome Back',
   footerText: '© Jeju Times · Coastal Edition',
-  siteName: 'Jeju Times',
+  siteName: 'JejuTimes',
 };
 
 /* ─── Shared form logic ─── */
@@ -282,17 +282,15 @@ function LoginContent() {
 
       {/* Back link */}
       <Link href="/" className={theme.backCls}>
-        <div className={theme.backIconCls}>
-          <Home className="w-4 h-4" />
-        </div>
-        <span className="text-xs font-black uppercase tracking-widest">Back</span>
+        <ArrowLeft size={16} className={theme.backIconCls} />
+        <span>Back to Site</span>
       </Link>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-md z-10"
+        className="w-full max-w-md z-10 mt-12 sm:mt-0"
       >
         {theme.logo}
 

@@ -23,6 +23,7 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
@@ -70,13 +71,13 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         {/* Top Thin Bar */}
         <div className="border-b border-white/10 py-2 bg-[#bc002d] text-white shadow-sm">
-          <div className="max-w-7xl mx-auto px-6 grid grid-cols-3 items-center text-[10px] font-bold uppercase tracking-widest">
-            <div className="flex space-x-6">
+          <div className="max-w-7xl mx-auto px-6 flex lg:grid lg:grid-cols-3 items-center justify-between text-[10px] font-bold uppercase tracking-widest">
+            <div className="flex space-x-6 items-center">
               <span className="flex items-center gap-1"><Globe size={12} /> Tokyo - Jeju Bridge</span>
               <span className="hidden xl:inline">{new Date().toLocaleDateString('ja-JP', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
             </div>
             
-            <div className="flex justify-center">
+            <div className="flex justify-center hidden lg:flex">
               <form onSubmit={handleSearch} className="relative w-full max-w-[320px]">
                 <input
                   type="text"
@@ -89,7 +90,15 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
               </form>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end items-center gap-2 sm:gap-4">
+              <button 
+                type="button"
+                onClick={() => setIsMobileSearchOpen(true)}
+                className="lg:hidden p-1.5 text-white/90 hover:text-white transition-colors"
+                aria-label="Open search"
+              >
+                <Search size={18} />
+              </button>
               <Link href="/admin/login" className="hover:text-white/80 transition-colors p-1 bg-white/10" title="Admin Login">
                 <LogIn size={16} />
               </Link>
@@ -97,21 +106,24 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
-          <div className="flex items-center space-x-8">
+        <div className="max-w-7xl mx-auto px-6 py-5 md:py-6 flex items-center justify-between relative">
+          <div className="flex items-center w-full lg:w-auto">
             <button
               type="button"
               onClick={() => setIsSidebarOpen(true)}
               aria-label="Open menu"
-              className="text-black hover:text-[#bc002d] transition-colors"
+              className="text-black hover:text-[#bc002d] transition-colors relative z-10"
             >
               <Menu size={24} />
             </button>
-            <Link href="/">
-              <h1 className="text-2xl md:text-3xl font-noto font-black tracking-widest text-black uppercase">
-                JEJU<span className="text-[#bc002d]">JAPAN</span>
-              </h1>
-            </Link>
+            
+            <div className="flex-1 flex justify-center lg:justify-start lg:ml-8 absolute left-0 right-0 lg:static pointer-events-none">
+              <Link href="/" className="pointer-events-auto">
+                <h1 className="text-2xl md:text-3xl font-noto font-black tracking-widest text-black uppercase">
+                  JEJU<span className="text-[#bc002d]">JAPAN</span>
+                </h1>
+              </Link>
+            </div>
           </div>
  
           <nav className="hidden lg:flex flex-1 justify-center items-center space-x-6 text-[12px] font-bold uppercase tracking-[0.15em] text-slate-500 mx-8">
@@ -159,6 +171,41 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
             ))}
           </div>
         </div>
+        {/* Mobile Search Overlay */}
+        <AnimatePresence>
+          {isMobileSearchOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="absolute inset-x-0 top-0 z-[60] bg-[#bc002d] p-4 shadow-2xl"
+            >
+              <form 
+                onSubmit={(e) => { handleSearch(e); setIsMobileSearchOpen(false); }} 
+                className="max-w-7xl mx-auto flex items-center gap-3"
+              >
+                <div className="relative flex-1">
+                  <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/60" />
+                  <input
+                    autoFocus
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="SEARCH NEWS..."
+                    className="w-full bg-white/10 border-2 border-white/20 text-white placeholder:text-white/50 pl-11 pr-4 py-2.5 rounded-none outline-none focus:bg-white/20 focus:border-white/40 transition-all text-sm font-bold uppercase tracking-widest"
+                  />
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => setIsMobileSearchOpen(false)}
+                  className="p-2 text-white/80 hover:text-white transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* JejuJapan Sidebar Drawer */}

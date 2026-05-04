@@ -33,10 +33,10 @@ export function StoryImage(props: StoryImageProps) {
   // Variant-specific base configurations
   const config = {
     hero: {
-      padding: "p-8 md:p-16",
-      minFont: "1.5rem",
-      maxFont: "3.5rem",
-      lineClamp: "line-clamp-4"
+      padding: "p-4 sm:p-8 md:p-16",
+      minFont: "1.25rem",
+      maxFont: "3rem",
+      lineClamp: "line-clamp-3"
     },
     featured: {
       padding: "p-4 md:p-8",

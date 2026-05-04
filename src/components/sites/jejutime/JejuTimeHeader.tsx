@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { Search, Bell, Menu, ChevronDown, User, Loader2, X, Mail } from "lucide-react";
+import { Search, Bell, Menu, ChevronDown, User, Loader2, X, Mail, ChevronLeft, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useRef } from "react";
 import { articlesApi } from "@/lib/api";
 import { getCoreCategories, HOME_CATEGORY_LABEL, normalizeCategoryKey } from "@/config/categories";
 import { AnimatePresence, motion } from "framer-motion";
@@ -29,12 +30,48 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
   const [suggestions, setSuggestions] = useState<Article[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const navRef = useRef<HTMLDivElement>(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(false);
+
+  const checkScroll = () => {
+    if (navRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = navRef.current;
+      setShowLeftArrow(scrollLeft > 10);
+      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
+    }
+  };
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (navRef.current) {
+      const scrollAmount = 300;
+      navRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
     queryFn: () => articlesApi.getCategories(),
     staleTime: 5 * 60 * 1000,
   });
+
+  useEffect(() => {
+    const nav = navRef.current;
+    if (nav) {
+      nav.addEventListener('scroll', checkScroll);
+      window.addEventListener('resize', checkScroll);
+      // Initial check after categories load
+      const timer = setTimeout(checkScroll, 100);
+      return () => {
+        nav.removeEventListener('scroll', checkScroll);
+        window.removeEventListener('resize', checkScroll);
+        clearTimeout(timer);
+      };
+    }
+  }, [categories]);
 
   const coreCategories = getCoreCategories("jejutime.com");
   const coreCategoryKeys = new Set(
@@ -173,10 +210,26 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
           </div>
         </div>
 
-        {/* Categories Secondary Bar - Now with Native Mobile Scroll */}
-        <div className="bg-black border-t border-white/10 overflow-hidden">
-           <div className="max-w-7xl mx-auto px-6 h-11 lg:h-12 flex items-center">
-             <nav className="flex items-center space-x-8 lg:space-x-10 text-[10px] lg:text-[11px] font-bold uppercase tracking-[0.15em] lg:tracking-[0.2em] text-white/60 overflow-x-auto no-scrollbar scroll-smooth whitespace-nowrap py-1">
+        {/* Categories Secondary Bar - Now with Native Mobile Scroll and Navigation Arrows */}
+        <div className="bg-black border-t border-white/10 overflow-hidden relative">
+           <div className="max-w-7xl mx-auto px-4 lg:px-6 h-11 lg:h-12 flex items-center relative">
+             
+             {/* Left Arrow */}
+             <div className={`absolute left-0 top-0 bottom-0 z-10 flex items-center transition-opacity duration-300 ${showLeftArrow ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent w-12 sm:w-16" />
+                <button 
+                  onClick={() => scroll('left')}
+                  className="relative ml-1 sm:ml-2 p-1.5 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors flex items-center justify-center"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft size={16} strokeWidth={3} />
+                </button>
+             </div>
+
+             <nav 
+               ref={navRef}
+               className="flex items-center space-x-8 lg:space-x-10 text-[10px] lg:text-[11px] font-bold uppercase tracking-[0.15em] lg:tracking-[0.2em] text-white/60 overflow-x-auto no-scrollbar scroll-smooth whitespace-nowrap py-1 flex-1 scrollbar-hide"
+             >
                 {coreCategories.map((cat) => (
                   <Link 
                     key={cat} 
@@ -205,6 +258,19 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
                   </div>
                 )}
              </nav>
+
+             {/* Right Arrow */}
+             <div className={`absolute right-0 top-0 bottom-0 z-10 flex items-center transition-opacity duration-300 ${showRightArrow ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                <div className="absolute inset-0 bg-gradient-to-l from-black via-black/80 to-transparent w-12 sm:w-16" />
+                <button 
+                  onClick={() => scroll('right')}
+                  className="relative mr-1 sm:mr-2 p-1.5 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors flex items-center justify-center"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight size={16} strokeWidth={3} />
+                </button>
+             </div>
+
            </div>
         </div>
       </header>
