@@ -28,7 +28,15 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const latestStories = articles.slice(startIndex, endIndex);
-  const trendingArticles = articles.slice(0, 5);
+  const trendingArticles = [...articles]
+    .sort((a, b) => {
+      if ((b.trendingScore || 0) !== (a.trendingScore || 0)) {
+        return (b.trendingScore || 0) - (a.trendingScore || 0);
+      }
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    })
+    .slice(0, 5);
+
   const featuredArticles = articles.slice(0, 4);
   const trendingProducts = articles.filter((a: any) => a.status === "blog").slice(0, 4);
 

@@ -118,6 +118,8 @@ model ContentArticle {
   status            String
   createdAt         DateTime                @default(now()) @map("created_at")
   updatedAt         DateTime                @updatedAt @map("updated_at")
+  viewCount         Int                     @default(0) @map("view_count")
+  trendingScore     Float                   @default(0.0) @map("trending_score")
   category          Category                @relation(fields: [categoryId], references: [id])
   rawArticle        RawArticle?             @relation(fields: [rawArticleId], references: [id])
   rawSourceUpload   RawSourceUpload?        @relation(fields: [rawSourceUploadId], references: [id])

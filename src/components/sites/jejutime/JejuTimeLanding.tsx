@@ -18,29 +18,36 @@ interface Props {
 
 export default function JejuTimeLanding({ tenantId, articles, banners }: Props) {
    // ── Deduplication Logic ──
+   const sortedArticles = [...articles].sort((a, b) => {
+      if ((b.trendingScore || 0) !== (a.trendingScore || 0)) {
+         return (b.trendingScore || 0) - (a.trendingScore || 0);
+      }
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+   });
+
    // 1. Hero takes the first 3
-   const heroArticles = articles.slice(0, 3);
+   const heroArticles = sortedArticles.slice(0, 3);
    const heroIds = new Set(heroArticles.map(a => a.id));
 
    // 2. Trending takes the next 10
-   const trendingArticles = articles.filter(a => !heroIds.has(a.id)).slice(0, 10);
+   const trendingArticles = sortedArticles.filter(a => !heroIds.has(a.id)).slice(0, 10);
    const trendingIds = new Set(trendingArticles.map(a => a.id));
 
    // 3. Sidebar Picks (Prominent cards below trending)
-   const sidebarPicks = articles
+   const sidebarPicks = sortedArticles
      .filter(a => !heroIds.has(a.id) && !trendingIds.has(a.id))
      .slice(0, 3);
    const sidebarPicksIds = new Set(sidebarPicks.map(a => a.id));
 
    // 4. Featured takes the next 4
-   const featuredArticles = articles
+   const featuredArticles = sortedArticles
      .filter(a => !heroIds.has(a.id) && !trendingIds.has(a.id) && !sidebarPicksIds.has(a.id))
      .slice(0, 4);
    const featuredIds = new Set(featuredArticles.map(a => a.id));
 
    // 5. Latest stories takes everything else (Except Hero, Sidebar Picks, and Featured)
    // We EXCLUDE Trending from deduplication so the Latest feed stays full and balanced
-   const allLatestArticles = articles.filter(
+   const allLatestArticles = sortedArticles.filter(
      a => !heroIds.has(a.id) && !sidebarPicksIds.has(a.id) && !featuredIds.has(a.id)
    );
 

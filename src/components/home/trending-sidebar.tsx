@@ -24,6 +24,14 @@ function formatDate(date: Date | string) {
 export function TrendingSidebar({ articles, domain }: TrendingSidebarProps) {
   const domainColor = getDomainColor(domain);
 
+  // Apply popularity-based sorting
+  const sortedArticles = [...articles].sort((a, b) => {
+    if ((b.trendingScore || 0) !== (a.trendingScore || 0)) {
+      return (b.trendingScore || 0) - (a.trendingScore || 0);
+    }
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
   return (
     <aside id="trending-stories" className="lg:col-span-1 scroll-mt-24">
       <div className="sticky top-24">
@@ -32,7 +40,7 @@ export function TrendingSidebar({ articles, domain }: TrendingSidebarProps) {
         </div>
 
         <div className="space-y-5">
-          {articles.map((article, index) => (
+          {sortedArticles.map((article, index) => (
             <ArticleLink
               key={article.id}
               articleIdentifier={article.slug ?? article.id}

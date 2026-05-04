@@ -18,6 +18,13 @@ interface Props {
 }
 
 export default function NewsIconsLanding({ tenantId, articles, banners }: Props) {
+  const sortedArticles = [...articles].sort((a, b) => {
+    if ((b.trendingScore || 0) !== (a.trendingScore || 0)) {
+      return (b.trendingScore || 0) - (a.trendingScore || 0);
+    }
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
   return (
     <div className="bg-slate-50">
       {/* Top Ad Banner */}
@@ -28,9 +35,9 @@ export default function NewsIconsLanding({ tenantId, articles, banners }: Props)
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
 
         {/* Hero Carousel */}
-        {articles.length > 0 && (
+        {sortedArticles.length > 0 && (
           <div className="mb-10">
-            <HeroSection articles={articles.slice(0, 5)} />
+            <HeroSection articles={sortedArticles.slice(0, 5)} />
           </div>
         )}
 
@@ -47,13 +54,13 @@ export default function NewsIconsLanding({ tenantId, articles, banners }: Props)
           </div>
 
           <div className="space-y-8">
-            <TrendingSidebar articles={articles.slice(0, 5)} domain="newsicons.com" />
+            <TrendingSidebar articles={sortedArticles.slice(0, 5)} domain="newsicons.com" />
             <AdBanner position="HOME_SIDEBAR" initialBanners={banners.sidebar} />
           </div>
         </div>
 
         {/* Featured Articles */}
-        <FeaturedArticlesSection articles={articles.slice(0, 4)} domain="newsicons.com" />
+        <FeaturedArticlesSection articles={sortedArticles.slice(0, 4)} domain="newsicons.com" />
 
         {/* Trending / Blog Posts */}
         <TrendingProductsSection

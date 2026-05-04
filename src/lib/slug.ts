@@ -33,14 +33,16 @@ function normalizeWords(title: string): string[] {
     .toLowerCase()
     // Convert possessives like "civilization's" into "civilization"
     .replace(/['’]s\b/g, "")
-    .replace(/[^a-z0-9\s-]/g, " ")
+    // Remove punctuation and special characters, but preserve letters/numbers from ALL languages
+    .replace(/[^\p{L}\p{N}\s-]/gu, " ")
     .split(/\s+/)
     .map((word) => word.trim())
     .filter((word) => {
       if (!word) return false;
       if (/^\d+$/.test(word)) return true;
       // Drop one-letter leftovers like trailing "s" from noisy titles.
-      return word.length > 1;
+      // We allow single characters for CJK languages as they are often full words.
+      return word.length >= 1;
     });
 }
 
