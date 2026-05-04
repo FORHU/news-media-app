@@ -24,6 +24,7 @@ import { format } from 'date-fns';
 import { normalizeCategoryName } from '@/lib/categoryDisplay';
 import { extractYoutubeId } from '@/lib/utils';
 import TwitterStatusEmbed from '@/components/article/TwitterStatusEmbed';
+import { StoryImage } from '@/components/StoryImage';
 import {
     isSocialCommentaryGenerationMode,
     splitReferenceLineFromContent,
@@ -86,6 +87,9 @@ export default function ReadGeneratedArticle({
         isCommentaryLayoutArticle
     );
 
+    // Image fallback: Prioritize article.imageUrl, then rawArticle.imageUrl
+    const displayImageUrl = article.imageUrl || article.rawArticle?.imageUrl;
+
     const handleCopy = () => {
         if (bodyContent) {
             navigator.clipboard.writeText(bodyContent);
@@ -146,6 +150,21 @@ export default function ReadGeneratedArticle({
                 {/* Content Area - Optimized for smooth scrolling with GPU acceleration */}
                 <div className="px-4 sm:px-8 py-6 sm:py-8 space-y-6 overflow-y-auto overscroll-contain flex-1 min-h-0 bg-gray-50/30 will-change-transform [-webkit-overflow-scrolling:touch]">
                     
+                    {displayImageUrl && !showYoutubeReaderEmbed && (
+                        <div className="relative w-full h-48 sm:h-64 rounded-2xl sm:rounded-[2.5rem] overflow-hidden shadow-md mb-6 border border-gray-100">
+                            <StoryImage
+                                src={displayImageUrl}
+                                alt={article.title}
+                                fill
+                                className="object-cover"
+                                sizes="(max-width: 800px) 100vw, 800px"
+                            />
+                            <div className="absolute top-4 left-4 px-3 py-1 bg-indigo-500/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-lg">
+                                Feature Image
+                            </div>
+                        </div>
+                    )}
+
                     {showYoutubeReaderEmbed ? (
                         <div className="rounded-2xl overflow-hidden bg-black aspect-video shadow-md mb-6">
                             <iframe

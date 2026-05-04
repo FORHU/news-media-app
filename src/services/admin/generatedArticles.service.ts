@@ -60,7 +60,7 @@ export const generatedArticlesService = {
           id: article.rawArticle.id || "",
           title: article.rawArticle.title || "",
           content: article.rawArticle.content || "",
-          imageUrl: article.rawArticle.image_url || "",
+          imageUrl: article.rawArticle.image_url || null,
           publishDate: article.rawArticle.publish_date || article.rawArticle.created_at,
           createdAt: article.rawArticle.created_at,
           status: article.rawArticle.status,

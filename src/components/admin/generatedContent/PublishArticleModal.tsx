@@ -187,7 +187,11 @@ export default function PublishArticleModal({
             setError(null);
             setSuccessMsg(null);
 
-            let finalImageUrl = article.imageUrl ?? null; // Start with current image
+            // Logic: 
+            // 1. If user uploaded a new file, use that.
+            // 2. Otherwise, check if we had a current image (generated or raw fallback).
+            // 3. If neither, use null.
+            let finalImageUrl = article.imageUrl || article.rawArticle?.imageUrl || null; 
             
             if (imageFile) {
                 setIsUploadingImage(true);
@@ -233,7 +237,7 @@ export default function PublishArticleModal({
     };
 
     const isBusy = mutation.isPending || isUploadingImage;
-    const currentImage = imagePreview ?? article.imageUrl;
+    const currentImage = imagePreview ?? article.imageUrl ?? article.rawArticle?.imageUrl;
 
     // ── view ──
     return (
@@ -434,7 +438,7 @@ export default function PublishArticleModal({
                             <span className="text-xs text-gray-400 font-medium">
                                 {imageFile
                                     ? imageFile.name
-                                    : article.imageUrl
+                                    : (article.imageUrl || article.rawArticle?.imageUrl)
                                     ? "Using current image"
                                     : "No image — default will be used"}
                             </span>

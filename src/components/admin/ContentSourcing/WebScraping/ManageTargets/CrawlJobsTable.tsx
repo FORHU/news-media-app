@@ -134,13 +134,20 @@ export default function CrawlJobsTable() {
     const [expandedIds, setExpandedIds] = React.useState<Set<string>>(new Set());
     const [stoppingIds, setStoppingIds] = React.useState<Set<string>>(new Set());
 
-    const { data, isLoading, isError } = useQuery<CrawlJobsResponse>({
+    const { data, isLoading, isError, refetch } = useQuery<CrawlJobsResponse>({
         queryKey: ['crawlJobs', { page: currentPage, limit }],
         queryFn: () => articlesApi.getCrawlJobs({
             page: currentPage,
             limit
         }),
         staleTime: 0,
+        // Fallback polling every 5s if there are active jobs, to ensure UI sync
+        // even if real-time WebSockets are flaky.
+        refetchInterval: (query) => {
+            const jobs = query.state.data?.jobs || [];
+            const hasActive = jobs.some(j => isJobActivelyCrawling(j.status));
+            return hasActive ? 5000 : false;
+        }
     });
 
     const stopMutation = useMutation({
@@ -167,17 +174,12 @@ export default function CrawlJobsTable() {
             if (debounce) clearTimeout(debounce);
             debounce = setTimeout(() => {
                 debounce = null;
-                // React Query keys include pagination objects; use non-exact matching
-                // so any active crawlJobs query variant refetches.
+                // Invalidate and refetch all matching queries
                 queryClient.invalidateQueries({
                     queryKey: ['crawlJobs'],
                     exact: false,
                 });
-                void queryClient.refetchQueries({
-                    queryKey: ['crawlJobs'],
-                    exact: false,
-                });
-            }, 400);
+            }, 200); // Shortened debounce for better responsiveness
         };
 
         const channel = supabase
@@ -420,7 +422,7 @@ export default function CrawlJobsTable() {
                                         <Button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                queryClient.invalidateQueries({ queryKey: ['crawlJobs'] });
+                                                refetch();
                                             }}
                                             variant="ghost"
                                             size="icon-sm"
