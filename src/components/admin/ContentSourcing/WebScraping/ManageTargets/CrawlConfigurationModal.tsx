@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { CirclePlay, Plus, Lightbulb, Calendar } from "lucide-react";
+import { CirclePlay, Plus, Lightbulb, Calendar, X, Globe, ListChecks, Settings2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +12,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as ShadCalendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
@@ -35,13 +35,6 @@ function normalizeUrl(raw: string): { url: string; valid: boolean } {
   } catch {
     return { url: trimmed, valid: false };
   }
-}
-
-function splitBulk(input: string): string[] {
-  return input
-    .split(/[\n,\s]+/g)
-    .map((s) => s.trim())
-    .filter(Boolean);
 }
 
 function getValidUrls(rawUrls: string[]): string[] {
@@ -78,15 +71,14 @@ export default function CrawlConfigurationModal({
   onSuccess,
 }: CrawlConfigurationModalProps) {
   const [singleUrl, setSingleUrl] = React.useState("");
-  const [bulk, setBulk] = React.useState("");
   const [urls, setUrls] = React.useState<string[]>([]);
   const [startDate, setStartDate] = React.useState(() => {
     const d = new Date();
-    d.setDate(d.getDate() - 7);
+    d.setMonth(d.getMonth() - 1);
     return formatDateInput(d);
   });
   const [endDate, setEndDate] = React.useState(() => formatDateInput(new Date()));
-  const [maxArticles, setMaxArticles] = React.useState(10);
+  const [maxArticles, setMaxArticles] = React.useState(5);
   const [validationError, setValidationError] = React.useState<string | null>(null);
 
   const startCrawlMutation = useMutation({
@@ -123,16 +115,15 @@ export default function CrawlConfigurationModal({
       onOpenChange(false);
       setUrls([]);
       setSingleUrl("");
-      setBulk("");
       onSuccess?.();
     },
   });
 
   const addUrl = React.useCallback(() => {
-    const items = singleUrl.trim() ? [singleUrl] : splitBulk(bulk);
-    const valid = getValidUrls(items);
+    if (!singleUrl.trim()) return;
+    const valid = getValidUrls([singleUrl]);
     if (valid.length === 0) {
-      setValidationError("Add at least one valid URL.");
+      setValidationError("Please enter a valid URL.");
       return;
     }
     setUrls((prev) => {
@@ -141,9 +132,8 @@ export default function CrawlConfigurationModal({
       return [...added, ...prev];
     });
     setSingleUrl("");
-    setBulk("");
     setValidationError(null);
-  }, [singleUrl, bulk]);
+  }, [singleUrl]);
 
   const removeUrl = React.useCallback((url: string) => {
     setUrls((prev) => prev.filter((u) => u !== url));
@@ -159,7 +149,7 @@ export default function CrawlConfigurationModal({
     const valid =
       urls.length > 0
         ? urls.filter((u) => getValidUrls([u]).length > 0)
-        : getValidUrls(splitBulk(singleUrl || bulk));
+        : getValidUrls([singleUrl]);
 
     const parsed = crawlConfigurationSchema.safeParse({
       urls: valid,
@@ -180,12 +170,12 @@ export default function CrawlConfigurationModal({
       urls: parsed.data.urls,
       start_date: parsed.data.start_date,
       end_date: parsed.data.end_date,
-      max_requests_per_crawl: parsed.data.max_requests_per_crawl,
+      max_requests_per_crawl: maxArticles,
     });
-  }, [bulk, endDate, maxArticles, singleUrl, startDate, startCrawlMutation, urls]);
+  }, [endDate, maxArticles, singleUrl, startDate, startCrawlMutation, urls]);
 
   const effectiveUrls =
-    urls.length > 0 ? urls : getValidUrls(splitBulk(singleUrl || bulk));
+    urls.length > 0 ? urls : getValidUrls([singleUrl]);
   const canStart = effectiveUrls.length > 0;
   const error =
     startCrawlMutation.error instanceof Error
@@ -193,51 +183,70 @@ export default function CrawlConfigurationModal({
       : startCrawlMutation.error
         ? "Failed to start crawl"
         : null;
+
   const starting = startCrawlMutation.isPending;
-  const emptyUrlsError = canStart ? null : "Add at least one valid URL.";
-  const uiError = validationError || emptyUrlsError || error;
+  const uiError = validationError || error;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        showCloseButton={true}
-        className="sm:max-w-[560px] p-0 overflow-hidden rounded-2xl border-gray-200"
+        showCloseButton={false}
+        className="sm:max-w-[600px] p-0 overflow-hidden rounded-[1.5rem] border-none shadow-2xl bg-white"
       >
-        {/* Dark Header */}
-        <div className="bg-gray-900 px-6 py-5 flex items-start justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
-              <CirclePlay className="w-5 h-5 text-orange-400 fill-orange-400" />
+        {/* Header - Simplified as per basis */}
+        <div className="px-8 pt-8 pb-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
+                <Settings2 className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl font-black text-gray-900 tracking-tight">
+                  Crawl Configuration
+                </DialogTitle>
+                <DialogDescription className="text-gray-400 text-[10px] font-black uppercase tracking-[0.1em] mt-0.5">
+                  Set parameters for the scraping agent
+                </DialogDescription>
+              </div>
             </div>
-            <div>
-              <DialogTitle className="text-lg font-bold text-white">
-                New Crawl Configuration
-              </DialogTitle>
-              <DialogDescription className="text-gray-400 text-sm mt-0.5">
-                Configure websites and parameters for AI content generation
-              </DialogDescription>
-            </div>
-          </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onOpenChange(false)}
+              className="rounded-full text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-all"
+            >
+              <X className="w-5 h-5" />
+            </Button>
         </div>
 
-        <div className="px-6 py-6 space-y-6">
+        <div className="px-8 py-6 space-y-8">
           {uiError && (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-medium">
+            <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-xl border border-red-100 bg-red-50/50 px-5 py-3 text-[11px] text-red-600 font-black uppercase tracking-widest flex items-center gap-3"
+            >
+              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
               {uiError}
-            </div>
+            </motion.div>
           )}
 
-          {/* Section 1: Website URLs */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold">
-                1
-              </span>
-              <span className="font-bold text-gray-900">
-                Website URLs to Crawl
-              </span>
+          {/* Section 01: Website URLs */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-gray-900 text-white flex items-center justify-center text-[11px] font-black shadow-lg">
+                        01
+                    </div>
+                    <span className="font-black text-gray-900 tracking-[0.05em] uppercase text-sm">TARGET SOURCES</span>
+                </div>
+                {urls.length > 0 && (
+                    <span className="px-3 py-1 rounded-full bg-orange-50 text-[10px] font-black text-orange-600 uppercase tracking-widest border border-orange-100">
+                        {urls.length} Selected
+                    </span>
+                )}
             </div>
-            <div className="flex gap-2">
+            
+            <div className="flex gap-2 p-1 bg-white rounded-xl border border-gray-100 shadow-sm focus-within:border-orange-500 focus-within:ring-4 focus-within:ring-orange-500/5 transition-all">
               <Input
                 type="url"
                 value={singleUrl}
@@ -245,129 +254,125 @@ export default function CrawlConfigurationModal({
                 onKeyDown={(e) =>
                   e.key === "Enter" && (e.preventDefault(), addUrl())
                 }
-                placeholder="https://example.com/news"
-                className="h-11 flex-1 rounded-xl bg-gray-50 border-gray-100 text-sm focus-visible:ring-orange-500/20 focus-visible:border-orange-200"
+                placeholder="https://example-news.com/feed"
+                className="h-11 border-none bg-transparent shadow-none focus-visible:ring-0 text-sm font-medium"
               />
               <Button
                 type="button"
                 onClick={addUrl}
-                variant="secondary"
-                className="h-11 rounded-xl bg-orange-100 text-gray-900 hover:bg-orange-200 font-bold"
+                className="h-11 px-6 rounded-lg bg-gray-900 text-white hover:bg-black font-bold transition-all active:scale-95"
               >
-                <Plus className="w-4 h-4" />
-                Add URL
+                Add
               </Button>
             </div>
-            <p className="text-xs text-gray-500">
-              Add one or more website URLs to crawl for content
-            </p>
-            {urls.length > 0 && (
-              <ul className="space-y-2 mt-2 max-h-32 overflow-y-auto">
-                {urls.map((u) => (
-                  <li
-                    key={u}
-                    className="flex items-center justify-between text-sm bg-gray-50 rounded-lg px-3 py-2"
-                  >
-                    <span className="truncate text-gray-700">{u}</span>
-                    <Button
-                      type="button"
-                      onClick={() => removeUrl(u)}
-                      variant="link"
-                      size="xs"
-                      className="px-0 text-red-500 hover:text-red-600"
+
+            <AnimatePresence mode="popLayout">
+                {urls.length > 0 && (
+                <motion.ul 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="space-y-2 max-h-[140px] overflow-y-auto pr-2 custom-scrollbar"
+                >
+                    {urls.map((u) => (
+                    <motion.li
+                        layout
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        key={u}
+                        className="group flex items-center justify-between text-sm bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 hover:bg-white hover:border-orange-200 transition-all"
                     >
-                      Remove
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <Textarea
-              value={bulk}
-              onChange={(e) => setBulk(e.target.value)}
-              placeholder="Or paste multiple URLs (one per line)..."
-              rows={2}
-              className="w-full rounded-xl bg-gray-50 border-gray-100 text-sm focus-visible:ring-orange-500/20 focus-visible:border-orange-200 resize-none"
-            />
+                        <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                            <span className="truncate text-gray-700 font-bold text-xs">{u}</span>
+                        </div>
+                        <Button
+                            type="button"
+                            onClick={() => removeUrl(u)}
+                            variant="ghost"
+                            size="icon-sm"
+                            className="text-gray-300 hover:text-red-500 transition-colors"
+                        >
+                            <X className="w-4 h-4" />
+                        </Button>
+                    </motion.li>
+                    ))}
+                </motion.ul>
+                )}
+            </AnimatePresence>
           </div>
 
-          {/* Section 2: Crawl Parameters */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <span className="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold">
-                2
-              </span>
-              <span className="font-bold text-gray-900">
-                Crawl Parameters
-              </span>
+          {/* Section 02: Date Range */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-gray-900 text-white flex items-center justify-center text-[11px] font-black shadow-lg">
+                    02
+                </div>
+                <span className="font-black text-gray-900 tracking-[0.05em] uppercase text-sm">DATE RANGE</span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="space-y-1 sm:col-span-2">
-                <span className="text-xs font-semibold text-gray-600">
-                  Date Range
-                </span>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="h-11 w-full justify-start rounded-xl border-gray-100 bg-gray-50 text-left text-sm font-semibold text-gray-900 hover:bg-white"
-                    >
-                      <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                      {dateRange.from && dateRange.to
-                        ? `${format(dateRange.from, "MMM d, yyyy")} – ${format(dateRange.to, "MMM d, yyyy")}`
-                        : dateRange.from
-                          ? `${format(dateRange.from, "MMM d, yyyy")} – …`
-                          : dateRange.to
-                            ? `… – ${format(dateRange.to, "MMM d, yyyy")}`
-                            : <span className="text-gray-400 font-semibold">Pick a date range</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="p-0" align="start">
-                    <ShadCalendar
-                      mode="range"
-                      numberOfMonths={2}
-                      selected={dateRange}
-                      onSelect={(range) => {
-                        setStartDate(range?.from ? formatDateInput(range.from) : formatDateInput(new Date()));
-                        setEndDate(range?.to ? formatDateInput(range.to) : formatDateInput(new Date()));
-                      }}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <label className="space-y-1">
-                <span className="text-xs font-semibold text-gray-600">
-                  # Max Articles
-                </span>
-                <Input
-                  type="number"
-                  min={1}
-                  value={maxArticles}
-                  onChange={(e) =>
-                    setMaxArticles(Math.max(1, Number(e.target.value) || 1))
-                  }
-                  className="h-11 w-full rounded-xl bg-gray-50 border-gray-100 text-sm focus-visible:ring-orange-500/20 focus-visible:border-orange-200"
+
+            <Popover>
+                <PopoverTrigger asChild>
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="h-14 w-full justify-start rounded-xl border-gray-100 bg-white text-left text-sm font-bold text-gray-900 hover:border-orange-500 transition-all shadow-sm group"
+                >
+                    <Calendar className="w-4 h-4 mr-3 text-orange-500 transition-transform group-hover:scale-110" />
+                    {dateRange.from && dateRange.to
+                    ? `${format(dateRange.from, "MMMM d, yyyy")} – ${format(dateRange.to, "MMMM d, yyyy")}`
+                    : <span className="text-gray-400">Select target dates</span>}
+                </Button>
+                </PopoverTrigger>
+                <PopoverContent className="p-0 border-none shadow-2xl rounded-2xl overflow-hidden" align="start">
+                <ShadCalendar
+                    mode="range"
+                    numberOfMonths={1}
+                    selected={dateRange}
+                    onSelect={(range) => {
+                    setStartDate(range?.from ? formatDateInput(range.from) : formatDateInput(new Date()));
+                    setEndDate(range?.to ? formatDateInput(range.to) : formatDateInput(new Date()));
+                    }}
+                    initialFocus
+                    className="p-3"
                 />
-              </label>
+                </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Section 03: Quantity */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-gray-900 text-white flex items-center justify-center text-[11px] font-black shadow-lg">
+                    03
+                </div>
+                <span className="font-black text-gray-900 tracking-[0.05em] uppercase text-sm">QUANTITY CAP</span>
             </div>
-            <div className="flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-100 px-4 py-3">
-              <Lightbulb className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-amber-800 font-medium">
-                The crawler will fetch articles published between these dates,
-                up to the maximum count specified.
-              </p>
+
+            <div className="relative">
+                <Input
+                    type="number"
+                    min={1}
+                    value={maxArticles}
+                    onChange={(e) =>
+                        setMaxArticles(Math.max(1, Number(e.target.value) || 1))
+                    }
+                    className="h-14 w-full rounded-xl border-gray-100 bg-white text-sm font-bold focus-visible:ring-orange-500/10 focus-visible:border-orange-500 shadow-sm pl-4 pr-12"
+                    placeholder="Maximum articles to fetch"
+                />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                    Articles
+                </div>
             </div>
           </div>
         </div>
 
-        <DialogFooter className="px-6 py-4 border-t border-gray-100 gap-2">
+        <DialogFooter className="px-8 py-6 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-4">
           <Button
             type="button"
             onClick={() => onOpenChange(false)}
-            variant="outline"
-            className="rounded-xl font-bold"
+            variant="ghost"
+            className="rounded-lg font-black uppercase text-[11px] tracking-widest text-gray-400 hover:text-gray-900 transition-all"
           >
             Cancel
           </Button>
@@ -375,10 +380,9 @@ export default function CrawlConfigurationModal({
             type="button"
             onClick={startCrawl}
             disabled={!canStart || starting}
-            className="rounded-xl font-bold bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 disabled:opacity-60"
+            className="h-12 px-8 rounded-lg font-black uppercase text-[11px] tracking-widest bg-orange-500 text-white shadow-xl shadow-orange-500/20 hover:bg-orange-600 disabled:opacity-50 transition-all flex items-center gap-2"
           >
-            <CirclePlay className="w-4 h-4" />
-            {starting ? "Starting..." : "Start Crawling"}
+            {starting ? "Starting agent..." : "Start Crawling"}
           </Button>
         </DialogFooter>
       </DialogContent>
