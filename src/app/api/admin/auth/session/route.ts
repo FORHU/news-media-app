@@ -56,10 +56,6 @@ export async function POST(_request: NextRequest) {
         });
 
         if (!dbUser) {
-            console.warn("[POST /api/admin/auth/session] Role check failed", {
-                email: user.email,
-                dbRole: null,
-            });
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
@@ -73,7 +69,6 @@ export async function POST(_request: NextRequest) {
             path: "/",
             maxAge: 60 * 60 * 24, // 24 hours
         });
-
         return response;
     } catch (error) {
         return NextResponse.json(

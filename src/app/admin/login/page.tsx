@@ -229,6 +229,7 @@ function LoginContent() {
     try {
       const verifyResponse = await fetch('/api/admin/auth/verify-email', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
@@ -268,6 +269,7 @@ function LoginContent() {
 
       const roleCheck = await fetch('/api/admin/auth/session', { 
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ accessToken: session.access_token })
       });
@@ -287,7 +289,8 @@ function LoginContent() {
       const redirectTo = searchParams.get('redirectTo');
       const safePath = redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//')
         ? redirectTo : '/admin/dashboard';
-      router.push(safePath);
+      // Use a hard redirect so middleware receives freshly committed httpOnly cookies.
+      window.location.assign(safePath);
     } catch (err) {
       setFieldErrors({ general: 'An unexpected error occurred. Please try again.' });
     } finally {

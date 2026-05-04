@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { TENANT_DOMAIN_COOKIE, getTenantDomainFromRequest } from "@/lib/tenant";
+import { TENANT_DOMAIN_COOKIE, getTenantDomainFromRequest, resolveTenantIdFromDomain } from "@/lib/tenant";
+import { prisma } from "@/lib/db";
 
 const ADMIN_ROLE_COOKIE = "admin_verified";
 
@@ -71,7 +72,21 @@ export async function middleware(request: NextRequest) {
         } = await supabase.auth.getUser();
 
         const adminRoleCookie = request.cookies.get(ADMIN_ROLE_COOKIE)?.value;
-        const hasAdminRole = adminRoleCookie === "verified";
+        const hasAdminRoleCookie = adminRoleCookie === "verified";
+        let hasAdminRoleDb = false;
+
+        if (user?.email && tenantDomain) {
+            const tenantId = await resolveTenantIdFromDomain(tenantDomain);
+            if (tenantId) {
+                const dbUser = await prisma.user.findFirst({
+                    where: { email: user.email, role: "admin", tenantId },
+                    select: { email: true },
+                });
+                hasAdminRoleDb = Boolean(dbUser);
+            }
+        }
+
+        const hasAdminRole = hasAdminRoleCookie || hasAdminRoleDb;
         const isAuthenticated = Boolean(user) && hasAdminRole;
 
         if (!isAuthenticated) {
