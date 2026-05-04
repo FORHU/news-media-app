@@ -6,6 +6,9 @@ import { DEFAULT_OG_IMAGE, DEFAULT_SEO, SITE_URL } from "@/config/site";
 import { headers } from "next/headers";
 import { normalizeHostToDomain, getSiteNameFromDomain, getSiteIconFromDomain } from "@/lib/tenant";
 
+// generateMetadata uses headers() to detect the domain — must be force-dynamic.
+export const dynamic = 'force-dynamic';
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
