@@ -151,10 +151,10 @@ const jejuTimeTheme: Theme = {
   topBar: 'absolute top-0 left-0 w-full h-1 bg-blue-600 rounded-t-3xl',
   logo: (
     <div className="text-center mb-10">
-      <h1 className="text-4xl font-black tracking-tighter text-blue-950">
+      <h1 className="text-4xl font-baskerville font-black tracking-tighter text-blue-950">
         Jeju<span className="text-blue-500">Time</span>
       </h1>
-      <p className="text-[10px] font-bold tracking-[0.25em] text-slate-400 uppercase mt-1">Admin Portal</p>
+      <p className="text-[10px] font-baskerville font-bold tracking-[0.25em] text-slate-400 uppercase mt-1">Admin Portal</p>
     </div>
   ),
   accent: 'blue-600',
@@ -165,7 +165,7 @@ const jejuTimeTheme: Theme = {
   inputBgCls: 'bg-gray-50',
   inputRounded: 'rounded-2xl',
   labelCls: 'text-xs font-bold text-slate-600 uppercase tracking-widest',
-  btnCls: 'w-full bg-blue-600 text-white py-3.5 rounded-2xl font-bold text-sm uppercase tracking-widest hover:bg-blue-700 disabled:opacity-60 transition-all shadow-lg shadow-blue-200 hover:-translate-y-0.5 flex items-center justify-center gap-2 group',
+  btnCls: 'w-full bg-blue-600 text-white py-3.5 rounded-2xl font-baskerville font-bold text-sm uppercase tracking-widest hover:bg-blue-700 disabled:opacity-60 transition-all shadow-lg shadow-blue-200 hover:-translate-y-0.5 flex items-center justify-center gap-2 group',
   errorCls: 'text-xs text-red-500 bg-red-50 p-3 rounded-xl border border-red-100 font-bold flex items-center gap-2',
   backCls: 'fixed top-6 left-6 sm:top-10 sm:left-10 flex items-center gap-3 text-slate-600 hover:text-blue-600 transition-all group z-10 font-bold uppercase tracking-widest text-[10px]',
   backIconCls: 'transition-transform group-hover:-translate-x-1',
@@ -275,7 +275,7 @@ function LoginContent() {
   const inputBase = `w-full pl-11 pr-4 py-4 ${theme.inputBgCls} border-2 ${theme.inputRounded} outline-none text-gray-900 font-bold transition-all duration-300 ${theme.inputFocus}`;
 
   return (
-    <div className={theme.bg}>
+    <div className={`${theme.bg} site-theme-${theme.siteName.toLowerCase().replace(/\s+/g, '')}-com`}>
       {/* Soft bg blobs */}
       <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-current opacity-5 rounded-full blur-[120px]" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-current opacity-5 rounded-full blur-[120px]" />

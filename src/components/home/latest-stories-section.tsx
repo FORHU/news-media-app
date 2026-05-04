@@ -62,7 +62,7 @@ export function LatestStoriesSection({
   return (
     <div id="latest-stories" className="lg:col-span-2 scroll-mt-24">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Latest Stories</h2>
+        <h2 className="text-2xl font-serif font-bold text-gray-900">Latest Stories</h2>
       </div>
 
       {isLoading ? (
@@ -113,14 +113,16 @@ export function LatestStoriesSection({
         </div>
       ) : (
         <div className="space-y-3">
-          {(searchQuery ? articles : latestStories).map((article) => (
+          {(() => {
+            const isJejuQQ = domain === 'jejuqq.com';
+            return (searchQuery ? articles : latestStories).map((article) => (
             <ArticleLink
               key={article.id}
               articleIdentifier={article.slug ?? article.id}
               href={`/article/${article.slug ?? article.id}`}
-              className="group cursor-pointer flex flex-row gap-4 pb-6 border-b border-gray-200 hover:bg-gray-50 transition-colors rounded-lg p-2 sm:p-3"
+              className={`group cursor-pointer flex ${isJejuQQ ? 'flex-row-reverse rounded-none' : 'flex-row rounded-lg'} gap-4 pb-6 border-b border-gray-200 hover:bg-gray-50 transition-colors p-2 sm:p-3`}
             >
-              <div className="relative w-28 sm:w-40 h-20 sm:h-28 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+              <div className={`relative w-28 sm:w-40 h-20 sm:h-28 bg-gray-200 ${isJejuQQ ? 'rounded-none border-2 border-primary' : 'rounded-lg'} overflow-hidden flex-shrink-0`}>
                 <StoryImage
                   src={article.imageUrl}
                   alt={article.title}
@@ -130,16 +132,16 @@ export function LatestStoriesSection({
                   variant="thumbnail"
                 />
               </div>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 text-left">
                 <div className="flex items-center gap-2 mb-2">
                   {normalizeCategoryName(article.category?.categoryName) ? (
-                    <span className="inline-block bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-xs font-semibold uppercase">
-                      {normalizeCategoryName(article.category?.categoryName)}
-                    </span>
+                      <span className={`inline-block ${isJejuQQ ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-700'} px-2 py-0.5 rounded text-xs font-semibold uppercase`}>
+                        {normalizeCategoryName(article.category?.categoryName)}
+                      </span>
                   ) : null}
                 </div>
                 <h3 
-                  className="text-lg font-bold text-gray-900 mb-2 transition-colors line-clamp-2"
+                  className="text-lg font-serif font-bold text-gray-900 mb-2 transition-colors line-clamp-2"
                   onMouseEnter={(e) => e.currentTarget.style.color = domainColor.hex}
                   onMouseLeave={(e) => e.currentTarget.style.color = '#111827'} // gray-900
                 >
@@ -160,7 +162,8 @@ export function LatestStoriesSection({
                 </div>
               </div>
             </ArticleLink>
-          ))}
+          ))
+          })()}
 
           {/* Pagination Controls */}
           {!searchQuery && articles.length > 0 && (

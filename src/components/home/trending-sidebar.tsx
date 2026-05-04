@@ -24,19 +24,21 @@ function formatDate(date: Date | string) {
 export function TrendingSidebar({ articles, domain }: TrendingSidebarProps) {
   const domainColor = getDomainColor(domain);
 
-  // Apply popularity-based sorting
-  const sortedArticles = [...articles].sort((a, b) => {
-    if ((b.trendingScore || 0) !== (a.trendingScore || 0)) {
-      return (b.trendingScore || 0) - (a.trendingScore || 0);
-    }
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
+  // Apply popularity-based sorting and limit to top 5
+  const sortedArticles = [...articles]
+    .sort((a, b) => {
+      if ((b.trendingScore || 0) !== (a.trendingScore || 0)) {
+        return (b.trendingScore || 0) - (a.trendingScore || 0);
+      }
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    })
+    .slice(0, 5);
 
   return (
     <aside id="trending-stories" className="lg:col-span-1 scroll-mt-24">
       <div className="sticky top-24">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Trending Stories</h2>
+          <h2 className="text-2xl font-serif font-bold text-gray-900">Trending Stories</h2>
         </div>
 
         <div className="space-y-5">
@@ -65,7 +67,7 @@ export function TrendingSidebar({ articles, domain }: TrendingSidebarProps) {
                   </div>
                 ) : null}
                 <h3 
-                  className="text-sm font-bold text-gray-900 transition-colors line-clamp-2 mb-1"
+                  className="text-sm font-serif font-bold text-gray-900 transition-colors line-clamp-2 mb-1"
                   onMouseEnter={(e) => e.currentTarget.style.color = domainColor.hex}
                   onMouseLeave={(e) => e.currentTarget.style.color = '#111827'} // gray-900
                 >
