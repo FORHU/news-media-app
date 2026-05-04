@@ -121,5 +121,15 @@ export const articlesRepository = {
 
     return this.findById(identifier, tenantId);
   },
+
+  async incrementViewCount(id: string): Promise<void> {
+    const article = await this.findBySlugOrId(id);
+    if (!article) return;
+
+    await prisma.contentArticle.update({
+      where: { id: article.id },
+      data: { viewCount: { increment: 1 } },
+    });
+  },
 };
 

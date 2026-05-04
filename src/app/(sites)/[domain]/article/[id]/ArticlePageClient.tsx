@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -31,6 +31,20 @@ export default function ArticlePageClient({
   domain: string;
 }) {
   const router = useRouter();
+  
+  useEffect(() => {
+    window.scrollTo(0, 0);
+
+    // Smart View Tracking
+    const lastViewed = localStorage.getItem(`viewed_${articleId}`);
+    const now = Date.now();
+    const lockTime = 5 * 1000; // 5 seconds
+
+    if (!lastViewed || now - parseInt(lastViewed) > lockTime) {
+      articlesApi.recordView(articleId).catch(console.error);
+      localStorage.setItem(`viewed_${articleId}`, now.toString());
+    }
+  }, [articleId]);
 
 
   const {
@@ -72,8 +86,32 @@ export default function ArticlePageClient({
   }
 
   const otherArticles = allArticles.filter((a) => a.id !== article.id);
-  const trendingArticles = otherArticles.slice(0, 5);
-  const recommendedArticles = otherArticles.slice(0, 4);
+  
+  const trendingArticles = [...otherArticles]
+    .sort((a, b) => {
+      if ((b.trendingScore || 0) !== (a.trendingScore || 0)) {
+        return (b.trendingScore || 0) - (a.trendingScore || 0);
+      }
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    })
+    .slice(0, 5);
+
+  const recommendedArticles = [...otherArticles]
+    .sort((a, b) => {
+      // 1. Same category priority
+      const aSameCat = a.categoryId === article.categoryId ? 1 : 0;
+      const bSameCat = b.categoryId === article.categoryId ? 1 : 0;
+      if (aSameCat !== bSameCat) return bSameCat - aSameCat;
+      
+      // 2. Trending score
+      if ((b.trendingScore || 0) !== (a.trendingScore || 0)) {
+        return (b.trendingScore || 0) - (a.trendingScore || 0);
+      }
+      
+      // 3. Date
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    })
+    .slice(0, 4);
 
   const createdAt =
     article.createdAt instanceof Date

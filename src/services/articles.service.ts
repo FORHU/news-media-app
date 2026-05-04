@@ -55,5 +55,9 @@ export const articlesService = {
 
     return article;
   }),
+
+  incrementViewCount: async (id: string) => {
+    return articlesRepository.incrementViewCount(id);
+  },
 };
 

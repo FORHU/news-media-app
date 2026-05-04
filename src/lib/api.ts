@@ -35,6 +35,10 @@ export const articlesApi = {
     return res.json();
   },
 
+  async recordView(id: string): Promise<void> {
+    await fetch(`/api/articles/${id}/view`, { method: "POST" });
+  },
+
   async getCrawledArticles(params: z.infer<typeof crawledArticlesParamsSchema>): Promise<CrawledArticlesResponse> {
     const validated = crawledArticlesParamsSchema.parse(params);
     const searchParams = new URLSearchParams();
