@@ -209,7 +209,7 @@ export default function JejuTimeArticle({
                 {referenceLine && (
                   <div className="mt-16 pt-10 border-t border-blue-50 bg-blue-50/30 p-8 rounded-2xl border-dashed">
                     <p className="text-[10px] text-blue-600 font-bold uppercase tracking-[0.3em] mb-4">Verification Source</p>
-                    <p className="text-slate-600 font-baskerville italic text-xl leading-relaxed">
+                    <p className="text-slate-600 font-baskerville italic text-xl leading-relaxed break-all">
                       {referenceLine}
                     </p>
                   </div>

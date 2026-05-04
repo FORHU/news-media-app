@@ -169,7 +169,7 @@ export default function JejuQQArticle({
               {referenceLine && (
                 <div className="mt-16 pt-10 border-t border-gray-100">
                   <p className="text-sm text-gray-400 font-bold uppercase tracking-[0.2em] mb-4">Original Reference</p>
-                  <p className="text-gray-500 font-garamond italic text-lg leading-relaxed">
+                  <p className="text-gray-500 font-garamond italic text-lg leading-relaxed break-all">
                     {referenceLine}
                   </p>
                 </div>

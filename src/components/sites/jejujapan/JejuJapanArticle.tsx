@@ -182,7 +182,7 @@ export default function JejuJapanArticle({
             {referenceLine && (
               <div className="mt-16 pt-10 border-t-2 border-gray-100">
                 <p className="text-[10px] text-[#bc002d] font-bold uppercase tracking-[0.4em] mb-4">Official Source</p>
-                <p className="text-gray-600 font-noto italic text-lg leading-relaxed bg-gray-50 p-6 border-l-4 border-[#bc002d]">
+                <p className="text-gray-600 font-noto italic text-lg leading-relaxed bg-gray-50 p-6 border-l-4 border-[#bc002d] break-all">
                   {referenceLine}
                 </p>
               </div>
