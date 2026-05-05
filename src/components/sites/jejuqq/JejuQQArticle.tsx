@@ -6,14 +6,25 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, TrendingUp } from "lucide-react";
 
-import { FeaturedArticlesSection } from "@/components/home/featured-articles-section";
+import dynamic from "next/dynamic";
+const AdBanner = dynamic(() => import("@/components/AdBanner").then(mod => mod.AdBanner), { 
+  ssr: true,
+  loading: () => <div className="h-[250px] animate-pulse bg-slate-50 flex items-center justify-center text-[10px] text-slate-300 font-bold uppercase tracking-widest border border-slate-100" />
+});
+const TwitterStatusEmbed = dynamic(() => import("@/components/article/TwitterStatusEmbed"), { 
+  ssr: false,
+  loading: () => <div className="h-[450px] animate-pulse bg-slate-50 flex items-center justify-center text-slate-400 text-xs font-bold uppercase tracking-widest border border-slate-100" />
+});
+const FeaturedArticlesSection = dynamic(() => import("@/components/home/featured-articles-section").then(mod => mod.FeaturedArticlesSection), {
+  ssr: true,
+  loading: () => <div className="h-96 animate-pulse bg-slate-50" />
+});
+
 import { StoryImage } from "@/components/StoryImage";
 import { articlesApi } from "@/lib/api";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
-import { AdBanner } from "@/components/AdBanner";
 import type { Article } from "@/lib/types";
 import { extractYoutubeId } from "@/lib/utils";
-import TwitterStatusEmbed from "@/components/article/TwitterStatusEmbed";
 import {
   isSocialCommentaryGenerationMode,
   splitReferenceLineFromContent,
@@ -21,11 +32,11 @@ import {
 } from "@/lib/tweetArticleDisplay";
 
 
-export default function JejuQQArticle({ 
-  articleId, 
+export default function JejuQQArticle({
+  articleId,
   initialOtherArticles = [],
   domain = "jejuqq.com"
-}: { 
+}: {
   articleId: string;
   initialOtherArticles?: Article[];
   domain?: string;
@@ -66,7 +77,7 @@ export default function JejuQQArticle({
   }
 
   const otherArticles = initialOtherArticles.filter((a) => a.id !== article.id);
-  
+
   const trendingArticles = [...otherArticles]
     .sort((a, b) => {
       if ((b.trendingScore || 0) !== (a.trendingScore || 0)) {
@@ -82,12 +93,12 @@ export default function JejuQQArticle({
       const aSameCat = a.categoryId === article.categoryId ? 1 : 0;
       const bSameCat = b.categoryId === article.categoryId ? 1 : 0;
       if (aSameCat !== bSameCat) return bSameCat - aSameCat;
-      
+
       // 2. Trending score
       if ((b.trendingScore || 0) !== (a.trendingScore || 0)) {
         return (b.trendingScore || 0) - (a.trendingScore || 0);
       }
-      
+
       // 3. Date
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     })
@@ -95,7 +106,7 @@ export default function JejuQQArticle({
 
   const createdAt = article.createdAt instanceof Date ? article.createdAt : new Date(article.createdAt as string);
   const formattedDate = createdAt.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-  
+
   const rawTweet = article.rawTweet;
   const rawVideo = article.rawVideo;
   const youtubeUrl = article.youtubeUrl || rawVideo?.youtubeUrl || null;
@@ -183,7 +194,7 @@ export default function JejuQQArticle({
                       <>
                         <div className="whitespace-pre-wrap mb-10 break-words">{firstHalf}</div>
                         <div className="my-12 relative aspect-[16/9] bg-gray-100 rounded-none overflow-hidden shadow-lg border-2 border-[#dc2626]">
-                          <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" />
+                          <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" sizes="(max-width: 1024px) 100vw, 850px" />
                         </div>
                         {secondHalf && <div className="whitespace-pre-wrap break-words">{secondHalf}</div>}
                       </>
@@ -196,7 +207,7 @@ export default function JejuQQArticle({
                 <>
                   {article.imageUrl && (
                     <div className="mb-10 relative aspect-[16/9] bg-gray-100 rounded-none overflow-hidden shadow-lg border-2 border-[#dc2626]">
-                      <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" />
+                      <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" sizes="(max-width: 1024px) 100vw, 850px" />
                     </div>
                   )}
                   <div className="prose prose-lg font-garamond max-w-none prose-headings:font-black prose-p:leading-relaxed prose-p:text-gray-700 whitespace-pre-wrap break-words">
@@ -220,26 +231,26 @@ export default function JejuQQArticle({
           <div className="lg:col-span-4 space-y-10">
             <div className="bg-gray-50 rounded-none p-6 border-2 border-[#dc2626] lg:sticky lg:top-28">
               <div className="flex items-center justify-between mb-8 pb-5 border-b border-gray-200">
-                 <h2 className="text-xl font-garamond font-bold flex items-center gap-2">
-                    Trending <TrendingUp size={20} className="text-[#b91c1c]" />
-                 </h2>
-                 <span className="w-2 h-2 bg-[#dc2626]"></span>
+                <h2 className="text-xl font-garamond font-bold flex items-center gap-2">
+                  Trending <TrendingUp size={20} className="text-[#b91c1c]" />
+                </h2>
+                <span className="w-2 h-2 bg-[#dc2626]"></span>
               </div>
 
               <div className="space-y-7">
-                 {trendingArticles.map((article, i) => (
-                    <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex gap-4 items-start group">
-                        <span className="text-3xl font-garamond font-bold text-[#b91c1c]/80 group-hover:text-[#b91c1c] transition-colors tabular-nums shrink-0">
-                          {String(i + 1).padStart(2, '0')}
-                       </span>
-                       <div className="min-w-0">
-                         <span className="text-[9px] font-black text-[#b91c1c] uppercase tracking-[0.2em] block mb-1">{article.category?.categoryName}</span>
-                         <h3 className="text-[15px] font-bold leading-snug group-hover:text-[#b91c1c] transition-colors line-clamp-2">
-                            {article.title}
-                         </h3>
-                       </div>
-                    </Link>
-                 ))}
+                {trendingArticles.map((article, i) => (
+                  <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex gap-4 items-start group">
+                    <span className="text-3xl font-garamond font-bold text-[#b91c1c]/80 group-hover:text-[#b91c1c] transition-colors tabular-nums shrink-0">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <div className="min-w-0">
+                      <span className="text-[9px] font-black text-[#b91c1c] uppercase tracking-[0.2em] block mb-1">{article.category?.categoryName}</span>
+                      <h3 className="text-[15px] font-bold leading-snug group-hover:text-[#b91c1c] transition-colors line-clamp-2">
+                        {article.title}
+                      </h3>
+                    </div>
+                  </Link>
+                ))}
               </div>
             </div>
             <div className="rounded-none overflow-hidden">

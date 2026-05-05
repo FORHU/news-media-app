@@ -162,6 +162,7 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
                   fill
                   className="object-contain object-left"
                   priority
+                  sizes="(max-width: 768px) 300px, 450px"
                 />
               </div>
             </Link>
@@ -175,9 +176,9 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="SEARCH..."
-                className="bg-slate-50 border border-slate-200 rounded-full px-8 py-2 text-[10px] w-full outline-none focus:bg-white focus:border-blue-400/50 transition-all text-slate-800 placeholder:text-slate-400 font-bold uppercase tracking-widest"
+                className="bg-slate-50 border border-slate-200 rounded-full px-8 py-2 text-[10px] w-full outline-none focus:bg-white focus:border-blue-400/50 transition-all text-slate-800 placeholder:text-slate-500 font-bold uppercase tracking-widest"
               />
-              <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
               {isMobileSearchOpen && (
                 <button 
                   type="button" 
@@ -210,7 +211,7 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
                 SUBSCRIBE
               </button>
               
-              <Link href="/admin/dashboard" className="text-slate-500 hover:text-blue-600 transition-colors" title="Admin">
+              <Link href="/admin/dashboard" className="text-slate-600 hover:text-blue-600 transition-colors" title="Admin">
                 <User size={18} />
               </Link>
             </div>

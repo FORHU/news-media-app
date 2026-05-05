@@ -35,6 +35,7 @@ export default function JejuTimeFooter({ onOpenNewsletter, footerBanners }: Foot
                   alt="JejuTime Logo"
                   fill
                   className="object-contain object-left brightness-0 invert"
+                  sizes="(max-width: 768px) 300px, 400px"
                 />
               </div>
             </div>
@@ -52,19 +53,19 @@ export default function JejuTimeFooter({ onOpenNewsletter, footerBanners }: Foot
           <div className="lg:col-span-2">
             <h4 className="text-[11px] font-bold uppercase tracking-[0.2em] text-white mb-8">Explore</h4>
             <ul className="space-y-4 text-sm text-slate-400 font-light">
-              <li><Link href="/" className="hover:text-blue-600">Home</Link></li>
-              <li><Link href="/#latest-stories" className="hover:text-blue-600">Latest News</Link></li>
-              <li><Link href="/#trending-stories" className="hover:text-blue-600">Trending</Link></li>
+              <li><Link href="/" className="hover:text-blue-400 transition-colors">Home</Link></li>
+              <li><Link href="/#latest-stories" className="hover:text-blue-400 transition-colors">Latest News</Link></li>
+              <li><Link href="/#trending-stories" className="hover:text-blue-400 transition-colors">Trending</Link></li>
             </ul>
           </div>
 
           <div className="lg:col-span-2">
             <h4 className="text-[11px] font-bold uppercase tracking-[0.2em] text-white mb-8">Company</h4>
             <ul className="space-y-4 text-sm text-slate-400 font-light">
-              <li><Link href="#" className="hover:text-blue-600">About Us</Link></li>
-              <li><Link href="#" className="hover:text-blue-600">Contact</Link></li>
-              <li><Link href="#" className="hover:text-blue-600">Careers</Link></li>
-              <li><Link href="#" className="hover:text-blue-600">Advertise</Link></li>
+              <li><Link href="#" className="hover:text-blue-400 transition-colors">About Us</Link></li>
+              <li><Link href="#" className="hover:text-blue-400 transition-colors">Contact</Link></li>
+              <li><Link href="#" className="hover:text-blue-400 transition-colors">Careers</Link></li>
+              <li><Link href="#" className="hover:text-blue-400 transition-colors">Advertise</Link></li>
             </ul>
           </div>
 
@@ -82,12 +83,12 @@ export default function JejuTimeFooter({ onOpenNewsletter, footerBanners }: Foot
           </div>
         </div>
 
-        <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center text-[10px] font-bold uppercase tracking-widest text-slate-500 space-y-4 md:space-y-0">
+        <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center text-[10px] font-bold uppercase tracking-widest text-slate-400 space-y-4 md:space-y-0">
           <p>© 2026 JejuTime. All rights reserved.</p>
           <div className="flex space-x-8">
-            <Link href="#" className="hover:text-slate-600">Privacy Policy</Link>
-            <Link href="#" className="hover:text-slate-600">Terms of Service</Link>
-            <Link href="#" className="hover:text-slate-600">Cookie Settings</Link>
+            <Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link href="#" className="hover:text-white transition-colors">Terms of Service</Link>
+            <Link href="#" className="hover:text-white transition-colors">Cookie Settings</Link>
           </div>
         </div>
       </div>

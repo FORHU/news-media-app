@@ -40,11 +40,11 @@ export default function JejuJapanFooter({ onOpenNewsletter, footerBanners }: Jej
                 </div>
               </div>
             </div>
-            <p className="text-gray-400 text-sm leading-relaxed mb-8 max-w-sm">
+            <p className="text-slate-600 text-sm leading-relaxed mb-8 max-w-sm">
                Revolutionizing storytelling through AI-powered insights and high-quality journalism. Delivering truth at the speed of tech.
             </p>
             <div className="flex space-x-4">
-               <div className="w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center cursor-pointer hover:bg-[#bc002d] transition-colors">
+               <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center cursor-pointer hover:bg-[#bc002d] hover:text-white transition-colors">
                   <Globe size={14} />
                </div>
                <div className="w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center cursor-pointer hover:bg-[#bc002d] transition-colors">
@@ -86,7 +86,7 @@ export default function JejuJapanFooter({ onOpenNewsletter, footerBanners }: Jej
           </div>
         </div>
 
-        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center text-[10px] text-gray-500 font-bold uppercase tracking-widest space-y-4 md:space-y-0">
+        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center text-[10px] text-gray-400 font-bold uppercase tracking-widest space-y-4 md:space-y-0">
           <p>© {new Date().getFullYear()} Jeju Japan News Network. All rights reserved.</p>
           <div className="flex space-x-8">
              <Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link>

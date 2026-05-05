@@ -57,14 +57,14 @@ export function FeaturedArticlesSection({
           </div>
           <div className="p-3">
             {normalizeCategoryName(article.category?.categoryName) ? (
-              <div 
+              <div
                 className="text-xs font-semibold mb-1 uppercase"
                 style={{ color: domainColor.hex }}
               >
                 {normalizeCategoryName(article.category?.categoryName)}
               </div>
             ) : null}
-            <h3 
+            <h3
               className="text-sm font-bold text-gray-900 mb-2 transition-colors line-clamp-2"
               onMouseEnter={(e) => e.currentTarget.style.color = domainColor.hex}
               onMouseLeave={(e) => e.currentTarget.style.color = '#111827'}

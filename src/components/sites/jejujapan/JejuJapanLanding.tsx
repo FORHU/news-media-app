@@ -1,11 +1,18 @@
 "use client";
 
-import { AdBanner } from "@/components/AdBanner";
+import dynamic from "next/dynamic";
+const AdBanner = dynamic(() => import("@/components/AdBanner").then(mod => mod.AdBanner), { 
+  ssr: true,
+  loading: () => <div className="h-[120px] animate-pulse bg-gray-50 flex items-center justify-center text-[10px] text-gray-300 font-bold uppercase tracking-widest" />
+});
+const ClientPagination = dynamic(() => import("@/components/home/ClientPagination").then(mod => mod.ClientPagination), { 
+  ssr: true,
+  loading: () => <div className="h-20 animate-pulse bg-gray-50 w-full" />
+});
 import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
 import { TrendingUp, Clock, ChevronRight, ChevronLeft } from "lucide-react";
 import { useState } from "react";
-import { ClientPagination } from "@/components/home/ClientPagination";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Props {
@@ -89,6 +96,8 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                             fill
                             className="object-cover"
                             variant="hero"
+                            priority={true}
+                            sizes="(max-width: 1024px) 100vw, 850px"
                           />
                         </Link>
                       </motion.div>
