@@ -16,7 +16,7 @@ import JejuTimeArticle from "@/components/sites/jejutime/JejuTimeArticle";
 import { resolveTenantIdFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
 
-// Pre-render the top 50 articles per domain at build time (SSG).
+// Pre-render the top 20 articles per domain at build time (SSG).
 // Any articles not pre-rendered will be generated on-demand (ISR).
 export const dynamicParams = true;
 export const revalidate = 3600; // Revalidate every hour
@@ -32,7 +32,7 @@ export async function generateStaticParams() {
 
     for (const tenant of tenants) {
       const articles = await articlesService.getArticles(
-        { limit: 50, status: "published" },
+        { limit: 20, status: "published" },
         tenant.id
       );
 
