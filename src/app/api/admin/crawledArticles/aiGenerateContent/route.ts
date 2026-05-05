@@ -28,7 +28,14 @@ function getAiSystemInstruction(sourceUrl?: string, requestedLanguage?: string) 
     : "";
 
   const languageInstruction = requestedLanguage 
-    ? `By default, you MUST write the article in ${requestedLanguage}.`
+    ? `You MUST write the article in ${requestedLanguage}. 
+    
+    [CRITICAL TRANSLATION STEP]:
+    If you are translating between two non-English languages (e.g., Korean to Japanese, or Korean to Chinese), please follow this internal process:
+    1. Mentally translate the key points of the source material into English.
+    2. Then, rewrite and generate the final news article ENTIRELY in ${requestedLanguage} based on those English points.
+    
+    This pivot translation ensures the highest journalistic quality and accuracy. The final output must be 100% ${requestedLanguage}.`
     : `By default, you MUST write the article in the SAME LANGUAGE as the provided [SOURCE ARTICLE] (e.g., if the source article is in Korean, write the generated article in Korean).`;
 
   return `
@@ -51,7 +58,7 @@ function getAiSystemInstruction(sourceUrl?: string, requestedLanguage?: string) 
 7. NO MARKDOWN: Do not use bold, italics, or lists.
 8. HEADLINE: The headline must be punchy and news-worthy.
 9. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use exactly two newlines (an empty line) between each paragraph for consistent spacing.
-10. LANGUAGE: ${languageInstruction} HOWEVER, if the [ADDITIONAL USER COMMAND / PROMPT] explicitly commands a different language (e.g., "write in English"), you MUST follow that command and generate the article in the requested language.${creditInstruction ? `\n11. ` + creditInstruction.trim() : ""}
+10. LANGUAGE: ${languageInstruction}${creditInstruction ? `\n11. ` + creditInstruction.trim() : ""}
 `;
 }
 
@@ -135,9 +142,6 @@ export async function POST(req: NextRequest) {
     const truncatedInput = truncateContent(rawArticle.content || "No content provided.");
     const aiPayload = {
       user_input: `
-[SOURCE ARTICLE]:
-${truncatedInput}
-
 [SYSTEM INSTRUCTIONS]:
 ${instruction}
 
@@ -146,7 +150,12 @@ Write a professional, investigative news article that is PRIMARILY BASED on the 
 
 ${customPrompt ? `[ADDITIONAL USER COMMAND / PROMPT]:\n${customPrompt}\n` : ""}
 
-CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUCTIONS. Pay absolute attention to the language requested in the [ADDITIONAL USER COMMAND / PROMPT] if one is provided.
+[SOURCE ARTICLE]:
+${truncatedInput}
+
+CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUCTIONS.
+
+FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${requestedLanguage || "the same language as the source"}. DO NOT use any other language.
 `,
       session_id,
       persona_prefix: "NewsLetter",
