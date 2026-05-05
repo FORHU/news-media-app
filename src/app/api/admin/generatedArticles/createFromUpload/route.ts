@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { randomUUID } from "crypto";
 import { prisma } from "@/lib/db";
 import { generateUniqueArticleSlug } from "@/lib/slug";
 import { z } from "zod";
-import { resolveTenantIdFromRequest } from "@/lib/tenant";
+import { getTenantDomainFromRequest, resolveTenantIdFromRequest } from "@/lib/tenant";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -15,6 +17,46 @@ const RequestSchema = z.object({
   extractedText: z.string().optional().default(""),
   s3ImageUrl: z.string().optional().or(z.literal("")).default(""),
 });
+
+const DATA_URL_IMAGE_REGEX = /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/;
+
+function detectImageExtension(mimeType: string): string {
+  if (mimeType === "image/jpeg") return "jpg";
+  if (mimeType === "image/png") return "png";
+  if (mimeType === "image/webp") return "webp";
+  if (mimeType === "image/gif") return "gif";
+  return "bin";
+}
+
+async function uploadBase64ImageToSupabase(dataUrl: string, tenantId: string): Promise<string> {
+  const match = dataUrl.match(DATA_URL_IMAGE_REGEX);
+  if (!match) {
+    throw new Error("Invalid base64 image format.");
+  }
+
+  const mimeType = match[1];
+  const base64Payload = match[2];
+  const fileBuffer = Buffer.from(base64Payload, "base64");
+  const extension = detectImageExtension(mimeType);
+  const bucket = process.env.SUPABASE_ARTICLES_BUCKET || "articles";
+  const path = `article-images/manual-uploads/${tenantId}/${Date.now()}-${randomUUID()}.${extension}`;
+
+  const { error } = await supabaseAdmin.storage.from(bucket).upload(path, fileBuffer, {
+    contentType: mimeType,
+    upsert: false,
+  });
+
+  if (error) {
+    throw new Error(`Supabase image upload failed: ${error.message}`);
+  }
+
+  const { data } = supabaseAdmin.storage.from(bucket).getPublicUrl(path);
+  if (!data?.publicUrl) {
+    throw new Error("Supabase image upload succeeded, but public URL is missing.");
+  }
+
+  return data.publicUrl;
+}
 
 function truncateContent(text: string, limit: number = 12000): string {
   if (!text) return "";
@@ -89,9 +131,34 @@ export async function POST(req: NextRequest) {
 
     const { categoryId, topic, prompt, language, extractedText, s3ImageUrl } = parsed.data;
 
-    const tenantId = await resolveTenantIdFromRequest(req);
+    let tenantId = await resolveTenantIdFromRequest(req);
+    if (tenantId) {
+      const tenantExists = await prisma.tenant.findUnique({
+        where: { id: tenantId },
+        select: { id: true },
+      });
+
+      // In dev, cached tenant resolution can become stale after reseeding.
+      // Re-resolve by current domain to avoid FK violations on inserts.
+      if (!tenantExists) {
+        const tenantDomain = getTenantDomainFromRequest(req);
+        if (tenantDomain) {
+          const freshTenant = await prisma.tenant.findUnique({
+            where: { domain: tenantDomain },
+            select: { id: true },
+          });
+          tenantId = freshTenant?.id ?? null;
+        } else {
+          tenantId = null;
+        }
+      }
+    }
+
     if (!tenantId) {
-      return NextResponse.json({ error: "Tenant could not be resolved." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Tenant could not be resolved to a valid database tenant." },
+        { status: 400 }
+      );
     }
 
     const category = await prisma.category.findUnique({ 
@@ -113,36 +180,30 @@ export async function POST(req: NextRequest) {
         .slice(2, 10)}`.slice(0, 25);
 
     const rawSourceUploadId = makeCuid();
+    const normalizedIncomingImageUrl = s3ImageUrl?.trim() || "";
+    const resolvedImageUrl = normalizedIncomingImageUrl.startsWith("data:image/")
+      ? await uploadBase64ImageToSupabase(normalizedIncomingImageUrl, tenantId)
+      : normalizedIncomingImageUrl;
     const promptToStore =
       [prompt, language ? `Write the entire article in ${language}.` : ""]
         .filter(Boolean)
         .join("\n\n")
         .trim() || null;
     const extractedTextToStore = extractedText?.trim() ? extractedText.trim() : null;
-    const s3ImageUrlToStore = s3ImageUrl || null;
+    const s3ImageUrlToStore = resolvedImageUrl || null;
     const languageToStore = language || null;
 
-    await prisma.$executeRaw`
-      INSERT INTO raw_source_uploads (
-        id,
-        tenant_id,
-        prompt,
-        s3_image_url,
-        language,
-        extracted_text,
-        created_at,
-        updated_at
-      ) VALUES (
-        ${rawSourceUploadId},
-        ${tenantId},
-        ${promptToStore},
-        ${s3ImageUrlToStore},
-        ${languageToStore},
-        ${extractedTextToStore},
-        now(),
-        now()
-      )
-    `;
+    const rawSourceUpload = await prisma.rawSourceUpload.create({
+      data: {
+        id: rawSourceUploadId,
+        tenantId,
+        prompt: promptToStore,
+        s3ImageUrl: s3ImageUrlToStore,
+        language: languageToStore,
+        extractedText: extractedTextToStore,
+      },
+      select: { id: true },
+    });
 
     const baseUrl = (process.env.GENERATE_CONTENT_API || "").replace(/\/$/, "");
     if (!baseUrl) {
@@ -195,7 +256,7 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${l
       session_id,
       persona_prefix: "NewsLetter",
       document_context: documentContext,
-      image_context: (s3ImageUrl && !s3ImageUrl.startsWith("data:")) ? s3ImageUrl : "",
+      image_context: resolvedImageUrl || "",
     };
 
     const controller = new AbortController();
@@ -239,83 +300,24 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${l
       const publishDate = new Date();
       const slug = await generateUniqueArticleSlug(prisma, title, publishDate);
 
-      // Prisma client in this repo may not be in sync with the pushed schema yet
-      // (runtime validation error for new fields). Insert via SQL to guarantee schema alignment.
-      const contentArticleId = makeCuid();
       const sourceType =
-        s3ImageUrl || (extractedText && extractedText.trim()) ? "UPLOAD" : "MANUAL";
+        resolvedImageUrl || (extractedText && extractedText.trim()) ? "UPLOAD" : "MANUAL";
 
-      await prisma.$executeRaw`
-        INSERT INTO content_articles (
-          id,
-          tenant_id,
-          users_id,
-          category_id,
-          raw_source_uploads_id,
+      const contentArticle = await prisma.contentArticle.create({
+        data: {
+          tenantId,
+          usersId: user.id,
+          categoryId,
+          rawSourceUploadId: rawSourceUpload.id,
           title,
           slug,
-          publish_date,
-          image_url,
+          publishDate,
+          imageUrl: resolvedImageUrl || null,
           content,
-          status,
-          source_type,
-          created_at,
-          updated_at
-        ) VALUES (
-          ${contentArticleId},
-          ${tenantId},
-          ${user.id},
-          ${categoryId},
-          ${rawSourceUploadId},
-          ${title},
-          ${slug},
-          ${publishDate},
-          ${s3ImageUrl || null},
-          ${content},
-          ${"pending"},
-          ${sourceType}::"SourceType",
-          now(),
-          now()
-        )
-      `;
-
-      const contentArticle = (
-        await prisma.$queryRaw<
-          Array<{
-            id: string;
-            title: string;
-            slug: string | null;
-            content: string;
-            imageUrl: string | null;
-            status: string;
-            usersId: string;
-            categoryId: string;
-            publishDate: Date | null;
-            rawSourceUploadId: string | null;
-            sourceType: string | null;
-            createdAt: Date;
-            updatedAt: Date;
-          }>
-        >`
-          SELECT
-            id,
-            title,
-            slug,
-            content,
-            image_url as "imageUrl",
-            status,
-            users_id as "usersId",
-            category_id as "categoryId",
-            publish_date as "publishDate",
-            raw_source_uploads_id as "rawSourceUploadId",
-            source_type as "sourceType",
-            created_at as "createdAt",
-            updated_at as "updatedAt"
-          FROM content_articles
-          WHERE id = ${contentArticleId}
-          LIMIT 1
-        `
-      )[0];
+          status: "pending",
+          sourceType: sourceType as any,
+        },
+      });
 
       return NextResponse.json(contentArticle);
     } catch (error: any) {
