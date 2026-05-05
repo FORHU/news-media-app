@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { generateUniqueArticleSlug } from "@/lib/slug";
 import { z } from "zod";
+import { resolveTenantIdFromRequest } from "@/lib/tenant";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -12,7 +13,7 @@ const RequestSchema = z.object({
   prompt: z.string().optional().default(""),
   language: z.string().optional().default(""),
   extractedText: z.string().optional().default(""),
-  s3ImageUrl: z.string().url().optional().or(z.literal("")).default(""),
+  s3ImageUrl: z.string().optional().or(z.literal("")).default(""),
 });
 
 function truncateContent(text: string, limit: number = 12000): string {
@@ -63,39 +64,6 @@ function extractArticleData(responseText: string | null | undefined, fallbackTit
   return { title, content };
 }
 
-async function analyzeIfImageProvided(baseUrl: string, session_id: string, s3ImageUrl: string) {
-  if (!s3ImageUrl) return { documentContext: "No additional content provided." };
-
-  let s3Key = s3ImageUrl;
-  try {
-    s3Key = new URL(s3ImageUrl).pathname.slice(1);
-  } catch {
-    // If it's already a key, keep it as-is
-  }
-  const filename = s3Key.split("/").pop() || "image.jpg";
-
-  try {
-    const analyzeRes = await fetch(`${baseUrl}/api/legal/analyze-document`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ s3_key: s3Key, filename, session_id }),
-    });
-
-    if (!analyzeRes.ok) {
-      const analyzeError = await analyzeRes.json().catch(() => ({}));
-      console.error("[createFromUpload] Analysis failed:", analyzeError);
-      return { documentContext: "No additional content provided." };
-    }
-
-    const analysisResult = await analyzeRes.json();
-    const documentContext =
-      typeof analysisResult === "string" ? analysisResult : JSON.stringify(analysisResult);
-    return { documentContext };
-  } catch (err) {
-    console.error("[createFromUpload] Analysis error:", err);
-    return { documentContext: "No additional content provided." };
-  }
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -110,7 +78,17 @@ export async function POST(req: NextRequest) {
 
     const { categoryId, topic, prompt, language, extractedText, s3ImageUrl } = parsed.data;
 
-    const category = await prisma.category.findUnique({ where: { id: categoryId } });
+    const tenantId = await resolveTenantIdFromRequest(req);
+    if (!tenantId) {
+      return NextResponse.json({ error: "Tenant could not be resolved." }, { status: 400 });
+    }
+
+    const category = await prisma.category.findUnique({ 
+      where: { 
+        id: categoryId,
+        tenantId
+      } 
+    });
     if (!category) {
       return NextResponse.json({ error: "Selected category does not exist." }, { status: 400 });
     }
@@ -136,6 +114,7 @@ export async function POST(req: NextRequest) {
     await prisma.$executeRaw`
       INSERT INTO raw_source_uploads (
         id,
+        tenant_id,
         prompt,
         s3_image_url,
         language,
@@ -144,6 +123,7 @@ export async function POST(req: NextRequest) {
         updated_at
       ) VALUES (
         ${rawSourceUploadId},
+        ${tenantId},
         ${promptToStore},
         ${s3ImageUrlToStore},
         ${languageToStore},
@@ -154,14 +134,29 @@ export async function POST(req: NextRequest) {
     `;
 
     const baseUrl = (process.env.GENERATE_CONTENT_API || "").replace(/\/$/, "");
-    if (!baseUrl) throw new Error("GENERATE_CONTENT_API is not configured");
+    if (!baseUrl) {
+      console.error("[createFromUpload] GENERATE_CONTENT_API is not configured");
+      throw new Error("GENERATE_CONTENT_API is not configured");
+    }
 
-    const sessionRes = await fetch(`${baseUrl}/session-id`);
-    if (!sessionRes.ok) throw new Error("Could not connect to AI service (session-id)");
-    const { session_id } = await sessionRes.json();
+    console.log("[createFromUpload] Attempting to connect to AI service at:", `${baseUrl}/session-id`);
+    let session_id: string;
+    try {
+      const sessionRes = await fetch(`${baseUrl}/session-id`);
+      if (!sessionRes.ok) {
+        console.error("[createFromUpload] session-id fetch failed with status:", sessionRes.status);
+        throw new Error(`Could not connect to AI service (session-id) - Status: ${sessionRes.status}`);
+      }
+      const data = await sessionRes.json();
+      session_id = data.session_id;
+      console.log("[createFromUpload] AI Session ID acquired:", session_id);
+    } catch (e: any) {
+      console.error("[createFromUpload] AI Session fetch network error:", e.message);
+      throw new Error(`AI Service Connection Error: ${e.message}`);
+    }
 
-    // 2) Optional image analysis (if s3ImageUrl present)
-    const { documentContext } = await analyzeIfImageProvided(baseUrl, session_id, s3ImageUrl);
+    // 2) Image analysis disabled as per user request
+    const documentContext = "No additional content provided.";
 
     const instruction = getAiSystemInstruction();
     const materials = truncateContent(extractedText || "No additional content provided.");
@@ -172,7 +167,6 @@ ${topic || "Not provided"}
 
 [SOURCE MATERIALS]:
 ${materials}
-${documentContext !== "No additional content provided." ? `\n[OBSERVED DETAILS]:\n${documentContext}` : ""}
 
 [SYSTEM INSTRUCTIONS]:
 ${instruction}
@@ -188,12 +182,13 @@ Write a professional, investigative news article primarily based on the topic, u
       session_id,
       persona_prefix: "NewsLetter",
       document_context: documentContext,
-      image_context: s3ImageUrl || "",
+      image_context: (s3ImageUrl && !s3ImageUrl.startsWith("data:")) ? s3ImageUrl : "",
     };
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 180_000);
     try {
+      console.log("[createFromUpload] Sending payload to AI service at:", `${baseUrl}/chat`);
       const chatRes = await fetch(`${baseUrl}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -204,10 +199,12 @@ Write a professional, investigative news article primarily based on the topic, u
 
       if (!chatRes.ok) {
         const errorData = await chatRes.json().catch(() => ({}));
+        console.error("[createFromUpload] AI chat failed with status:", chatRes.status, "Error:", errorData);
         throw new Error(errorData?.detail || `AI service error (${chatRes.status})`);
       }
 
       const { response } = await chatRes.json();
+      console.log("[createFromUpload] AI Response received (length):", response?.length || 0);
       const { title, content } = extractArticleData(response, topic || "New Article");
       if (!content || content.length < 50) {
         throw new Error("AI returned incomplete article. Please refine your materials and try again.");
@@ -215,8 +212,15 @@ Write a professional, investigative news article primarily based on the topic, u
 
       // 3) Save content_articles linked to raw_source_uploads (schema-aligned)
       const user =
-        (await prisma.user.findFirst({ where: { email: "admin@newsmedia.app" } })) ||
-        (await prisma.user.findFirst());
+        (await prisma.user.findFirst({ 
+          where: { 
+            email: "admin@newsmedia.app",
+            tenantId
+          } 
+        })) ||
+        (await prisma.user.findFirst({
+          where: { tenantId }
+        }));
       if (!user) throw new Error("No system user found for attribution");
 
       const publishDate = new Date();
@@ -231,6 +235,7 @@ Write a professional, investigative news article primarily based on the topic, u
       await prisma.$executeRaw`
         INSERT INTO content_articles (
           id,
+          tenant_id,
           users_id,
           category_id,
           raw_source_uploads_id,
@@ -245,6 +250,7 @@ Write a professional, investigative news article primarily based on the topic, u
           updated_at
         ) VALUES (
           ${contentArticleId},
+          ${tenantId},
           ${user.id},
           ${categoryId},
           ${rawSourceUploadId},

@@ -335,6 +335,22 @@ export const articlesApi = {
     return res.json();
   },
 
+  async uploadImage(file: File): Promise<{ url: string; key: string }> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch("/api/admin/upload-image", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to upload image via proxy");
+    }
+    return res.json();
+  },
+
 };
 
 export const bannersApi = {
