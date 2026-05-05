@@ -6,8 +6,8 @@ import { DEFAULT_OG_IMAGE, DEFAULT_SEO, SITE_URL } from "@/config/site";
 import { headers } from "next/headers";
 import { normalizeHostToDomain, getSiteNameFromDomain, getSiteIconFromDomain } from "@/lib/tenant";
 
-// generateMetadata uses headers() to detect the domain — must be force-dynamic.
-export const dynamic = 'force-dynamic';
+// Root layout should be static to allow child routes to use SSG/ISR.
+// Domain-specific metadata is handled in the (sites)/[domain] layout.
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -73,48 +73,41 @@ const mulish = Mulish({
   weight: ["400", "500", "600", "700", "800"],
 });
 
-export async function generateMetadata(): Promise<Metadata> {
-  const host = (await headers()).get("host");
-  const domain = normalizeHostToDomain(host);
-  const siteName = getSiteNameFromDomain(domain);
-  const icon = getSiteIconFromDomain(domain);
-
-  return {
-    metadataBase: new URL(SITE_URL),
-    title: {
-      default: siteName,
-      template: `%s | ${siteName}`,
-    },
-    icons: {
-      icon: icon,
-    },
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: DEFAULT_SEO.title,
+    template: `%s | ${DEFAULT_SEO.title}`,
+  },
+  description: DEFAULT_SEO.description,
+  icons: {
+    icon: "/icons/newsicons.ico",
+  },
+  openGraph: {
+    title: DEFAULT_SEO.title,
     description: DEFAULT_SEO.description,
-    openGraph: {
-      title: siteName,
-      description: DEFAULT_SEO.description,
-      url: "/",
-      siteName: siteName,
-      images: [
-        {
-          url: DEFAULT_OG_IMAGE,
-          width: 1200,
-          height: 630,
-          alt: siteName,
-        },
-      ],
-      type: "website",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: siteName,
-      description: DEFAULT_SEO.description,
-      images: [DEFAULT_OG_IMAGE],
-    },
-    alternates: {
-      canonical: "/",
-    },
-  };
-}
+    url: "/",
+    siteName: DEFAULT_SEO.title,
+    images: [
+      {
+        url: DEFAULT_OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: DEFAULT_SEO.title,
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: DEFAULT_SEO.title,
+    description: DEFAULT_SEO.description,
+    images: [DEFAULT_OG_IMAGE],
+  },
+  alternates: {
+    canonical: "/",
+  },
+};
 
 export default function RootLayout({
   children,

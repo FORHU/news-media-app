@@ -14,10 +14,43 @@ import JejuJapanArticle from "@/components/sites/jejujapan/JejuJapanArticle";
 import JejuQQArticle from "@/components/sites/jejuqq/JejuQQArticle";
 import JejuTimeArticle from "@/components/sites/jejutime/JejuTimeArticle";
 import { resolveTenantIdFromDomain } from "@/lib/tenant";
+import { prisma } from "@/lib/db";
 
-// Force dynamic rendering — article pages query the DB (Prisma) at request time.
-// Static/ISR pre-rendering triggers DYNAMIC_SERVER_USAGE on Vercel.
-export const dynamic = 'force-dynamic';
+// Pre-render the top 50 articles per domain at build time (SSG).
+// Any articles not pre-rendered will be generated on-demand (ISR).
+export const dynamicParams = true;
+export const revalidate = 3600; // Revalidate every hour
+
+export async function generateStaticParams() {
+  try {
+    const tenants = await prisma.tenant.findMany({
+      where: { isActive: true },
+      select: { domain: true, id: true },
+    });
+
+    const staticParams: { domain: string; id: string }[] = [];
+
+    for (const tenant of tenants) {
+      const articles = await articlesService.getArticles(
+        { limit: 50, status: "published" },
+        tenant.id
+      );
+
+      for (const article of articles) {
+        // Pre-render both the slug and the ID to ensure instant loads for both URL types
+        if (article.slug) {
+          staticParams.push({ domain: tenant.domain, id: article.slug });
+        }
+        staticParams.push({ domain: tenant.domain, id: article.id });
+      }
+    }
+
+    return staticParams;
+  } catch (error) {
+    console.error("Error generating static params for articles:", error);
+    return [];
+  }
+}
 
 export async function generateMetadata({
   params,
@@ -145,7 +178,7 @@ export default async function ArticlePage({
   // redirect() throws a special Next.js internal error — it MUST be called
   // outside of any try-catch block so it is never accidentally swallowed.
   if (articleId !== canonicalSlug) {
-    redirect(`/article/${canonicalSlug}`);
+    redirect(encodeURI(`/article/${canonicalSlug}`));
   }
 
   const allArticles = await articlesService.getArticles({
