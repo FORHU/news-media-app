@@ -166,10 +166,10 @@ export default function JejuTimeArticle({
         <div className="absolute inset-0 bg-gradient-to-br from-blue-950/40 via-transparent to-transparent pointer-events-none" />
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-            <div className="flex items-center justify-center relative mb-10 min-h-[40px]">
+            <div className="flex flex-col sm:flex-row items-center justify-center relative mb-10 gap-6 sm:gap-0 min-h-[40px]">
                 <button 
                   onClick={() => window.history.length > 1 ? router.back() : router.push("/")} 
-                  className="absolute left-0 inline-flex items-center gap-2 text-sm text-white/80 hover:text-white transition-all bg-white/5 px-4 py-2 rounded-full hover:bg-white/10 border border-white/10 backdrop-blur-md shadow-md"
+                  className="sm:absolute sm:left-0 inline-flex self-start sm:self-auto items-center gap-2 text-sm text-white/80 hover:text-white transition-all bg-white/5 px-4 py-2 rounded-full hover:bg-white/10 border border-white/10 backdrop-blur-md shadow-md"
                 >
                     <ArrowLeft className="w-4 h-4" /> Back
                 </button>

@@ -55,7 +55,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
   };
 
   return (
-    <div className="bg-[#fdf2f2] text-[#222] min-h-screen flex flex-col">
+    <div className="bg-[#fdf2f2] text-[#222] min-h-screen flex flex-col overflow-x-hidden">
       <div className="max-w-7xl mx-auto px-4 pt-4">
         <AdBanner position="HOME_TOP" initialBanners={banners.top} />
       </div>
