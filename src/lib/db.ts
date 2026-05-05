@@ -20,7 +20,8 @@ const maxConnections = process.env.NEXT_PHASE === "phase-production-build" ? 1 :
 const pool: Pool = g.pool ?? new Pool({
   connectionString: process.env.DATABASE_URL,
   max: maxConnections,
-  connectionTimeoutMillis: 5000,
+  // During build, give more time for sequential queries to queue through the single connection.
+  connectionTimeoutMillis: process.env.NEXT_PHASE === "phase-production-build" ? 30000 : 5000,
   idleTimeoutMillis: 30000,
 });
 

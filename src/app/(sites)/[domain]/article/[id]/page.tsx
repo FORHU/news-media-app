@@ -22,34 +22,43 @@ export const dynamicParams = true;
 export const revalidate = 3600; // Revalidate every hour
 
 export async function generateStaticParams() {
-  try {
-    const tenants = await prisma.tenant.findMany({
-      where: { isActive: true },
-      select: { domain: true, id: true },
-    });
+  // During build, skip static pre-rendering if the DB connection is slow.
+  // Pages will be generated on-demand via ISR (revalidate = 3600) instead.
+  // This prevents the build from failing due to connection timeouts.
+  if (process.env.NEXT_PHASE === "phase-production-build") {
+    try {
+      const tenants = await prisma.tenant.findMany({
+        where: { isActive: true },
+        select: { domain: true, id: true },
+      });
 
-    const staticParams: { domain: string; id: string }[] = [];
+      const staticParams: { domain: string; id: string }[] = [];
 
-    for (const tenant of tenants) {
-      const articles = await articlesService.getArticles(
-        { limit: 20, status: "published" },
-        tenant.id
-      );
+      for (const tenant of tenants) {
+        const articles = await articlesService.getArticles(
+          { limit: 20, status: "published" },
+          tenant.id
+        );
 
-      for (const article of articles) {
-        // Pre-render both the slug and the ID to ensure instant loads for both URL types
-        if (article.slug) {
-          staticParams.push({ domain: tenant.domain, id: article.slug });
+        for (const article of articles) {
+          // Pre-render both the slug and the ID to ensure instant loads for both URL types
+          if (article.slug) {
+            staticParams.push({ domain: tenant.domain, id: article.slug });
+          }
+          staticParams.push({ domain: tenant.domain, id: article.id });
         }
-        staticParams.push({ domain: tenant.domain, id: article.id });
       }
-    }
 
-    return staticParams;
-  } catch (error) {
-    console.error("Error generating static params for articles:", error);
-    return [];
+      return staticParams;
+    } catch (error) {
+      // If DB is unreachable during build, fall back to full ISR.
+      // All pages will still render on-demand; the build won't fail.
+      console.warn("[generateStaticParams] DB unavailable during build — falling back to ISR:", error);
+      return [];
+    }
   }
+
+  return [];
 }
 
 export async function generateMetadata({
