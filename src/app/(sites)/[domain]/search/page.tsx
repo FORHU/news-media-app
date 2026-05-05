@@ -59,9 +59,35 @@ export default async function SearchPage({
 }) {
   const { domain } = await params;
   const { search: searchQuery, category: categoryParam } = await searchParams;
-
   const tenantId = await resolveTenantIdFromDomain(domain);
 
+  return (
+    <div className="bg-white">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
+        <Suspense fallback={<SearchSkeleton domain={domain} searchQuery={searchQuery} categoryParam={categoryParam} />}>
+          <SearchContent 
+            domain={domain} 
+            searchQuery={searchQuery} 
+            categoryParam={categoryParam} 
+            tenantId={tenantId} 
+          />
+        </Suspense>
+      </main>
+    </div>
+  );
+}
+
+async function SearchContent({ 
+  domain, 
+  searchQuery, 
+  categoryParam, 
+  tenantId 
+}: { 
+  domain: string; 
+  searchQuery?: string; 
+  categoryParam?: string; 
+  tenantId: string | null;
+}) {
   const articles = tenantId
     ? await articlesService.getArticles(
         {
@@ -74,7 +100,7 @@ export default async function SearchPage({
       )
     : [];
 
-  const [trendingArticles, sidebarBanners, footerBanners] = await Promise.all([
+  const [trendingArticles, sidebarBanners] = await Promise.all([
     tenantId
       ? articlesService.getArticles({ limit: 10, status: "published" }, tenantId)
       : Promise.resolve([]),
@@ -83,43 +109,61 @@ export default async function SearchPage({
           .getBanners({ position: "HOME_SIDEBAR", isActive: true, tenantId })
           .catch(() => [])
       : Promise.resolve([]),
-    tenantId
-      ? bannersService
-          .getBanners({ position: "GLOBAL_FOOTER", isActive: true, tenantId })
-          .catch(() => [])
-      : Promise.resolve([]),
   ]);
 
-  const error = "";
-
   return (
-    <div className="bg-white">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
-        <FilterStatusBar
+    <>
+      <FilterStatusBar
+        searchQuery={searchQuery || null}
+        categoryName={categoryParam ? decodeURIComponent(categoryParam) : null}
+        resultCount={articles.length}
+        domain={domain}
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+        <LatestStoriesSection
+          articles={articles}
+          error=""
           searchQuery={searchQuery || null}
-          categoryName={categoryParam ? decodeURIComponent(categoryParam) : null}
-          resultCount={articles.length}
+          isLoading={false}
           domain={domain}
         />
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-          <LatestStoriesSection
-            articles={articles}
-            error={error}
-            searchQuery={searchQuery || null}
-            isLoading={false}
+        <div className="space-y-8">
+          <TrendingSidebar 
+            articles={trendingArticles} 
             domain={domain}
           />
-          <div className="space-y-8">
-            <TrendingSidebar 
-              articles={trendingArticles} 
-              domain={domain}
-            />
-            <AdBanner position="HOME_SIDEBAR" initialBanners={sidebarBanners} />
-          </div>
+          <AdBanner position="HOME_SIDEBAR" initialBanners={sidebarBanners} />
         </div>
-      </main>
-    </div>
+      </div>
+    </>
+  );
+}
+
+function SearchSkeleton({ domain, searchQuery, categoryParam }: { domain: string, searchQuery?: string, categoryParam?: string }) {
+  return (
+    <>
+      <div className="mb-6 h-16 bg-gray-50 border border-gray-200 rounded-lg animate-pulse" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="h-8 w-48 bg-gray-100 rounded mb-6 animate-pulse" />
+          {Array.from({ length: 5 }).map((_, idx) => (
+            <div key={idx} className="flex gap-4 pb-6 border-b border-gray-200 animate-pulse">
+              <div className="relative w-28 sm:w-40 h-20 sm:h-28 bg-gray-100 rounded-lg flex-shrink-0" />
+              <div className="flex-1 space-y-3">
+                <div className="h-4 w-24 bg-gray-100 rounded" />
+                <div className="h-6 w-3/4 bg-gray-100 rounded" />
+                <div className="h-4 w-full bg-gray-100 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="space-y-8">
+          <div className="h-[400px] bg-gray-100 rounded-lg animate-pulse" />
+          <div className="h-[300px] bg-gray-100 rounded-lg animate-pulse" />
+        </div>
+      </div>
+    </>
   );
 }
 

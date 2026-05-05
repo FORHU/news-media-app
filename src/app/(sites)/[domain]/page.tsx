@@ -11,6 +11,7 @@ import { articlesService } from "@/services/articles.service";
 import { bannersService } from "@/services/banners.service";
 import { DEFAULT_OG_IMAGE, DEFAULT_SEO } from "@/config/site";
 import { resolveTenantIdFromDomain, getSiteNameFromDomain } from "@/lib/tenant";
+import { prisma } from "@/lib/db";
 
 // Domain-specific designs
 import NewsIconsLanding from "@/components/sites/newsicons/NewsIconsLanding";
@@ -19,6 +20,19 @@ import JejuQQLanding from "@/components/sites/jejuqq/JejuQQLanding";
 import JejuJapanLanding from "@/components/sites/jejujapan/JejuJapanLanding";
 
 export const revalidate = 300;
+
+export async function generateStaticParams() {
+  try {
+    const tenants = await prisma.tenant.findMany({
+      where: { isActive: true },
+      select: { domain: true },
+    });
+    return tenants.map((t) => ({ domain: t.domain }));
+  } catch (error) {
+    console.error("Error generating static params for domains:", error);
+    return [];
+  }
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ domain: string }> }): Promise<Metadata> {
   const { domain } = await params;

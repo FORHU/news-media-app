@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Search, Menu, Globe, User, X, ChevronDown, Mail } from "lucide-react";
 import { getCoreCategories, HOME_CATEGORY_LABEL, normalizeCategoryKey } from "@/config/categories";
@@ -119,9 +120,15 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
             
             <div className="flex-1 flex justify-center lg:justify-start lg:ml-8 absolute left-0 right-0 lg:static pointer-events-none">
               <Link href="/" className="pointer-events-auto">
-                <h1 className="text-2xl md:text-3xl font-noto font-black tracking-widest text-black uppercase">
-                  JEJU<span className="text-[#bc002d]">JAPAN</span>
-                </h1>
+                <div className="relative h-12 w-48 md:h-14 md:w-56 lg:h-16 lg:w-64">
+                  <Image
+                    src="/Logo/JEJUJAPANLOGO.png"
+                    alt="JejuJapan Logo"
+                    fill
+                    className="object-contain object-left lg:object-center"
+                    priority
+                  />
+                </div>
               </Link>
             </div>
           </div>
@@ -236,7 +243,16 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
                   >
                     <X className="w-5 h-5" />
                   </button>
-                  <span className="text-sm font-black text-white tracking-[0.4em] uppercase font-noto">Menu</span>
+                  <div className="bg-white py-1.5 px-2 rounded-sm">
+                    <div className="relative h-8 w-28">
+                      <Image
+                        src="/Logo/JEJUJAPANLOGO.png"
+                        alt="JejuJapan Logo"
+                        fill
+                        className="object-contain object-center"
+                      />
+                    </div>
+                  </div>
                   <div className="w-8" />
                 </div>
 

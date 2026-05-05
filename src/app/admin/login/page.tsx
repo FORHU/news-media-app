@@ -79,32 +79,38 @@ const newsIconsTheme: Theme = {
 
 /* ── JejuJapan ── */
 const jejuJapanTheme: Theme = {
-  bg: 'min-h-screen bg-[#111] flex items-center justify-center px-4 relative overflow-hidden',
-  card: 'bg-[#1a1a1a] border-l-4 border-[#bc002d] p-8 md:p-10 relative overflow-hidden shadow-2xl',
+  bg: 'min-h-screen bg-[#f8f8f8] flex items-center justify-center px-4 relative overflow-hidden',
+  card: 'bg-white border-l-4 border-[#bc002d] p-10 md:p-12 relative overflow-hidden shadow-2xl rounded-sm',
   topBar: '',
   logo: (
-    <div className="text-center mb-10">
-      <h1 className="text-4xl font-serif font-black tracking-tighter">
-        <span className="text-[#bc002d]">JEJU</span><span className="text-white">JAPAN</span>
-      </h1>
-      <span className="text-[10px] font-bold tracking-[0.3em] text-white/40 uppercase mt-2 block">News Network · Admin</span>
+    <div className="text-center mb-10 flex flex-col items-center">
+      <div className="relative h-20 w-full max-w-[300px] mb-2">
+        <Image
+          src="/Logo/JEJUJAPANLOGO.png"
+          alt="JejuJapan Logo"
+          fill
+          className="object-contain"
+          priority
+        />
+      </div>
+      <span className="text-[10px] font-bold tracking-[0.3em] text-gray-400 uppercase mt-1 block">News Network · Admin</span>
     </div>
   ),
   accent: '#bc002d',
   accentCls: 'bg-[#bc002d]',
   accentHover: 'hover:bg-[#a0001f]',
   inputFocus: 'focus:border-[#bc002d]',
-  inputBorder: 'border-white/10 hover:border-white/20',
-  inputBgCls: 'bg-white/5 text-white placeholder:text-white/30',
+  inputBorder: 'border-gray-200 hover:border-gray-300',
+  inputBgCls: 'bg-gray-50 text-gray-900 placeholder:text-gray-400',
   inputRounded: 'rounded-none',
-  labelCls: 'text-[10px] font-bold text-white/50 uppercase tracking-widest',
-  btnCls: 'w-full bg-[#bc002d] text-white py-3.5 font-black text-xs uppercase tracking-widest hover:bg-[#a0001f] disabled:opacity-50 transition-colors flex items-center justify-center gap-2 group rounded-none',
-  errorCls: 'text-xs text-red-400 bg-red-950/40 p-3 border border-red-800/50 font-bold flex items-center gap-2',
-  backCls: 'fixed top-6 left-6 sm:top-10 sm:left-10 flex items-center gap-3 text-white/50 hover:text-white transition-all group z-10 font-bold uppercase tracking-[0.2em] text-[10px]',
+  labelCls: 'text-[10px] font-bold text-gray-900 uppercase tracking-widest',
+  btnCls: 'w-full bg-[#bc002d] text-white py-4 font-black text-xs uppercase tracking-widest hover:bg-[#a0001f] disabled:opacity-50 transition-colors flex items-center justify-center gap-2 group rounded-none',
+  errorCls: 'text-xs text-red-600 bg-red-50 p-3 border border-red-200 font-bold flex items-center gap-2',
+  backCls: 'fixed top-6 left-6 sm:top-10 sm:left-10 flex items-center gap-3 text-gray-600 hover:text-[#bc002d] transition-all group z-10 font-bold uppercase tracking-[0.2em] text-[10px]',
   backIconCls: 'transition-transform group-hover:-translate-x-1',
-  headingCls: 'text-2xl font-black text-white tracking-tight mb-1',
-  subtextCls: 'text-sm text-white/40',
-  footerCls: 'text-center mt-8 text-white/20 font-bold text-[10px] uppercase tracking-[0.25em]',
+  headingCls: 'text-2xl font-black text-gray-900 tracking-tight mb-1',
+  subtextCls: 'text-sm text-gray-500',
+  footerCls: 'text-center mt-8 text-gray-300 font-bold text-[10px] uppercase tracking-[0.25em]',
   tagline: 'Secure Access',
   footerText: '© Jeju Japan News Network',
   siteName: 'JejuJapan',
@@ -117,12 +123,17 @@ const jejuQQTheme: Theme = {
   card: 'bg-[#fee2e2] border-t-4 border-[#dc2626] shadow-lg p-10 md:p-12 relative overflow-hidden rounded-none',
   topBar: '',
   logo: (
-    <div className="text-center mb-10">
-      <div className="flex flex-col leading-none items-center">
-        <span className="text-[42px] font-serif font-black tracking-tighter text-[#dc2626]">Jeju</span>
-        <span className="text-[32px] font-serif font-black tracking-tighter text-black -mt-3">QQ Daily</span>
+    <div className="text-center mb-10 flex flex-col items-center">
+      <div className="relative h-24 w-full max-w-[300px] mb-2">
+        <Image
+          src="/Logo/JEJUQQLOGO.png"
+          alt="JejuQQ Logo"
+          fill
+          className="object-contain"
+          priority
+        />
       </div>
-      <p className="text-[10px] font-bold tracking-[0.3em] text-gray-500 uppercase mt-2">Admin Portal</p>
+      <p className="text-[10px] font-bold tracking-[0.3em] text-gray-500 uppercase mt-1">Admin Portal</p>
     </div>
   ),
   accent: '#dc2626',
