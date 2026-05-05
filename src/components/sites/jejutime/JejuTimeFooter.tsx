@@ -29,13 +29,13 @@ export default function JejuTimeFooter({ onOpenNewsletter, footerBanners }: Foot
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 mb-20">
           <div className="lg:col-span-4">
             <div className="mb-8">
-              <div className="relative h-20 w-80 sm:h-28 sm:w-[400px]">
+              <div className="relative h-24 w-80 sm:h-32 sm:w-[500px] shrink-0 transition-all duration-300 -ml-1">
                 <Image
                   src="/Logo/JEJUTIMELOGO.png"
                   alt="JejuTime Logo"
                   fill
-                  className="object-contain object-left brightness-0 invert"
-                  sizes="(max-width: 768px) 300px, 400px"
+                  className="object-contain object-left brightness-0 invert scale-110"
+                  sizes="(max-width: 768px) 300px, 500px"
                 />
               </div>
             </div>

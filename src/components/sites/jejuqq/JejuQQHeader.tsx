@@ -100,13 +100,13 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
               <span className="text-[10px] font-bold font-serif uppercase tracking-[0.2em] hidden sm:block">Menu</span>
             </button>
 
-            <Link href="/" className="hover:opacity-90 transition-opacity">
-              <div className="relative h-14 w-44 md:h-16 md:w-56">
+            <Link href="/" className="hover:opacity-90 transition-opacity flex-shrink-0">
+              <div className="relative h-15 w-48 md:h-20 md:w-60 shrink-0 transition-all duration-300 -ml-1">
                 <Image
                   src="/Logo/JEJUQQLOGO.png"
                   alt="JejuQQ Logo"
                   fill
-                  className="object-contain object-left"
+                  className="object-contain object-left scale-110 md:scale-110 transition-transform"
                   priority
                 />
               </div>

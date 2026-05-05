@@ -31,12 +31,12 @@ export default function JejuQQFooter({ onOpenNewsletter, footerBanners }: JejuQQ
         <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-16">
           <div className="md:col-span-1">
               <div className="mb-8">
-                 <div className="relative h-14 w-48">
+                 <div className="relative h-20 w-64 shrink-0 -ml-1 transition-all duration-300">
                     <Image
                       src="/Logo/JEJUQQLOGO.png"
                       alt="JejuQQ Logo"
                       fill
-                      className="object-contain object-left"
+                      className="object-contain object-left scale-110"
                     />
                  </div>
               </div>
