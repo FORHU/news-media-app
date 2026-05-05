@@ -3,6 +3,7 @@ import type { Article } from "@/lib/types";
 import { Prisma } from "@/generated/prisma/client";
 import { getCategoryFilterVariants } from "@/config/categories";
 
+// Full include — used by admin operations that need raw source data
 const articleInclude = {
   category: true,
   user: { select: { firstName: true, lastName: true } },
@@ -14,6 +15,27 @@ const articleInclude = {
   },
   rawVideo: true,
   rawSourceUpload: true,
+  rawTweet: {
+    select: {
+      tweetId: true,
+      generationMode: true,
+      profileUrl: true,
+    },
+  },
+} satisfies Prisma.ContentArticleInclude;
+
+// Lightweight include — used for public article pages.
+// Omits rawArticle.crawledUrl, rawVideo, and rawSourceUpload which can be
+// several MBs and are not needed for rendering. Prevents 413 on Vercel.
+const articleDetailInclude = {
+  category: true,
+  user: { select: { firstName: true, lastName: true } },
+  rawArticle: {
+    select: {
+      id: true,
+      category: true,
+    },
+  },
   rawTweet: {
     select: {
       tweetId: true,
@@ -90,7 +112,7 @@ export const articlesRepository = {
     where.status = { in: ["published", "blog"] };
     return (await prisma.contentArticle.findFirst({
       where: where as any,
-      include: articleInclude,
+      include: articleDetailInclude,
     })) as Article | null;
   },
 
@@ -100,7 +122,7 @@ export const articlesRepository = {
       where.status = { in: ["published", "blog"] };
       return (await prisma.contentArticle.findFirst({
         where: where as any,
-        include: articleInclude,
+        include: articleDetailInclude,
       })) as Article | null;
     } catch {
       // Temporary compatibility fallback when Prisma client
