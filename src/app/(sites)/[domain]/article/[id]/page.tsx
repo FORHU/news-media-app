@@ -25,7 +25,7 @@ export async function generateMetadata({
   params: Promise<{ domain: string; id: string }>;
 }): Promise<Metadata> {
   const { domain, id } = await params;
-  const articleId = id?.trim() ?? "";
+  const articleId = decodeURIComponent(id?.trim() ?? "");
   const tenantId = await resolveTenantIdFromDomain(domain);
 
   if (!articleId || !tenantId) {
@@ -109,7 +109,7 @@ export default async function ArticlePage({
   params: Promise<{ domain: string; id: string }>;
 }) {
   const { domain, id } = await params;
-  const articleId = id?.trim() ?? "";
+  const articleId = decodeURIComponent(id?.trim() ?? "");
 
   if (!articleId) {
     notFound();
