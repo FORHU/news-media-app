@@ -16,22 +16,6 @@ import JejuTimeArticle from "@/components/sites/jejutime/JejuTimeArticle";
 import { resolveTenantIdFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
 
-const MAX_INLINE_DATA_URL_LENGTH = 2_000;
-const INLINE_DATA_URL_PATTERN = /data:[^;]+;base64,[A-Za-z0-9+/=]+/g;
-
-function sanitizeMediaUrl(url: string | null | undefined): string | null {
-  if (!url) return null;
-  if (url.startsWith("data:") && url.length > MAX_INLINE_DATA_URL_LENGTH) {
-    return null;
-  }
-  return url;
-}
-
-function sanitizeArticleContent(content: string | null | undefined): string {
-  if (!content) return "";
-  return content.replace(INLINE_DATA_URL_PATTERN, "[removed inline media]");
-}
-
 // Pre-render the top 20 articles per domain at build time (SSG).
 // Any articles not pre-rendered will be generated on-demand (ISR).
 export const dynamicParams = true;
@@ -183,11 +167,7 @@ export default async function ArticlePage({
   try {
     const article = await articlesService.getArticleBySlugOrId(articleId, tenantId);
     canonicalSlug = article.slug ?? article.id;
-    queryClient.setQueryData(["article", canonicalSlug], {
-      ...article,
-      content: sanitizeArticleContent(article.content),
-      imageUrl: sanitizeMediaUrl((article as any).imageUrl),
-    });
+    queryClient.setQueryData(["article", canonicalSlug], article);
   } catch (error: any) {
     // Avoid using `instanceof` for custom errors in Server Components,
     // as bundler boundaries can sometimes break the prototype chain.
@@ -208,19 +188,10 @@ export default async function ArticlePage({
 
   // Fetch only what's needed for the sidebar — fewer articles = smaller ISR page HTML.
   // The full article list is available via client-side fetching if needed.
-  const allArticles = await articlesService.getArticles({
+  const allArticles = await articlesService.getArticleSummaries({
     limit: 10,
     status: "published",
-  }, tenantId)
-    .then((articles) =>
-      articles.map((article) => ({
-        ...article,
-        // Cards only need a preview; keeping full bodies inflates ISR response.
-        content: sanitizeArticleContent(article.content).slice(0, 260),
-        imageUrl: sanitizeMediaUrl((article as any).imageUrl),
-      }))
-    )
-    .catch(() => [] as Awaited<ReturnType<typeof articlesService.getArticles>>);
+  }, tenantId).catch(() => [] as Awaited<ReturnType<typeof articlesService.getArticleSummaries>>);
 
   const dehydratedState = dehydrate(queryClient);
 
