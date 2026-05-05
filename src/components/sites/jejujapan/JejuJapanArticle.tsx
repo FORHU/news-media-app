@@ -231,9 +231,9 @@ export default function JejuJapanArticle({
 
         <div className="lg:col-span-1 space-y-8">
           <div className="bg-[#111] text-white p-6 lg:sticky lg:top-28">
-            <h3 className="text-base font-noto font-black flex items-center gap-2 mb-6 uppercase tracking-widest border-b border-white/20 pb-4">
+            <h2 className="text-base font-noto font-black flex items-center gap-2 mb-6 uppercase tracking-widest border-b border-white/20 pb-4">
                <TrendingUp size={18} className="text-[#bc002d]" /> Trending
-            </h3>
+            </h2>
             <div className="space-y-6">
                {trendingArticles.map((article, i) => (
                   <Link key={article.id} href={`/article/${article.slug || article.id}`} className="block group">
@@ -241,7 +241,7 @@ export default function JejuJapanArticle({
                         <span className="text-3xl font-noto font-black text-white/10 group-hover:text-[#bc002d] transition-colors shrink-0">0{i + 1}</span>
                         <div className="min-w-0">
                            <span className="text-[9px] text-gray-500 uppercase tracking-[0.2em] block mb-1">{article.category?.categoryName}</span>
-                           <h4 className="text-sm font-bold leading-snug group-hover:text-white/80 line-clamp-2 transition-colors">{article.title}</h4>
+                           <h3 className="text-sm font-bold leading-snug group-hover:text-white/80 line-clamp-2 transition-colors">{article.title}</h3>
                         </div>
                      </div>
                   </Link>
@@ -255,10 +255,10 @@ export default function JejuJapanArticle({
       {recommendedArticles.length > 0 && (
         <section className="mt-12 md:mt-20 bg-[#111] text-white p-8 md:p-12 lg:p-14 relative overflow-hidden">
            <div className="flex items-center justify-between mb-8 relative z-10 border-b border-white/10 pb-6">
-              <h3 className="text-xl sm:text-2xl md:text-3xl font-noto font-black uppercase tracking-[0.1em] flex items-center gap-3">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-noto font-black uppercase tracking-[0.1em] flex items-center gap-3">
                  <TrendingUp size={22} className="text-[#bc002d]" />
                  More to Discover
-              </h3>
+              </h2>
               <Link href="/" className="text-[10px] font-black uppercase tracking-[0.3em] flex items-center gap-2 hover:text-[#bc002d] transition-colors">
                 View All <ChevronRight size={14} />
               </Link>
@@ -273,7 +273,7 @@ export default function JejuJapanArticle({
                        <span className="absolute bottom-3 left-3 text-4xl font-noto font-black text-white/10 group-hover:text-[#bc002d] transition-colors">0{i + 1}</span>
                     </div>
                     <span className="text-[10px] text-[#bc002d] font-black uppercase mb-2 block tracking-[0.3em]">{article.category?.categoryName}</span>
-                    <h4 className="text-base md:text-lg font-bold leading-tight group-hover:text-[#bc002d] transition-colors line-clamp-2">{article.title}</h4>
+                    <h3 className="text-base md:text-lg font-bold leading-tight group-hover:text-[#bc002d] transition-colors line-clamp-2">{article.title}</h3>
                  </Link>
               ))}
            </div>

@@ -57,7 +57,7 @@ export default function JejuQQArticle({
       <div className="flex items-center justify-center py-32 px-6">
         <div className="text-center max-w-md">
           <p className="text-[#222] font-black mb-2 uppercase tracking-widest">We couldn't load this article.</p>
-          <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#dc2626] transition-colors font-bold uppercase tracking-widest">
+          <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#b91c1c] transition-colors font-bold uppercase tracking-widest">
             <ArrowLeft className="w-4 h-4" /> Back to home
           </Link>
         </div>
@@ -134,8 +134,8 @@ export default function JejuQQArticle({
   return (
     <div className="bg-[#fdf2f2] text-[#222] min-h-screen">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-20">
-        <button onClick={() => window.history.length > 1 ? router.back() : router.push("/")} className="inline-flex items-center gap-3 text-xs text-gray-400 hover:text-[#dc2626] mb-8 transition-colors group font-black uppercase tracking-[0.3em]">
-          <div className="w-8 h-8 rounded-none border border-gray-200 flex items-center justify-center group-hover:border-[#dc2626] group-hover:bg-[#dc2626] group-hover:text-white transition-colors">
+        <button onClick={() => window.history.length > 1 ? router.back() : router.push("/")} className="inline-flex items-center gap-3 text-xs text-gray-600 hover:text-[#b91c1c] mb-8 transition-colors group font-black uppercase tracking-[0.3em]">
+          <div className="w-8 h-8 rounded-none border border-gray-200 flex items-center justify-center group-hover:border-[#b91c1c] group-hover:bg-[#b91c1c] group-hover:text-white transition-colors">
             <ArrowLeft className="w-4 h-4" />
           </div>
           Back to feed
@@ -148,7 +148,7 @@ export default function JejuQQArticle({
                 {normalizeCategoryName(article.category?.categoryName) && (
                   <div className="flex items-center gap-3 mb-5">
                     <span className="h-0.5 w-10 bg-[#dc2626]"></span>
-                    <span className="text-[12px] text-[#dc2626] font-black uppercase tracking-[0.4em]">
+                    <span className="text-[12px] text-[#b91c1c] font-black uppercase tracking-[0.4em]">
                       {normalizeCategoryName(article.category?.categoryName)}
                     </span>
                   </div>
@@ -159,7 +159,7 @@ export default function JejuQQArticle({
                 <div className="flex items-center justify-between border-y border-gray-200 py-5">
                   <div className="flex items-center gap-4">
                     <div className="w-9 h-9 rounded-none bg-[#dc2626] flex items-center justify-center text-white font-black text-xs">QQ</div>
-                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{formattedDate}</span>
+                    <span className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">{formattedDate}</span>
                   </div>
                 </div>
               </header>
@@ -207,8 +207,8 @@ export default function JejuQQArticle({
 
               {referenceLine && (
                 <div className="mt-16 pt-10 border-t border-gray-100">
-                  <p className="text-sm text-gray-400 font-bold uppercase tracking-[0.2em] mb-4">Original Reference</p>
-                  <p className="text-gray-500 font-garamond italic text-lg leading-relaxed break-all">
+                  <p className="text-sm text-gray-600 font-bold uppercase tracking-[0.2em] mb-4">Original Reference</p>
+                  <p className="text-gray-600 font-garamond italic text-lg leading-relaxed break-all">
                     {referenceLine}
                   </p>
                 </div>
@@ -220,23 +220,23 @@ export default function JejuQQArticle({
           <div className="lg:col-span-4 space-y-10">
             <div className="bg-gray-50 rounded-none p-6 border-2 border-[#dc2626] lg:sticky lg:top-28">
               <div className="flex items-center justify-between mb-8 pb-5 border-b border-gray-200">
-                 <h3 className="text-xl font-garamond font-bold flex items-center gap-2">
-                    Trending <TrendingUp size={20} className="text-[#dc2626]" />
-                 </h3>
+                 <h2 className="text-xl font-garamond font-bold flex items-center gap-2">
+                    Trending <TrendingUp size={20} className="text-[#b91c1c]" />
+                 </h2>
                  <span className="w-2 h-2 bg-[#dc2626]"></span>
               </div>
 
               <div className="space-y-7">
                  {trendingArticles.map((article, i) => (
                     <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex gap-4 items-start group">
-                        <span className="text-3xl font-garamond font-bold text-[#dc2626]/30 group-hover:text-[#dc2626]/60 transition-colors tabular-nums shrink-0">
+                        <span className="text-3xl font-garamond font-bold text-[#b91c1c]/80 group-hover:text-[#b91c1c] transition-colors tabular-nums shrink-0">
                           {String(i + 1).padStart(2, '0')}
                        </span>
                        <div className="min-w-0">
-                         <span className="text-[9px] font-black text-[#dc2626] uppercase tracking-[0.2em] block mb-1">{article.category?.categoryName}</span>
-                         <h4 className="text-[15px] font-bold leading-snug group-hover:text-[#dc2626] transition-colors line-clamp-2">
+                         <span className="text-[9px] font-black text-[#b91c1c] uppercase tracking-[0.2em] block mb-1">{article.category?.categoryName}</span>
+                         <h3 className="text-[15px] font-bold leading-snug group-hover:text-[#b91c1c] transition-colors line-clamp-2">
                             {article.title}
-                         </h4>
+                         </h3>
                        </div>
                     </Link>
                  ))}

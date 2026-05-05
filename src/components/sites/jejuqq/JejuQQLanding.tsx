@@ -154,7 +154,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                     </div>
                     <div className="flex-1 min-w-0">
                       <span className="text-[10px] text-primary font-bold font-serif uppercase mb-2 block tracking-[0.2em]">{article.category?.categoryName}</span>
-                      <h5 className="text-[17px] sm:text-[20px] font-serif font-bold leading-tight group-hover:text-primary transition-colors mb-2">{article.title}</h5>
+                      <h4 className="text-[17px] sm:text-[20px] font-serif font-bold leading-tight group-hover:text-primary transition-colors mb-2">{article.title}</h4>
                       <p className="text-gray-500 text-sm line-clamp-2 leading-relaxed">{article.content}</p>
                     </div>
                   </Link>
