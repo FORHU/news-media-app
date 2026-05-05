@@ -13,9 +13,9 @@ type GlobalForPrisma = {
 
 const g = globalThis as unknown as GlobalForPrisma;
 
-// Use a lower connection limit during build to prevent connection exhaustion.
-// On Vercel serverless, pool is cached in globalThis so warm invocations reuse it.
-const maxConnections = process.env.NEXT_PHASE === "phase-production-build" ? 1 : 5;
+// During build: allow enough connections for parallel tenant queries in generateStaticParams.
+// During runtime: cap at 5 to avoid exhausting Supabase's connection limit.
+const maxConnections = process.env.NEXT_PHASE === "phase-production-build" ? 5 : 5;
 
 const pool: Pool = g.pool ?? new Pool({
   connectionString: process.env.DATABASE_URL,
