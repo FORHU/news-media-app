@@ -9,11 +9,12 @@ export type FetchCrawledArticlesParams = {
   offset: number;
   limit: number;
   tenantId: string;
+  status?: "all" | "generated" | "pending";
 };
 
 export const crawledArticlesRepository = {
   async fetchCrawledArticles(params: FetchCrawledArticlesParams) {
-    const { source, from, to, q, offset, limit, tenantId } = params;
+    const { source, from, to, q, offset, limit, tenantId, status } = params;
 
     const where: Prisma.RawArticleWhereInput = {
       tenantId,
@@ -41,6 +42,12 @@ export const crawledArticlesRepository = {
         { content: { contains: q, mode: "insensitive" } },
       ];
     }
+    
+    if (status === "generated") {
+      where.contentArticle = { isNot: null };
+    } else if (status === "pending") {
+      where.contentArticle = { is: null };
+    }
 
     const [data, count] = await Promise.all([
       prisma.rawArticle.findMany({
@@ -51,7 +58,6 @@ export const crawledArticlesRepository = {
           contentArticle: true,
         },
         orderBy: [
-          { publishDate: { sort: "desc", nulls: "last" } },
           { createdAt: "desc" },
         ],
         skip: offset,
@@ -78,5 +84,13 @@ export const crawledArticlesRepository = {
     return data
       .map((item) => item.crawledUrl?.url)
       .filter((url): url is string => typeof url === "string");
+  },
+  async deleteRawArticle(id: string, tenantId: string) {
+    return prisma.rawArticle.delete({
+      where: {
+        id,
+        tenantId,
+      },
+    });
   },
 };
