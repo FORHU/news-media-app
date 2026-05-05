@@ -124,12 +124,12 @@ const jejuQQTheme: Theme = {
   topBar: '',
   logo: (
     <div className="text-center mb-10 flex flex-col items-center">
-      <div className="relative h-24 w-full max-w-[300px] mb-2">
+      <div className="relative h-32 w-full max-w-[400px] mb-2 transition-all duration-500">
         <Image
           src="/Logo/JEJUQQLOGO.png"
           alt="JejuQQ Logo"
           fill
-          className="object-contain"
+          className="object-contain scale-110"
           priority
         />
       </div>
@@ -163,12 +163,12 @@ const jejuTimeTheme: Theme = {
   topBar: 'absolute top-0 left-0 w-full h-1 bg-blue-600 rounded-t-3xl',
   logo: (
     <div className="text-center mb-10 flex flex-col items-center">
-      <div className="relative h-24 w-full max-w-[320px] sm:h-32 sm:max-w-[480px] mb-2">
+      <div className="relative h-32 w-full max-w-[400px] sm:h-40 sm:max-w-[550px] mb-2 transition-all duration-500">
         <Image
           src="/Logo/JEJUTIMELOGO.png"
           alt="JejuTime Logo"
           fill
-          className="object-contain"
+          className="object-contain scale-110"
           priority
         />
       </div>

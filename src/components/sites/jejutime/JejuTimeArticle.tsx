@@ -235,7 +235,7 @@ export default function JejuTimeArticle({
                       <>
                         <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap mb-10 break-words">{firstHalf}</div>
                         <div className="my-12 relative aspect-[16/9] bg-slate-100 overflow-hidden shadow-lg ring-1 ring-black/5">
-                        <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" sizes="(max-width: 1024px) 100vw, 850px" />
+                        <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" sizes="(max-width: 640px) 400px, (max-width: 1024px) 100vw, 850px" />
                         </div>
                         {secondHalf && <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap break-words">{secondHalf}</div>}
                       </>
@@ -249,7 +249,7 @@ export default function JejuTimeArticle({
                 <>
                     {article.imageUrl && (
                       <div className="mb-12 -mt-4 relative aspect-[16/9] bg-slate-100 overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] ring-1 ring-black/5">
-                      <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" sizes="(max-width: 1024px) 100vw, 850px" />
+                      <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" sizes="(max-width: 640px) 400px, (max-width: 1024px) 100vw, 850px" />
                       </div>
                     )}
                     <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-light break-words">

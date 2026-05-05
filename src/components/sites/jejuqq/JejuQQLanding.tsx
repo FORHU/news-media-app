@@ -191,7 +191,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
               <div className="space-y-7">
                 {trendingArticles.map((article, i) => (
                   <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex gap-4 items-start group">
-                    <span className="text-3xl font-serif font-bold text-primary/30 group-hover:text-primary/60 transition-colors tabular-nums shrink-0">
+                    <span className="text-3xl font-serif font-bold text-primary/70 group-hover:text-primary transition-colors tabular-nums shrink-0">
                       {String(i + 1).padStart(2, '0')}
                     </span>
                     <div className="min-w-0">
