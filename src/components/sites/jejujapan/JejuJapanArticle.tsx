@@ -6,14 +6,21 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, TrendingUp, ChevronRight } from "lucide-react";
 
-import { FeaturedArticlesSection } from "@/components/home/featured-articles-section";
+import dynamic from "next/dynamic";
+const AdBanner = dynamic(() => import("@/components/AdBanner").then(mod => mod.AdBanner), { 
+  ssr: true,
+  loading: () => <div className="h-[250px] animate-pulse bg-slate-50 flex items-center justify-center text-[10px] text-slate-300 font-bold uppercase tracking-widest border border-slate-100" />
+});
+const TwitterStatusEmbed = dynamic(() => import("@/components/article/TwitterStatusEmbed"), { 
+  ssr: false,
+  loading: () => <div className="h-[450px] animate-pulse bg-slate-50 flex items-center justify-center text-slate-400 text-xs font-bold uppercase tracking-widest border border-slate-100" />
+});
+
 import { StoryImage } from "@/components/StoryImage";
 import { articlesApi } from "@/lib/api";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
-import { AdBanner } from "@/components/AdBanner";
 import type { Article } from "@/lib/types";
 import { extractYoutubeId } from "@/lib/utils";
-import TwitterStatusEmbed from "@/components/article/TwitterStatusEmbed";
 import {
   isSocialCommentaryGenerationMode,
   splitReferenceLineFromContent,
@@ -194,7 +201,7 @@ export default function JejuJapanArticle({
                   <>
                     <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto mb-8 break-words">{firstHalf}</div>
                     <div className="my-10 relative aspect-[21/9] bg-gray-100">
-                      <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" />
+                      <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" sizes="(max-width: 1024px) 100vw, 850px" />
                     </div>
                     {secondHalf && <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto break-words">{secondHalf}</div>}
                   </>
@@ -208,7 +215,7 @@ export default function JejuJapanArticle({
               <>
                 {article.imageUrl && (
                   <div className="mb-10 relative aspect-[21/9] bg-gray-100">
-                    <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" />
+                    <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" sizes="(max-width: 1024px) 100vw, 850px" />
                   </div>
                 )}
                 <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto first-letter:text-6xl first-letter:font-black first-letter:text-[#bc002d] first-letter:float-left first-letter:mr-3 break-words">

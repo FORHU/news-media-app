@@ -1,10 +1,17 @@
 "use client";
 
-import { AdBanner } from "@/components/AdBanner";
+import dynamic from "next/dynamic";
+const AdBanner = dynamic(() => import("@/components/AdBanner").then(mod => mod.AdBanner), { 
+  ssr: true,
+  loading: () => <div className="h-[120px] animate-pulse bg-slate-50 flex items-center justify-center text-[10px] text-slate-300 font-bold uppercase tracking-widest border border-slate-100" />
+});
+const ClientPagination = dynamic(() => import("@/components/home/ClientPagination").then(mod => mod.ClientPagination), { 
+  ssr: true,
+  loading: () => <div className="h-20 animate-pulse bg-slate-50 w-full" />
+});
 import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
 import { Suspense, useState } from "react";
-import { ClientPagination } from "@/components/home/ClientPagination";
 
 interface Props {
    tenantId: string | null;
@@ -91,6 +98,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                                  variant="hero"
                                  hideTitle={true}
                                  priority={true}
+                                 sizes="(max-width: 1024px) 100vw, 850px"
                               />
                               <div className="absolute inset-0 bg-gradient-to-t from-blue-950/90 via-blue-950/20 to-transparent" />
                               <div className="absolute bottom-0 left-0 p-6 sm:p-10 text-white w-full">
@@ -117,8 +125,11 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                               <StoryImage
                                  src={article.imageUrl}
                                  alt={article.title}
-                                 fill className="object-cover"
+                                 fill 
+                                 className="object-cover"
                                  hideTitle={true}
+                                 priority={true}
+                                 sizes="(max-width: 1024px) 100vw, 400px"
                               />
                               <div className="absolute inset-0 bg-gradient-to-t from-blue-950/90 via-blue-950/20 to-transparent" />
                               <div className="absolute bottom-0 left-0 p-6 text-white w-full">
@@ -155,12 +166,12 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                                  <article key={article.id} className="group cursor-pointer">
                                     <Link href={`/article/${article.slug || article.id}`}>
                                        <div className="relative aspect-[16/10] overflow-hidden mb-5 shadow-xl shadow-blue-50 transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-blue-100 bg-slate-100 border border-slate-100">
-                                          <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" />
+                                          <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 400px" />
                                           <div className="absolute inset-0 bg-blue-600/0 group-hover:bg-blue-600/5 transition-colors pointer-events-none" />
                                        </div>
                                        <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest block mb-3">{article.category?.categoryName || "Latest"}</span>
                                        <h4 className="text-xl font-bold mb-3 leading-tight group-hover:text-blue-600 transition-colors line-clamp-2">{article.title}</h4>
-                                       <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed font-light">{article.content}</p>
+                                       <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed font-light">{article.content}</p>
                                     </Link>
                                  </article>
                               ))}
@@ -172,16 +183,16 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                                  <article key={article.id} className="group">
                                     <Link href={`/article/${article.slug || article.id}`} className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
                                        <div className="relative w-full sm:w-36 aspect-[16/10] sm:aspect-[4/3] overflow-hidden shrink-0 shadow-md shadow-blue-50 group-hover:shadow-blue-100 transition-all bg-slate-100 border border-slate-50">
-                                          <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                                          <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="150px" />
                                        </div>
                                        <div className="flex-1">
-                                          <div className="flex items-center gap-2 mb-2 text-[9px] font-bold uppercase tracking-widest text-slate-400">
+                                          <div className="flex items-center gap-2 mb-2 text-[9px] font-bold uppercase tracking-widest text-slate-600">
                                              <span className="text-blue-600">{article.category?.categoryName || "General"}</span>
-                                             <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
+                                             <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
                                              <span>5 min read</span>
                                           </div>
                                           <h4 className="text-lg font-bold mb-2 leading-tight group-hover:text-blue-600 transition-colors line-clamp-2">{article.title}</h4>
-                                          <p className="text-slate-500 text-xs line-clamp-2 leading-relaxed font-light">{article.content}</p>
+                                          <p className="text-slate-600 text-xs line-clamp-2 leading-relaxed font-light">{article.content}</p>
                                        </div>
                                     </Link>
                                  </article>
@@ -195,16 +206,16 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                               <article key={article.id} className="group">
                                  <Link href={`/article/${article.slug || article.id}`} className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
                                     <div className="relative w-full sm:w-36 aspect-[16/10] sm:aspect-[4/3] overflow-hidden shrink-0 shadow-md shadow-blue-50 group-hover:shadow-blue-100 transition-all bg-slate-100 border border-slate-50">
-                                       <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                                       <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="150px" />
                                     </div>
                                     <div className="flex-1">
-                                       <div className="flex items-center gap-2 mb-2 text-[9px] font-bold uppercase tracking-widest text-slate-400">
+                                       <div className="flex items-center gap-2 mb-2 text-[9px] font-bold uppercase tracking-widest text-slate-600">
                                           <span className="text-blue-600">{article.category?.categoryName || "General"}</span>
-                                          <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
+                                          <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
                                           <span>5 min read</span>
                                        </div>
                                        <h4 className="text-lg font-bold mb-2 leading-tight group-hover:text-blue-600 transition-colors line-clamp-2">{article.title}</h4>
-                                       <p className="text-slate-500 text-xs line-clamp-2 leading-relaxed font-light">{article.content}</p>
+                                       <p className="text-slate-600 text-xs line-clamp-2 leading-relaxed font-light">{article.content}</p>
                                     </div>
                                  </Link>
                               </article>
@@ -254,7 +265,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                             {sidebarPicks.map((article) => (
                                <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group block bg-white overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100">
                                   <div className="relative aspect-video overflow-hidden bg-slate-100">
-                                     <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                                     <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 768px) 100vw, 300px" />
                                      <div className="absolute inset-0 bg-gradient-to-t from-blue-950/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                   </div>
                                   <div className="p-5">
@@ -286,7 +297,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                         {featuredArticles.map((article) => (
                            <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group block bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
                               <div className="relative aspect-video overflow-hidden mb-4 bg-slate-100">
-                                 <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                                 <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="250px" />
                               </div>
                               <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest block mb-2">{article.category?.categoryName}</span>
                               <h4 className="text-md font-bold leading-tight group-hover:text-blue-600 transition-colors">{article.title}</h4>
@@ -306,7 +317,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                         {trendingProducts.map((article: any) => (
                            <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group flex items-center gap-4 bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
                               <div className="relative w-16 h-16 overflow-hidden shrink-0 bg-slate-100">
-                                 <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" />
+                                 <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" sizes="80px" />
                               </div>
                               <div className="flex-1 min-w-0">
                                  <h4 className="text-sm font-bold leading-snug group-hover:text-blue-600 transition-colors line-clamp-2">{article.title}</h4>

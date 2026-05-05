@@ -6,15 +6,29 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
-import { TrendingSidebar } from "@/components/home/trending-sidebar";
-import { FeaturedArticlesSection } from "@/components/home/featured-articles-section";
+import dynamic from "next/dynamic";
+const TrendingSidebar = dynamic(() => import("@/components/home/trending-sidebar").then(mod => mod.TrendingSidebar), { 
+  ssr: true,
+  loading: () => <div className="h-[500px] animate-pulse bg-slate-50 border border-slate-100" />
+});
+const FeaturedArticlesSection = dynamic(() => import("@/components/home/featured-articles-section").then(mod => mod.FeaturedArticlesSection), {
+  ssr: true,
+  loading: () => <div className="h-96 animate-pulse bg-slate-50" />
+});
+const AdBanner = dynamic(() => import("@/components/AdBanner").then(mod => mod.AdBanner), { 
+  ssr: true,
+  loading: () => <div className="h-[250px] animate-pulse bg-slate-50 flex items-center justify-center text-[10px] text-slate-300 font-bold uppercase tracking-widest border border-slate-100" />
+});
+const TwitterStatusEmbed = dynamic(() => import("@/components/article/TwitterStatusEmbed"), { 
+  ssr: false,
+  loading: () => <div className="h-[450px] animate-pulse bg-slate-50 flex items-center justify-center text-slate-400 text-xs font-bold uppercase tracking-widest border border-slate-100" />
+});
+
 import { StoryImage } from "@/components/StoryImage";
 import { articlesApi } from "@/lib/api";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
-import { AdBanner } from "@/components/AdBanner";
 import type { Article } from "@/lib/types";
 import { extractYoutubeId } from "@/lib/utils";
-import TwitterStatusEmbed from "@/components/article/TwitterStatusEmbed";
 import {
   isSocialCommentaryGenerationMode,
   splitReferenceLineFromContent,
@@ -221,7 +235,7 @@ export default function JejuTimeArticle({
                       <>
                         <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap mb-10 break-words">{firstHalf}</div>
                         <div className="my-12 relative aspect-[16/9] bg-slate-100 overflow-hidden shadow-lg ring-1 ring-black/5">
-                        <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" />
+                        <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" sizes="(max-width: 1024px) 100vw, 850px" />
                         </div>
                         {secondHalf && <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap break-words">{secondHalf}</div>}
                       </>
@@ -235,7 +249,7 @@ export default function JejuTimeArticle({
                 <>
                     {article.imageUrl && (
                       <div className="mb-12 -mt-4 relative aspect-[16/9] bg-slate-100 overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] ring-1 ring-black/5">
-                      <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" />
+                      <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" sizes="(max-width: 1024px) 100vw, 850px" />
                       </div>
                     )}
                     <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-light break-words">

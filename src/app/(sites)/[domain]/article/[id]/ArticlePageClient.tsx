@@ -31,7 +31,7 @@ export default function ArticlePageClient({
   domain: string;
 }) {
   const router = useRouter();
-  
+
   useEffect(() => {
     window.scrollTo(0, 0);
 
@@ -86,7 +86,7 @@ export default function ArticlePageClient({
   }
 
   const otherArticles = allArticles.filter((a) => a.id !== article.id);
-  
+
   const trendingArticles = [...otherArticles]
     .sort((a, b) => {
       if ((b.trendingScore || 0) !== (a.trendingScore || 0)) {
@@ -102,12 +102,12 @@ export default function ArticlePageClient({
       const aSameCat = a.categoryId === article.categoryId ? 1 : 0;
       const bSameCat = b.categoryId === article.categoryId ? 1 : 0;
       if (aSameCat !== bSameCat) return bSameCat - aSameCat;
-      
+
       // 2. Trending score
       if ((b.trendingScore || 0) !== (a.trendingScore || 0)) {
         return (b.trendingScore || 0) - (a.trendingScore || 0);
       }
-      
+
       // 3. Date
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     })

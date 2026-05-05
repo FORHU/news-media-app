@@ -73,7 +73,7 @@ export function TrendingSidebar({ articles, domain }: TrendingSidebarProps) {
                 >
                   {article.title}
                 </h3>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-gray-600">
                   {formatDate(article.createdAt)}
                 </div>
               </div>
