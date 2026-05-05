@@ -30,7 +30,12 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
-import { LANGUAGE_OPTIONS, ManualArticleContext, ManualMaterialsUpload } from "./ManualGenerationTab";
+import { 
+    LANGUAGE_OPTIONS, 
+    ManualArticleContext, 
+    ManualMaterialsUpload, 
+    ManualArticleImage 
+} from "./ManualGenerationTab";
 import CategorySelectWithOther from "@/components/admin/shared/CategorySelectWithOther";
 
 interface CreateArticleModalProps {
@@ -46,10 +51,13 @@ export default function CreateArticleModal({
     const [language, setLanguage] = React.useState("English");
     const [selectedCategory, setSelectedCategory] = React.useState<string>("");
     const [files, setFiles] = React.useState<File[]>([]);
+    const [pastedText, setPastedText] = React.useState("");
+    const [imageFile, setImageFile] = React.useState<File | null>(null);
     const [error, setError] = React.useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = React.useState<{
         category?: string;
         topic?: string;
+        materials?: string;
     }>({});
     const [isProcessingFiles, setIsProcessingFiles] = React.useState(false);
     const [uploadProgress, setUploadProgress] = React.useState<number | null>(null);
@@ -57,6 +65,8 @@ export default function CreateArticleModal({
     const resetForm = React.useCallback(() => {
         setTopic("");
         setFiles([]);
+        setPastedText("");
+        setImageFile(null);
         setUploadProgress(null);
         setFieldErrors({});
         setError(null);
@@ -84,6 +94,16 @@ export default function CreateArticleModal({
         setFieldErrors(prev => ({ ...prev, topic: undefined }));
     };
 
+    const onPastedTextChange = (val: string) => {
+        setPastedText(val);
+        setFieldErrors(prev => ({ ...prev, materials: undefined }));
+    };
+
+    const handleMaterialsFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        handleFileChange(e);
+        setFieldErrors(prev => ({ ...prev, materials: undefined }));
+    };
+
     // Fetch categories
     const { data: categories, isLoading: isLoadingCategories } = useQuery({
         queryKey: ['categories'],
@@ -99,55 +119,39 @@ export default function CreateArticleModal({
         });
     };
 
-    const uploadFileWithPresignedUrl = async (file: File): Promise<string | null> => {
-        try {
-            // 1. Get presigned URL
-            const { url, key, fileUrl } = await articlesApi.getUploadUrl(file.name, file.type);
-
-            // 2. Upload directly to S3
-            const uploadRes = await fetch(url, {
-                method: "PUT",
-                body: file,
-                headers: {
-                    "Content-Type": file.type,
-                },
-            });
-
-            if (!uploadRes.ok) throw new Error("Failed to upload to S3 via presigned URL");
-
-            // 3. Return the fileUrl or key
-            return fileUrl || key;
-        } catch (err) {
-            console.error("Presigned Upload error:", err);
-            return null;
-        }
+    const readFileAsBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = (error) => reject(error);
+            reader.readAsDataURL(file);
+        });
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const incomingFiles = Array.from(e.target.files);
-
-            setFiles(prev => {
-                const newImages = incomingFiles.filter(f => f.type.startsWith('image/'));
-                const newOthers = incomingFiles.filter(f => !f.type.startsWith('image/'));
-
-                // For the manual tab image, we only want one.
-                // If new images are uploaded, take the last one and replace existing ones.
-                if (newImages.length > 0) {
-                    const latestImage = newImages[newImages.length - 1];
-                    const existingNonImages = prev.filter(f => !f.type.startsWith('image/'));
-                    return [...existingNonImages, ...newOthers, latestImage];
-                }
-
-                return [...prev, ...newOthers];
-            });
-
+            // Only allow .txt and .pdf for materials
+            const validFiles = incomingFiles.filter(f => 
+                f.name.endsWith('.txt') || f.type === 'application/pdf'
+            );
+            setFiles(prev => [...prev, ...validFiles]);
             setFieldErrors(prev => ({ ...prev, topic: undefined }));
+        }
+    };
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setImageFile(e.target.files[0]);
         }
     };
 
     const removeFile = (index: number) => {
         setFiles(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const removeImage = () => {
+        setImageFile(null);
     };
 
     const buildLanguageDirective = React.useCallback((selectedLanguage: string) => {
@@ -165,14 +169,12 @@ export default function CreateArticleModal({
         }
 
         // 2. Manual Validation
-        let combinedFileContent = "";
-        let uploadedImageUrl = "";
+        if (!topic.trim()) {
+            newErrors.topic = "Generation prompt is required";
+        }
 
-        const textFiles = files.filter(f => f.name.endsWith('.txt'));
-        const imageFiles = files.filter(f => f.type.startsWith('image/'));
-
-        if (!topic.trim() && textFiles.length === 0) {
-            newErrors.topic = "Provide a topic or upload .txt materials";
+        if (!pastedText.trim() && files.length === 0) {
+            newErrors.materials = "Please provide at least one source (pasted content or document)";
         }
 
         if (Object.keys(newErrors).length > 0) {
@@ -180,17 +182,24 @@ export default function CreateArticleModal({
             return;
         }
 
+        let combinedFileContent = pastedText.trim();
+        let uploadedImageUrl = "";
+
+        const textFiles = files.filter(f => f.name.endsWith('.txt'));
+
         setIsProcessingFiles(true);
         try {
             const texts = await Promise.all(textFiles.map(readFileAsText));
-            combinedFileContent = texts.join("\n\n---\n\n");
+            const allTexts = texts.join("\n\n---\n\n");
+            
+            if (allTexts) {
+                combinedFileContent = combinedFileContent 
+                    ? `${combinedFileContent}\n\n[FILE ATTACHMENTS]\n${allTexts}` 
+                    : allTexts;
+            }
 
-            if (imageFiles.length > 0) {
-                const result = await uploadFileWithPresignedUrl(imageFiles[0]);
-                if (!result) {
-                    throw new Error("Failed to upload image. Please try again.");
-                }
-                uploadedImageUrl = result;
+            if (imageFile) {
+                uploadedImageUrl = await readFileAsBase64(imageFile);
             }
 
             await articlesApi.createArticleFromUpload({
@@ -205,6 +214,7 @@ export default function CreateArticleModal({
             queryClient.invalidateQueries({ queryKey: ['generatedArticles'] });
             onOpenChange(false);
         } catch (err: any) {
+            console.error("Manual Generation Error:", err);
             setError(err.message || "Failed to process local files.");
             setIsProcessingFiles(false);
         }
@@ -254,133 +264,140 @@ export default function CreateArticleModal({
                     </div>
                 ) : (
                     <>
-                {/* Header with vibrant aesthetic */}
-                <div className="relative bg-gray-900 px-8 py-10 overflow-hidden">
-                    <button
-                        onClick={() => onOpenChange(false)}
-                        className="absolute top-8 right-8 w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 hover:scale-110 active:scale-95 transition-all z-20 group"
-                    >
-                        <X className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
-                    </button>
+                        {/* Header with vibrant aesthetic */}
+                        <div className="relative bg-gray-900 px-8 py-10 overflow-hidden">
+                            <button
+                                onClick={() => onOpenChange(false)}
+                                className="absolute top-8 right-8 w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 hover:scale-110 active:scale-95 transition-all z-20 group"
+                            >
+                                <X className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
+                            </button>
 
-                    <div className="relative flex items-center gap-5">
-                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
-                            <Zap className="w-7 h-7 text-white fill-white/20" />
-                        </div>
-                        <div className="space-y-1">
-                            <DialogTitle className="text-2xl font-black text-white tracking-tight">
-                                Create Article
-                            </DialogTitle>
-                            <DialogDescription className="text-gray-400 font-medium">
-                                Fuel your platform with AI-generated storytelling.
-                            </DialogDescription>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="px-8 py-8 space-y-8 max-h-[65vh] overflow-y-auto custom-scrollbar">
-                    {error && (
-                        <div className="p-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 text-sm font-bold animate-in fade-in slide-in-from-top-2">
-                            {error}
-                        </div>
-                    )}
-
-                    <div className="space-y-8">
-                        <div className="space-y-6">
-                            <div className="flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-black text-xs">01</span>
-                                <label className="text-sm font-black uppercase tracking-widest text-gray-900">Materials</label>
-                            </div>
-                            <ManualMaterialsUpload files={files} handleFileChange={handleFileChange} removeFile={removeFile} />
-                        </div>
-                        <ManualArticleContext
-                            topic={topic}
-                            handleTopicChange={handleTopicChange}
-                            fieldErrors={fieldErrors}
-                        />
-                    </div>
-
-                    {/* Step 2: Configuration - Shared */}
-                    <div className="space-y-6">
-                        <div className="flex items-center gap-3">
-                            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-black text-xs">02</span>
-                            <label className="text-sm font-black uppercase tracking-widest text-gray-900">Configuration</label>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Category Selection */}
-                            <div className="space-y-2">
-                                <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Category <span className="text-red-500">*</span></span>
-                                <div className="relative">
-                                    <CategorySelectWithOther
-                                        value={selectedCategory}
-                                        onValueChange={handleCategoryChange}
-                                        categories={categories ?? []}
-                                        isLoading={isLoadingCategories}
-                                        placeholder="Select Category"
-                                        triggerClassName={`w-full h-12 rounded-xl bg-gray-50 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm transition-all ${fieldErrors.category ? "border-red-500 bg-red-50/30" : "border-gray-100"
-                                            }`}
-                                        contentClassName="max-h-[400px]"
-                                        error={fieldErrors.category}
-                                    />
-                                    {fieldErrors.category && (
-                                        <p className="text-[10px] font-black text-red-500 uppercase tracking-widest ml-1 mt-2 animate-in fade-in slide-in-from-top-1">{fieldErrors.category}</p>
-                                    )}
+                            <div className="relative flex items-center gap-5">
+                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
+                                    <Zap className="w-7 h-7 text-white fill-white/20" />
+                                </div>
+                                <div className="space-y-1">
+                                    <DialogTitle className="text-2xl font-black text-white tracking-tight">
+                                        Create Article
+                                    </DialogTitle>
+                                    <DialogDescription className="text-gray-400 font-medium">
+                                        Fuel your platform with AI-generated storytelling.
+                                    </DialogDescription>
                                 </div>
                             </div>
+                        </div>
 
-                            <div className="space-y-2">
-                                <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Language</span>
-                                <Select value={language} onValueChange={setLanguage}>
-                                    <SelectTrigger className="h-12 rounded-xl bg-gray-50 border border-gray-100 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm">
-                                        <SelectValue placeholder="English" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {LANGUAGE_OPTIONS.map((lang) => (
-                                            <SelectItem key={lang} value={lang}>
-                                                {lang}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                        <div className="px-8 py-8 space-y-10 max-h-[65vh] overflow-y-auto custom-scrollbar">
+                            {error && (
+                                <div className="p-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 text-sm font-bold animate-in fade-in slide-in-from-top-2">
+                                    {error}
+                                </div>
+                            )}
+
+                            <ManualMaterialsUpload 
+                                files={files} 
+                                handleFileChange={handleMaterialsFileChange} 
+                                removeFile={removeFile}
+                                pastedText={pastedText}
+                                onPastedTextChange={onPastedTextChange}
+                                error={fieldErrors.materials}
+                            />
+
+                            <ManualArticleImage 
+                                imageFile={imageFile}
+                                handleImageChange={handleImageChange}
+                                removeImage={removeImage}
+                            />
+
+                            <ManualArticleContext
+                                topic={topic}
+                                handleTopicChange={handleTopicChange}
+                                fieldErrors={fieldErrors}
+                            />
+
+                            {/* Step 2: Configuration - Shared */}
+                            <div className="space-y-6 pt-4 border-t border-gray-100">
+                                <div className="flex items-center gap-3">
+                                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 text-purple-600 font-black text-xs">04</span>
+                                    <label className="text-sm font-black uppercase tracking-widest text-gray-900">Configuration</label>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* Category Selection */}
+                                    <div className="space-y-2">
+                                        <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Category <span className="text-red-500">*</span></span>
+                                        <div className="relative">
+                                            <CategorySelectWithOther
+                                                value={selectedCategory}
+                                                onValueChange={handleCategoryChange}
+                                                categories={categories ?? []}
+                                                isLoading={isLoadingCategories}
+                                                placeholder="Select Category"
+                                                triggerClassName={`w-full h-12 rounded-xl bg-gray-50 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm transition-all ${fieldErrors.category ? "border-red-500 bg-red-50/30" : "border-gray-100"
+                                                    }`}
+                                                contentClassName="max-h-[400px]"
+                                                error={fieldErrors.category}
+                                            />
+                                            {fieldErrors.category && (
+                                                <p className="text-[10px] font-black text-red-500 uppercase tracking-widest ml-1 mt-2 animate-in fade-in slide-in-from-top-1">{fieldErrors.category}</p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Language</span>
+                                        <Select value={language} onValueChange={setLanguage}>
+                                            <SelectTrigger className="h-12 rounded-xl bg-gray-50 border border-gray-100 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm">
+                                                <SelectValue placeholder="English" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {LANGUAGE_OPTIONS.map((lang) => (
+                                                    <SelectItem key={lang} value={lang}>
+                                                        {lang}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                {/* Footer with Premium Button */}
-                <DialogFooter className="px-8 py-6 bg-gray-50/50 border-t border-gray-100 flex flex-row items-center justify-between gap-4">
-                    <div className="flex-1 flex justify-start">
-                        <Button
-                            variant="ghost"
-                            onClick={() => onOpenChange(false)}
-                            className="rounded-xl font-bold text-gray-500 hover:text-gray-900 hover:bg-gray-100 px-6 h-12"
-                            disabled={isModalBusy}
-                        >
-                            Discard
-                        </Button>
-                    </div>
-                    <Button
-                        onClick={handleGenerate}
-                        disabled={isModalBusy}
-                        className="flex-1 max-w-[200px] h-14 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-black text-base shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 transition-all"
-                    >
-                        {isModalBusy ? (
-                            <div className="flex items-center gap-2">
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                                <span>Processing...</span>
+                        {/* Footer with Premium Button */}
+                        <DialogFooter className="px-8 py-6 bg-gray-50/50 border-t border-gray-100 flex flex-row items-center justify-between gap-4">
+                            <div className="flex-1 flex justify-start">
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => onOpenChange(false)}
+                                    className="rounded-xl font-bold text-gray-500 hover:text-gray-900 hover:bg-gray-100 px-6 h-12"
+                                    disabled={isModalBusy}
+                                >
+                                    Discard
+                                </Button>
                             </div>
-                        ) : (
-                            <div className="flex items-center gap-2">
-                                <Zap className="w-5 h-5 fill-white" />
-                                <span>Generate</span>
-                            </div>
-                        )}
-                    </Button>
-                </DialogFooter>
+                            <Button
+                                onClick={handleGenerate}
+                                disabled={isModalBusy}
+                                className="flex-1 max-w-[200px] h-14 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-black text-base shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 transition-all"
+                            >
+                                {isModalBusy ? (
+                                    <div className="flex items-center gap-2">
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                        <span>Processing...</span>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2">
+                                        <Zap className="w-5 h-5 fill-white" />
+                                        <span>Generate</span>
+                                    </div>
+                                )}
+                            </Button>
+                        </DialogFooter>
                     </>
                 )}
             </DialogContent>
         </Dialog>
     );
 }
+
