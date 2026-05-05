@@ -45,6 +45,37 @@ const articleDetailInclude = {
   },
 } satisfies Prisma.ContentArticleInclude;
 
+// Minimal select for listings (landing pages, sidebars, recommended).
+// Excludes the massive 'content' field to prevent Vercel oversized ISR page errors.
+const articleSummarySelect = {
+  id: true,
+  tenantId: true,
+  usersId: true,
+  categoryId: true,
+  title: true,
+  slug: true,
+  publishDate: true,
+  imageUrl: true,
+  youtubeUrl: true,
+  sourceType: true,
+  status: true,
+  createdAt: true,
+  viewCount: true,
+  trendingScore: true,
+  category: {
+    select: {
+      id: true,
+      categoryName: true,
+    },
+  },
+  user: {
+    select: {
+      firstName: true,
+      lastName: true,
+    },
+  },
+} satisfies Prisma.ContentArticleSelect;
+
 export const articlesRepository = {
   async findMany(params: {
     limit: number;
@@ -52,8 +83,9 @@ export const articlesRepository = {
     category?: string | null;
     status?: string | null;
     tenantId?: string;
+    onlySummary?: boolean;
   }): Promise<Article[]> {
-    const { limit, search, category, status, tenantId } = params;
+    const { limit, search, category, status, tenantId, onlySummary } = params;
 
     const and: Prisma.ContentArticleWhereInput[] = [];
     if (tenantId) and.push({ tenantId });
@@ -93,18 +125,22 @@ export const articlesRepository = {
       });
     }
 
-    return prisma.contentArticle.findMany({
+    const queryOptions: any = {
       take: limit,
-      where:
-        and.length > 0
-          ? { AND: and }
-          : undefined,
+      where: and.length > 0 ? { AND: and } : undefined,
       orderBy: [
         { publishDate: { sort: "desc", nulls: "last" } },
         { createdAt: "desc" }
       ],
-      include: articleDetailInclude,
-    }) as Promise<Article[]>;
+    };
+
+    if (onlySummary) {
+      queryOptions.select = articleSummarySelect;
+    } else {
+      queryOptions.include = articleDetailInclude;
+    }
+
+    return prisma.contentArticle.findMany(queryOptions) as Promise<Article[]>;
   },
 
   async findById(id: string, tenantId?: string | null): Promise<Article | null> {
