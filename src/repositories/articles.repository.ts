@@ -103,7 +103,7 @@ export const articlesRepository = {
         { publishDate: { sort: "desc", nulls: "last" } },
         { createdAt: "desc" }
       ],
-      include: articleInclude,
+      include: articleDetailInclude,
     }) as Promise<Article[]>;
   },
 

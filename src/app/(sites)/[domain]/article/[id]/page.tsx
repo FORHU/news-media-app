@@ -190,8 +190,10 @@ export default async function ArticlePage({
     redirect(encodeURI(`/article/${canonicalSlug}`));
   }
 
+  // Fetch only what's needed for the sidebar — fewer articles = smaller ISR page HTML.
+  // The full article list is available via client-side fetching if needed.
   const allArticles = await articlesService.getArticles({
-    limit: 50,
+    limit: 10,
     status: "published",
   }, tenantId).catch(() => [] as Awaited<ReturnType<typeof articlesService.getArticles>>);
 
