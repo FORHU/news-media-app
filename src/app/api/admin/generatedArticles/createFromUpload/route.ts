@@ -22,7 +22,18 @@ function truncateContent(text: string, limit: number = 12000): string {
   return text.substring(0, limit) + "... [Truncated due to length]";
 }
 
-function getAiSystemInstruction() {
+function getAiSystemInstruction(requestedLanguage?: string) {
+  const languageInstruction = requestedLanguage 
+    ? `You MUST write the article in ${requestedLanguage}. 
+    
+    [CRITICAL TRANSLATION STEP]:
+    If you are translating between two non-English languages (e.g., Korean to Japanese, or Korean to Chinese), please follow this internal process:
+    1. Mentally translate the key points of the source material into English.
+    2. Then, rewrite and generate the final news article ENTIRELY in ${requestedLanguage} based on those English points.
+    
+    This pivot translation ensures the highest journalistic quality and accuracy. The final output must be 100% ${requestedLanguage}.`
+    : `By default, write in the same language as the provided materials.`;
+
   return `
 [PERSONA]:
 - You are a senior investigative journalist and professional news editor.
@@ -43,7 +54,7 @@ function getAiSystemInstruction() {
 7. NO MARKDOWN: Do not use bold, italics, or lists.
 8. HEADLINE: The headline must be punchy and news-worthy.
 9. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use exactly two newlines (an empty line) between each paragraph.
-10. LANGUAGE: By default, write in the same language as the provided materials. If the user prompt explicitly requests a language, follow it.
+10. LANGUAGE: ${languageInstruction} If the [ADDITIONAL USER COMMAND / PROMPT] explicitly requests a different language, follow it.
 `;
 }
 
@@ -158,27 +169,29 @@ export async function POST(req: NextRequest) {
     // 2) Image analysis disabled as per user request
     const documentContext = "No additional content provided.";
 
-    const instruction = getAiSystemInstruction();
+    const instruction = getAiSystemInstruction(language);
     const materials = truncateContent(extractedText || "No additional content provided.");
 
-    const fullPrompt = `
+    const aiPayload = {
+      user_input: `
+[SYSTEM INSTRUCTIONS]:
+${instruction}
+
+[USER REQUEST / FINAL TASK]:
+Write a professional, investigative news article primarily based on the topic, using the materials above as evidence. Never mention analysis or photos.
+
+${prompt ? `[ADDITIONAL USER COMMAND / PROMPT]:\n${prompt}\n` : ""}
+
 [ASSIGNED STORY TOPIC]:
 ${topic || "Not provided"}
 
 [SOURCE MATERIALS]:
 ${materials}
 
-[SYSTEM INSTRUCTIONS]:
-${instruction}
+CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUCTIONS.
 
-${prompt ? `[ADDITIONAL USER COMMAND / PROMPT]:\n${prompt}\n` : ""}
-
-[USER REQUEST / FINAL TASK]:
-Write a professional, investigative news article primarily based on the topic, using the materials above as evidence. Never mention analysis or photos.
-`;
-
-    const aiPayload = {
-      user_input: fullPrompt,
+FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${language || "the same language as the source"}. DO NOT use any other language.
+`,
       session_id,
       persona_prefix: "NewsLetter",
       document_context: documentContext,

@@ -36,8 +36,15 @@ function getAiSystemInstruction(
     : "";
 
   const languageInstruction = requestedLanguage
-    ? `By default, you MUST write the article in ${requestedLanguage}.`
-    : `By default, you MUST write the article in English.`;
+    ? `You MUST write the article in ${requestedLanguage}. 
+    
+    [CRITICAL TRANSLATION STEP]:
+    If you are translating between two non-English languages (e.g., Korean to Japanese, or Korean to Chinese), please follow this internal process:
+    1. Mentally translate the key points of the source material into English.
+    2. Then, rewrite and generate the final news article ENTIRELY in ${requestedLanguage} based on those English points.
+    
+    This pivot translation ensures the highest journalistic quality and accuracy. The final output must be 100% ${requestedLanguage}.`
+    : `By default, you MUST write the article in the SAME LANGUAGE as the provided [SOURCE TWEET] (e.g., if the source tweet is in Korean, write the generated article in Korean).`;
 
   const modeConstraints =
     generationMode === "standalone"
@@ -227,16 +234,18 @@ export async function POST(req: NextRequest) {
 
     const aiPayload = {
       user_input: `
-[SOURCE TWEET]:
-${tweet.text}${videoTranscript}
-
 [SYSTEM INSTRUCTIONS]:
 ${instruction}
 
 [USER REQUEST / ADDITIONAL CONTEXT]:
 ${customPrompt || defaultUserAsk}
 
+[SOURCE TWEET]:
+${tweet.text}${videoTranscript}
+
 CRITICAL: Generate the article now using the <title> and <content> tags.
+
+FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${requestedLanguage || "the same language as the source"}. DO NOT use any other language.
 `,
       session_id,
       persona_prefix: "NewsLetterX",

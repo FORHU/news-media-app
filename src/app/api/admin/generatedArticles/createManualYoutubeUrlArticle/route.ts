@@ -45,9 +45,21 @@ function getAiSystemInstruction(params: {
   isYoutube: boolean;
   youtubeUrl: string;
   generationMode: "standalone" | "commentary";
+  requestedLanguage?: string;
 }) {
-  const { isYoutube, youtubeUrl, generationMode } = params;
+  const { isYoutube, youtubeUrl, generationMode, requestedLanguage } = params;
   const ytRef = (youtubeUrl || "").trim() || "(URL not provided)";
+
+  const languageInstruction = requestedLanguage 
+    ? `You MUST write the article in ${requestedLanguage}. 
+    
+    [CRITICAL TRANSLATION STEP]:
+    If you are translating between two non-English languages (e.g., Korean to Japanese, or Korean to Chinese), please follow this internal process:
+    1. Mentally translate the key points of the source material into English.
+    2. Then, rewrite and generate the final news article ENTIRELY in ${requestedLanguage} based on those English points.
+    
+    This pivot translation ensures the highest journalistic quality and accuracy. The final output must be 100% ${requestedLanguage}.`
+    : `By default, you MUST write the article in the SAME LANGUAGE as the provided [SOURCE MATERIALS] (e.g., if the transcript or content is in Korean, write the article in Korean).`;
 
   const creditYoutube =
     isYoutube && youtubeUrl
@@ -89,8 +101,8 @@ function getAiSystemInstruction(params: {
 7. NO MARKDOWN: Do not use bold, italics, or lists.
 8. HEADLINE: The headline must be punchy and news-worthy, reflecting the provided Topic.
 9. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use exactly two newlines (an empty line) between each paragraph for consistent spacing.
-10. LANGUAGE: By default, you MUST write the article in the SAME LANGUAGE as the provided [SOURCE MATERIALS] (e.g., if the transcript or content is in Korean, write the article in Korean). HOWEVER, if the [ADDITIONAL USER COMMAND / PROMPT] explicitly commands a different language (e.g., "write in English"), you MUST follow that command and generate the article in the requested language.${youtubeBlock}
-${creditYoutube}
+10. LANGUAGE: ${languageInstruction}${youtubeBlock}
+11. ${creditYoutube}
 `;
 }
 
@@ -177,6 +189,7 @@ export async function POST(req: NextRequest) {
       isYoutube,
       youtubeUrl: (youtubeUrl || "").trim(),
       generationMode,
+      requestedLanguage: language,
     });
 
     const user =
@@ -246,15 +259,8 @@ export async function POST(req: NextRequest) {
 
     const truncatedInput = truncateContent(materialsText || "No additional content provided.");
 
-    // Construct the manual prompt
-    const fullPrompt = `
-[ASSIGNED STORY TOPIC]:
-${topic || "Not provided"}
-
-[SOURCE MATERIALS]:
-${truncatedInput}
-${documentContext !== "No additional content provided." ? `\n[OBSERVED DETAILS]:\n${documentContext}` : ""}
-
+    const aiPayload = {
+      user_input: `
 [SYSTEM INSTRUCTIONS]:
 ${instruction}
 
@@ -263,11 +269,17 @@ Write a professional, investigative news article that is PRIMARILY BASED on the 
 
 ${customPrompt ? `[ADDITIONAL USER COMMAND / PROMPT]:\n${customPrompt}\n` : ""}
 
-CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUCTIONS. Pay absolute attention to the language requested in the [ADDITIONAL USER COMMAND / PROMPT] if one is provided.
-`;
+[ASSIGNED STORY TOPIC]:
+${topic || "Not provided"}
 
-    const aiPayload = {
-      user_input: fullPrompt,
+[SOURCE MATERIALS]:
+${truncatedInput}
+${documentContext !== "No additional content provided." ? `\n[OBSERVED DETAILS]:\n${documentContext}` : ""}
+
+CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUCTIONS.
+
+FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${language || "the same language as the source"}. DO NOT use any other language.
+`,
       session_id: session_id,
       persona_prefix: "NewsLetter",
       document_context: documentContext,
