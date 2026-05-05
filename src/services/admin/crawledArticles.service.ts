@@ -18,6 +18,7 @@ type GetCrawledArticlesParams = {
   from?: string;
   to?: string;
   q: string;
+  status: "all" | "generated" | "pending";
   page: number;
   limit: number;
 };
@@ -121,6 +122,7 @@ export const crawledArticlesService = {
       from: range.from,
       to: range.to,
       q: params.q,
+      status: params.status,
       offset,
       limit: params.limit,
       tenantId,
@@ -241,6 +243,9 @@ export const crawledArticlesService = {
         error instanceof Error ? error.message : "Failed to reach crawl API";
       throw new CrawledArticlesServiceError(message, 502);
     }
+  },
+  async deleteRawArticle(id: string, tenantId: string) {
+    return crawledArticlesRepository.deleteRawArticle(id, tenantId);
   },
 };
 
