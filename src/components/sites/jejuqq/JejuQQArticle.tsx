@@ -220,9 +220,9 @@ export default function JejuQQArticle({
           <div className="lg:col-span-4 space-y-10">
             <div className="bg-gray-50 rounded-none p-6 border-2 border-[#dc2626] lg:sticky lg:top-28">
               <div className="flex items-center justify-between mb-8 pb-5 border-b border-gray-200">
-                 <h3 className="text-xl font-garamond font-bold flex items-center gap-2">
+                 <h2 className="text-xl font-garamond font-bold flex items-center gap-2">
                     Trending <TrendingUp size={20} className="text-[#b91c1c]" />
-                 </h3>
+                 </h2>
                  <span className="w-2 h-2 bg-[#dc2626]"></span>
               </div>
 
@@ -234,9 +234,9 @@ export default function JejuQQArticle({
                        </span>
                        <div className="min-w-0">
                          <span className="text-[9px] font-black text-[#b91c1c] uppercase tracking-[0.2em] block mb-1">{article.category?.categoryName}</span>
-                         <h4 className="text-[15px] font-bold leading-snug group-hover:text-[#b91c1c] transition-colors line-clamp-2">
+                         <h3 className="text-[15px] font-bold leading-snug group-hover:text-[#b91c1c] transition-colors line-clamp-2">
                             {article.title}
-                         </h4>
+                         </h3>
                        </div>
                     </Link>
                  ))}
