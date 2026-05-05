@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { AdBanner } from "@/components/AdBanner";
 import { Globe, Mail, Phone, MapPin } from "lucide-react";
 
@@ -28,9 +29,16 @@ export default function JejuJapanFooter({ onOpenNewsletter, footerBanners }: Jej
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16">
           <div className="md:col-span-4">
             <div className="mb-6">
-              <h2 className="text-xl font-noto font-black tracking-widest text-white uppercase">
-                JEJU<span className="text-[#bc002d]">JAPAN</span>
-              </h2>
+              <div className="bg-white py-2 px-3 inline-block rounded-sm shadow-sm">
+                <div className="relative h-10 w-36">
+                  <Image
+                    src="/Logo/JEJUJAPANLOGO.png"
+                    alt="JejuJapan Logo"
+                    fill
+                    className="object-contain object-center"
+                  />
+                </div>
+              </div>
             </div>
             <p className="text-gray-400 text-sm leading-relaxed mb-8 max-w-sm">
                Revolutionizing storytelling through AI-powered insights and high-quality journalism. Delivering truth at the speed of tech.

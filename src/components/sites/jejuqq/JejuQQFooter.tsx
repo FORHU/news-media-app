@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { AdBanner } from "@/components/AdBanner";
 import { Twitter, Youtube, Facebook, Instagram } from "lucide-react";
 
@@ -29,12 +30,16 @@ export default function JejuQQFooter({ onOpenNewsletter, footerBanners }: JejuQQ
       <div className="max-w-7xl mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-16">
           <div className="md:col-span-1">
-             <div className="mb-8">
-                <h2 className="flex items-center gap-1">
-                  <span className="text-2xl font-serif font-bold tracking-tighter text-black">Jeju</span>
-                  <span className="text-2xl font-serif font-bold tracking-tighter text-primary">QQ</span>
-                </h2>
-             </div>
+              <div className="mb-8">
+                 <div className="relative h-14 w-48">
+                    <Image
+                      src="/Logo/JEJUQQLOGO.png"
+                      alt="JejuQQ Logo"
+                      fill
+                      className="object-contain object-left"
+                    />
+                 </div>
+              </div>
              <div className="flex space-x-5 text-gray-400">
                 <Twitter size={20} className="hover:text-primary transition-colors cursor-pointer" />
                 <Youtube size={20} className="hover:text-primary transition-colors cursor-pointer" />

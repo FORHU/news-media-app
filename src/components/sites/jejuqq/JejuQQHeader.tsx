@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Search, Mail, X, ChevronDown, User } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -100,10 +101,15 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
             </button>
 
             <Link href="/" className="hover:opacity-90 transition-opacity">
-              <h1 className="flex items-center gap-1">
-                <span className="text-[28px] md:text-[42px] font-serif font-bold tracking-tighter text-black leading-none">Jeju</span>
-                <span className="text-[28px] md:text-[42px] font-serif font-bold tracking-tighter text-primary leading-none">QQ</span>
-              </h1>
+              <div className="relative h-14 w-44 md:h-16 md:w-56">
+                <Image
+                  src="/Logo/JEJUQQLOGO.png"
+                  alt="JejuQQ Logo"
+                  fill
+                  className="object-contain object-left"
+                  priority
+                />
+              </div>
             </Link>
           </div>
 
@@ -236,7 +242,14 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                   >
                     <X className="w-5 h-5" />
                   </button>
-                  <span className="text-sm font-bold font-serif text-white tracking-[0.4em] uppercase">Menu</span>
+                  <div className="relative h-10 w-40">
+                    <Image
+                      src="/Logo/JEJUQQLOGO.png"
+                      alt="JejuQQ Logo"
+                      fill
+                      className="object-contain object-center brightness-0 invert"
+                    />
+                  </div>
                   <div className="w-8" />
                 </div>
 
