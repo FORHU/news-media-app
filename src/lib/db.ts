@@ -13,9 +13,8 @@ type GlobalForPrisma = {
 
 const g = globalThis as unknown as GlobalForPrisma;
 
-// During build: allow enough connections for parallel tenant queries in generateStaticParams.
-// During runtime: cap at 5 to avoid exhausting Supabase's connection limit.
-const maxConnections = process.env.NEXT_PHASE === "phase-production-build" ? 5 : 5;
+// Set to 1 during build so that 11 parallel workers stay under the 15-connection DB limit.
+const maxConnections = process.env.NEXT_PHASE === "phase-production-build" ? 1 : 5;
 
 const pool: Pool = g.pool ?? new Pool({
   connectionString: process.env.DATABASE_URL,
