@@ -4,6 +4,32 @@ import { generateUniqueArticleSlug } from "@/lib/slug";
 import { generatedArticlesService } from "@/services/admin/generatedArticles.service";
 import { z } from "zod";
 import { resolveTenantIdFromRequest } from "@/lib/tenant";
+import { revalidatePath } from "next/cache";
+
+async function revalidateArticle(tenantId: string, articleId: string, slug?: string | null) {
+  try {
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { domain: true },
+    });
+
+    if (tenant?.domain) {
+      const domain = tenant.domain;
+      // Revalidate landing page
+      revalidatePath(`/${domain}`);
+      // Revalidate search page
+      revalidatePath(`/${domain}/search`);
+      // Revalidate specific article page (by ID and slug if available)
+      revalidatePath(`/${domain}/article/${articleId}`);
+      if (slug) {
+        revalidatePath(`/${domain}/article/${slug}`);
+      }
+      console.log(`[Revalidate] Triggered for domain: ${domain}, article: ${articleId}`);
+    }
+  } catch (error) {
+    console.error("[Revalidate] Error:", error);
+  }
+}
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +68,16 @@ export async function POST(
     }
 
     await generatedArticlesService.publishArticle(id, tenantId);
+    
+    // Fetch article to get slug for revalidation
+    const article = await prisma.contentArticle.findUnique({
+      where: { id },
+      select: { slug: true }
+    });
+    
+    // Trigger on-demand revalidation
+    await revalidateArticle(tenantId, id, article?.slug);
+
     return NextResponse.json({ success: true, message: "Article published successfully" });
   } catch (error) {
     console.error("Error publishing article:", error);
@@ -135,6 +171,9 @@ export async function PATCH(
         rawSourceUpload: true,
       },
     });
+
+    // Trigger on-demand revalidation
+    await revalidateArticle(tenantId, id, updated.slug);
 
     return NextResponse.json(updated);
   } catch (error: any) {
