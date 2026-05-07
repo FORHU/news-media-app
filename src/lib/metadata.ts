@@ -46,9 +46,14 @@ export async function getRequestBaseUrl(fallbackDomain: string) {
   let host = fallbackDomain;
   let protocol = "https";
 
+  // In Next.js, calling headers() during static generation triggers a 
+  // "Dynamic Server Usage" error. We wrap this to avoid breaking the build.
   try {
     const h = await headers();
-    host = h.get("x-forwarded-host") ?? h.get("host") ?? fallbackDomain;
+    const requestHost = h.get("x-forwarded-host") ?? h.get("host");
+    if (requestHost) {
+      host = requestHost;
+    }
     const protoHeader = h.get("x-forwarded-proto");
     const isLocal =
       host.includes("localhost") ||
@@ -56,8 +61,9 @@ export async function getRequestBaseUrl(fallbackDomain: string) {
       /:\d+$/.test(host);
     protocol = protoHeader ?? (isLocal ? "http" : "https");
   } catch (e) {
-    console.error("Error fetching headers for metadata:", e);
-    // Fallback to https + the domain passed in
+    // During static generation (SSG/ISR build), headers() will throw.
+    // We catch it here and use the fallbackDomain (e.g. 'jejutime.com')
+    // which ensures the build succeeds while still providing a valid URL.
   }
 
   return `${protocol}://${host}`;
