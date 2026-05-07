@@ -131,9 +131,9 @@ export default function CreateArticleModal({
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const incomingFiles = Array.from(e.target.files);
-            // Only allow .txt and .pdf for materials
+            // Allow .txt, .pdf, and images for materials
             const validFiles = incomingFiles.filter(f => 
-                f.name.endsWith('.txt') || f.type === 'application/pdf'
+                f.name.endsWith('.txt') || f.type === 'application/pdf' || f.type.startsWith('image/')
             );
             setFiles(prev => [...prev, ...validFiles]);
             setFieldErrors(prev => ({ ...prev, topic: undefined }));
@@ -186,6 +186,7 @@ export default function CreateArticleModal({
         let uploadedImageUrl = "";
 
         const textFiles = files.filter(f => f.name.endsWith('.txt'));
+        const imageMaterialFiles = files.filter(f => f.type.startsWith('image/'));
 
         setIsProcessingFiles(true);
         try {
@@ -198,6 +199,8 @@ export default function CreateArticleModal({
                     : allTexts;
             }
 
+            const materialImages = await Promise.all(imageMaterialFiles.map(readFileAsBase64));
+
             if (imageFile) {
                 uploadedImageUrl = await readFileAsBase64(imageFile);
             }
@@ -209,6 +212,7 @@ export default function CreateArticleModal({
                 s3ImageUrl: uploadedImageUrl,
                 language,
                 prompt: buildLanguageDirective(language),
+                materialImages,
             });
 
             queryClient.invalidateQueries({ queryKey: ['generatedArticles'] });

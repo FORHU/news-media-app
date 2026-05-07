@@ -122,3 +122,33 @@ export async function PATCH(
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+
+    const tenantId = await resolveTenantIdFromRequest(req);
+    if (!tenantId) {
+      return NextResponse.json({ error: "Article not found" }, { status: 404 });
+    }
+    const existing = await prisma.contentArticle.findFirst({
+      where: { id, tenantId },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: "Article not found" }, { status: 404 });
+    }
+
+    await prisma.contentArticle.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error("[DELETE Article] Error:", error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}

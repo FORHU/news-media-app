@@ -56,6 +56,7 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
     const [readModalOpen, setReadModalOpen] = React.useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
     const [generationError, setGenerationError] = React.useState<string | null>(null);
+    const [isDeletedLocally, setIsDeletedLocally] = React.useState(false);
 
     const queryClient = useQueryClient();
     const mutation = useMutation({
@@ -75,6 +76,7 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
     const deleteMutation = useMutation({
         mutationFn: () => articlesApi.deleteCrawledArticle(article.id),
         onSuccess: () => {
+            setIsDeletedLocally(true);
             queryClient.invalidateQueries({ queryKey: ['crawledArticles'] });
             setDeleteDialogOpen(false);
         },
@@ -92,7 +94,7 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
         <MotionDiv
             variants={variants}
             whileHover={{ y: -4, scale: 1.005 }}
-            className="group relative bg-white rounded-[2rem] p-5 shadow-sm hover:shadow-2xl hover:shadow-gray-200/50 border border-gray-100 transition-all duration-300 flex flex-col md:flex-row gap-6 items-start md:items-center"
+            className={`group relative bg-white rounded-[2rem] p-5 shadow-sm hover:shadow-2xl hover:shadow-gray-200/50 border border-gray-100 transition-all duration-300 flex flex-col md:flex-row gap-6 items-start md:items-center ${isDeletedLocally ? 'hidden' : ''}`}
         >
 
             {/* Thumbnail Image Container */}
@@ -207,9 +209,9 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
                 <button
                     type="button"
                     onClick={() => setDeleteDialogOpen(true)}
-                    className="flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm text-red-600 hover:bg-red-50 transition-all border border-transparent hover:border-red-100"
+                    className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-sm bg-gray-50 text-red-600 hover:bg-red-50 hover:scale-[1.02] active:scale-[0.98] shadow-sm transition-all group/delete"
                 >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-5 h-5 text-red-400 group-hover/delete:text-red-600 transition-colors" />
                     Delete
                 </button>
                 {generationError && (

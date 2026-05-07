@@ -202,6 +202,7 @@ export const articlesApi = {
     language?: string;
     extractedText?: string;
     s3ImageUrl?: string;
+    materialImages?: string[];
   }): Promise<unknown> {
     const res = await fetch("/api/admin/generatedArticles/createFromUpload", {
       method: "POST",
@@ -246,6 +247,16 @@ export const articlesApi = {
     });
     if (!res.ok) throw new Error("Failed to fetch generated articles");
     return res.json();
+  },
+
+  async deleteGeneratedArticle(id: string): Promise<void> {
+    const res = await fetch(`/api/admin/generatedArticles/${id}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to delete generated article");
+    }
   },
 
   async updateArticle(
