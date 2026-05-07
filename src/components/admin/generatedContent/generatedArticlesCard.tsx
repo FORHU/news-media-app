@@ -16,7 +16,8 @@ import {
     Newspaper,
     Loader2,
     Send,
-    EyeOff
+    EyeOff,
+    Trash2
 } from 'lucide-react';
 import { div as MotionDiv } from 'framer-motion/client';
 import Pagination from '@/components/admin/pagination';
@@ -84,6 +85,9 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
     const [isPublishModalOpen, setIsPublishModalOpen] = React.useState(false);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = React.useState(false);
     const [isUnpublishing, setIsUnpublishing] = React.useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
+    const [isDeleting, setIsDeleting] = React.useState(false);
+    const [isDeletedLocally, setIsDeletedLocally] = React.useState(false);
     const queryClient = useQueryClient();
 
     const handleUnpublishClick = (e: React.MouseEvent) => {
@@ -106,11 +110,31 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
         }
     };
 
+    const handleDeleteClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        setIsDeleting(true);
+        try {
+            await articlesApi.deleteGeneratedArticle(article.id);
+            setIsDeletedLocally(true);
+            queryClient.invalidateQueries({ queryKey: ['generatedArticles'] });
+            setIsDeleteModalOpen(false);
+        } catch (error) {
+            console.error('Failed to delete article:', error);
+            alert('Failed to delete article. Please try again.');
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
     return (
         <MotionDiv
             variants={variants}
             whileHover={{ y: -4, scale: 1.005 }}
-            className="group relative bg-white rounded-[2rem] p-5 shadow-sm hover:shadow-2xl hover:shadow-gray-200/50 border border-gray-100 transition-all duration-300 flex flex-col md:flex-row gap-6 items-start md:items-center"
+            className={`group relative bg-white rounded-[2rem] p-5 shadow-sm hover:shadow-2xl hover:shadow-gray-200/50 border border-gray-100 transition-all duration-300 flex flex-col md:flex-row gap-6 items-start md:items-center ${isDeletedLocally ? 'hidden' : ''}`}
         >
 
             {/* Thumbnail Image Container */}
@@ -227,6 +251,20 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                     </button>
                 )}
 
+                <button
+                    type="button"
+                    onClick={handleDeleteClick}
+                    disabled={isDeleting}
+                    className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-sm bg-gray-50 text-red-600 hover:bg-red-50 hover:scale-[1.02] active:scale-[0.98] shadow-sm transition-all group/delete disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    {isDeleting ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                        <Trash2 className="w-5 h-5 text-red-400 group-hover/delete:text-red-600 transition-colors" />
+                    )}
+                    Delete
+                </button>
+
                 <ReadGeneratedArticle
                     article={article}
                     open={isReadModalOpen}
@@ -248,6 +286,17 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                     confirmText="Yes, Unpublish"
                     variant="warning"
                     isLoading={isUnpublishing}
+                />
+
+                <ConfirmationModal 
+                    isOpen={isDeleteModalOpen}
+                    onOpenChange={setIsDeleteModalOpen}
+                    onConfirm={handleDeleteConfirm}
+                    title="Delete Article?"
+                    description="Are you sure you want to delete this generated article? This action cannot be undone."
+                    confirmText="Yes, Delete"
+                    variant="destructive"
+                    isLoading={isDeleting}
                 />
             </div>
         </MotionDiv>

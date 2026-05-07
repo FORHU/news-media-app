@@ -5,6 +5,7 @@ import { generateUniqueArticleSlug } from "@/lib/slug";
 import { z } from "zod";
 import { getTenantDomainFromRequest, resolveTenantIdFromRequest } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { uploadToS3 } from "@/lib/s3";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -16,16 +17,17 @@ const RequestSchema = z.object({
   language: z.string().optional().default(""),
   extractedText: z.string().optional().default(""),
   s3ImageUrl: z.string().optional().or(z.literal("")).default(""),
+  materialImages: z.array(z.string()).optional().default([]),
 });
 
 const DATA_URL_IMAGE_REGEX = /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/;
 
 function detectImageExtension(mimeType: string): string {
-  if (mimeType === "image/jpeg") return "jpg";
-  if (mimeType === "image/png") return "png";
-  if (mimeType === "image/webp") return "webp";
-  if (mimeType === "image/gif") return "gif";
-  return "bin";
+  if (mimeType.includes("jpeg") || mimeType.includes("jpg")) return "jpg";
+  if (mimeType.includes("png")) return "png";
+  if (mimeType.includes("webp")) return "webp";
+  if (mimeType.includes("gif")) return "gif";
+  return "jpg"; // Default to jpg to avoid Next.js .bin optimization errors
 }
 
 async function uploadBase64ImageToSupabase(dataUrl: string, tenantId: string): Promise<string> {
@@ -171,40 +173,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Selected category does not exist." }, { status: 400 });
     }
 
-    // 1) Store raw_source_uploads first (schema-aligned)
-    // NOTE: This project uses a generated Prisma client output that currently
-    // doesn't expose delegates for the new models, so we insert via SQL.
-    const makeCuid = () =>
-      `c${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}${Math.random()
-        .toString(36)
-        .slice(2, 10)}`.slice(0, 25);
-
-    const rawSourceUploadId = makeCuid();
-    const normalizedIncomingImageUrl = s3ImageUrl?.trim() || "";
-    const resolvedImageUrl = normalizedIncomingImageUrl.startsWith("data:image/")
-      ? await uploadBase64ImageToSupabase(normalizedIncomingImageUrl, tenantId)
-      : normalizedIncomingImageUrl;
-    const promptToStore =
-      [prompt, language ? `Write the entire article in ${language}.` : ""]
-        .filter(Boolean)
-        .join("\n\n")
-        .trim() || null;
-    const extractedTextToStore = extractedText?.trim() ? extractedText.trim() : null;
-    const s3ImageUrlToStore = resolvedImageUrl || null;
-    const languageToStore = language || null;
-
-    const rawSourceUpload = await prisma.rawSourceUpload.create({
-      data: {
-        id: rawSourceUploadId,
-        tenantId,
-        prompt: promptToStore,
-        s3ImageUrl: s3ImageUrlToStore,
-        language: languageToStore,
-        extractedText: extractedTextToStore,
-      },
-      select: { id: true },
-    });
-
     const baseUrl = (process.env.GENERATE_CONTENT_API || "").replace(/\/$/, "");
     if (!baseUrl) {
       console.error("[createFromUpload] GENERATE_CONTENT_API is not configured");
@@ -227,11 +195,104 @@ export async function POST(req: NextRequest) {
       throw new Error(`AI Service Connection Error: ${e.message}`);
     }
 
-    // 2) Image analysis disabled as per user request
-    const documentContext = "No additional content provided.";
+    // Analyze material images
+    let finalExtractedText = extractedText;
+    if (parsed.data.materialImages && parsed.data.materialImages.length > 0) {
+        console.log(`[createFromUpload] Found ${parsed.data.materialImages.length} material images. Starting analysis...`);
+        const analyzedImageTexts = [];
+        for (const base64Img of parsed.data.materialImages) {
+            try {
+                // Upload to S3 for the AI analysis endpoint
+                const match = base64Img.match(DATA_URL_IMAGE_REGEX);
+                if (!match) continue;
+                const mimeType = match[1];
+                const base64Payload = match[2];
+                const fileBuffer = Buffer.from(base64Payload, "base64");
+                const extension = detectImageExtension(mimeType);
+                const analysisFilename = `material-${Date.now()}.${extension}`;
+                
+                const s3Url = await uploadToS3(fileBuffer, analysisFilename, mimeType);
+                let s3Key = s3Url;
+                try {
+                    s3Key = new URL(s3Url).pathname.slice(1);
+                } catch (e) {}
+
+                console.log(`[createFromUpload] Analyzing uploaded image via S3: ${s3Url}`);
+
+                const analyzeRes = await fetch(`${baseUrl}/api/legal/analyze-document`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        s3_key: s3Key,
+                        filename: analysisFilename,
+                        session_id: session_id
+                    }),
+                });
+
+                if (analyzeRes.ok) {
+                    const analysisResult = await analyzeRes.json();
+                    const text = typeof analysisResult === 'string' ? analysisResult : JSON.stringify(analysisResult);
+                    console.log(`[createFromUpload] Image analysis successful for ${analysisFilename} (length: ${text.length})`);
+                    analyzedImageTexts.push(`[Image Analysis for ${analysisFilename}]:\n${text}`);
+                } else {
+                    const errorResponse = await analyzeRes.text();
+                    console.error(`[createFromUpload] Image analysis failed for ${analysisFilename}. Status: ${analyzeRes.status}, Error: ${errorResponse}`);
+                }
+            } catch (err) {
+                console.error("[createFromUpload] Exception during material image analysis:", err);
+            }
+        }
+        if (analyzedImageTexts.length > 0) {
+            console.log(`[createFromUpload] Successfully analyzed ${analyzedImageTexts.length} images.`);
+            finalExtractedText = finalExtractedText 
+                ? finalExtractedText + "\n\n" + analyzedImageTexts.join("\n\n")
+                : analyzedImageTexts.join("\n\n");
+        } else {
+            console.log(`[createFromUpload] No image analysis results to append.`);
+        }
+    } else {
+        console.log(`[createFromUpload] No material images found to analyze.`);
+    }
+
+    // 1) Store raw_source_uploads first (schema-aligned)
+    // NOTE: This project uses a generated Prisma client output that currently
+    // doesn't expose delegates for the new models, so we insert via SQL.
+    const makeCuid = () =>
+      `c${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}${Math.random()
+        .toString(36)
+        .slice(2, 10)}`.slice(0, 25);
+
+    const rawSourceUploadId = makeCuid();
+    const normalizedIncomingImageUrl = s3ImageUrl?.trim() || "";
+    const resolvedImageUrl = normalizedIncomingImageUrl.startsWith("data:image/")
+      ? await uploadBase64ImageToSupabase(normalizedIncomingImageUrl, tenantId)
+      : normalizedIncomingImageUrl;
+    const promptToStore =
+      [prompt, language ? `Write the entire article in ${language}.` : ""]
+        .filter(Boolean)
+        .join("\n\n")
+        .trim() || null;
+    const extractedTextToStore = finalExtractedText?.trim() ? finalExtractedText.trim() : null;
+    const s3ImageUrlToStore = resolvedImageUrl || null;
+    const languageToStore = language || null;
+
+    const rawSourceUpload = await prisma.rawSourceUpload.create({
+      data: {
+        id: rawSourceUploadId,
+        tenantId,
+        prompt: promptToStore,
+        s3ImageUrl: s3ImageUrlToStore,
+        language: languageToStore,
+        extractedText: extractedTextToStore,
+      },
+      select: { id: true },
+    });
+
+    // 2) Image analysis disabled as per user request for the featured image (s3ImageUrl), but applied for materialImages
+    const documentContext = finalExtractedText || "No additional content provided.";
 
     const instruction = getAiSystemInstruction(language);
-    const materials = truncateContent(extractedText || "No additional content provided.");
+    const materials = truncateContent(finalExtractedText || "No additional content provided.");
 
     const aiPayload = {
       user_input: `
