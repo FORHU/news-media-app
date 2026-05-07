@@ -34,6 +34,8 @@ export async function generateStaticParams() {
   }
 }
 
+import { getRequestBaseUrl, buildOgImageUrl } from "@/lib/metadata";
+
 export async function generateMetadata({ params }: { params: Promise<{ domain: string }> }): Promise<Metadata> {
   const { domain } = await params;
   
@@ -43,8 +45,22 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
   if (domain === "jejujapan.com") icon = "/icons/jejujapan.ico";
 
   const siteName = getSiteNameFromDomain(domain);
+  const baseUrl = await getRequestBaseUrl(domain);
+  const logoPath = `/Logo/${
+    domain === "jejujapan.com"
+      ? "JEJUJAPANLOGO.png"
+      : domain === "jejuqq.com"
+        ? "JEJUQQLOGO.png"
+        : "JEJUTIMELOGO.png"
+  }`;
+  const logoUrl = `${baseUrl}${logoPath}`;
+  const { optimized: ogImageOptimized, absolute: ogImageAbsolute } = buildOgImageUrl(
+    logoUrl,
+    baseUrl
+  );
   
   return {
+    metadataBase: new URL(baseUrl),
     title: siteName,
     description: DEFAULT_SEO.description,
     icons: {
@@ -57,12 +73,24 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
       type: "website",
       images: [
         {
-          url: `https://${domain}/Logo/${domain === 'jejujapan.com' ? 'JEJUJAPANLOGO.png' : domain === 'jejuqq.com' ? 'JEJUQQLOGO.png' : 'JEJUTIMELOGO.png'}`,
+          url: ogImageAbsolute, // Absolute PNG first for Messenger
+          width: 1200,
+          height: 630,
+          alt: siteName,
+        },
+        {
+          url: ogImageOptimized,
           width: 1200,
           height: 630,
           alt: siteName,
         },
       ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: siteName,
+      description: DEFAULT_SEO.description,
+      images: [ogImageAbsolute, ogImageOptimized],
     },
   };
 }

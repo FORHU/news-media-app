@@ -17,18 +17,38 @@ export async function generateStaticParams() {
   }
 }
 
+import { getRequestBaseUrl, buildOgImageUrl } from "@/lib/metadata";
+
 export async function generateMetadata({ params }: { params: Promise<{ domain: string }> }): Promise<Metadata> {
   const { domain } = await params;
   const siteName = getSiteNameFromDomain(domain);
+  const baseUrl = await getRequestBaseUrl(domain);
+  const logoPath = `/Logo/${
+    domain === "jejujapan.com"
+      ? "JEJUJAPANLOGO.png"
+      : domain === "jejuqq.com"
+        ? "JEJUQQLOGO.png"
+        : "JEJUTIMELOGO.png"
+  }`;
+  const logoUrl = `${baseUrl}${logoPath}`;
+  const { absolute: ogImageAbsolute } = buildOgImageUrl(logoUrl, baseUrl);
 
   return {
-    metadataBase: new URL(`https://${domain}`),
+    metadataBase: new URL(baseUrl),
     title: {
       default: siteName,
       template: `%s | ${siteName}`,
     },
     openGraph: {
       siteName: siteName,
+      images: [
+        {
+          url: ogImageAbsolute,
+          width: 1200,
+          height: 630,
+          alt: siteName,
+        },
+      ],
     }
   };
 }
