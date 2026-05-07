@@ -25,8 +25,33 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { FacebookShareButton } from "./FacebookShareButton";
 
 type SiteTheme = "jejutime" | "jejuqq" | "jejujapan" | "newsicons";
+
+function normalizeShareUrl(input: string) {
+  try {
+    const u = new URL(input);
+    const isLocalhost =
+      u.hostname === "localhost" || u.hostname === "127.0.0.1" || u.hostname.endsWith(".local");
+
+    // If user is browsing a real domain in dev (e.g. jejujapan.com:3000),
+    // share the canonical public URL so Facebook can crawl it.
+    if (!isLocalhost && u.port) {
+      u.port = "";
+      u.protocol = "https:";
+    }
+
+    // If protocol is http on a real domain, upgrade to https for sharing.
+    if (!isLocalhost && u.protocol === "http:") {
+      u.protocol = "https:";
+    }
+
+    return u.toString();
+  } catch {
+    return input;
+  }
+}
 
 interface ArticleShareProps {
   title: string;
@@ -67,12 +92,12 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
   const inputId = useId();
   
   // Safely handle URL for hydration
-  const [currentUrl, setCurrentUrl] = useState(url || "");
+  const [currentUrl, setCurrentUrl] = useState(url ? normalizeShareUrl(url) : "");
 
   useEffect(() => {
     setMounted(true);
     if (!url) {
-      setCurrentUrl(window.location.href);
+      setCurrentUrl(normalizeShareUrl(window.location.href));
     }
   }, [url]);
 
@@ -228,23 +253,44 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
           />
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6 w-full">
-            {shareOptions.map((option) => (
-              <a
-                key={option.name}
-                href={option.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`Share on ${option.name}`}
-                className={cn(
-                  "flex items-center gap-3 p-3 border text-sm font-medium transition-colors group w-full min-w-0 overflow-hidden",
-                  styles.item,
-                  option.color
-                )}
-              >
-                <BrandIcon name={option.name} className="w-5 h-5 shrink-0 transition-transform group-hover:scale-110" />
-                <span className="truncate">{option.name}</span>
-              </a>
-            ))}
+            {shareOptions.map((option) =>
+              option.name === "Facebook" ? (
+                <FacebookShareButton
+                  key={option.name}
+                  articleUrl={shareUrl}
+                  className={cn(
+                    "flex items-center gap-3 p-3 border text-sm font-medium transition-colors group w-full min-w-0 overflow-hidden",
+                    styles.item,
+                    option.color
+                  )}
+                >
+                  <BrandIcon
+                    name={option.name}
+                    className="w-5 h-5 shrink-0 transition-transform group-hover:scale-110"
+                  />
+                  <span className="truncate">{option.name}</span>
+                </FacebookShareButton>
+              ) : (
+                <a
+                  key={option.name}
+                  href={option.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Share on ${option.name}`}
+                  className={cn(
+                    "flex items-center gap-3 p-3 border text-sm font-medium transition-colors group w-full min-w-0 overflow-hidden",
+                    styles.item,
+                    option.color
+                  )}
+                >
+                  <BrandIcon
+                    name={option.name}
+                    className="w-5 h-5 shrink-0 transition-transform group-hover:scale-110"
+                  />
+                  <span className="truncate">{option.name}</span>
+                </a>
+              )
+            )}
           </div>
 
           <div className="mt-6 w-full overflow-hidden">

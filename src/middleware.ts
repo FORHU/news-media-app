@@ -30,6 +30,18 @@ export async function middleware(request: NextRequest) {
         }
 
         // 1. PUBLIC ROUTE REWRITING
+        // Handle logo.png specifically to provide domain-specific logos
+        if (pathname === "/logo.png") {
+            const url = request.nextUrl.clone();
+            const logoFile = 
+                tenantDomain === "jejujapan.com" ? "JEJUJAPANLOGO.png" : 
+                tenantDomain === "jejuqq.com" ? "JEJUQQLOGO.png" : 
+                tenantDomain === "newsicons.com" ? "JEJUTIMELOGO.png" : // Placeholder until specific file exists
+                "JEJUTIMELOGO.png"; // Default fallback
+            url.pathname = `/Logo/${logoFile}`;
+            return NextResponse.rewrite(url);
+        }
+
         // If it's not an admin or API route, rewrite to the domain-specific path
         if (!isAdminPage && !isAdminApi && !pathname.startsWith("/api") && !pathname.includes(".")) {
             const url = request.nextUrl.clone();

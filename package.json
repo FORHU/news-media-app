@@ -53,6 +53,7 @@
     "dotenv": "^16.4.5",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "playwright": "^1.59.1",
     "prisma": "^7.4.0",
     "shadcn": "^3.8.5",
     "tailwindcss": "^4",

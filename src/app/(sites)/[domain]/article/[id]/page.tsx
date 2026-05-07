@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { dehydrate } from "@tanstack/react-query";
 import { notFound, redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createQueryClient } from "@/lib/react-query";
 import { Hydrate } from "@/components/react-query/Hydrate";
 import {
@@ -57,6 +58,8 @@ export async function generateStaticParams() {
   }
 }
 
+import { cleanOgDescription, getRequestBaseUrl, buildOgImageUrl } from "@/lib/metadata";
+
 export async function generateMetadata({
   params,
 }: {
@@ -65,33 +68,164 @@ export async function generateMetadata({
   const { domain, id } = await params;
   const articleId = decodeURIComponent(id?.trim() ?? "");
   const tenantId = await resolveTenantIdFromDomain(domain);
+  const normalizedDomain = domain.trim().toLowerCase().replace(/^www\./, "");
+  const isDev = process.env.NODE_ENV !== "production";
+
+  if (isDev) {
+    console.log(
+      `[OG] generateMetadata start domain=${domain} normalized=${normalizedDomain} articleId=${articleId} tenantId=${tenantId}`
+    );
+  }
 
   if (!articleId || !tenantId) {
+    const siteName = getSiteNameFromDomain(domain);
+    const baseUrl = await getRequestBaseUrl(domain);
+
+    const logoPath = `/Logo/${
+      normalizedDomain === "jejujapan.com"
+        ? "JEJUJAPANLOGO.png"
+        : normalizedDomain === "jejuqq.com"
+          ? "JEJUQQLOGO.png"
+          : "JEJUTIMELOGO.png"
+    }`;
+    const logoUrl = `${baseUrl}${logoPath}`;
+
+    let icon = "/icons/newsicons.ico";
+    if (normalizedDomain === "jejutime.com") icon = "/icons/jejutime.ico";
+    if (normalizedDomain === "jejuqq.com") icon = "/icons/jejuqq.ico";
+    if (normalizedDomain === "jejujapan.com") icon = "/icons/jejujapan.ico";
+
+    const fallbackImage = logoUrl || DEFAULT_OG_IMAGE;
+    const { optimized: ogImageOptimized, absolute: ogImageAbsolute } = buildOgImageUrl(
+      fallbackImage,
+      baseUrl
+    );
+
+    const optimizedIsLocal =
+      ogImageOptimized.includes(":3000") ||
+      ogImageOptimized.includes("localhost") ||
+      ogImageOptimized.includes("127.0.0.1");
+
+    const ogImages = optimizedIsLocal
+      ? [{ url: ogImageAbsolute, width: 1200, height: 630, alt: siteName }]
+      : [
+          { url: ogImageAbsolute, width: 1200, height: 630, alt: siteName },
+          { url: ogImageOptimized, width: 1200, height: 630, alt: siteName },
+        ];
+
+    if (isDev) {
+      console.log(
+        `[OG] selected images domain=${normalizedDomain} optimizedIsLocal=${optimizedIsLocal} imagesCount=${ogImages.length} first=${ogImages[0]?.url}`
+      );
+    }
+
+    const articleUrl = articleId
+      ? `${baseUrl}/article/${encodeURIComponent(articleId)}`
+      : baseUrl;
+
+    if (isDev) {
+      console.log(
+        `[OG] fallback(missing tenant/article) domain=${normalizedDomain} og:image abs=${ogImageAbsolute} og:image opt=${ogImageOptimized}`
+      );
+    }
+
     return {
+      metadataBase: new URL(baseUrl),
       title: DEFAULT_SEO.title,
       description: DEFAULT_SEO.description,
+      icons: { icon },
+      alternates: { canonical: articleUrl },
+      openGraph: {
+        title: DEFAULT_SEO.title,
+        description: DEFAULT_SEO.description,
+        url: articleUrl,
+        type: "article",
+        siteName,
+        images: ogImages,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: DEFAULT_SEO.title,
+        description: DEFAULT_SEO.description,
+        images: ogImages.map((i) => i.url),
+      },
     };
   }
 
   try {
     const article = await articlesService.getArticleBySlugOrId(articleId, tenantId);
     const title = article.title ?? DEFAULT_SEO.title;
-    const rawDescription = article.content ?? DEFAULT_SEO.description;
-    const description = rawDescription
-      .slice(0, 155)
-      .replace(/\s+/g, " ")
-      .trim();
-    const baseUrl = `https://www.${domain}`;
+    const description = cleanOgDescription(article.content ?? DEFAULT_SEO.description, 160);
     const siteName = getSiteNameFromDomain(domain);
-    const logoUrl = `${baseUrl}/Logo/${domain === 'jejujapan.com' ? 'JEJUJAPANLOGO.png' : domain === 'jejuqq.com' ? 'JEJUQQLOGO.png' : 'JEJUTIMELOGO.png'}`;
-    const ogImage = (article as any).imageUrl ?? logoUrl;
+    const baseUrl = await getRequestBaseUrl(domain);
+    const logoPath = `/Logo/${
+      normalizedDomain === "jejujapan.com"
+        ? "JEJUJAPANLOGO.png"
+        : normalizedDomain === "jejuqq.com"
+          ? "JEJUQQLOGO.png"
+          : "JEJUTIMELOGO.png"
+    }`;
+    const logoUrl = `${baseUrl}${logoPath}`;
     const canonicalSlug = article.slug ?? article.id;
-    const url = `/article/${canonicalSlug}`;
+    const articlePath = `/article/${canonicalSlug}`;
+    const articleUrl = `${baseUrl}${articlePath}`;
+
+    // Prefer the DB-provided Supabase image URL for OG:image.
+    const dbImageUrl = (article as any).imageUrl as string | undefined | null;
+    const rawOgImage = dbImageUrl?.trim() ? dbImageUrl.trim() : logoUrl || DEFAULT_OG_IMAGE;
+    const { optimized: ogImageOptimized, absolute: ogImageAbsolute } = buildOgImageUrl(
+      rawOgImage,
+      baseUrl
+    );
+    const usedDbImage = Boolean(dbImageUrl?.trim());
 
     let icon = "/icons/newsicons.ico";
-    if (domain === "jejutime.com") icon = "/icons/jejutime.ico";
-    if (domain === "jejuqq.com") icon = "/icons/jejuqq.ico";
-    if (domain === "jejujapan.com") icon = "/icons/jejujapan.ico";
+    if (normalizedDomain === "jejutime.com") icon = "/icons/jejutime.ico";
+    if (normalizedDomain === "jejuqq.com") icon = "/icons/jejuqq.ico";
+    if (normalizedDomain === "jejujapan.com") icon = "/icons/jejujapan.ico";
+
+    if (isDev) {
+      const hasAbs = Boolean(ogImageAbsolute);
+      const hasOpt = Boolean(ogImageOptimized);
+      console.log(
+        `[OG] success domain=${normalizedDomain} tenantId=${tenantId} usedDbImage=${usedDbImage} hasOgImage=${hasAbs && hasOpt} og:image abs=${ogImageAbsolute} og:image opt=${ogImageOptimized}`
+      );
+    }
+
+    const optimizedIsLocal =
+      ogImageOptimized.includes(":3000") ||
+      ogImageOptimized.includes("localhost") ||
+      ogImageOptimized.includes("127.0.0.1");
+
+    const ogImages = optimizedIsLocal
+      ? [
+          {
+            url: ogImageAbsolute,
+            width: 1200,
+            height: 630,
+            alt: siteName,
+          },
+        ]
+      : [
+          {
+            url: ogImageAbsolute, // Absolute URL is always publicly reachable (Supabase/public storage)
+            width: 1200,
+            height: 630,
+            alt: siteName,
+          },
+          {
+            url: ogImageOptimized,
+            width: 1200,
+            height: 630,
+            alt: siteName,
+          },
+        ];
+
+    if (isDev) {
+      console.log(
+        `[OG] selected images domain=${normalizedDomain} optimizedIsLocal=${optimizedIsLocal} imagesCount=${ogImages.length} first=${ogImages[0]?.url}`
+      );
+    }
 
     return {
       metadataBase: new URL(baseUrl),
@@ -101,51 +235,89 @@ export async function generateMetadata({
         icon: icon,
       },
       alternates: {
-        canonical: url,
+        canonical: articleUrl,
       },
       openGraph: {
         title,
         description,
-        url,
+        url: articleUrl,
         type: "article",
-        images: [
-          {
-            url: logoUrl,
-            width: 1200,
-            height: 630,
-            alt: siteName,
-          },
-          {
-            url: ogImage,
-            width: 1200,
-            height: 630,
-            alt: title,
-          },
-        ],
+        siteName,
+        images: ogImages,
       },
       twitter: {
         card: "summary_large_image",
         title,
         description,
-        images: [ogImage],
+        images: ogImages.map((i) => i.url),
       },
     };
-  } catch {
-    const url = `/article/${articleId}`;
+  } catch (error) {
+    const siteName = getSiteNameFromDomain(domain);
+    const baseUrl = await getRequestBaseUrl(domain);
+
+    const logoPath = `/Logo/${
+      normalizedDomain === "jejujapan.com"
+        ? "JEJUJAPANLOGO.png"
+        : normalizedDomain === "jejuqq.com"
+          ? "JEJUQQLOGO.png"
+          : "JEJUTIMELOGO.png"
+    }`;
+    const logoUrl = `${baseUrl}${logoPath}`;
+    const fallbackImage = logoUrl || DEFAULT_OG_IMAGE;
+    const { optimized: ogImageOptimized, absolute: ogImageAbsolute } = buildOgImageUrl(
+      fallbackImage,
+      baseUrl
+    );
 
     let icon = "/icons/newsicons.ico";
-    if (domain === "jejutime.com") icon = "/icons/jejutime.ico";
-    if (domain === "jejuqq.com") icon = "/icons/jejuqq.ico";
-    if (domain === "jejujapan.com") icon = "/icons/jejujapan.ico";
+    if (normalizedDomain === "jejutime.com") icon = "/icons/jejutime.ico";
+    if (normalizedDomain === "jejuqq.com") icon = "/icons/jejuqq.ico";
+    if (normalizedDomain === "jejujapan.com") icon = "/icons/jejujapan.ico";
+
+    const articleUrl = `${baseUrl}/article/${encodeURIComponent(articleId)}`;
+
+    if (isDev) {
+      const hasAbs = Boolean(ogImageAbsolute);
+      const hasOpt = Boolean(ogImageOptimized);
+      console.warn(
+        `[OG] error path domain=${normalizedDomain} tenantId=${tenantId} error=${String(
+          error
+        )} hasOgImage=${hasAbs && hasOpt} og:image abs=${ogImageAbsolute} og:image opt=${ogImageOptimized}`
+      );
+    }
+
+    const optimizedIsLocal =
+      ogImageOptimized.includes(":3000") ||
+      ogImageOptimized.includes("localhost") ||
+      ogImageOptimized.includes("127.0.0.1");
+
+    const ogImages = optimizedIsLocal
+      ? [{ url: ogImageAbsolute, width: 1200, height: 630, alt: siteName }]
+      : [
+          { url: ogImageAbsolute, width: 1200, height: 630, alt: siteName },
+          { url: ogImageOptimized, width: 1200, height: 630, alt: siteName },
+        ];
 
     return {
+      metadataBase: new URL(baseUrl),
       title: DEFAULT_SEO.title,
       description: DEFAULT_SEO.description,
-      icons: {
-        icon: icon,
+      icons: { icon },
+      alternates: { canonical: articleUrl },
+      openGraph: {
+        title: DEFAULT_SEO.title,
+        description: DEFAULT_SEO.description,
+        url: articleUrl,
+        type: "article",
+        siteName,
+        images: ogImages,
       },
-      alternates: {
-        canonical: url,
+      twitter: {
+        card: "summary_large_image",
+        title: DEFAULT_SEO.title,
+        description: DEFAULT_SEO.description,
+        images: ogImages.map((i) => i.url),
       },
     };
   }
