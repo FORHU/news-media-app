@@ -43,16 +43,23 @@ export function cleanOgDescription(raw: string | null | undefined, maxLen = 160)
 }
 
 export async function getRequestBaseUrl(fallbackDomain: string) {
-  // Prefer the actual request host (includes port in dev) so sharers/crawlers
-  // fetch OG tags and OG images from the same origin as the shared URL.
-  const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? fallbackDomain;
-  const protoHeader = h.get("x-forwarded-proto");
-  const isLocal =
-    host.includes("localhost") ||
-    host.includes("127.0.0.1") ||
-    /:\d+$/.test(host); // treat explicit ports as dev-like unless forwarded proto says otherwise
-  const protocol = protoHeader ?? (isLocal ? "http" : "https");
+  let host = fallbackDomain;
+  let protocol = "https";
+
+  try {
+    const h = await headers();
+    host = h.get("x-forwarded-host") ?? h.get("host") ?? fallbackDomain;
+    const protoHeader = h.get("x-forwarded-proto");
+    const isLocal =
+      host.includes("localhost") ||
+      host.includes("127.0.0.1") ||
+      /:\d+$/.test(host);
+    protocol = protoHeader ?? (isLocal ? "http" : "https");
+  } catch (e) {
+    console.error("Error fetching headers for metadata:", e);
+    // Fallback to https + the domain passed in
+  }
+
   return `${protocol}://${host}`;
 }
 
