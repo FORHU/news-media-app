@@ -22,6 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
   const siteName = getSiteNameFromDomain(domain);
 
   return {
+    metadataBase: new URL(`https://${domain}`),
     title: {
       default: siteName,
       template: `%s | ${siteName}`,

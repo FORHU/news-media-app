@@ -181,7 +181,7 @@ export default function JejuJapanArticle({
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-noto font-black text-black mb-6 leading-tight">
                 {article.title}
               </h1>
-              <p className="text-gray-500 text-sm">{formattedDate}</p>
+              <p suppressHydrationWarning className="text-gray-500 text-sm">{formattedDate}</p>
             </header>
 
             {showTweetCommentaryEmbed && rawTweet?.tweetId ? (
