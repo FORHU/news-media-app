@@ -19,22 +19,33 @@ interface Props {
 }
 
 export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
-  const heroArticles = articles.slice(0, 5);
-
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
 
-  const totalPages = Math.ceil(articles.length / itemsPerPage) || 1;
+  const sortedArticles = [...articles].sort((a, b) => {
+    if ((b.trendingScore || 0) !== (a.trendingScore || 0)) {
+      return (b.trendingScore || 0) - (a.trendingScore || 0);
+    }
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
+  const heroArticles = articles.slice(0, 5);
+  const heroIds = new Set(heroArticles.map(a => a.id));
+
+  const allLatestArticles = sortedArticles.filter(a => !heroIds.has(a.id));
+
+  const totalPages = Math.ceil(allLatestArticles.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const latestStories = articles.slice(startIndex, endIndex);
-  const trendingArticles = [...articles]
-    .sort((a, b) => {
-      if ((b.trendingScore || 0) !== (a.trendingScore || 0)) {
-        return (b.trendingScore || 0) - (a.trendingScore || 0);
-      }
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    })
+  const latestStories = allLatestArticles.slice(startIndex, endIndex);
+
+  const trendingArticles = sortedArticles
+    .filter(a => !heroIds.has(a.id))
+    .slice(0, 10);
+  const trendingIds = new Set(trendingArticles.map(a => a.id));
+
+  const sidebarPicks = sortedArticles
+    .filter(a => !heroIds.has(a.id) && !trendingIds.has(a.id))
     .slice(0, 5);
 
   const featuredArticles = articles.slice(0, 4);
@@ -146,17 +157,15 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-12">
                 {latestStories.map((article) => (
-                  <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex flex-row-reverse gap-5 group items-start">
-                    <div className="relative w-28 sm:w-40 md:w-48 aspect-[4/3] shrink-0 rounded-none overflow-hidden border-2 border-[#dc2626]">
-                      <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" />
+                  <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group block">
+                    <div className="relative aspect-[16/10] overflow-hidden rounded-none border-2 border-primary mb-4 bg-gray-50">
+                      <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 768px) 100vw, 400px" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <span className="text-[10px] text-primary font-bold font-serif uppercase mb-2 block tracking-[0.2em]">{article.category?.categoryName}</span>
-                      <h4 className="text-[17px] sm:text-[20px] font-serif font-bold leading-tight group-hover:text-primary transition-colors mb-2">{article.title}</h4>
-                      <p className="text-gray-500 text-sm line-clamp-2 leading-relaxed">{article.content}</p>
-                    </div>
+                    <span className="text-[10px] text-primary font-bold font-serif uppercase mb-2 block tracking-[0.2em]">{article.category?.categoryName}</span>
+                    <h4 className="text-xl font-serif font-bold leading-tight group-hover:text-primary transition-colors mb-2 line-clamp-2">{article.title}</h4>
+                    <p className="text-gray-500 text-sm line-clamp-2 leading-relaxed font-medium">{article.content}</p>
                   </Link>
                 ))}
               </div>
@@ -203,6 +212,28 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                   </Link>
                 ))}
               </div>
+
+              {/* Must Read Section */}
+              {sidebarPicks.length > 0 && (
+                <div className="mt-12 pt-8 border-t border-gray-200">
+                  <h3 className="text-xl font-serif font-bold mb-6 flex items-center gap-2">
+                    Must Read <span className="w-2 h-2 bg-primary"></span>
+                  </h3>
+                  <div className="space-y-6">
+                    {sidebarPicks.map((article) => (
+                      <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group block">
+                        <div className="relative aspect-video overflow-hidden border-2 border-primary mb-3">
+                          <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                        </div>
+                        <span className="text-[10px] font-bold font-serif text-primary uppercase tracking-widest block mb-1">{article.category?.categoryName}</span>
+                        <h4 className="text-sm font-bold leading-tight group-hover:text-primary transition-colors line-clamp-2">
+                          {article.title}
+                        </h4>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="mt-10 overflow-hidden">
                 <AdBanner position="HOME_SIDEBAR" initialBanners={banners.sidebar} />

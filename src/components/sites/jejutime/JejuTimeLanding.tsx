@@ -51,7 +51,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
    // 3. Sidebar Picks (Prominent cards below trending)
    const sidebarPicks = sortedArticles
      .filter(a => !heroIds.has(a.id) && !trendingIds.has(a.id))
-     .slice(0, 3);
+     .slice(0, 5);
    const sidebarPicksIds = new Set(sidebarPicks.map(a => a.id));
 
    // 4. Featured takes the next 4
