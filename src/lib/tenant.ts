@@ -41,11 +41,24 @@ export { TENANT_DOMAIN_COOKIE };
 
 export const resolveTenantIdFromDomain = cache(async (domain: string): Promise<string | null> => {
   if (!domain) return null;
-  const tenant = await prisma.tenant.findUnique({
-    where: { domain },
-    select: { id: true },
-  });
-  return tenant?.id ?? null;
+
+  const normalized = domain.trim().toLowerCase();
+  const candidates = new Set<string>([normalized]);
+  if (normalized.startsWith("www.")) {
+    candidates.add(normalized.slice(4));
+  } else {
+    candidates.add(`www.${normalized}`);
+  }
+
+  for (const d of candidates) {
+    const tenant = await prisma.tenant.findUnique({
+      where: { domain: d },
+      select: { id: true },
+    });
+    if (tenant?.id) return tenant.id;
+  }
+
+  return null;
 });
 
 export function getSiteNameFromDomain(domain: string | null): string {
