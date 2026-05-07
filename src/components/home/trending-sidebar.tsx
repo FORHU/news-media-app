@@ -32,7 +32,7 @@ export function TrendingSidebar({ articles, domain }: TrendingSidebarProps) {
       }
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     })
-    .slice(0, 5);
+    .slice(0, 10);
 
   return (
     <aside id="trending-stories" className="lg:col-span-1 scroll-mt-24">
