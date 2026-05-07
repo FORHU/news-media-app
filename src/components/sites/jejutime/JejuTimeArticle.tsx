@@ -202,7 +202,7 @@ export default function JejuTimeArticle({
                 </h1>
                 <div className="flex items-center justify-center gap-6">
                   <span className="h-[1px] w-12 bg-gradient-to-r from-transparent to-blue-400/30"></span>
-                  <p className="text-blue-200 font-medium tracking-[0.3em] uppercase text-[10px]">{formattedDate}</p>
+                  <p suppressHydrationWarning className="text-blue-200 font-medium tracking-[0.3em] uppercase text-[10px]">{formattedDate}</p>
                   <span className="h-[1px] w-12 bg-gradient-to-l from-transparent to-blue-400/30"></span>
                 </div>
             </div>

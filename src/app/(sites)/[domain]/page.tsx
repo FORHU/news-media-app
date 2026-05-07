@@ -55,6 +55,14 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
       description: DEFAULT_SEO.description,
       url: "/",
       type: "website",
+      images: [
+        {
+          url: `https://${domain}/Logo/${domain === 'jejujapan.com' ? 'JEJUJAPANLOGO.png' : domain === 'jejuqq.com' ? 'JEJUQQLOGO.png' : 'JEJUTIMELOGO.png'}`,
+          width: 1200,
+          height: 630,
+          alt: siteName,
+        },
+      ],
     },
   };
 }

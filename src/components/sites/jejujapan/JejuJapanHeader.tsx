@@ -75,7 +75,7 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 flex lg:grid lg:grid-cols-3 items-center justify-between text-[10px] font-bold uppercase tracking-widest">
             <div className="flex space-x-6 items-center">
               <span className="flex items-center gap-1"><Globe size={12} /> Tokyo - Jeju Bridge</span>
-              <span className="hidden xl:inline">{new Date().toLocaleDateString('ja-JP', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+              <span suppressHydrationWarning className="hidden xl:inline">{new Date().toLocaleDateString('ja-JP', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
             </div>
             
             <div className="flex justify-center hidden lg:flex">
@@ -125,7 +125,7 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
                     src="/Logo/JEJUJAPANLOGO.png"
                     alt="JejuJapan Logo"
                     fill
-                    className="object-contain object-left lg:object-center"
+                    className="object-contain object-center"
                     priority
                   />
                 </div>

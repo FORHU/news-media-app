@@ -13,7 +13,7 @@ import ArticlePageClient from "./ArticlePageClient";
 import JejuJapanArticle from "@/components/sites/jejujapan/JejuJapanArticle";
 import JejuQQArticle from "@/components/sites/jejuqq/JejuQQArticle";
 import JejuTimeArticle from "@/components/sites/jejutime/JejuTimeArticle";
-import { resolveTenantIdFromDomain } from "@/lib/tenant";
+import { resolveTenantIdFromDomain, getSiteNameFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
 
 // Pre-render the top 20 articles per domain at build time (SSG).
@@ -81,7 +81,10 @@ export async function generateMetadata({
       .slice(0, 155)
       .replace(/\s+/g, " ")
       .trim();
-    const ogImage = (article as any).imageUrl ?? DEFAULT_OG_IMAGE;
+    const baseUrl = `https://www.${domain}`;
+    const siteName = getSiteNameFromDomain(domain);
+    const logoUrl = `${baseUrl}/Logo/${domain === 'jejujapan.com' ? 'JEJUJAPANLOGO.png' : domain === 'jejuqq.com' ? 'JEJUQQLOGO.png' : 'JEJUTIMELOGO.png'}`;
+    const ogImage = (article as any).imageUrl ?? logoUrl;
     const canonicalSlug = article.slug ?? article.id;
     const url = `/article/${canonicalSlug}`;
 
@@ -91,6 +94,7 @@ export async function generateMetadata({
     if (domain === "jejujapan.com") icon = "/icons/jejujapan.ico";
 
     return {
+      metadataBase: new URL(baseUrl),
       title,
       description,
       icons: {
@@ -105,6 +109,12 @@ export async function generateMetadata({
         url,
         type: "article",
         images: [
+          {
+            url: logoUrl,
+            width: 1200,
+            height: 630,
+            alt: siteName,
+          },
           {
             url: ogImage,
             width: 1200,

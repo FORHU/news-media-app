@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useId } from "react";
+import { useState, useMemo, useId, useEffect } from "react";
 import { 
   Share2, 
   Link as LinkIcon, 
@@ -63,8 +63,20 @@ const BrandIcon = ({ name, className }: { name: string; className?: string }) =>
 
 export function ArticleShare({ title, url, site, className }: ArticleShareProps) {
   const [copied, setCopied] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const inputId = useId();
-  const shareUrl = typeof window !== "undefined" ? url || window.location.href : "";
+  
+  // Safely handle URL for hydration
+  const [currentUrl, setCurrentUrl] = useState(url || "");
+
+  useEffect(() => {
+    setMounted(true);
+    if (!url) {
+      setCurrentUrl(window.location.href);
+    }
+  }, [url]);
+
+  const shareUrl = currentUrl;
 
   const handleCopy = async () => {
     const copyToClipboard = async () => {
@@ -110,7 +122,7 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
     {
       name: "Messenger",
       color: "hover:bg-[#00B2FF] hover:text-white",
-      href: `https://www.facebook.com/dialog/send?link=${encodeURIComponent(shareUrl)}&app_id=121798348487900&redirect_uri=${encodeURIComponent(shareUrl)}`,
+      href: `https://www.facebook.com/dialog/send?app_id=121798348487900&link=${encodeURIComponent(shareUrl)}&redirect_uri=${encodeURIComponent(shareUrl)}`,
     },
     {
       name: "WhatsApp",

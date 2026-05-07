@@ -171,7 +171,7 @@ export default function JejuQQArticle({
                 <div className="flex items-center justify-between border-y border-gray-200 py-5">
                   <div className="flex items-center gap-4">
                     <div className="w-9 h-9 rounded-none bg-[#dc2626] flex items-center justify-center text-white font-black text-xs">QQ</div>
-                    <span className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">{formattedDate}</span>
+                    <span suppressHydrationWarning className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">{formattedDate}</span>
                   </div>
                 </div>
               </header>
