@@ -29,6 +29,30 @@ import { FacebookShareButton } from "./FacebookShareButton";
 
 type SiteTheme = "jejutime" | "jejuqq" | "jejujapan" | "newsicons";
 
+function normalizeShareUrl(input: string) {
+  try {
+    const u = new URL(input);
+    const isLocalhost =
+      u.hostname === "localhost" || u.hostname === "127.0.0.1" || u.hostname.endsWith(".local");
+
+    // If user is browsing a real domain in dev (e.g. jejujapan.com:3000),
+    // share the canonical public URL so Facebook can crawl it.
+    if (!isLocalhost && u.port) {
+      u.port = "";
+      u.protocol = "https:";
+    }
+
+    // If protocol is http on a real domain, upgrade to https for sharing.
+    if (!isLocalhost && u.protocol === "http:") {
+      u.protocol = "https:";
+    }
+
+    return u.toString();
+  } catch {
+    return input;
+  }
+}
+
 interface ArticleShareProps {
   title: string;
   url?: string;
@@ -68,12 +92,12 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
   const inputId = useId();
   
   // Safely handle URL for hydration
-  const [currentUrl, setCurrentUrl] = useState(url || "");
+  const [currentUrl, setCurrentUrl] = useState(url ? normalizeShareUrl(url) : "");
 
   useEffect(() => {
     setMounted(true);
     if (!url) {
-      setCurrentUrl(window.location.href);
+      setCurrentUrl(normalizeShareUrl(window.location.href));
     }
   }, [url]);
 
