@@ -35,27 +35,11 @@ function normalizeShareUrl(input: string) {
     const isLocalhost =
       u.hostname === "localhost" || u.hostname === "127.0.0.1" || u.hostname.endsWith(".local");
 
-    const forceWwwHosts = new Set([
-      "jejujapan.com",
-      "jejuqq.com",
-      "jejutime.com",
-      "newsicons.com",
-    ]);
-
     // If user is browsing a real domain in dev (e.g. jejujapan.com:3000),
     // share the canonical public URL so Facebook can crawl it.
     if (!isLocalhost && u.port) {
       u.port = "";
       u.protocol = "https:";
-    }
-
-    // Normalize to www for known tenant domains.
-    if (!isLocalhost) {
-      const hostLower = u.hostname.toLowerCase();
-      const withoutWww = hostLower.startsWith("www.") ? hostLower.slice(4) : hostLower;
-      if (forceWwwHosts.has(withoutWww)) {
-        u.hostname = `www.${withoutWww}`;
-      }
     }
 
     // If protocol is http on a real domain, upgrade to https for sharing.

@@ -68,11 +68,87 @@ export async function generateMetadata({
   const { domain, id } = await params;
   const articleId = decodeURIComponent(id?.trim() ?? "");
   const tenantId = await resolveTenantIdFromDomain(domain);
+  const normalizedDomain = domain.trim().toLowerCase().replace(/^www\./, "");
+  const isDev = process.env.NODE_ENV !== "production";
+
+  if (isDev) {
+    console.log(
+      `[OG] generateMetadata start domain=${domain} normalized=${normalizedDomain} articleId=${articleId} tenantId=${tenantId}`
+    );
+  }
 
   if (!articleId || !tenantId) {
+    const siteName = getSiteNameFromDomain(domain);
+    const baseUrl = await getRequestBaseUrl(domain);
+
+    const logoPath = `/Logo/${
+      normalizedDomain === "jejujapan.com"
+        ? "JEJUJAPANLOGO.png"
+        : normalizedDomain === "jejuqq.com"
+          ? "JEJUQQLOGO.png"
+          : "JEJUTIMELOGO.png"
+    }`;
+    const logoUrl = `${baseUrl}${logoPath}`;
+
+    let icon = "/icons/newsicons.ico";
+    if (normalizedDomain === "jejutime.com") icon = "/icons/jejutime.ico";
+    if (normalizedDomain === "jejuqq.com") icon = "/icons/jejuqq.ico";
+    if (normalizedDomain === "jejujapan.com") icon = "/icons/jejujapan.ico";
+
+    const fallbackImage = logoUrl || DEFAULT_OG_IMAGE;
+    const { optimized: ogImageOptimized, absolute: ogImageAbsolute } = buildOgImageUrl(
+      fallbackImage,
+      baseUrl
+    );
+
+    const optimizedIsLocal =
+      ogImageOptimized.includes(":3000") ||
+      ogImageOptimized.includes("localhost") ||
+      ogImageOptimized.includes("127.0.0.1");
+
+    const ogImages = optimizedIsLocal
+      ? [{ url: ogImageAbsolute, width: 1200, height: 630, alt: siteName }]
+      : [
+          { url: ogImageAbsolute, width: 1200, height: 630, alt: siteName },
+          { url: ogImageOptimized, width: 1200, height: 630, alt: siteName },
+        ];
+
+    if (isDev) {
+      console.log(
+        `[OG] selected images domain=${normalizedDomain} optimizedIsLocal=${optimizedIsLocal} imagesCount=${ogImages.length} first=${ogImages[0]?.url}`
+      );
+    }
+
+    const articleUrl = articleId
+      ? `${baseUrl}/article/${encodeURIComponent(articleId)}`
+      : baseUrl;
+
+    if (isDev) {
+      console.log(
+        `[OG] fallback(missing tenant/article) domain=${normalizedDomain} og:image abs=${ogImageAbsolute} og:image opt=${ogImageOptimized}`
+      );
+    }
+
     return {
+      metadataBase: new URL(baseUrl),
       title: DEFAULT_SEO.title,
       description: DEFAULT_SEO.description,
+      icons: { icon },
+      alternates: { canonical: articleUrl },
+      openGraph: {
+        title: DEFAULT_SEO.title,
+        description: DEFAULT_SEO.description,
+        url: articleUrl,
+        type: "article",
+        siteName,
+        images: ogImages,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: DEFAULT_SEO.title,
+        description: DEFAULT_SEO.description,
+        images: ogImages.map((i) => i.url),
+      },
     };
   }
 
@@ -83,9 +159,9 @@ export async function generateMetadata({
     const siteName = getSiteNameFromDomain(domain);
     const baseUrl = await getRequestBaseUrl(domain);
     const logoPath = `/Logo/${
-      domain === "jejujapan.com"
+      normalizedDomain === "jejujapan.com"
         ? "JEJUJAPANLOGO.png"
-        : domain === "jejuqq.com"
+        : normalizedDomain === "jejuqq.com"
           ? "JEJUQQLOGO.png"
           : "JEJUTIMELOGO.png"
     }`;
@@ -101,11 +177,55 @@ export async function generateMetadata({
       rawOgImage,
       baseUrl
     );
+    const usedDbImage = Boolean(dbImageUrl?.trim());
 
     let icon = "/icons/newsicons.ico";
-    if (domain === "jejutime.com") icon = "/icons/jejutime.ico";
-    if (domain === "jejuqq.com") icon = "/icons/jejuqq.ico";
-    if (domain === "jejujapan.com") icon = "/icons/jejujapan.ico";
+    if (normalizedDomain === "jejutime.com") icon = "/icons/jejutime.ico";
+    if (normalizedDomain === "jejuqq.com") icon = "/icons/jejuqq.ico";
+    if (normalizedDomain === "jejujapan.com") icon = "/icons/jejujapan.ico";
+
+    if (isDev) {
+      const hasAbs = Boolean(ogImageAbsolute);
+      const hasOpt = Boolean(ogImageOptimized);
+      console.log(
+        `[OG] success domain=${normalizedDomain} tenantId=${tenantId} usedDbImage=${usedDbImage} hasOgImage=${hasAbs && hasOpt} og:image abs=${ogImageAbsolute} og:image opt=${ogImageOptimized}`
+      );
+    }
+
+    const optimizedIsLocal =
+      ogImageOptimized.includes(":3000") ||
+      ogImageOptimized.includes("localhost") ||
+      ogImageOptimized.includes("127.0.0.1");
+
+    const ogImages = optimizedIsLocal
+      ? [
+          {
+            url: ogImageAbsolute,
+            width: 1200,
+            height: 630,
+            alt: siteName,
+          },
+        ]
+      : [
+          {
+            url: ogImageAbsolute, // Absolute URL is always publicly reachable (Supabase/public storage)
+            width: 1200,
+            height: 630,
+            alt: siteName,
+          },
+          {
+            url: ogImageOptimized,
+            width: 1200,
+            height: 630,
+            alt: siteName,
+          },
+        ];
+
+    if (isDev) {
+      console.log(
+        `[OG] selected images domain=${normalizedDomain} optimizedIsLocal=${optimizedIsLocal} imagesCount=${ogImages.length} first=${ogImages[0]?.url}`
+      );
+    }
 
     return {
       metadataBase: new URL(baseUrl),
@@ -123,44 +243,81 @@ export async function generateMetadata({
         url: articleUrl,
         type: "article",
         siteName,
-        images: [
-          {
-            url: ogImageAbsolute, // Prioritize absolute URL for Messenger compatibility
-            width: 1200,
-            height: 630,
-            alt: siteName,
-          },
-          {
-            url: ogImageOptimized,
-            width: 1200,
-            height: 630,
-            alt: siteName,
-          },
-        ],
+        images: ogImages,
       },
       twitter: {
         card: "summary_large_image",
         title,
         description,
-        images: [ogImageAbsolute, ogImageOptimized],
+        images: ogImages.map((i) => i.url),
       },
     };
-  } catch {
-    const url = `/article/${articleId}`;
+  } catch (error) {
+    const siteName = getSiteNameFromDomain(domain);
+    const baseUrl = await getRequestBaseUrl(domain);
+
+    const logoPath = `/Logo/${
+      normalizedDomain === "jejujapan.com"
+        ? "JEJUJAPANLOGO.png"
+        : normalizedDomain === "jejuqq.com"
+          ? "JEJUQQLOGO.png"
+          : "JEJUTIMELOGO.png"
+    }`;
+    const logoUrl = `${baseUrl}${logoPath}`;
+    const fallbackImage = logoUrl || DEFAULT_OG_IMAGE;
+    const { optimized: ogImageOptimized, absolute: ogImageAbsolute } = buildOgImageUrl(
+      fallbackImage,
+      baseUrl
+    );
 
     let icon = "/icons/newsicons.ico";
-    if (domain === "jejutime.com") icon = "/icons/jejutime.ico";
-    if (domain === "jejuqq.com") icon = "/icons/jejuqq.ico";
-    if (domain === "jejujapan.com") icon = "/icons/jejujapan.ico";
+    if (normalizedDomain === "jejutime.com") icon = "/icons/jejutime.ico";
+    if (normalizedDomain === "jejuqq.com") icon = "/icons/jejuqq.ico";
+    if (normalizedDomain === "jejujapan.com") icon = "/icons/jejujapan.ico";
+
+    const articleUrl = `${baseUrl}/article/${encodeURIComponent(articleId)}`;
+
+    if (isDev) {
+      const hasAbs = Boolean(ogImageAbsolute);
+      const hasOpt = Boolean(ogImageOptimized);
+      console.warn(
+        `[OG] error path domain=${normalizedDomain} tenantId=${tenantId} error=${String(
+          error
+        )} hasOgImage=${hasAbs && hasOpt} og:image abs=${ogImageAbsolute} og:image opt=${ogImageOptimized}`
+      );
+    }
+
+    const optimizedIsLocal =
+      ogImageOptimized.includes(":3000") ||
+      ogImageOptimized.includes("localhost") ||
+      ogImageOptimized.includes("127.0.0.1");
+
+    const ogImages = optimizedIsLocal
+      ? [{ url: ogImageAbsolute, width: 1200, height: 630, alt: siteName }]
+      : [
+          { url: ogImageAbsolute, width: 1200, height: 630, alt: siteName },
+          { url: ogImageOptimized, width: 1200, height: 630, alt: siteName },
+        ];
 
     return {
+      metadataBase: new URL(baseUrl),
       title: DEFAULT_SEO.title,
       description: DEFAULT_SEO.description,
-      icons: {
-        icon: icon,
+      icons: { icon },
+      alternates: { canonical: articleUrl },
+      openGraph: {
+        title: DEFAULT_SEO.title,
+        description: DEFAULT_SEO.description,
+        url: articleUrl,
+        type: "article",
+        siteName,
+        images: ogImages,
       },
-      alternates: {
-        canonical: url,
+      twitter: {
+        card: "summary_large_image",
+        title: DEFAULT_SEO.title,
+        description: DEFAULT_SEO.description,
+        images: ogImages.map((i) => i.url),
       },
     };
   }
