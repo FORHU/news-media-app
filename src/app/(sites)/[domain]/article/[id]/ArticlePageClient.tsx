@@ -20,6 +20,7 @@ import {
   splitReferenceLineFromContent,
   stripOriginalPostBlock,
 } from "@/lib/tweetArticleDisplay";
+import { ArticleShare } from "@/components/article/ArticleShare";
 
 export default function ArticlePageClient({
   articleId,
@@ -296,6 +297,12 @@ export default function ArticlePageClient({
 
               </>
             )}
+
+            <ArticleShare 
+              site="newsicons" 
+              title={article.title} 
+              className="mt-12"
+            />
           </article>
         </div>
 

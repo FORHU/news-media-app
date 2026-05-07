@@ -30,6 +30,7 @@ import {
   splitReferenceLineFromContent,
   stripOriginalPostBlock,
 } from "@/lib/tweetArticleDisplay";
+import { ArticleShare } from "@/components/article/ArticleShare";
 
 
 export default function JejuQQArticle({
@@ -215,6 +216,12 @@ export default function JejuQQArticle({
                   </div>
                 </>
               )}
+
+              <ArticleShare 
+                site="jejuqq" 
+                title={article.title} 
+                className="mt-12"
+              />
 
               {referenceLine && (
                 <div className="mt-16 pt-10 border-t border-gray-100">

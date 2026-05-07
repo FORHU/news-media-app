@@ -34,6 +34,7 @@ import {
   splitReferenceLineFromContent,
   stripOriginalPostBlock,
 } from "@/lib/tweetArticleDisplay";
+import { ArticleShare } from "@/components/article/ArticleShare";
 
 
 export default function JejuTimeArticle({ 
@@ -257,6 +258,12 @@ export default function JejuTimeArticle({
                     </div>
                 </>
                 )}
+
+                <ArticleShare 
+                  site="jejutime" 
+                  title={article.title} 
+                  className="mt-12"
+                />
 
                 {referenceLine && (
                   <div className="mt-16 pt-10 border-t border-blue-50 bg-blue-50/30 p-8 rounded-2xl border-dashed">
