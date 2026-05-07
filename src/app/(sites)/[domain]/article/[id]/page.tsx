@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { dehydrate } from "@tanstack/react-query";
 import { notFound, redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createQueryClient } from "@/lib/react-query";
 import { Hydrate } from "@/components/react-query/Hydrate";
 import {
@@ -57,6 +58,92 @@ export async function generateStaticParams() {
   }
 }
 
+function cleanOgDescription(raw: string | null | undefined, maxLen = 160) {
+  if (!raw) return "";
+
+  let text = raw;
+
+  // Remove base64 data URLs and long base64 blobs.
+  text = text.replace(
+    /data:image\/[a-zA-Z+]+;base64,[A-Za-z0-9+/=]+/g,
+    " "
+  );
+  text = text.replace(
+    /base64,[A-Za-z0-9+/=]{20,}/g,
+    " "
+  );
+  text = text.replace(
+    /[A-Za-z0-9+/]{100,}={0,2}/g,
+    " "
+  );
+
+  // Strip HTML tags.
+  text = text.replace(/<[^>]*>/g, " ");
+
+  // Strip fenced code blocks / inline code.
+  text = text.replace(/```[\s\S]*?```/g, " ");
+  text = text.replace(/`[^`]*`/g, " ");
+
+  // Convert basic markdown to plain text.
+  text = text.replace(/!\[([^\]]*)\]\([^)]+\)/g, "$1"); // images -> alt text
+  text = text.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1"); // links -> link text
+
+  // Remove common markdown tokens.
+  text = text.replace(/^#{1,6}\s*/gm, "");
+  text = text.replace(/^[>\-\*\+]\s+/gm, "");
+  text = text.replace(/[*_~]/g, "");
+
+  // Collapse whitespace and trim.
+  text = text.replace(/\s+/g, " ").trim();
+
+  if (text.length <= maxLen) return text;
+  return text.slice(0, maxLen).trim();
+}
+
+async function getRequestBaseUrl(fallbackDomain: string) {
+  // Prefer the actual request host (includes port in dev) so sharers/crawlers
+  // fetch OG tags and OG images from the same origin as the shared URL.
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? fallbackDomain;
+  const protoHeader = h.get("x-forwarded-proto");
+  const isLocal =
+    host.includes("localhost") ||
+    host.includes("127.0.0.1") ||
+    /:\d+$/.test(host); // treat explicit ports as dev-like unless forwarded proto says otherwise
+  const protocol = protoHeader ?? (isLocal ? "http" : "https");
+  return `${protocol}://${host}`;
+}
+
+function toAbsoluteUrl(maybeUrl: string, baseUrl: string) {
+  try {
+    // If already absolute, this is a no-op.
+    return new URL(maybeUrl).toString();
+  } catch {
+    // Relative or invalid absolute -> resolve against base.
+    return new URL(maybeUrl.startsWith("/") ? maybeUrl : `/${maybeUrl}`, baseUrl).toString();
+  }
+}
+
+function buildOgImageUrl(inputUrl: string, baseUrl: string) {
+  const absolute = toAbsoluteUrl(inputUrl, baseUrl);
+
+  // Facebook can be picky about formats (notably WebP). Using Next's built-in
+  // image optimizer makes the response content-type negotiation-friendly.
+  const lower = absolute.toLowerCase();
+  const shouldProxy =
+    lower.endsWith(".webp") ||
+    lower.includes("supabase") ||
+    lower.includes("storage") ||
+    lower.includes("amazonaws.com");
+
+  if (!shouldProxy) return absolute;
+
+  const optimized = `${baseUrl}/_next/image?url=${encodeURIComponent(
+    absolute
+  )}&w=1200&q=75`;
+  return optimized;
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -76,17 +163,25 @@ export async function generateMetadata({
   try {
     const article = await articlesService.getArticleBySlugOrId(articleId, tenantId);
     const title = article.title ?? DEFAULT_SEO.title;
-    const rawDescription = article.content ?? DEFAULT_SEO.description;
-    const description = rawDescription
-      .slice(0, 155)
-      .replace(/\s+/g, " ")
-      .trim();
-    const baseUrl = `https://www.${domain}`;
+    const description = cleanOgDescription(article.content ?? DEFAULT_SEO.description, 160);
     const siteName = getSiteNameFromDomain(domain);
-    const logoUrl = `${baseUrl}/Logo/${domain === 'jejujapan.com' ? 'JEJUJAPANLOGO.png' : domain === 'jejuqq.com' ? 'JEJUQQLOGO.png' : 'JEJUTIMELOGO.png'}`;
-    const ogImage = (article as any).imageUrl ?? logoUrl;
+    const baseUrl = await getRequestBaseUrl(domain);
+    const logoPath = `/Logo/${
+      domain === "jejujapan.com"
+        ? "JEJUJAPANLOGO.png"
+        : domain === "jejuqq.com"
+          ? "JEJUQQLOGO.png"
+          : "JEJUTIMELOGO.png"
+    }`;
+    const logoUrl = `${baseUrl}${logoPath}`;
     const canonicalSlug = article.slug ?? article.id;
-    const url = `/article/${canonicalSlug}`;
+    const articlePath = `/article/${canonicalSlug}`;
+    const articleUrl = `${baseUrl}${articlePath}`;
+
+    // Prefer the DB-provided Supabase image URL for OG:image.
+    const dbImageUrl = (article as any).imageUrl as string | undefined | null;
+    const rawOgImage = dbImageUrl?.trim() ? dbImageUrl.trim() : logoUrl || DEFAULT_OG_IMAGE;
+    const ogImage = buildOgImageUrl(rawOgImage, baseUrl);
 
     let icon = "/icons/newsicons.ico";
     if (domain === "jejutime.com") icon = "/icons/jejutime.ico";
@@ -101,25 +196,20 @@ export async function generateMetadata({
         icon: icon,
       },
       alternates: {
-        canonical: url,
+        canonical: articleUrl,
       },
       openGraph: {
         title,
         description,
-        url,
+        url: articleUrl,
         type: "article",
+        siteName,
         images: [
-          {
-            url: logoUrl,
-            width: 1200,
-            height: 630,
-            alt: siteName,
-          },
           {
             url: ogImage,
             width: 1200,
             height: 630,
-            alt: title,
+            alt: siteName,
           },
         ],
       },

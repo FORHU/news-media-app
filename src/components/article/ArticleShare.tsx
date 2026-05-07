@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { FacebookShareButton } from "./FacebookShareButton";
 
 type SiteTheme = "jejutime" | "jejuqq" | "jejujapan" | "newsicons";
 
@@ -228,23 +229,44 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
           />
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6 w-full">
-            {shareOptions.map((option) => (
-              <a
-                key={option.name}
-                href={option.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`Share on ${option.name}`}
-                className={cn(
-                  "flex items-center gap-3 p-3 border text-sm font-medium transition-colors group w-full min-w-0 overflow-hidden",
-                  styles.item,
-                  option.color
-                )}
-              >
-                <BrandIcon name={option.name} className="w-5 h-5 shrink-0 transition-transform group-hover:scale-110" />
-                <span className="truncate">{option.name}</span>
-              </a>
-            ))}
+            {shareOptions.map((option) =>
+              option.name === "Facebook" ? (
+                <FacebookShareButton
+                  key={option.name}
+                  articleUrl={shareUrl}
+                  className={cn(
+                    "flex items-center gap-3 p-3 border text-sm font-medium transition-colors group w-full min-w-0 overflow-hidden",
+                    styles.item,
+                    option.color
+                  )}
+                >
+                  <BrandIcon
+                    name={option.name}
+                    className="w-5 h-5 shrink-0 transition-transform group-hover:scale-110"
+                  />
+                  <span className="truncate">{option.name}</span>
+                </FacebookShareButton>
+              ) : (
+                <a
+                  key={option.name}
+                  href={option.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Share on ${option.name}`}
+                  className={cn(
+                    "flex items-center gap-3 p-3 border text-sm font-medium transition-colors group w-full min-w-0 overflow-hidden",
+                    styles.item,
+                    option.color
+                  )}
+                >
+                  <BrandIcon
+                    name={option.name}
+                    className="w-5 h-5 shrink-0 transition-transform group-hover:scale-110"
+                  />
+                  <span className="truncate">{option.name}</span>
+                </a>
+              )
+            )}
           </div>
 
           <div className="mt-6 w-full overflow-hidden">
