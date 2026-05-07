@@ -129,19 +129,13 @@ function buildOgImageUrl(inputUrl: string, baseUrl: string) {
 
   // Facebook can be picky about formats (notably WebP). Using Next's built-in
   // image optimizer makes the response content-type negotiation-friendly.
-  const lower = absolute.toLowerCase();
-  const shouldProxy =
-    lower.endsWith(".webp") ||
-    lower.includes("supabase") ||
-    lower.includes("storage") ||
-    lower.includes("amazonaws.com");
-
-  if (!shouldProxy) return absolute;
-
   const optimized = `${baseUrl}/_next/image?url=${encodeURIComponent(
     absolute
   )}&w=1200&q=75`;
-  return optimized;
+
+  // Always prefer the optimized, same-origin URL for crawlers,
+  // but keep the absolute original as a fallback.
+  return { optimized, absolute };
 }
 
 export async function generateMetadata({
@@ -181,7 +175,10 @@ export async function generateMetadata({
     // Prefer the DB-provided Supabase image URL for OG:image.
     const dbImageUrl = (article as any).imageUrl as string | undefined | null;
     const rawOgImage = dbImageUrl?.trim() ? dbImageUrl.trim() : logoUrl || DEFAULT_OG_IMAGE;
-    const ogImage = buildOgImageUrl(rawOgImage, baseUrl);
+    const { optimized: ogImageOptimized, absolute: ogImageAbsolute } = buildOgImageUrl(
+      rawOgImage,
+      baseUrl
+    );
 
     let icon = "/icons/newsicons.ico";
     if (domain === "jejutime.com") icon = "/icons/jejutime.ico";
@@ -206,7 +203,13 @@ export async function generateMetadata({
         siteName,
         images: [
           {
-            url: ogImage,
+            url: ogImageOptimized,
+            width: 1200,
+            height: 630,
+            alt: siteName,
+          },
+          {
+            url: ogImageAbsolute,
             width: 1200,
             height: 630,
             alt: siteName,
@@ -217,7 +220,7 @@ export async function generateMetadata({
         card: "summary_large_image",
         title,
         description,
-        images: [ogImage],
+        images: [ogImageOptimized, ogImageAbsolute],
       },
     };
   } catch {
