@@ -41,19 +41,6 @@ function normalizeShareUrl(input: string) {
       normalizedHostname === "jejuqq.com" ||
       normalizedHostname === "jejujapan.com";
 
-    // In local/dev with custom host mapping, `jejutime.com` is often accessed
-    // over plain HTTP (sometimes with non-standard ports like :3000).
-    // Keep the exact dev URL there so local verification remains possible.
-    const isDev = process.env.NODE_ENV !== "production";
-    if (
-      isDev &&
-      !isLocalhost &&
-      normalizedHostname === "jejutime.com" &&
-      u.protocol === "http:"
-    ) {
-      return u.toString();
-    }
-
     // In production, force a canonical tenant URL for social crawlers:
     // - use apex domain (no www)
     // - use https
