@@ -36,19 +36,36 @@ function normalizeShareUrl(input: string) {
       u.hostname === "localhost" || u.hostname === "127.0.0.1" || u.hostname.endsWith(".local");
 
     const normalizedHostname = u.hostname.replace(/^www\./, "").toLowerCase();
-    const isJejuTime = normalizedHostname === "jejutime.com";
+    const isTenantDomain =
+      normalizedHostname === "jejutime.com" ||
+      normalizedHostname === "jejuqq.com" ||
+      normalizedHostname === "jejujapan.com";
 
-    // `jejutime.com` is often accessed over plain HTTP in dev (sometimes even
-    // with a non-standard port). Stripping the port + forcing HTTPS can cause
-    // Facebook to crawl the wrong (or missing) page.
-    // Keeping the original URL (including port/protocol) ensures the crawler
-    // can reach the same origin that Next.js is serving.
-    if (!isLocalhost && isJejuTime && u.protocol === "http:") {
+    // In local/dev with custom host mapping, `jejutime.com` is often accessed
+    // over plain HTTP (sometimes with non-standard ports like :3000).
+    // Keep the exact dev URL there so local verification remains possible.
+    const isDev = process.env.NODE_ENV !== "production";
+    if (
+      isDev &&
+      !isLocalhost &&
+      normalizedHostname === "jejutime.com" &&
+      u.protocol === "http:"
+    ) {
       return u.toString();
     }
 
-    // If user is browsing a real domain in dev (e.g. jejujapan.com:3000),
-    // share the canonical public URL so Facebook can crawl it.
+    // In production, force a canonical tenant URL for social crawlers:
+    // - use apex domain (no www)
+    // - use https
+    // - strip non-standard ports
+    if (!isLocalhost && isTenantDomain) {
+      u.hostname = normalizedHostname;
+      u.protocol = "https:";
+      u.port = "";
+      return u.toString();
+    }
+
+    // For other non-local domains in dev, keep sharing canonical public URLs.
     if (!isLocalhost && u.port) {
       u.port = "";
       u.protocol = "https:";
