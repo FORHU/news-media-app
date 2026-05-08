@@ -26,11 +26,18 @@ export function FacebookShareButton({
         // Server-side log so you can verify the exact URL passed to Facebook.
         // (We only print to terminal for `jejutime.com` on the server.)
         try {
-          const domain = (() => {
+          const { domain, articleId } = (() => {
             try {
-              return new URL(url).hostname;
+              const parsed = new URL(url);
+              const normalizedDomain = parsed.hostname.replace(/^www\./, "").toLowerCase();
+              const pathParts = parsed.pathname.split("/").filter(Boolean);
+              const extractedArticleId =
+                pathParts.length >= 2 && pathParts[0] === "article"
+                  ? decodeURIComponent(pathParts.slice(1).join("/"))
+                  : "";
+              return { domain: normalizedDomain, articleId: extractedArticleId };
             } catch {
-              return "";
+              return { domain: "", articleId: "" };
             }
           })();
 
@@ -42,6 +49,7 @@ export function FacebookShareButton({
               domain,
               pageUrl: url,
               facebookSharerUrl: shareUrl,
+              articleId,
             }),
           });
         } catch {}

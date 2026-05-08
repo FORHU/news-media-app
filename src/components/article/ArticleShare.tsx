@@ -232,6 +232,29 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
 
   const styles = getThemeStyles();
 
+  // Avoid SSR/client hydration mismatch from Radix-generated IDs
+  // (e.g. aria-controls) by rendering dialog UI only on client.
+  if (!mounted) {
+    return (
+      <div className={cn("mt-12 pt-8 border-t border-slate-100 flex flex-col items-center gap-6", className)}>
+        <p
+          className={cn(
+            "text-xs font-bold uppercase tracking-[0.2em]",
+            site === "jejutime"
+              ? "text-blue-600/60"
+              : site === "jejuqq"
+                ? "text-[#b91c1c] font-garamond text-sm"
+                : site === "jejujapan"
+                  ? "text-black/40 font-noto"
+                  : "text-gray-400"
+          )}
+        >
+          {site === "jejuqq" ? "Share the Story" : site === "jejujapan" ? "SHARE" : "Share this article"}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className={cn("mt-12 pt-8 border-t border-slate-100 flex flex-col items-center gap-6", className)}>
       <p className={cn(
