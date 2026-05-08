@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { articlesService } from "@/services/articles.service";
+import { getTenantDomainFromRequest } from "@/lib/tenant";
 
 export async function POST(
   request: NextRequest,
@@ -10,8 +11,23 @@ export async function POST(
     // Handle both Promise and non-Promise params for compatibility
     const params = await context.params;
     const id = params?.id;
+
+    const tenantDomain = getTenantDomainFromRequest(request);
+    const requestHost =
+      request.headers.get("host") ??
+      request.headers.get("x-forwarded-host") ??
+      "";
+    const referer = request.headers.get("referer") ?? "";
     
-    console.log(`[View Tracker] Request for article: ${id}`);
+    console.log(
+      `[View Tracker] tenant=${tenantDomain} host=${requestHost} referer=${referer} article=${id}`
+    );
+
+    if (tenantDomain === "jejutime.com") {
+      console.log(
+        `[JEJUTIME VISIT] article=${id} (${id ? "view increment requested" : "missing id"})`
+      );
+    }
     
     if (!id) {
       return NextResponse.json({ error: "Missing ID" }, { status: 400 });

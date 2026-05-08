@@ -35,6 +35,18 @@ function normalizeShareUrl(input: string) {
     const isLocalhost =
       u.hostname === "localhost" || u.hostname === "127.0.0.1" || u.hostname.endsWith(".local");
 
+    const normalizedHostname = u.hostname.replace(/^www\./, "").toLowerCase();
+    const isJejuTime = normalizedHostname === "jejutime.com";
+
+    // `jejutime.com` is often accessed over plain HTTP in dev (sometimes even
+    // with a non-standard port). Stripping the port + forcing HTTPS can cause
+    // Facebook to crawl the wrong (or missing) page.
+    // Keeping the original URL (including port/protocol) ensures the crawler
+    // can reach the same origin that Next.js is serving.
+    if (!isLocalhost && isJejuTime && u.protocol === "http:") {
+      return u.toString();
+    }
+
     // If user is browsing a real domain in dev (e.g. jejujapan.com:3000),
     // share the canonical public URL so Facebook can crawl it.
     if (!isLocalhost && u.port) {

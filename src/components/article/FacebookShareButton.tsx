@@ -23,6 +23,29 @@ export function FacebookShareButton({
           url
         )}`;
 
+        // Server-side log so you can verify the exact URL passed to Facebook.
+        // (We only print to terminal for `jejutime.com` on the server.)
+        try {
+          const domain = (() => {
+            try {
+              return new URL(url).hostname;
+            } catch {
+              return "";
+            }
+          })();
+
+          void fetch("/api/debug/facebook-share", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            keepalive: true,
+            body: JSON.stringify({
+              domain,
+              pageUrl: url,
+              facebookSharerUrl: shareUrl,
+            }),
+          });
+        } catch {}
+
         const isMobile =
           window.matchMedia?.("(max-width: 640px)")?.matches ||
           /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
