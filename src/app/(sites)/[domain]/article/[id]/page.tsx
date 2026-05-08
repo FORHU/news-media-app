@@ -109,8 +109,9 @@ export async function generateMetadata({
     const ogImages = optimizedIsLocal
       ? [{ url: ogImageAbsolute, width: 1200, height: 630, alt: siteName }]
       : [
-          { url: ogImageAbsolute, width: 1200, height: 630, alt: siteName },
+          // Put same-origin optimized URL first for social crawlers.
           { url: ogImageOptimized, width: 1200, height: 630, alt: siteName },
+          { url: ogImageAbsolute, width: 1200, height: 630, alt: siteName },
         ];
 
     if (isDev) {
@@ -208,13 +209,14 @@ export async function generateMetadata({
         ]
       : [
           {
-            url: ogImageAbsolute, // Absolute URL is always publicly reachable (Supabase/public storage)
+            // Put same-origin optimized URL first for social crawlers.
+            url: ogImageOptimized,
             width: 1200,
             height: 630,
             alt: siteName,
           },
           {
-            url: ogImageOptimized,
+            url: ogImageAbsolute, // Keep source URL as fallback
             width: 1200,
             height: 630,
             alt: siteName,
@@ -295,8 +297,9 @@ export async function generateMetadata({
     const ogImages = optimizedIsLocal
       ? [{ url: ogImageAbsolute, width: 1200, height: 630, alt: siteName }]
       : [
-          { url: ogImageAbsolute, width: 1200, height: 630, alt: siteName },
+          // Put same-origin optimized URL first for social crawlers.
           { url: ogImageOptimized, width: 1200, height: 630, alt: siteName },
+          { url: ogImageAbsolute, width: 1200, height: 630, alt: siteName },
         ];
 
     return {
