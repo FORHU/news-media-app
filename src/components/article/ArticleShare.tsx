@@ -63,6 +63,20 @@ function normalizeShareUrl(input: string) {
       u.protocol = "https:";
     }
 
+    // Normalize path segments to a stable encoded form so social crawlers
+    // receive ASCII-safe URLs for non-Latin slugs.
+    u.pathname = u.pathname
+      .split("/")
+      .map((segment) => {
+        if (!segment) return segment;
+        try {
+          return encodeURIComponent(decodeURIComponent(segment));
+        } catch {
+          return encodeURIComponent(segment);
+        }
+      })
+      .join("/");
+
     return u.toString();
   } catch {
     return input;

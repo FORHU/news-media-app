@@ -168,7 +168,7 @@ export async function generateMetadata({
     }`;
     const logoUrl = `${baseUrl}${logoPath}`;
     const canonicalSlug = article.slug ?? article.id;
-    const articlePath = `/article/${canonicalSlug}`;
+    const articlePath = `/article/${encodeURIComponent(canonicalSlug)}`;
     const articleUrl = `${baseUrl}${articlePath}`;
 
     // Prefer the DB-provided Supabase image URL for OG:image.
