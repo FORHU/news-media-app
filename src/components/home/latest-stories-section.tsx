@@ -62,7 +62,9 @@ export function LatestStoriesSection({
   return (
     <div id="latest-stories" className="lg:col-span-2 scroll-mt-24">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-serif font-bold text-gray-900">Latest Stories</h2>
+        <h2 className={`text-2xl font-bold text-gray-900 ${domain.includes('voicejeju') ? 'font-voltaire uppercase tracking-tight text-3xl border-b-2 border-black pb-2' : 'font-serif'}`}>
+          Latest Stories
+        </h2>
       </div>
 
       {isLoading ? (
@@ -114,13 +116,14 @@ export function LatestStoriesSection({
       ) : (
         <div className="space-y-3">
           {(() => {
+            const isVoiceJeju = domain.includes('voicejeju');
             const isJejuQQ = domain === 'jejuqq.com';
             return (searchQuery ? articles : latestStories).map((article) => (
             <ArticleLink
               key={article.id}
               articleIdentifier={article.slug ?? article.id}
               href={`/article/${article.slug ?? article.id}`}
-              className={`group cursor-pointer flex ${isJejuQQ ? 'flex-row-reverse rounded-none' : 'flex-row rounded-lg'} gap-4 pb-6 border-b border-gray-200 hover:bg-gray-50 transition-colors p-2 sm:p-3`}
+              className={`group cursor-pointer flex ${isJejuQQ || isVoiceJeju ? 'rounded-none' : 'rounded-lg'} ${isJejuQQ ? 'flex-row-reverse' : 'flex-row'} gap-4 pb-6 border-b border-gray-200 hover:bg-gray-50 transition-colors p-2 sm:p-3`}
             >
               <div className={`relative w-28 sm:w-40 h-20 sm:h-28 bg-gray-200 ${isJejuQQ ? 'rounded-none border-2 border-primary' : 'rounded-lg'} overflow-hidden flex-shrink-0`}>
                 <StoryImage
@@ -141,7 +144,7 @@ export function LatestStoriesSection({
                   ) : null}
                 </div>
                 <h3 
-                  className="text-lg font-serif font-bold text-gray-900 mb-2 transition-colors line-clamp-2"
+                  className={`text-lg font-bold text-gray-900 mb-2 transition-colors line-clamp-2 ${isVoiceJeju ? 'font-voltaire uppercase tracking-tight text-xl' : 'font-serif'}`}
                   onMouseEnter={(e) => e.currentTarget.style.color = domainColor.hex}
                   onMouseLeave={(e) => e.currentTarget.style.color = '#111827'} // gray-900
                 >

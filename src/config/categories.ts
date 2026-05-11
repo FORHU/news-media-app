@@ -48,16 +48,16 @@ export const TENANT_CATEGORIES: Record<string, string[]> = {
     "Science",
   ],
   "voicejeju.com": [
-    "Jeju Today",
-    "Travel & Tourism",
-    "Food & Restaurants",
-    "Shopping & Markets",
-    "Stay & Accommodation",
-    "Getting Around",
-    "Events & Festivals",
-    "Nature & Outdoors",
-    "Visa & Entry Info",
-    "Local Business & Living"
+    "제주 오늘",
+    "여행 및 관광",
+    "음식 및 맛집",
+    "쇼핑 및 시장",
+    "숙박 정보",
+    "교통 및 이동",
+    "이벤트 및 축제",
+    "자연 및 아웃도어",
+    "비자 및 입국 정보",
+    "로컬 비즈니스 및 생활"
   ],
 };
 

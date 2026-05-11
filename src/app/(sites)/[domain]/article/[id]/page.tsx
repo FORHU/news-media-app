@@ -14,7 +14,7 @@ import ArticlePageClient from "./ArticlePageClient";
 import JejuJapanArticle from "@/components/sites/jejujapan/JejuJapanArticle";
 import JejuQQArticle from "@/components/sites/jejuqq/JejuQQArticle";
 import JejuTimeArticle from "@/components/sites/jejutime/JejuTimeArticle";
-import { VoiceJejuArticle } from "../../../../components/sites/voicejeju/VoiceJejuArticle"; // Site-specific article component
+import { VoiceJejuArticle } from "@/components/sites/voicejeju/VoiceJejuArticle"; // Site-specific article component
 import { resolveTenantIdFromDomain, getSiteNameFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
 

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { Search, Menu, User, X, ChevronDown, ChevronLeft, ChevronRight, Globe, Sun } from "lucide-react";
+import { Search, Menu, User, X, ChevronDown, ChevronLeft, ChevronRight, Globe, Sun, Cloud, CloudRain, CloudSnow, CloudLightning, Wind } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useRef } from "react";
 import { articlesApi } from "@/lib/api";
@@ -36,8 +36,41 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
+  const [weather, setWeather] = useState({ temp: "18°C", condition: "Clear" });
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
+
+  useEffect(() => {
+    // Fetch live weather for Jeju using JSON format for safety
+    const fetchWeather = async () => {
+      try {
+        const res = await fetch("https://wttr.in/Jeju?format=j1");
+        if (res.ok) {
+          const data = await res.json();
+          const current = data.current_condition?.[0];
+          if (current) {
+            setWeather({ 
+              temp: `${current.temp_C}°C`, 
+              condition: current.weatherDesc?.[0]?.value || "Clear" 
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Weather fetch failed:", err);
+      }
+    };
+    fetchWeather();
+  }, []);
+
+  const getWeatherIcon = (cond: string) => {
+    const c = cond.toLowerCase();
+    if (c.includes("rain") || c.includes("drizzle")) return <CloudRain size={12} className="text-gray-400" />;
+    if (c.includes("snow")) return <CloudSnow size={12} className="text-gray-400" />;
+    if (c.includes("thunder") || c.includes("storm")) return <CloudLightning size={12} className="text-gray-400" />;
+    if (c.includes("cloud") || c.includes("overcast")) return <Cloud size={12} className="text-gray-400" />;
+    if (c.includes("wind") || c.includes("gale")) return <Wind size={12} className="text-gray-400" />;
+    return <Sun size={12} className="text-gray-400" />;
+  };
 
   const checkScroll = () => {
     if (navRef.current) {
@@ -130,8 +163,8 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
 
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1.5">
-                <Sun size={12} className="text-gray-400" />
-                <span>18°C | Jeju City, KR</span>
+                {getWeatherIcon(weather.condition)}
+                <span>{weather.temp} | Jeju City, KR</span>
               </div>
             </div>
           </div>
@@ -215,23 +248,23 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
 
         {/* Search Overlay */}
         {isSearchOpen && (
-          <div className="absolute inset-0 bg-white z-[60] flex items-center px-4 lg:px-12 border-b border-black animate-in slide-in-from-top duration-300">
-            <form onSubmit={handleSearch} className="max-w-7xl mx-auto w-full flex items-center gap-6">
-              <Search className="text-gray-400" size={24} />
+          <div className="absolute inset-0 bg-white z-[60] flex items-center justify-center px-4 animate-in fade-in zoom-in-95 duration-200">
+            <form onSubmit={handleSearch} className="w-full max-w-2xl flex items-center gap-4 border-b-2 border-black pb-2">
+              <Search className="text-black" size={20} strokeWidth={2} />
               <input 
                 autoFocus
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="SEARCH FOR STORIES, TOPICS, OR KEYWORDS..."
-                className="flex-1 bg-transparent border-none outline-none text-2xl font-normal font-voltaire placeholder:text-gray-200 uppercase tracking-tight"
+                placeholder="SEARCH STORIES..."
+                className="flex-1 bg-transparent border-none outline-none text-xl lg:text-2xl font-normal font-voltaire placeholder:text-gray-300 uppercase tracking-widest"
               />
               <button 
                 type="button"
                 onClick={() => setIsSearchOpen(false)}
                 className="p-2 hover:bg-gray-50 rounded-full transition-colors"
               >
-                <X size={24} />
+                <X size={20} />
               </button>
             </form>
           </div>

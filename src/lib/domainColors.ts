@@ -9,12 +9,12 @@ export type DomainColor = {
 
 export const DOMAIN_COLORS: Record<string, DomainColor> = {
   "voicejeju.com": {
-    hex: "#e60000",
-    bgClass: "bg-[#e60000]",
-    textClass: "text-[#e60000]",
-    borderClass: "border-[#e60000]",
-    hoverBgClass: "hover:bg-[#cc0000]",
-    ringClass: "focus:ring-[#e60000]/20",
+    hex: "#000000",
+    bgClass: "bg-black",
+    textClass: "text-black",
+    borderClass: "border-black",
+    hoverBgClass: "hover:bg-gray-900",
+    ringClass: "focus:ring-black/20",
   },
   "jejutime.com": {
     hex: "#2563eb",

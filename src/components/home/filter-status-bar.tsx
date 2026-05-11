@@ -28,15 +28,17 @@ export function FilterStatusBar({
     router.push("/");
   };
 
+  const isVoiceJeju = domain.includes('voicejeju');
+
   return (
-    <div className="mb-6 flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg p-4">
+    <div className={`mb-6 flex items-center justify-between ${isVoiceJeju ? 'bg-white border-2 border-black rounded-none shadow-sm' : 'bg-gray-50 border border-gray-200 rounded-lg'} p-4`}>
       <div className="flex items-center gap-3 flex-wrap">
-        <span className="text-sm font-medium text-gray-700">
+        <span className={`text-sm font-bold uppercase tracking-widest text-gray-900 ${isVoiceJeju ? 'font-inter text-[10px]' : 'font-medium'}`}>
           Active Filters:
         </span>
         {categoryLabel && (
           <span 
-            className="px-3 py-1 text-white rounded-full text-xs font-medium"
+            className={`px-3 py-1 text-white ${isVoiceJeju ? 'rounded-none uppercase tracking-widest font-black text-[9px]' : 'rounded-full text-xs font-medium'}`}
             style={{ backgroundColor: domainColor.hex }}
           >
             Category: {categoryLabel}
@@ -44,28 +46,35 @@ export function FilterStatusBar({
         )}
         {searchQuery && (
           <span 
-            className="px-3 py-1 text-white rounded-full text-xs font-medium"
+            className={`px-3 py-1 text-white ${isVoiceJeju ? 'rounded-none uppercase tracking-widest font-black text-[9px]' : 'rounded-full text-xs font-medium'}`}
             style={{ backgroundColor: domainColor.hex }}
           >
             Search: &quot;{searchQuery}&quot;
           </span>
         )}
-        <span className="text-sm text-gray-600">
+        <span className={`text-sm text-gray-600 ${isVoiceJeju ? 'font-bold uppercase text-[9px] tracking-widest' : ''}`}>
           ({resultCount} {resultCount === 1 ? "result" : "results"})
         </span>
       </div>
       <button
         type="button"
         onClick={clearFilters}
+        className={`flex items-center gap-1.5 px-4 py-2 text-sm font-bold transition-all border ${isVoiceJeju ? 'rounded-none border-black hover:bg-black hover:text-white uppercase tracking-widest text-[10px]' : 'rounded-lg border-transparent text-gray-700'}`}
+        style={!isVoiceJeju ? { 
+          // Keep old style for other sites
+        } : {}}
         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = domainColor.hex;
-          e.currentTarget.style.color = 'white';
+          if (!isVoiceJeju) {
+            e.currentTarget.style.backgroundColor = domainColor.hex;
+            e.currentTarget.style.color = 'white';
+          }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'transparent';
-          e.currentTarget.style.color = '#374151'; // gray-700
+          if (!isVoiceJeju) {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.color = '#374151'; // gray-700
+          }
         }}
-        className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-700 rounded-lg transition-colors border border-transparent"
       >
         <X className="w-4 h-4" />
         Clear Filters

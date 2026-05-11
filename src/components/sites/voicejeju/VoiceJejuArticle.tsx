@@ -30,6 +30,25 @@ export function VoiceJejuArticle({
   initialOtherArticles?: Article[];
 }) {
   const router = useRouter();
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  useEffect(() => {
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+          const progress = (window.scrollY / totalHeight) * 100;
+          setScrollProgress(progress);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -60,15 +79,15 @@ export function VoiceJejuArticle({
     return (
       <div className="flex items-center justify-center py-32 px-6 bg-white min-h-[60vh]">
         <div className="text-center max-w-md">
-          <p className="text-gray-900 font-semibold mb-2">
-            We couldn’t load this article.
+          <p className="text-black font-black mb-2 uppercase tracking-widest">
+            Content Unavailable
           </p>
           <p className="text-gray-600 mb-6">
-            Please try again, or go back to the homepage.
+            We couldn’t load this article. Please try again or return to the main feed.
           </p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#e60000] transition-colors"
+            className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.4em] text-black border-2 border-black px-6 py-3 hover:bg-black hover:text-white transition-all"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to home
@@ -161,40 +180,75 @@ export function VoiceJejuArticle({
   const secondHalf = paragraphs.slice(midpoint).join("\n\n");
 
   return (
-    <div className="bg-white min-h-screen font-inter">
-      <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 pt-8 pb-8">
-        <button
-          type="button"
-          onClick={() =>
-            window.history.length > 1 ? router.back() : router.push("/")
-          }
-          className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-black mb-10 transition-colors border-b border-transparent hover:border-black pb-1"
-        >
-          <ArrowLeft className="w-3 h-3" />
-          Back to Stories
-        </button>
+    <div className="bg-white min-h-screen font-inter selection:bg-black selection:text-white pb-20">
+      {/* Reading Progress Bar */}
+      <div className="fixed top-0 left-0 w-full h-[3px] bg-gray-100 z-[100]">
+        <div 
+          className="h-full bg-black transition-all duration-150 ease-out"
+          style={{ width: `${scrollProgress}%` }}
+        />
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-          <div className="lg:col-span-8">
-            <article>
-              <header className="mb-10">
-                {normalizeCategoryName(article.category?.categoryName) ? (
-                  <span className="inline-block text-[11px] font-black text-[#e60000] uppercase tracking-[0.25em] mb-6">
+      {/* Spacing to separate from Global Header Nav */}
+      <div className="h-4 bg-white border-b border-gray-100" />
+
+      {/* Immersive Header Wrapper */}
+      <div className="bg-black text-white pt-16 pb-24 mb-16 relative overflow-hidden">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 relative text-center">
+            <div className="flex flex-col sm:flex-row items-center justify-center relative mb-12 gap-6 sm:gap-0 min-h-[40px]">
+                <button
+                  type="button"
+                  onClick={() =>
+                    window.history.length > 1 ? router.back() : router.push("/")
+                  }
+                  className="sm:absolute sm:left-0 inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.5em] text-white/70 hover:text-white transition-all bg-white/5 border border-white/10 px-6 py-2.5 rounded-sm"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Back
+                </button>
+                
+                {normalizeCategoryName(article.category?.categoryName) && (
+                  <span className="inline-block px-5 py-1.5 bg-white/10 text-white rounded-none text-[10px] font-black uppercase tracking-[0.4em] border border-white/10">
                     {normalizeCategoryName(article.category?.categoryName)}
                   </span>
-                ) : null}
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-normal text-gray-900 mb-8 font-voltaire tracking-tight leading-[1.1]">
-                  {article.title}
-                </h1>
-                <div className="flex items-center gap-4 text-gray-500 text-[11px] font-bold uppercase tracking-wider">
-                   <span>{formattedDate}</span>
-                   <span className="w-1 h-1 bg-gray-300 rounded-full" />
-                   <span>VoiceJeju Editorial</span>
-                </div>
-              </header>
+                )}
+            </div>
 
+            <div className="max-w-5xl mx-auto">
+                <h1 className="text-4xl sm:text-6xl lg:text-8xl font-normal text-white mb-12 font-voltaire tracking-tighter leading-[0.9] uppercase">
+                    {article.title}
+                </h1>
+                <div className="flex items-center justify-center gap-8">
+                  <div className="h-[1px] w-16 bg-white/20"></div>
+                  <div className="flex items-center gap-4 text-white/60 text-[11px] font-black uppercase tracking-[0.4em]">
+                    <span>{formattedDate}</span>
+                    <div className="w-1.5 h-1.5 bg-white/40" />
+                    <span>VoiceJeju Team</span>
+                  </div>
+                  <div className="h-[1px] w-16 bg-white/20"></div>
+                </div>
+            </div>
+        </div>
+      </div>
+
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24">
+          
+          {/* Left Sidebar: Trending Stories */}
+          <aside className="lg:col-span-3 space-y-16 lg:pr-10 border-r border-gray-100 hidden lg:block">
+            <div className="sticky top-32">
+               <div className="border-t-4 border-black pt-12 mb-12">
+                  <TrendingSidebar articles={trendingArticles} domain="voicejeju.com" />
+               </div>
+               <AdBanner position="ARTICLE_SIDEBAR" />
+            </div>
+          </aside>
+
+          {/* Main Content Area */}
+          <div className="lg:col-span-9">
+            <article className="max-w-5xl">
               {showTweetCommentaryEmbed && rawTweet?.tweetId ? (
-                <div className="mt-8 mb-10">
+                <div className="mb-12">
                   <TwitterStatusEmbed
                     tweetId={rawTweet.tweetId}
                     profileUrl={rawTweet.profileUrl}
@@ -202,10 +256,9 @@ export function VoiceJejuArticle({
                 </div>
               ) : null}
 
-
               {showYoutubePlayer ? (
                 <>
-                  <div className="mt-6 mb-10 overflow-hidden bg-black aspect-video shadow-2xl">
+                  <div className="mb-16 overflow-hidden bg-black aspect-video border border-gray-100">
                     <iframe
                       src={`https://www.youtube.com/embed/${youtubeId}`}
                       title="YouTube video player"
@@ -217,11 +270,11 @@ export function VoiceJejuArticle({
 
                   {article.imageUrl ? (
                     <>
-                      <div className="text-gray-800 leading-[1.7] whitespace-pre-wrap font-inter text-[17px]">
+                      <div className="text-gray-900 leading-[1.8] whitespace-pre-wrap font-inter text-lg lg:text-xl border-l-4 border-gray-100 pl-10 mb-16 italic opacity-95">
                         {firstHalf}
                       </div>
 
-                      <div className="my-12 overflow-hidden bg-gray-100 relative aspect-video shadow-sm">
+                      <div className="my-16 overflow-hidden bg-gray-50 relative aspect-video border-y border-gray-100">
                         <StoryImage
                           src={article.imageUrl}
                           alt={article.title}
@@ -233,29 +286,20 @@ export function VoiceJejuArticle({
                       </div>
 
                       {secondHalf && (
-                        <div className="text-gray-800 leading-[1.7] whitespace-pre-wrap font-inter text-[17px]">
+                        <div className="text-gray-900 leading-[1.8] whitespace-pre-wrap font-inter text-lg lg:text-xl">
                           {secondHalf}
                         </div>
                       )}
                     </>
                   ) : (
-                    <div className="mt-10 text-gray-800 leading-[1.7] whitespace-pre-wrap font-inter text-[17px]">
+                    <div className="text-gray-900 leading-[1.8] whitespace-pre-wrap font-inter text-lg lg:text-xl">
                       {fullContent}
                     </div>
                   )}
-                  {referenceLine ? (
-                    <div className="mt-16 pt-10 border-t border-gray-100">
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.3em] mb-4">Reference</p>
-                      <p className="text-sm text-gray-500 italic leading-relaxed font-inter">
-                        {referenceLine}
-                      </p>
-                    </div>
-                  ) : null}
-
                 </>
               ) : (
                 <>
-                  <div className="mt-6 overflow-hidden bg-gray-100 relative aspect-video shadow-sm border border-gray-100">
+                  <div className="overflow-hidden bg-gray-50 relative aspect-video lg:aspect-[21/9] border-y border-gray-100 mb-16">
                     <StoryImage
                       src={article.imageUrl}
                       alt={article.title}
@@ -267,65 +311,47 @@ export function VoiceJejuArticle({
                     />
                   </div>
 
-                  <div className="mt-12 text-gray-800 leading-[1.8] whitespace-pre-wrap font-inter text-[18px] max-w-3xl mx-auto lg:mx-0">
+                  <div className="text-gray-900 leading-[1.8] whitespace-pre-wrap font-inter text-lg lg:text-xl max-w-4xl mb-16">
                     {fullContent}
                   </div>
-                  {referenceLine ? (
-                    <div className="mt-16 pt-10 border-t border-gray-100">
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.3em] mb-4">Reference</p>
-                      <p className="text-sm text-gray-500 italic leading-relaxed font-inter">
-                        {referenceLine}
-                      </p>
-                    </div>
-                  ) : null}
                 </>
               )}
+
+              {referenceLine ? (
+                <div className="mt-20 pt-12 border-t border-black">
+                  <p className="text-[11px] text-black font-black uppercase tracking-[0.5em] mb-6">Source & Reference</p>
+                  <p className="text-sm text-gray-700 italic leading-relaxed font-inter border-l-2 border-gray-200 pl-6">
+                    {referenceLine}
+                  </p>
+                </div>
+              ) : null}
 
               <ArticleShare 
                 site="voicejeju" 
                 title={article.title} 
-                className="mt-16 py-12 border-y border-gray-100"
+                className="mt-24 py-16 border-y border-gray-100"
               />
             </article>
           </div>
-
-          <div className="lg:col-span-4 space-y-12">
-            <TrendingSidebar articles={trendingArticles} domain="voicejeju.com" />
-            <div className="sticky top-28">
-               <AdBanner position="ARTICLE_SIDEBAR" />
-            </div>
-          </div>
         </div>
-      </main>
+      </div>
 
-      {/* Recommended Articles Section: New Premium Magazine Design */}
+      {/* Recommended Articles Section: Editorial Grid */}
       {recommendedArticles.length > 0 && (
-        <section className="bg-black text-white mt-20 pt-20 pb-0">
+        <section className="bg-black text-white py-24 mt-32">
           <div className="max-w-[1440px] mx-auto px-4 lg:px-12">
-            <h2 className="text-[11px] font-black uppercase tracking-[0.4em] mb-12 text-gray-500 text-center">
-              Recommended for you
+            <h2 className="text-[12px] font-black uppercase tracking-[0.6em] mb-16 text-gray-400 text-center">
+              Continue Reading
             </h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 w-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 w-full gap-0 border-t border-gray-800">
               {recommendedArticles.map((rec) => (
                 <Link 
                   key={rec.id} 
                   href={`/article/${rec.slug || rec.id}`}
-                  className="group flex flex-col h-full border-r border-gray-800 last:border-r-0 hover:bg-gray-900/50 transition-colors"
+                  className="group flex flex-col h-full border-r border-gray-800 last:border-r-0 hover:bg-white/5 transition-all"
                 >
-                  <div className="p-8 flex flex-col flex-1">
-                    <h3 className="text-xl font-normal font-voltaire mb-4 line-clamp-3 leading-tight group-hover:text-gray-300 transition-colors">
-                      {rec.title}
-                    </h3>
-                    <p className="text-gray-500 text-xs leading-relaxed line-clamp-3 mb-6 font-medium">
-                      {rec.excerpt || rec.content?.slice(0, 120)}...
-                    </p>
-                    <div className="mt-auto flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-600 group-hover:text-[#e60000] transition-colors">
-                       <Clock size={12} />
-                       <span>5 MIN READ</span>
-                    </div>
-                  </div>
-                  <div className="relative aspect-[4/3] w-full overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500">
+                  <div className="relative aspect-[4/3] w-full overflow-hidden">
                     <StoryImage
                       src={rec.imageUrl}
                       alt={rec.title}
@@ -333,6 +359,16 @@ export function VoiceJejuArticle({
                       sizes="(max-width: 768px) 100vw, 25vw"
                       className="object-cover transition-transform duration-700 group-hover:scale-105"
                     />
+                  </div>
+                  <div className="p-8 flex flex-col flex-1">
+                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-[0.4em] mb-4">{rec.category?.categoryName}</span>
+                    <h3 className="text-2xl font-normal font-voltaire mb-6 line-clamp-3 leading-tight group-hover:underline transition-all">
+                      {rec.title}
+                    </h3>
+                    <div className="mt-auto flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-gray-600 group-hover:text-white transition-colors">
+                       <Clock size={12} />
+                       <span>5 MIN READ</span>
+                    </div>
                   </div>
                 </Link>
               ))}
