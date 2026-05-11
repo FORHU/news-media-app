@@ -14,6 +14,7 @@ import {
     Trash2,
     AlertCircle,
     Check,
+    Layout,
 } from "lucide-react";
 import {
     Dialog,
@@ -88,6 +89,7 @@ export default function PublishArticleModal({
     const [youtubeUrl, setYoutubeUrl] = React.useState(
         (article as any).rawVideo?.youtubeUrl ?? (article as any).youtubeUrl ?? ""
     );
+    const [isHeadline, setIsHeadline] = React.useState(article.isHeadline ?? false);
     const [imageFile, setImageFile] = React.useState<File | null>(null);
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [isUploadingImage, setIsUploadingImage] = React.useState(false);
@@ -103,6 +105,7 @@ export default function PublishArticleModal({
             setContent(article.content ?? "");
             setCategoryId(article.categoryId ?? (article.category as any)?.id ?? "");
             setYoutubeUrl((article as any).rawVideo?.youtubeUrl ?? (article as any).youtubeUrl ?? "");
+            setIsHeadline(article.isHeadline ?? false);
             setImageFile(null);
             setImagePreview(null);
             setError(null);
@@ -212,6 +215,7 @@ export default function PublishArticleModal({
                 youtubeUrl: youtubeUrl.trim() || null,
                 imageUrl: finalImageUrl || null, // Always send string or null like youtubeUrl
                 publish,
+                isHeadline,
             });
         },
         onSuccess: (_data, publish) => {
@@ -349,6 +353,32 @@ export default function PublishArticleModal({
                                         {fieldErrors.categoryId}
                                     </p>
                                 )}
+                            </div>
+
+                            {/* ── HEADLINE TOGGLE ── */}
+                            <div className="flex items-center justify-between p-4 rounded-2xl bg-orange-50 border border-orange-100 shadow-sm group hover:shadow-md transition-all">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm text-orange-500">
+                                        <Layout className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-black text-gray-900">Set as Headline</p>
+                                        <p className="text-[11px] text-gray-500 font-medium">Place this article in the hero spotlight</p>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsHeadline(!isHeadline)}
+                                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                                        isHeadline ? "bg-orange-500" : "bg-gray-200"
+                                    }`}
+                                >
+                                    <span
+                                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                            isHeadline ? "translate-x-5" : "translate-x-0"
+                                        }`}
+                                    />
+                                </button>
                             </div>
 
                             {/* ── CONTENT ── */}

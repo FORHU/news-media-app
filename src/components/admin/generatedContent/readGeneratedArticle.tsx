@@ -10,8 +10,12 @@ import {
     Copy,
     Check,
     ExternalLink,
-    User
+    User,
+    Layout,
+    Loader2,
+    Star
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     Dialog,
     DialogContent,
@@ -19,12 +23,15 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { articlesApi } from '@/lib/api';
 import { Article } from '@/lib/types';
 import { format } from 'date-fns';
 import { normalizeCategoryName } from '@/lib/categoryDisplay';
 import { extractYoutubeId } from '@/lib/utils';
 import TwitterStatusEmbed from '@/components/article/TwitterStatusEmbed';
 import { StoryImage } from '@/components/StoryImage';
+import ConfirmationModal from '@/components/admin/shared/ConfirmationModal';
 import {
     isSocialCommentaryGenerationMode,
     splitReferenceLineFromContent,
@@ -42,7 +49,50 @@ export default function ReadGeneratedArticle({
     open,
     onOpenChange,
 }: ReadGeneratedArticleProps) {
+    const queryClient = useQueryClient();
     const [copied, setCopied] = React.useState(false);
+    const [isHeadline, setIsHeadline] = React.useState(article?.isHeadline ?? false);
+    const [isConfirmOpen, setIsConfirmOpen] = React.useState(false);
+
+    // Sync state when article or open changes
+    React.useEffect(() => {
+        if (open && article) {
+            setIsHeadline(article.isHeadline ?? false);
+        }
+    }, [open, article]);
+
+    const headlineMutation = useMutation({
+        mutationFn: (val: boolean) => {
+            if (!article) throw new Error("No article selected");
+            return articlesApi.updateArticle(article.id, { isHeadline: val });
+        },
+        onSuccess: async () => {
+            await queryClient.refetchQueries({
+                queryKey: ['generatedArticles'],
+                type: 'active'
+            });
+        },
+        onError: (error: any) => {
+            console.error("Failed to update headline status:", error);
+            // Revert local state on error
+            setIsHeadline(article?.isHeadline ?? false);
+        }
+    });
+
+    const toggleHeadline = () => {
+        setIsConfirmOpen(true);
+    };
+
+    const handleConfirmHeadline = async () => {
+        const newVal = !isHeadline;
+        setIsConfirmOpen(false);
+        try {
+            await headlineMutation.mutateAsync(newVal);
+            setIsHeadline(newVal);
+        } catch (error) {
+            console.error("Headline update failed:", error);
+        }
+    };
 
     if (!article) return null;
 
@@ -105,6 +155,77 @@ export default function ReadGeneratedArticle({
                 aria-describedby={undefined}
                 className="w-[95vw] sm:max-w-[800px] max-h-[90vh] p-0 overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] border-none bg-white shadow-2xl flex flex-col"
             >
+                {/* ── TOP HEADLINE PRIORITY CONTROL ── */}
+                <motion.div 
+                    animate={{ 
+                        backgroundColor: isHeadline ? '#ea580c' : '#f9fafb',
+                        borderColor: isHeadline ? '#f97316' : '#e5e7eb'
+                    }}
+                    className="px-6 sm:px-8 py-4 flex items-center justify-between transition-all duration-500 flex-shrink-0 z-30 border-b-2"
+                >
+                    <div className="flex items-center gap-4">
+                        <motion.div 
+                            animate={{ 
+                                scale: isHeadline ? 1.1 : 1,
+                                rotate: isHeadline ? 12 : 0,
+                                backgroundColor: isHeadline ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,1)'
+                            }}
+                            className={`w-11 h-11 rounded-2xl flex items-center justify-center shadow-sm transition-all duration-500 ${
+                            isHeadline ? 'text-white' : 'text-gray-400 border border-gray-200'
+                        }`}>
+                            <Layout className="w-6 h-6" />
+                        </motion.div>
+                        <div>
+                            <p className={`text-[10px] font-black uppercase tracking-[0.2em] leading-none mb-1.5 ${
+                                isHeadline ? 'text-orange-200' : 'text-gray-400'
+                            }`}>Editorial Priority</p>
+                            <div className="flex items-center gap-2">
+                                <span className={`text-base font-black leading-none ${
+                                    isHeadline ? 'text-white' : 'text-gray-900'
+                                }`}>Headline Spotlight</span>
+                                {isHeadline && (
+                                    <motion.div
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        className="px-2 py-0.5 bg-white text-orange-600 text-[9px] font-black rounded-full"
+                                    >
+                                        ACTIVE
+                                    </motion.div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-4">
+                        {isHeadline && (
+                            <motion.span 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="hidden sm:block text-xs font-bold text-orange-100 italic"
+                            >
+                                This article is currently featured on the hero section
+                            </motion.span>
+                        )}
+                        <button
+                            type="button"
+                            disabled={headlineMutation.isPending}
+                            onClick={toggleHeadline}
+                            className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${
+                                isHeadline ? "bg-orange-400 shadow-inner" : "bg-gray-300"
+                            }`}
+                        >
+                            <motion.span
+                                animate={{ x: isHeadline ? 20 : 0 }}
+                                className="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-xl ring-0 transition duration-300 ease-in-out"
+                            />
+                            {headlineMutation.isPending && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                                </div>
+                            )}
+                        </button>
+                    </div>
+                </motion.div>
                 {/* Header with AI/Admin Aesthetic */}
                 <div className="relative bg-gray-900 px-6 sm:px-8 py-8 sm:py-10 overflow-hidden flex-shrink-0 isolation-auto">
                     {/* Background Glow - Reduced blur for performance */}
@@ -162,6 +283,17 @@ export default function ReadGeneratedArticle({
                             <div className="absolute top-4 left-4 px-3 py-1 bg-indigo-500/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-lg">
                                 Feature Image
                             </div>
+
+                            {isHeadline && (
+                                <motion.div 
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="absolute bottom-4 right-4 px-4 py-2 bg-orange-600/90 backdrop-blur-md text-white rounded-2xl shadow-2xl border border-orange-400 flex items-center gap-2"
+                                >
+                                    <Star className="w-4 h-4 fill-white animate-pulse" />
+                                    <span className="text-[11px] font-black uppercase tracking-widest">Active Headline Content</span>
+                                </motion.div>
+                            )}
                         </div>
                     )}
 
@@ -248,6 +380,20 @@ export default function ReadGeneratedArticle({
                         Close Reader
                     </Button>
                 </DialogFooter>
+
+                <ConfirmationModal 
+                    isOpen={isConfirmOpen}
+                    onOpenChange={setIsConfirmOpen}
+                    onConfirm={handleConfirmHeadline}
+                    title={isHeadline ? "Remove from Headline?" : "Set as Headline?"}
+                    description={isHeadline 
+                        ? "This article will no longer be featured in the hero spotlight of your site." 
+                        : "This will make this article the primary feature on your site's landing page. Any existing headline will be replaced."
+                    }
+                    confirmText={isHeadline ? "Yes, Remove" : "Yes, Set Headline"}
+                    variant={isHeadline ? "warning" : "default"}
+                    isLoading={headlineMutation.isPending}
+                />
             </DialogContent>
         </Dialog>
     );

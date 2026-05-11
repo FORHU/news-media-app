@@ -120,6 +120,7 @@ model ContentArticle {
   updatedAt         DateTime                @updatedAt @map("updated_at")
   viewCount         Int                     @default(0) @map("view_count")
   trendingScore     Float                   @default(0.0) @map("trending_score")
+  isHeadline        Boolean                 @default(false) @map("is_headline")
   category          Category                @relation(fields: [categoryId], references: [id])
   rawArticle        RawArticle?             @relation(fields: [rawArticleId], references: [id])
   rawSourceUpload   RawSourceUpload?        @relation(fields: [rawSourceUploadId], references: [id])

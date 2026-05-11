@@ -62,6 +62,7 @@ const articleSummarySelect = {
   createdAt: true,
   viewCount: true,
   trendingScore: true,
+  isHeadline: true,
   category: {
     select: {
       id: true,
@@ -129,6 +130,7 @@ export const articlesRepository = {
       take: limit,
       where: and.length > 0 ? { AND: and } : undefined,
       orderBy: [
+        { isHeadline: "desc" },
         { publishDate: { sort: "desc", nulls: "last" } },
         { createdAt: "desc" }
       ],

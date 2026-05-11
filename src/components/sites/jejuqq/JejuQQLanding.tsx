@@ -19,6 +19,9 @@ interface Props {
 
 export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
   const sortedArticles = [...articles].sort((a, b) => {
+    if (!!b.isHeadline !== !!a.isHeadline) {
+      return b.isHeadline ? 1 : -1;
+    }
     if ((b.trendingScore || 0) !== (a.trendingScore || 0)) {
       return (b.trendingScore || 0) - (a.trendingScore || 0);
     }

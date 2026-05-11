@@ -48,6 +48,7 @@ const UpdateSchema = z.object({
     .nullable()
     .or(z.literal("")),
   publish: z.boolean().optional(),
+  isHeadline: z.boolean().optional(),
 });
 
 // ─── POST – legacy publish (no body required) ──────────────────────────────────
@@ -127,7 +128,7 @@ export async function PATCH(
       );
     }
 
-    const { title, content, categoryId, imageUrl, youtubeUrl, publish } = result.data;
+    const { title, content, categoryId, imageUrl, youtubeUrl, publish, isHeadline } = result.data;
 
     // Verify category exists if changing
     if (categoryId) {
@@ -157,6 +158,22 @@ export async function PATCH(
       updateData.status = publish ? "published" : "pending";
       if (publish) {
         updateData.publishDate = existing.publishDate ?? new Date();
+      }
+    }
+
+    if (isHeadline !== undefined) {
+      updateData.isHeadline = isHeadline;
+      
+      // If setting this article as headline, unset any previous headline for this tenant
+      if (isHeadline === true) {
+        await prisma.contentArticle.updateMany({
+          where: { 
+            tenantId, 
+            isHeadline: true,
+            id: { not: id } // Just in case, don't unset the one we are about to set
+          },
+          data: { isHeadline: false },
+        });
       }
     }
 
