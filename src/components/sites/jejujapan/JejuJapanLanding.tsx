@@ -5,10 +5,7 @@ const AdBanner = dynamic(() => import("@/components/AdBanner").then(mod => mod.A
   ssr: true,
   loading: () => <div className="h-[120px] animate-pulse bg-gray-50 flex items-center justify-center text-[10px] text-gray-300 font-bold uppercase tracking-widest" />
 });
-const ClientPagination = dynamic(() => import("@/components/home/ClientPagination").then(mod => mod.ClientPagination), { 
-  ssr: true,
-  loading: () => <div className="h-20 animate-pulse bg-gray-50 w-full" />
-});
+
 import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
 import { TrendingUp, Clock, ChevronRight, ChevronLeft } from "lucide-react";
@@ -26,8 +23,6 @@ interface Props {
 }
 
 export default function JejuJapanLanding({ tenantId, articles, banners }: Props) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   const sortedArticles = [...articles].sort((a, b) => {
     if ((b.trendingScore || 0) !== (a.trendingScore || 0)) {
@@ -66,13 +61,10 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
   const leftSidebarArticles = pickArticles(8, usedIds);
   leftSidebarArticles.forEach(a => usedIds.add(a.id));
 
-  // Center — Latest Stories (paginated)
+  // Center — Latest Stories (fixed 15)
   const uniqueLatest = pool.filter(a => !usedIds.has(a.id));
   const allLatestArticles = uniqueLatest.length > 0 ? uniqueLatest : pool;
-  const totalPages = Math.ceil(allLatestArticles.length / itemsPerPage) || 1;
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const latestStories = allLatestArticles.slice(startIndex, endIndex);
+  const latestStories = allLatestArticles.slice(0, 15);
   latestStories.forEach(a => usedIds.add(a.id));
 
   // Horizontal strip — after pagination, before featured
@@ -86,6 +78,20 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
   const trendingProducts = articles
     .filter((a: any) => a.status === "blog")
     .slice(0, 4);
+
+  // Category sections — group all articles by category, show top 4 categories
+  const categoryMap = new Map<string, any[]>();
+  articles.forEach(a => {
+    const catName = a.category?.categoryName;
+    if (!catName) return;
+    if (!categoryMap.has(catName)) categoryMap.set(catName, []);
+    categoryMap.get(catName)!.push(a);
+  });
+  const categoryBlocks = Array.from(categoryMap.entries())
+    .filter(([_, items]) => items.length >= 2)
+    .sort((a, b) => b[1].length - a[1].length)
+    .slice(0, 4)
+    .map(([name, items]) => ({ name, articles: items.slice(0, 4) }));
 
   const [[page, direction], setPage] = useState([0, 0]);
   const index = heroArticles.length > 0 ? Math.abs(page % heroArticles.length) : 0;
@@ -204,9 +210,7 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                 </div>
               )}
 
-              {/* Latest Stories List */}
               <div className="space-y-4 border-t border-gray-100 pt-8">
-                 {currentPage === 1 ? (
                     <>
                        {/* 1 Compact Feature Card */}
                        {latestStories.length > 0 && (
@@ -262,42 +266,7 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                           ))}
                        </div>
                     </>
-                 ) : (
-                    /* Standard list for other pages */
-                    <div className="space-y-4">
-                       {latestStories.map((article) => (
-                          <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex flex-row gap-3 group items-start border-b border-gray-50 pb-4 last:border-0">
-                             <div className="relative w-24 sm:w-32 md:w-44 aspect-[16/10] overflow-hidden shrink-0 bg-gray-100">
-                                <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" sizes="200px" />
-                             </div>
-                             <div className="flex flex-col justify-center flex-1 min-w-0">
-                                <span className="text-[9px] font-black text-[#bc002d] uppercase tracking-[0.2em] mb-0.5 flex items-center gap-1.5">
-                                   <span className="w-3 h-[1px] bg-[#bc002d]"></span>
-                                   {article.category?.categoryName}
-                                </span>
-                                <h3 className="text-[15px] font-bold leading-tight mb-0.5 group-hover:text-[#bc002d] transition-colors line-clamp-2">{article.title}</h3>
-                                <p className="text-xs text-gray-500 line-clamp-1 font-light leading-relaxed">{article.content}</p>
-                             </div>
-                          </Link>
-                       ))}
-                    </div>
-                 )}
               </div>
-              {articles.length > 0 && (
-                 <div className="mt-4">
-                    <ClientPagination
-                       currentPage={currentPage}
-                       totalPages={totalPages}
-                       onPageChange={setCurrentPage}
-                       itemsPerPage={itemsPerPage}
-                       onItemsPerPageChange={setItemsPerPage}
-                       totalItems={articles.length}
-                       startIndex={startIndex}
-                       endIndex={endIndex}
-                       domain="jejujapan.com"
-                    />
-                 </div>
-              )}
             </div>
 
             {/* Right Sidebar */}
@@ -379,7 +348,7 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                <div className="flex items-center justify-between mb-8 relative z-10 border-b border-white/10 pb-6">
                   <h3 className="text-xl sm:text-2xl md:text-3xl font-noto font-black uppercase tracking-[0.1em] flex items-center gap-3">
                      <TrendingUp size={22} className="text-[#bc002d]" />
-                     Featured Report
+                     Spotlight
                   </h3>
                </div>
                
@@ -417,6 +386,37 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                   ))}
                </div>
             </section>
+          )}
+
+          {/* Category Sections */}
+          {categoryBlocks.length > 0 && (
+            <div className="mt-14 space-y-14">
+              {categoryBlocks.map((cat, ci) => (
+                <section key={cat.name} className={ci % 2 === 0 ? "" : "bg-[#fafafa] -mx-4 sm:-mx-6 px-4 sm:px-6 py-10"}>
+                  <div className="flex items-center gap-4 mb-8">
+                    <div className="w-1 h-8 bg-[#bc002d]"></div>
+                    <h3 className="text-xl md:text-2xl font-noto font-black uppercase tracking-wide">{cat.name}</h3>
+                    <div className="h-[1px] flex-1 bg-gray-200"></div>
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{cat.articles.length} Articles</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {cat.articles.map((article: any, ai: number) => (
+                      <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group block">
+                        <div className="relative aspect-[16/10] overflow-hidden mb-3 bg-gray-100">
+                          <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 640px) 100vw, 300px" />
+                          {ai === 0 && (
+                            <div className="absolute top-0 left-0 bg-[#bc002d] text-white text-[8px] font-black px-2.5 py-1 uppercase tracking-widest">Top</div>
+                          )}
+                        </div>
+                        <span className="text-[9px] font-black text-[#bc002d] uppercase tracking-[0.15em] block mb-1">{cat.name}</span>
+                        <h4 className="text-sm font-bold leading-tight group-hover:text-[#bc002d] transition-colors line-clamp-2 mb-1">{article.title}</h4>
+                        <p className="text-xs text-gray-500 line-clamp-2 font-light leading-relaxed">{article.content}</p>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
           )}
 
         </main>
