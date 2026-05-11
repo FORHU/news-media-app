@@ -3,7 +3,7 @@
 import { AdBanner } from "@/components/AdBanner";
 import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
-import { ChevronRight, TrendingUp, ChevronLeft } from "lucide-react";
+import { ChevronRight, TrendingUp, ChevronLeft, Clock } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -71,6 +71,10 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
     .filter(([_, list]) => list.length > 0)
     .slice(0, 4);
 
+  const otherCategorySections = Object.entries(categoryBuckets)
+    .filter(([_, list]) => list.length > 0)
+    .slice(4, 8);
+
   const [[page, direction], setPage] = useState([0, 0]);
   const index = heroArticles.length > 0 ? Math.abs(page % heroArticles.length) : 0;
   const mainArticle = heroArticles[index];
@@ -87,14 +91,14 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
 
   return (
     <div className="bg-[#fdf2f2] text-[#222] min-h-screen flex flex-col overflow-x-hidden">
-      <div className="w-full max-w-7xl mx-auto px-4 pt-4">
+      <div className="w-full max-w-7xl mx-auto px-4 pt-2">
         <AdBanner position="HOME_TOP" initialBanners={banners.top} />
       </div>
 
-      <main className="w-full flex-1 max-w-7xl mx-auto px-4 py-6 md:py-8">
+      <main className="w-full flex-1 max-w-7xl mx-auto px-4 py-4 md:py-6">
         {/* Main Article Section (Hero) - Full Width */}
         {mainArticle && (
-          <div className="mb-8 md:mb-10 lg:mb-12 relative group">
+          <div className="mb-4 md:mb-6 relative group">
             <div className="flex flex-col lg:flex-row-reverse gap-5 lg:gap-8 items-center">
               <div className="relative w-full lg:w-3/5 aspect-[16/9] overflow-hidden rounded-none bg-gray-100 shadow-lg group/image shrink-0 border-2 border-primary">
                 <AnimatePresence initial={false} custom={direction} mode="wait">
@@ -146,15 +150,15 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
               </div>
               <div className="flex-1 flex flex-col justify-center py-2 min-w-0 w-full">
                 <Link href={`/article/${mainArticle.slug || mainArticle.id}`} className="group">
-                  <div className="flex items-center gap-3 mb-4">
+                  <div className="flex items-center gap-3 mb-2">
                     <span className="h-0.5 w-8 bg-primary"></span>
                     <span className="text-[11px] text-primary font-bold font-serif uppercase tracking-[0.3em]">{mainArticle.category?.categoryName}</span>
                   </div>
-                  <h2 className="text-[26px] sm:text-[36px] md:text-[44px] lg:text-[52px] font-serif font-bold leading-[1.08] mb-4 group-hover:text-primary transition-colors tracking-tighter">
+                  <h2 className="text-[26px] sm:text-[36px] md:text-[44px] lg:text-[52px] font-serif font-bold leading-[1.08] mb-2 group-hover:text-primary transition-colors tracking-tighter">
                     {mainArticle.title}
                   </h2>
                 </Link>
-                <p className="text-gray-600 text-base leading-relaxed mb-6 line-clamp-3 font-medium">
+                <p className="text-gray-600 text-base leading-relaxed mb-4 line-clamp-3 font-medium">
                   {mainArticle.content}
                 </p>
                 <Link href={`/article/${mainArticle.slug || mainArticle.id}`} className="inline-flex items-center gap-2 text-[12px] font-black uppercase tracking-widest text-black hover:text-[#dc2626] transition-colors">
@@ -169,37 +173,91 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
           {/* Left Content Area (Latest Stories) */}
           <div className="lg:col-span-8">
             {/* Latest Stories Section */}
-            <div className="pt-8 border-t border-gray-200">
-              <div className="flex items-center justify-between mb-6">
+            <div className="pt-2 border-t border-gray-200">
+              <div className="flex items-center justify-between mb-4">
                 <h3 className="text-2xl md:text-3xl font-serif font-bold uppercase tracking-tight">Latest Stories</h3>
                 <div className="h-1 flex-1 mx-6 bg-gray-100 overflow-hidden">
                   <div className="h-full w-24 bg-primary"></div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-5">
-                {latestStories.map((article) => (
-                  <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group block">
-                    <div className="flex gap-4 items-start">
-                      <div className="relative w-28 sm:w-32 md:w-28 lg:w-32 aspect-[4/3] overflow-hidden rounded-none border-2 border-primary bg-gray-50 shrink-0">
-                        <StoryImage
-                          src={article.imageUrl}
-                          alt={article.title}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-500"
-                          sizes="160px"
-                        />
+              {/* Top Half: 3-Column Grid (Image on Top) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10 pb-10 border-b border-gray-200">
+                {latestStories.slice(0, 6).map((article) => (
+                  <Link 
+                    key={article.id} 
+                    href={`/article/${article.slug || article.id}`} 
+                    className="group block"
+                  >
+                    <div className="relative aspect-[16/10] overflow-hidden border border-gray-200 mb-3 bg-gray-50 shadow-sm group-hover:shadow-md transition-all">
+                      <StoryImage
+                        src={article.imageUrl}
+                        alt={article.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                      />
+                      {/* Optional: Watch tag for specific categories */}
+                      {article.category?.categoryName?.toLowerCase().includes('video') && (
+                        <div className="absolute top-2 left-2 bg-[#dc2626] text-white text-[10px] font-black px-1.5 py-0.5 uppercase">Watch</div>
+                      )}
+                    </div>
+                    <h4 className="text-[17px] font-serif font-black leading-tight group-hover:text-primary transition-colors line-clamp-3 mb-2">
+                      {article.title}
+                    </h4>
+                    <div className="flex items-center gap-1.5 text-gray-500 text-[11px] font-bold">
+                      <Clock size={12} className="text-gray-400" />
+                      <span>4 min read</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+
+              {/* Bottom Half: Creative 2-Column Grid (Image on Left) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-8">
+                {latestStories.slice(6).map((article, i) => (
+                  <Link 
+                    key={article.id} 
+                    href={`/article/${article.slug || article.id}`} 
+                    className="group block relative"
+                  >
+                    <div className="flex gap-4 sm:gap-6 items-start p-3 -m-3 transition-all duration-300 hover:bg-white/50 border border-transparent hover:border-primary/10">
+                      <div className="relative w-28 sm:w-36 md:w-32 lg:w-36 aspect-[4/3] shrink-0">
+                        {/* Decorative offset background */}
+                        <div className="absolute inset-0 translate-x-1.5 translate-y-1.5 bg-primary/10 group-hover:translate-x-2 group-hover:translate-y-2 transition-transform" />
+                        <div className="relative h-full w-full overflow-hidden border-2 border-primary bg-gray-50">
+                          <StoryImage
+                            src={article.imageUrl}
+                            alt={article.title}
+                            fill
+                            className="object-cover group-hover:scale-110 transition-transform duration-700"
+                            sizes="(max-width: 768px) 140px, 160px"
+                          />
+                          {/* Hover Overlay */}
+                          <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-colors" />
+                        </div>
                       </div>
-                      <div className="min-w-0 pt-0.5">
-                        <span className="text-[9px] text-primary font-bold font-serif uppercase mb-1 block tracking-[0.2em]">
-                          {article.category?.categoryName}
-                        </span>
-                        <h4 className="text-[15px] md:text-base font-serif font-bold leading-snug group-hover:text-primary transition-colors mb-1 line-clamp-2">
+
+                      <div className="min-w-0 pt-0.5 flex-1 relative">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <span className="text-[10px] text-primary font-bold font-serif uppercase tracking-[0.2em]">
+                            {article.category?.categoryName}
+                          </span>
+                          <span className="h-[1px] w-0 group-hover:w-8 bg-primary transition-all duration-500" />
+                        </div>
+                        
+                        <h4 className="text-[16px] md:text-[18px] font-serif font-bold leading-tight group-hover:text-primary transition-colors mb-2 line-clamp-2">
                           {article.title}
                         </h4>
-                        <p className="text-gray-500 text-[12px] md:text-sm line-clamp-2 leading-relaxed font-medium">
+                        
+                        <p className="text-gray-600 text-[12px] md:text-[13px] line-clamp-2 leading-relaxed font-medium opacity-80 group-hover:opacity-100 transition-opacity">
                           {article.content}
                         </p>
+
+                        {/* Large Background Index */}
+                        <span className="absolute -right-2 -bottom-3 text-6xl font-serif font-black text-primary/[0.03] select-none pointer-events-none group-hover:text-primary/[0.07] transition-all duration-500 group-hover:-translate-y-1 tabular-nums">
+                          {String(i + 7).padStart(2, '0')}
+                        </span>
                       </div>
                     </div>
                   </Link>
@@ -208,7 +266,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
 
               {/* More blocks under Latest Stories */}
               {(moreHeadlines.length > 0 || photoStories.length > 0) && (
-                <div className="mt-8 space-y-8">
+                <div className="mt-2 space-y-2">
                   {/* More Headlines (dense list) */}
                   {moreHeadlines.length > 0 && (
                     <section className="bg-white/60 border border-gray-200 px-4 md:px-5 py-4 shadow-sm">
@@ -256,7 +314,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
 
                   {/* Photo Stories (compact image grid) */}
                   {photoStories.length > 0 && (
-                    <section className="border-t border-gray-200 pt-6">
+                    <section className="border-t border-gray-200 pt-2">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                           <span className="h-0.5 w-8 bg-primary"></span>
@@ -346,11 +404,11 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
             </div>
 
             {/* Bottom Sections (kept inside left column to avoid empty gap) */}
-            <div className="mt-10 md:mt-12 space-y-10 md:space-y-12">
+            <div className="mt-4 md:mt-6 space-y-4 md:space-y-6">
               {/* Featured Articles */}
               {featuredArticles.length > 0 && (
-                <section className="pt-4 border-t border-gray-200">
-                  <div className="flex items-center gap-4 mb-4">
+                <section className="pt-1 border-t border-gray-200">
+                  <div className="flex items-center gap-4 mb-2">
                     <h3 className="text-2xl md:text-3xl font-garamond font-bold uppercase tracking-tight whitespace-nowrap">Spotlight</h3>
                     <div className="h-1 w-full bg-[#dc2626]/10 overflow-hidden">
                       <div className="h-full w-1/4 bg-[#dc2626]"></div>
@@ -392,7 +450,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
 
               {/* Category Highlights */}
               {categorySections.length > 0 && (
-                <section className="pt-4 border-t border-gray-200">
+                <section className="pt-1 border-t border-gray-200">
                   <div className="space-y-5">
                     {categorySections.map(([categoryName, list]) => {
                       const items = (list as any[]).slice(0, 5);
@@ -474,6 +532,9 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                 </section>
               )}
 
+
+
+
             </div>
           </div>
 
@@ -484,7 +545,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
               <div className="space-y-5">
                 {/* Trending */}
                 <div className="bg-gray-50 rounded-none p-4 md:p-5 border-2 border-primary">
-                <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+                <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-200">
                   <h3 className="text-xl font-serif font-bold flex items-center gap-2">
                     Trending <TrendingUp size={20} className="text-primary" />
                   </h3>
@@ -580,9 +641,75 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
           </aside>
         </div>
 
+        {/* Other Categories 4-Column Grid (Full Width) */}
+        {otherCategorySections.length > 0 && (
+          <section className="mt-10 pt-8 border-t-2 border-primary/20">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+              {otherCategorySections.map(([categoryName, list]) => {
+                const items = (list as any[]).slice(0, 4);
+                const lead = items[0];
+                const subItems = items.slice(1);
+                
+                return (
+                  <div key={categoryName} className="flex flex-col">
+                    <div className="flex items-center gap-3 mb-5">
+                      <span className="w-2 h-2 bg-primary"></span>
+                      <h4 className="text-xl font-serif font-black uppercase tracking-tight">
+                        {categoryName}
+                      </h4>
+                    </div>
+
+                    {lead && (
+                      <Link href={`/article/${lead.slug || lead.id}`} className="group block mb-6">
+                        <div className="relative aspect-[16/10] overflow-hidden border-2 border-primary bg-gray-50 shadow-md group-hover:shadow-lg transition-all duration-300 mb-5">
+                          <StoryImage
+                            src={lead.imageUrl}
+                            alt={lead.title}
+                            fill
+                            className="object-cover group-hover:scale-110 transition-transform duration-700"
+                          />
+                        </div>
+                        <h5 className="text-[20px] md:text-[22px] font-serif font-bold leading-tight group-hover:text-primary transition-colors line-clamp-3">
+                          {lead.title}
+                        </h5>
+                      </Link>
+                    )}
+
+                    <div className="space-y-5">
+                      {subItems.map((article: any) => (
+                        <Link 
+                          key={article.id} 
+                          href={`/article/${article.slug || article.id}`} 
+                          className="group flex gap-4 items-start pt-4 border-t border-gray-200"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <h6 className="text-[14px] md:text-[15px] font-bold leading-snug line-clamp-3 group-hover:text-primary transition-colors">
+                              {article.title}
+                            </h6>
+                          </div>
+                          {article.imageUrl && (
+                            <div className="relative w-20 h-14 overflow-hidden border border-gray-100 shrink-0">
+                              <StoryImage
+                                src={article.imageUrl}
+                                alt={article.title}
+                                fill
+                                className="object-cover group-hover:scale-110 transition-transform duration-500"
+                              />
+                            </div>
+                          )}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {/* Horizontal articles strip (between categories and footer) */}
         {footerStripArticles.length > 0 && (
-          <section className="mt-6 pt-4 border-t border-gray-200">
+          <section className="mt-2 pt-1 border-t border-gray-200">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <span className="h-0.5 w-8 bg-primary"></span>
