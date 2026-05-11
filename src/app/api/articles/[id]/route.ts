@@ -11,7 +11,8 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
+  const { id: rawId } = await params;
+  const id = decodeURIComponent(rawId ?? "");
 
   const parsed = articleIdentifierParamSchema.safeParse({ id });
   if (!parsed.success) {

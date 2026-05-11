@@ -3,6 +3,32 @@ import { prisma } from "@/lib/db";
 import { generateUniqueArticleSlug } from "@/lib/slug";
 import { z } from "zod";
 import { resolveTenantIdFromRequest } from "@/lib/tenant";
+import { revalidatePath } from "next/cache";
+
+async function revalidateArticle(tenantId: string, articleId: string, slug?: string | null) {
+  try {
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { domain: true },
+    });
+
+    if (tenant?.domain) {
+      const domain = tenant.domain;
+      // Revalidate landing page
+      revalidatePath(`/${domain}`);
+      // Revalidate search page
+      revalidatePath(`/${domain}/search`);
+      // Revalidate specific article page (by ID and slug if available)
+      revalidatePath(`/${domain}/article/${articleId}`);
+      if (slug) {
+        revalidatePath(`/${domain}/article/${slug}`);
+      }
+      console.log(`[Revalidate] Triggered for domain: ${domain}, article: ${articleId}`);
+    }
+  } catch (error) {
+    console.error("[Revalidate] Error:", error);
+  }
+}
 
 export const dynamic = "force-dynamic";
 
@@ -87,9 +113,42 @@ export async function PATCH(
       },
     });
 
+    // Trigger on-demand revalidation
+    await revalidateArticle(tenantId, id, updated.slug);
+
     return NextResponse.json(updated);
   } catch (error: any) {
     console.error("[PATCH Article] Error:", error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+
+    const tenantId = await resolveTenantIdFromRequest(req);
+    if (!tenantId) {
+      return NextResponse.json({ error: "Article not found" }, { status: 404 });
+    }
+    const existing = await prisma.contentArticle.findFirst({
+      where: { id, tenantId },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: "Article not found" }, { status: 404 });
+    }
+
+    await prisma.contentArticle.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error("[DELETE Article] Error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

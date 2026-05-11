@@ -6,19 +6,27 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, TrendingUp, ChevronRight } from "lucide-react";
 
-import { FeaturedArticlesSection } from "@/components/home/featured-articles-section";
+import dynamic from "next/dynamic";
+const AdBanner = dynamic(() => import("@/components/AdBanner").then(mod => mod.AdBanner), { 
+  ssr: true,
+  loading: () => <div className="h-[250px] animate-pulse bg-slate-50 flex items-center justify-center text-[10px] text-slate-300 font-bold uppercase tracking-widest border border-slate-100" />
+});
+const TwitterStatusEmbed = dynamic(() => import("@/components/article/TwitterStatusEmbed"), { 
+  ssr: false,
+  loading: () => <div className="h-[450px] animate-pulse bg-slate-50 flex items-center justify-center text-slate-400 text-xs font-bold uppercase tracking-widest border border-slate-100" />
+});
+
 import { StoryImage } from "@/components/StoryImage";
 import { articlesApi } from "@/lib/api";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
-import { AdBanner } from "@/components/AdBanner";
 import type { Article } from "@/lib/types";
 import { extractYoutubeId } from "@/lib/utils";
-import TwitterStatusEmbed from "@/components/article/TwitterStatusEmbed";
 import {
   isSocialCommentaryGenerationMode,
   splitReferenceLineFromContent,
   stripOriginalPostBlock,
 } from "@/lib/tweetArticleDisplay";
+import { ArticleShare } from "@/components/article/ArticleShare";
 
 
 export default function JejuJapanArticle({ 
@@ -173,7 +181,7 @@ export default function JejuJapanArticle({
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-noto font-black text-black mb-6 leading-tight">
                 {article.title}
               </h1>
-              <p className="text-gray-500 text-sm">{formattedDate}</p>
+              <p suppressHydrationWarning className="text-gray-500 text-sm">{formattedDate}</p>
             </header>
 
             {showTweetCommentaryEmbed && rawTweet?.tweetId ? (
@@ -194,7 +202,7 @@ export default function JejuJapanArticle({
                   <>
                     <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto mb-8 break-words">{firstHalf}</div>
                     <div className="my-10 relative aspect-[21/9] bg-gray-100">
-                      <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" />
+                      <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" sizes="(max-width: 1024px) 100vw, 850px" />
                     </div>
                     {secondHalf && <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto break-words">{secondHalf}</div>}
                   </>
@@ -208,7 +216,7 @@ export default function JejuJapanArticle({
               <>
                 {article.imageUrl && (
                   <div className="mb-10 relative aspect-[21/9] bg-gray-100">
-                    <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" />
+                    <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" sizes="(max-width: 1024px) 100vw, 850px" />
                   </div>
                 )}
                 <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto first-letter:text-6xl first-letter:font-black first-letter:text-[#bc002d] first-letter:float-left first-letter:mr-3 break-words">
@@ -216,6 +224,12 @@ export default function JejuJapanArticle({
                 </div>
               </>
             )}
+
+            <ArticleShare 
+              site="jejujapan" 
+              title={article.title} 
+              className="mt-12"
+            />
 
             {referenceLine && (
               <div className="mt-16 pt-10 border-t-2 border-gray-100">
@@ -231,9 +245,9 @@ export default function JejuJapanArticle({
 
         <div className="lg:col-span-1 space-y-8">
           <div className="bg-[#111] text-white p-6 lg:sticky lg:top-28">
-            <h3 className="text-base font-noto font-black flex items-center gap-2 mb-6 uppercase tracking-widest border-b border-white/20 pb-4">
+            <h2 className="text-base font-noto font-black flex items-center gap-2 mb-6 uppercase tracking-widest border-b border-white/20 pb-4">
                <TrendingUp size={18} className="text-[#bc002d]" /> Trending
-            </h3>
+            </h2>
             <div className="space-y-6">
                {trendingArticles.map((article, i) => (
                   <Link key={article.id} href={`/article/${article.slug || article.id}`} className="block group">
@@ -241,7 +255,7 @@ export default function JejuJapanArticle({
                         <span className="text-3xl font-noto font-black text-white/10 group-hover:text-[#bc002d] transition-colors shrink-0">0{i + 1}</span>
                         <div className="min-w-0">
                            <span className="text-[9px] text-gray-500 uppercase tracking-[0.2em] block mb-1">{article.category?.categoryName}</span>
-                           <h4 className="text-sm font-bold leading-snug group-hover:text-white/80 line-clamp-2 transition-colors">{article.title}</h4>
+                           <h3 className="text-sm font-bold leading-snug group-hover:text-white/80 line-clamp-2 transition-colors">{article.title}</h3>
                         </div>
                      </div>
                   </Link>
@@ -255,10 +269,10 @@ export default function JejuJapanArticle({
       {recommendedArticles.length > 0 && (
         <section className="mt-12 md:mt-20 bg-[#111] text-white p-8 md:p-12 lg:p-14 relative overflow-hidden">
            <div className="flex items-center justify-between mb-8 relative z-10 border-b border-white/10 pb-6">
-              <h3 className="text-xl sm:text-2xl md:text-3xl font-noto font-black uppercase tracking-[0.1em] flex items-center gap-3">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-noto font-black uppercase tracking-[0.1em] flex items-center gap-3">
                  <TrendingUp size={22} className="text-[#bc002d]" />
                  More to Discover
-              </h3>
+              </h2>
               <Link href="/" className="text-[10px] font-black uppercase tracking-[0.3em] flex items-center gap-2 hover:text-[#bc002d] transition-colors">
                 View All <ChevronRight size={14} />
               </Link>
@@ -273,7 +287,7 @@ export default function JejuJapanArticle({
                        <span className="absolute bottom-3 left-3 text-4xl font-noto font-black text-white/10 group-hover:text-[#bc002d] transition-colors">0{i + 1}</span>
                     </div>
                     <span className="text-[10px] text-[#bc002d] font-black uppercase mb-2 block tracking-[0.3em]">{article.category?.categoryName}</span>
-                    <h4 className="text-base md:text-lg font-bold leading-tight group-hover:text-[#bc002d] transition-colors line-clamp-2">{article.title}</h4>
+                    <h3 className="text-base md:text-lg font-bold leading-tight group-hover:text-[#bc002d] transition-colors line-clamp-2">{article.title}</h3>
                  </Link>
               ))}
            </div>

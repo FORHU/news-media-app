@@ -1,5 +1,8 @@
 import type { MetadataRoute } from "next";
 import { headers } from "next/headers";
+
+// sitemap uses headers() to detect the current domain — must be dynamic.
+export const dynamic = 'force-dynamic';
 import { articlesService } from "@/services/articles.service";
 import { normalizeHostToDomain, resolveTenantIdFromDomain } from "@/lib/tenant";
 

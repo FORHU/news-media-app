@@ -32,7 +32,7 @@ export function TrendingSidebar({ articles, domain }: TrendingSidebarProps) {
       }
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     })
-    .slice(0, 5);
+    .slice(0, 10);
 
   return (
     <aside id="trending-stories" className="lg:col-span-1 scroll-mt-24">
@@ -73,7 +73,7 @@ export function TrendingSidebar({ articles, domain }: TrendingSidebarProps) {
                 >
                   {article.title}
                 </h3>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-gray-600">
                   {formatDate(article.createdAt)}
                 </div>
               </div>

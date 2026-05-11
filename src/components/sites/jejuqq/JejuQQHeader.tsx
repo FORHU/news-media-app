@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Search, Mail, X, ChevronDown, User } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -99,11 +100,16 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
               <span className="text-[10px] font-bold font-serif uppercase tracking-[0.2em] hidden sm:block">Menu</span>
             </button>
 
-            <Link href="/" className="hover:opacity-90 transition-opacity">
-              <h1 className="flex items-center gap-1">
-                <span className="text-[28px] md:text-[42px] font-serif font-bold tracking-tighter text-black leading-none">Jeju</span>
-                <span className="text-[28px] md:text-[42px] font-serif font-bold tracking-tighter text-primary leading-none">QQ</span>
-              </h1>
+            <Link href="/" className="hover:opacity-90 transition-opacity flex-shrink-0">
+              <div className="relative h-15 w-48 md:h-20 md:w-60 shrink-0 transition-all duration-300 -ml-1">
+                <Image
+                  src="/Logo/JEJUQQLOGO.png"
+                  alt="JejuQQ Logo"
+                  fill
+                  className="object-contain object-left scale-110 md:scale-110 transition-transform"
+                  priority
+                />
+              </div>
             </Link>
           </div>
 
@@ -125,14 +131,14 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
 
           {/* Right: Actions */}
           <div className="flex items-center gap-2 sm:gap-6">
-            <button 
+            <button
               onClick={() => setIsSearchOpen(!isSearchOpen)}
               className="lg:hidden text-gray-400 hover:text-[#dc2626] p-2 transition-colors"
             >
               <Search size={22} />
             </button>
-            <button 
-              onClick={onOpenNewsletter} 
+            <button
+              onClick={onOpenNewsletter}
               className="bg-[#dc2626] hover:bg-black text-white px-3 sm:px-5 py-2.5 rounded-none text-[10px] font-bold font-serif uppercase tracking-widest transition-all duration-300 shadow-lg shadow-[#dc2626]/20 flex items-center gap-2"
             >
               <Mail size={14} strokeWidth={3} />
@@ -156,8 +162,8 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                 placeholder="SEARCH FOR STORIES..."
                 className="w-full pl-11 pr-4 bg-gray-50 border-2 border-[#dc2626] rounded-none h-12 text-[12px] font-bold outline-none focus:bg-white focus:border-[#dc2626] transition-all"
               />
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => setIsSearchOpen(false)}
                 className="ml-2 p-2 text-gray-400"
               >
@@ -171,8 +177,8 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
           <div className="max-w-7xl mx-auto px-4 flex flex-row justify-center items-center py-4">
             <nav className="flex flex-wrap justify-center gap-x-12 gap-y-4 text-[13px] font-bold font-serif uppercase tracking-tighter text-gray-600">
               {coreCategories.slice(0, 6).map((cat) => (
-                <Link 
-                  key={cat} 
+                <Link
+                  key={cat}
                   href={`/search?category=${encodeURIComponent(cat)}`}
                   className="relative group py-2 hover:text-black transition-colors"
                 >
@@ -182,28 +188,28 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
               ))}
               {coreCategories.length > 6 && (
                 <div className="relative group cursor-pointer flex items-center gap-1 hover:text-[#dc2626] py-2">
-                   MORE <ChevronDown size={14} />
-                   <div className="absolute top-full right-0 pt-2 hidden group-hover:block z-50">
-                      <div className="bg-white shadow-2xl border border-gray-100 p-6 rounded-none grid grid-cols-2 gap-x-10 gap-y-4 min-w-[350px]">
-                         {coreCategories.slice(6).map((cat) => (
-                           <Link 
-                              key={cat} 
-                              href={categoryHref(cat)} 
-                              className="text-gray-500 hover:text-[#dc2626] text-xs font-bold whitespace-nowrap transition-colors uppercase tracking-widest"
-                           >
-                              {cat}
-                           </Link>
-                         ))}
-                      </div>
-                   </div>
+                  MORE <ChevronDown size={14} />
+                  <div className="absolute top-full right-0 pt-2 hidden group-hover:block z-50">
+                    <div className="bg-white shadow-2xl border border-gray-100 p-6 rounded-none grid grid-cols-2 gap-x-10 gap-y-4 min-w-[350px]">
+                      {coreCategories.slice(6).map((cat) => (
+                        <Link
+                          key={cat}
+                          href={categoryHref(cat)}
+                          className="text-gray-500 hover:text-[#dc2626] text-xs font-bold whitespace-nowrap transition-colors uppercase tracking-widest"
+                        >
+                          {cat}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </nav>
           </div>
         </div>
-        
+
         <div className="absolute bottom-0 left-0 w-full h-0.5 bg-transparent">
-          <div 
+          <div
             className="h-full bg-[#dc2626]"
             style={{ width: `${scrollProgress}%`, transition: 'width 0.1s linear' }}
           />
@@ -236,7 +242,14 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                   >
                     <X className="w-5 h-5" />
                   </button>
-                  <span className="text-sm font-bold font-serif text-white tracking-[0.4em] uppercase">Menu</span>
+                  <div className="relative h-10 w-40">
+                    <Image
+                      src="/Logo/JEJUQQLOGO.png"
+                      alt="JejuQQ Logo"
+                      fill
+                      className="object-contain object-center brightness-0 invert"
+                    />
+                  </div>
                   <div className="w-8" />
                 </div>
 

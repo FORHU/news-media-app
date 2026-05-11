@@ -19,6 +19,42 @@ import {
 
 const OTHER_OPTION_VALUE = "__other__";
 
+const CATEGORY_TRANSLATIONS: Record<string, string> = {
+  // Chinese
+  "济州今日": "Jeju Today",
+  "旅游资讯": "Travel & Tourism",
+  "美食餐厅": "Food & Restaurants",
+  "购物市场": "Shopping & Markets",
+  "住宿信息": "Stay & Accommodation",
+  "交通出行": "Getting Around",
+  "活动节庆": "Events & Festivals",
+  "自然户外": "Nature & Outdoors",
+  "签证入境": "Visa & Entry Info",
+  "本地商业生活": "Local Business & Living",
+  
+  // Japanese
+  "済州今日": "Jeju Today",
+  "旅行情報": "Travel & Tourism",
+  "グルメ情報": "Food & Restaurants",
+  "ショッピング": "Shopping & Markets",
+  "宿泊情報": "Stay & Accommodation",
+  "交通・移動": "Getting Around",
+  "イベント・祭り": "Events & Festivals",
+  "自然・アウトドア": "Nature & Outdoors",
+  "ビザ・入国情報": "Visa & Entry Info",
+  "ローカルビジネス・生活": "Local Business & Living",
+};
+
+function getDisplayCategoryName(name: string): string {
+  const trimmed = name.trim();
+  const translation = CATEGORY_TRANSLATIONS[trimmed];
+  if (translation) {
+    return `${trimmed} (${translation})`;
+  }
+  return trimmed;
+}
+
+
 interface CategorySelectWithOtherProps {
   value: string;
   onValueChange: (value: string) => void;
@@ -165,7 +201,7 @@ export default function CategorySelectWithOther({
           </SelectItem>
           {categoryOptions.map((cat) => (
             <SelectItem key={cat.id} value={cat.id} className="pl-6 font-semibold">
-              {cat.name}
+              {getDisplayCategoryName(cat.name)}
             </SelectItem>
           ))}
         </SelectGroup>

@@ -3,6 +3,8 @@ import { HeroSection } from "@/components/HeroSection";
 import { LatestStoriesSection } from "@/components/home/latest-stories-section";
 import { TrendingSidebar } from "@/components/home/trending-sidebar";
 import { FeaturedArticlesSection } from "@/components/home/featured-articles-section";
+import { StoryImage } from "@/components/StoryImage";
+import Link from "next/link";
 import dynamic from "next/dynamic";
 
 const TrendingProductsSection = dynamic(() => import("@/components/home/trending-products-section").then(m => m.TrendingProductsSection), { ssr: true });
@@ -24,6 +26,16 @@ export default function NewsIconsLanding({ tenantId, articles, banners }: Props)
     }
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
+
+  const heroArticles = sortedArticles.slice(0, 5);
+  const heroIds = new Set(heroArticles.map(a => a.id));
+
+  const trendingArticles = sortedArticles.filter(a => !heroIds.has(a.id));
+  const trendingIds = new Set(trendingArticles.slice(0, 10).map(a => a.id));
+
+  const sidebarPicks = sortedArticles
+    .filter(a => !heroIds.has(a.id) && !trendingIds.has(a.id))
+    .slice(0, 5);
 
   return (
     <div className="bg-slate-50">
@@ -54,7 +66,30 @@ export default function NewsIconsLanding({ tenantId, articles, banners }: Props)
           </div>
 
           <div className="space-y-8">
-            <TrendingSidebar articles={sortedArticles.slice(0, 5)} domain="newsicons.com" />
+            <TrendingSidebar articles={trendingArticles} domain="newsicons.com" />
+            
+            {/* Must Read Section */}
+            {sidebarPicks.length > 0 && (
+              <div className="bg-white p-6 shadow-sm border border-slate-200">
+                <h3 className="text-xl font-serif font-bold text-slate-900 mb-6 flex items-center gap-2">
+                  Must Read <div className="w-1.5 h-1.5 rounded-full bg-slate-900" />
+                </h3>
+                <div className="space-y-6">
+                  {sidebarPicks.map((article) => (
+                    <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group block">
+                      <div className="relative aspect-video overflow-hidden rounded-lg mb-3 bg-slate-100">
+                        <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">{article.category?.categoryName || "Must Read"}</span>
+                      <h4 className="text-[15px] font-serif font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 leading-snug">
+                        {article.title}
+                      </h4>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <AdBanner position="HOME_SIDEBAR" initialBanners={banners.sidebar} />
           </div>
         </div>

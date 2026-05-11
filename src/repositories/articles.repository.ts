@@ -3,6 +3,7 @@ import type { Article } from "@/lib/types";
 import { Prisma } from "@/generated/prisma/client";
 import { getCategoryFilterVariants } from "@/config/categories";
 
+// Full include — used by admin operations that need raw source data
 const articleInclude = {
   category: true,
   user: { select: { firstName: true, lastName: true } },
@@ -23,6 +24,58 @@ const articleInclude = {
   },
 } satisfies Prisma.ContentArticleInclude;
 
+// Lightweight include — used for public article pages.
+// Omits rawArticle.crawledUrl, rawVideo, and rawSourceUpload which can be
+// several MBs and are not needed for rendering. Prevents 413 on Vercel.
+const articleDetailInclude = {
+  category: true,
+  user: { select: { firstName: true, lastName: true } },
+  rawArticle: {
+    select: {
+      id: true,
+      category: true,
+    },
+  },
+  rawTweet: {
+    select: {
+      tweetId: true,
+      generationMode: true,
+      profileUrl: true,
+    },
+  },
+} satisfies Prisma.ContentArticleInclude;
+
+// Minimal select for listings (landing pages, sidebars, recommended).
+// Excludes the massive 'content' field to prevent Vercel oversized ISR page errors.
+const articleSummarySelect = {
+  id: true,
+  tenantId: true,
+  usersId: true,
+  categoryId: true,
+  title: true,
+  slug: true,
+  publishDate: true,
+  imageUrl: true,
+  youtubeUrl: true,
+  sourceType: true,
+  status: true,
+  createdAt: true,
+  viewCount: true,
+  trendingScore: true,
+  category: {
+    select: {
+      id: true,
+      categoryName: true,
+    },
+  },
+  user: {
+    select: {
+      firstName: true,
+      lastName: true,
+    },
+  },
+} satisfies Prisma.ContentArticleSelect;
+
 export const articlesRepository = {
   async findMany(params: {
     limit: number;
@@ -30,8 +83,9 @@ export const articlesRepository = {
     category?: string | null;
     status?: string | null;
     tenantId?: string;
+    onlySummary?: boolean;
   }): Promise<Article[]> {
-    const { limit, search, category, status, tenantId } = params;
+    const { limit, search, category, status, tenantId, onlySummary } = params;
 
     const and: Prisma.ContentArticleWhereInput[] = [];
     if (tenantId) and.push({ tenantId });
@@ -71,18 +125,22 @@ export const articlesRepository = {
       });
     }
 
-    return prisma.contentArticle.findMany({
+    const queryOptions: any = {
       take: limit,
-      where:
-        and.length > 0
-          ? { AND: and }
-          : undefined,
+      where: and.length > 0 ? { AND: and } : undefined,
       orderBy: [
         { publishDate: { sort: "desc", nulls: "last" } },
         { createdAt: "desc" }
       ],
-      include: articleInclude,
-    }) as Promise<Article[]>;
+    };
+
+    if (onlySummary) {
+      queryOptions.select = articleSummarySelect;
+    } else {
+      queryOptions.include = articleDetailInclude;
+    }
+
+    return prisma.contentArticle.findMany(queryOptions) as Promise<Article[]>;
   },
 
   async findById(id: string, tenantId?: string | null): Promise<Article | null> {
@@ -90,7 +148,7 @@ export const articlesRepository = {
     where.status = { in: ["published", "blog"] };
     return (await prisma.contentArticle.findFirst({
       where: where as any,
-      include: articleInclude,
+      include: articleDetailInclude,
     })) as Article | null;
   },
 
@@ -100,7 +158,7 @@ export const articlesRepository = {
       where.status = { in: ["published", "blog"] };
       return (await prisma.contentArticle.findFirst({
         where: where as any,
-        include: articleInclude,
+        include: articleDetailInclude,
       })) as Article | null;
     } catch {
       // Temporary compatibility fallback when Prisma client

@@ -10,7 +10,8 @@ import {
     Check,
     Search,
     Newspaper,
-    Loader2
+    Loader2,
+    Trash2
 } from 'lucide-react';
 import { div as MotionDiv } from 'framer-motion/client';
 import Pagination from '@/components/admin/pagination';
@@ -53,7 +54,9 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
 
     const [promptDialogOpen, setPromptDialogOpen] = React.useState(false);
     const [readModalOpen, setReadModalOpen] = React.useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
     const [generationError, setGenerationError] = React.useState<string | null>(null);
+    const [isDeletedLocally, setIsDeletedLocally] = React.useState(false);
 
     const queryClient = useQueryClient();
     const mutation = useMutation({
@@ -70,6 +73,18 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
         }
     });
 
+    const deleteMutation = useMutation({
+        mutationFn: () => articlesApi.deleteCrawledArticle(article.id),
+        onSuccess: () => {
+            setIsDeletedLocally(true);
+            queryClient.invalidateQueries({ queryKey: ['crawledArticles'] });
+            setDeleteDialogOpen(false);
+        },
+        onError: (err: Error) => {
+            alert(err.message || 'Failed to delete article.');
+        }
+    });
+
     // Normalize image URL to avoid passing empty strings to next/image
     const rawImage = article.imageUrl ?? '';
     const imageUrl = typeof rawImage === 'string' ? rawImage.trim() : '';
@@ -79,7 +94,7 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
         <MotionDiv
             variants={variants}
             whileHover={{ y: -4, scale: 1.005 }}
-            className="group relative bg-white rounded-[2rem] p-5 shadow-sm hover:shadow-2xl hover:shadow-gray-200/50 border border-gray-100 transition-all duration-300 flex flex-col md:flex-row gap-6 items-start md:items-center"
+            className={`group relative bg-white rounded-[2rem] p-5 shadow-sm hover:shadow-2xl hover:shadow-gray-200/50 border border-gray-100 transition-all duration-300 flex flex-col md:flex-row gap-6 items-start md:items-center ${isDeletedLocally ? 'hidden' : ''}`}
         >
 
             {/* Thumbnail Image Container */}
@@ -191,6 +206,14 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
                     )}
                     {mutation.isPending ? 'Generating...' : isGenerated ? 'Generated' : 'Generate'}
                 </button>
+                <button
+                    type="button"
+                    onClick={() => setDeleteDialogOpen(true)}
+                    className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-sm bg-gray-50 text-red-600 hover:bg-red-50 hover:scale-[1.02] active:scale-[0.98] shadow-sm transition-all group/delete"
+                >
+                    <Trash2 className="w-5 h-5 text-red-400 group-hover/delete:text-red-600 transition-colors" />
+                    Delete
+                </button>
                 {generationError && (
                     <p className="text-[10px] font-black text-red-500 text-center animate-in fade-in slide-in-from-top-1 px-1 max-w-[140px] mx-auto uppercase tracking-tighter leading-tight">
                         {generationError}
@@ -198,6 +221,47 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
                 )}
             </div>
         </MotionDiv>
+
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <DialogContent className="sm:max-w-[425px] rounded-[2rem] border-none shadow-2xl">
+                <DialogHeader className="space-y-3">
+                    <div className="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center mb-2">
+                        <Trash2 className="w-6 h-6 text-red-600" />
+                    </div>
+                    <DialogTitle className="text-2xl font-extrabold text-gray-900">Delete Article</DialogTitle>
+                    <DialogDescription className="text-gray-500 font-medium leading-relaxed">
+                        Are you sure you want to delete this article? This action cannot be undone and will remove it from the system.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                    <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                        <p className="text-sm font-bold text-gray-900 line-clamp-2">{article.title}</p>
+                    </div>
+                </div>
+                <DialogFooter className="gap-3 sm:gap-0">
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => setDeleteDialogOpen(false)}
+                        className="rounded-xl font-bold hover:bg-gray-100 h-12 px-6"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="destructive"
+                        onClick={() => deleteMutation.mutate()}
+                        disabled={deleteMutation.isPending}
+                        className="rounded-xl font-bold bg-red-600 hover:bg-red-700 h-12 px-6 shadow-lg shadow-red-600/20"
+                    >
+                        {deleteMutation.isPending ? (
+                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        ) : null}
+                        Delete Article
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
 
         <GenerateArticleModal
             open={promptDialogOpen}
@@ -217,7 +281,7 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
 
 // Minimal shell to handle React Query and interactive UI
 export default function RawArticles({ searchParams }: {
-    searchParams: { from?: string; to?: string; q?: string; page?: string; source?: string; date?: string }
+    searchParams: { from?: string; to?: string; q?: string; page?: string; source?: string; date?: string; status?: string }
 }) {
     const router = useRouter();
     const pathname = usePathname();
@@ -228,18 +292,20 @@ export default function RawArticles({ searchParams }: {
     const to = urlSearchParams.get('to') || searchParams.to || '';
     const searchQuery = urlSearchParams.get('q') || searchParams.q || '';
     const source = urlSearchParams.get('source') || searchParams.source || '';
+    const status = urlSearchParams.get('status') || (searchParams.status as "all" | "generated" | "pending") || 'all';
     const date = urlSearchParams.get('date') || searchParams.date || '';
     const currentPage = parseInt(urlSearchParams.get('page') || searchParams.page || '1');
     const limit = 10;
 
     const { data, isLoading, isError } = useQuery<CrawledArticlesResponse>({
-        queryKey: ['crawledArticles', { from, to, searchQuery, currentPage, source, date }],
+        queryKey: ['crawledArticles', { from, to, searchQuery, currentPage, source, date, status }],
         queryFn: () => articlesApi.getCrawledArticles({
             from: from || undefined,
             to: to || undefined,
             source: source || undefined,
             date: date || undefined,
             q: searchQuery,
+            status: status as "all" | "generated" | "pending",
             page: currentPage,
             limit
         }),
@@ -289,6 +355,7 @@ export default function RawArticles({ searchParams }: {
         from,
         to,
     });
+    const [statusDraft, setStatusDraft] = React.useState(status);
 
     React.useEffect(() => {
         setSearchDraft(searchQuery);
@@ -301,6 +368,10 @@ export default function RawArticles({ searchParams }: {
     React.useEffect(() => {
         setSourceDraft(source);
     }, [source]);
+
+    React.useEffect(() => {
+        setStatusDraft(status);
+    }, [status]);
 
     React.useEffect(() => {
 
@@ -372,6 +443,11 @@ export default function RawArticles({ searchParams }: {
         setQueryParams({ source: sourceDraft || null });
     }, [sourceDraft, source, setQueryParams]);
 
+    React.useEffect(() => {
+        if (statusDraft === status) return;
+        setQueryParams({ status: statusDraft || null });
+    }, [statusDraft, status, setQueryParams]);
+
     const containerVariants: Variants = {
         hidden: { opacity: 0 },
         visible: {
@@ -431,6 +507,17 @@ export default function RawArticles({ searchParams }: {
                         </SelectContent>
                     </Select>
 
+                    <Select value={statusDraft} onValueChange={(val: any) => setStatusDraft(val)}>
+                        <SelectTrigger className="h-12 w-[160px] rounded-2xl bg-gray-50/50 border-gray-100 text-sm font-semibold text-gray-900 focus-visible:ring-orange-500/20">
+                            <SelectValue placeholder="Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Status</SelectItem>
+                            <SelectItem value="generated">Generated</SelectItem>
+                            <SelectItem value="pending">Pending</SelectItem>
+                        </SelectContent>
+                    </Select>
+
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button
@@ -467,7 +554,7 @@ export default function RawArticles({ searchParams }: {
                         </PopoverContent>
                     </Popover>
 
-                    {((rangeDraft.from || rangeDraft.to) || searchDraft || (sourceDraft && sourceDraft !== 'All Sources')) && (
+                    {((rangeDraft.from || rangeDraft.to) || searchDraft || (sourceDraft && sourceDraft !== 'All Sources') || (statusDraft && statusDraft !== 'all')) && (
                         <Button
                             type="button"
                             variant="link"
@@ -477,7 +564,8 @@ export default function RawArticles({ searchParams }: {
                                 setRangeDraft({ from: '', to: '' });
                                 setSearchDraft('');
                                 setSourceDraft('All Sources');
-                                setQueryParams({ from: null, to: null, q: null, source: null });
+                                setStatusDraft('all');
+                                setQueryParams({ from: null, to: null, q: null, source: null, status: null });
                             }}
                         >
                             Clear

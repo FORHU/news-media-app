@@ -1,27 +1,34 @@
 import { PrismaClient } from "@/generated/prisma";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
-const connectionString = process.env.DATABASE_URL;
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL is not set");
+}
 
-type GlobalPrisma = {
+type GlobalForPrisma = {
   prisma?: PrismaClient;
+  pool?: Pool;
 };
 
-const globalForPrisma = globalThis as unknown as GlobalPrisma;
+const g = globalThis as unknown as GlobalForPrisma;
 
-function createPrisma(): PrismaClient {
-  if (!connectionString) {
-    throw new Error("DATABASE_URL is not set");
-  }
-  //TO DO: set max to 5 or 10 after switching from supabase session pooler to transaction pooler.
-  const adapter = new PrismaPg({ connectionString, max: 5, options: "-c search_path=public" });
-  return new PrismaClient({ adapter });
-}
+// Set to 1 during build so that 11 parallel workers stay under the 15-connection DB limit.
+const maxConnections = process.env.NEXT_PHASE === "phase-production-build" ? 1 : 5;
 
-export const prisma: PrismaClient =
-  globalForPrisma.prisma ?? createPrisma();
+const pool: Pool = g.pool ?? new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: maxConnections,
+  // During build, give more time for sequential queries to queue through the single connection.
+  connectionTimeoutMillis: process.env.NEXT_PHASE === "phase-production-build" ? 30000 : 5000,
+  idleTimeoutMillis: 30000,
+});
 
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
+// Cache in globalThis for BOTH dev (prevent hot-reload exhaustion)
+// and prod (reuse pool across warm Vercel invocations)
+g.pool = pool;
 
+const adapter = new PrismaPg(pool);
+
+export const prisma: PrismaClient = g.prisma ?? new PrismaClient({ adapter });
+g.prisma = prisma;

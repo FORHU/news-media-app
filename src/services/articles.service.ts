@@ -17,6 +17,7 @@ export const articlesService = {
     search?: string | null;
     category?: string | null;
     status?: string | null;
+    onlySummary?: boolean;
   }, tenantId?: string | null) => {
     const rawLimit = params.limit ?? 50;
     const safeLimit = Math.min(rawLimit || 50, 1000); // Increased limit for sitemaps/etc
@@ -27,6 +28,21 @@ export const articlesService = {
       category: params.category ?? null,
       status: params.status ?? null,
       tenantId: tenantId ?? undefined,
+      onlySummary: params.onlySummary,
+    });
+  }),
+
+  getArticleSummaries: cache(async (params: {
+    limit?: number;
+    category?: string | null;
+    status?: string | null;
+  }, tenantId?: string | null) => {
+    return articlesRepository.findMany({
+      limit: params.limit ?? 10,
+      category: params.category ?? null,
+      status: params.status ?? "published",
+      tenantId: tenantId ?? undefined,
+      onlySummary: true,
     });
   }),
 

@@ -104,7 +104,13 @@ export default function TransformXPostModal({
             setFieldErrors({ category: "Please select a category first" });
             return;
         }
-        onGenerate(generationPrompt, selectedCategory, language, resolvedGenerationMode);
+        
+        const finalPrompt = [
+            generationPrompt?.trim(), 
+            language ? `Write the entire article in ${language}.` : ""
+        ].filter(Boolean).join("\n\n");
+
+        onGenerate(finalPrompt, selectedCategory, language, resolvedGenerationMode);
     };
 
     // Extract Tweet ID for embed if possible

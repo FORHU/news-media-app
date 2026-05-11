@@ -69,6 +69,7 @@ export const crawledArticlesQuerySchema = z
         message: "Invalid to date",
       }),
     q: z.string().optional().default(""),
+    status: z.enum(["all", "generated", "pending"]).optional().default("all"),
     page: z
       .preprocess(
         (v) => (typeof v === "string" ? Number.parseInt(v, 10) : v),

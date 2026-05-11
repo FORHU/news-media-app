@@ -11,6 +11,7 @@ import { articlesService } from "@/services/articles.service";
 import { bannersService } from "@/services/banners.service";
 import { DEFAULT_OG_IMAGE, DEFAULT_SEO } from "@/config/site";
 import { resolveTenantIdFromDomain, getSiteNameFromDomain } from "@/lib/tenant";
+import { prisma } from "@/lib/db";
 
 // Domain-specific designs
 import NewsIconsLanding from "@/components/sites/newsicons/NewsIconsLanding";
@@ -19,6 +20,21 @@ import JejuQQLanding from "@/components/sites/jejuqq/JejuQQLanding";
 import JejuJapanLanding from "@/components/sites/jejujapan/JejuJapanLanding";
 
 export const revalidate = 300;
+
+export async function generateStaticParams() {
+  try {
+    const tenants = await prisma.tenant.findMany({
+      where: { isActive: true },
+      select: { domain: true },
+    });
+    return tenants.map((t) => ({ domain: t.domain }));
+  } catch (error) {
+    console.error("Error generating static params for domains:", error);
+    return [];
+  }
+}
+
+import { getRequestBaseUrl, buildOgImageUrl } from "@/lib/metadata";
 
 export async function generateMetadata({ params }: { params: Promise<{ domain: string }> }): Promise<Metadata> {
   const { domain } = await params;
@@ -29,8 +45,22 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
   if (domain === "jejujapan.com") icon = "/icons/jejujapan.ico";
 
   const siteName = getSiteNameFromDomain(domain);
+  const baseUrl = await getRequestBaseUrl(domain);
+  const logoPath = `/Logo/${
+    domain === "jejujapan.com"
+      ? "JEJUJAPANLOGO.png"
+      : domain === "jejuqq.com"
+        ? "JEJUQQLOGO.png"
+        : "JEJUTIMELOGO.png"
+  }`;
+  const logoUrl = `${baseUrl}${logoPath}`;
+  const { optimized: ogImageOptimized, absolute: ogImageAbsolute } = buildOgImageUrl(
+    logoUrl,
+    baseUrl
+  );
   
   return {
+    metadataBase: new URL(baseUrl),
     title: siteName,
     description: DEFAULT_SEO.description,
     icons: {
@@ -41,6 +71,26 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
       description: DEFAULT_SEO.description,
       url: "/",
       type: "website",
+      images: [
+        {
+          url: ogImageAbsolute, // Absolute PNG first for Messenger
+          width: 1200,
+          height: 630,
+          alt: siteName,
+        },
+        {
+          url: ogImageOptimized,
+          width: 1200,
+          height: 630,
+          alt: siteName,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: siteName,
+      description: DEFAULT_SEO.description,
+      images: [ogImageAbsolute, ogImageOptimized],
     },
   };
 }

@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
     from: searchParams.get("from") ?? undefined,
     to: searchParams.get("to") ?? undefined,
     q: searchParams.get("q") ?? undefined,
+    status: searchParams.get("status") ?? undefined,
     page: searchParams.get("page") ?? undefined,
     limit: searchParams.get("limit") ?? undefined,
   });

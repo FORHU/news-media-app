@@ -12,6 +12,7 @@ const crawledArticlesParamsSchema = z.object({
   from: z.string().optional(),
   to: z.string().optional(),
   q: z.string().optional(),
+  status: z.enum(["all", "generated", "pending"]).optional(),
   page: z.number(),
   limit: z.number(),
 });
@@ -47,6 +48,7 @@ export const articlesApi = {
     if (validated.from) searchParams.append("from", validated.from);
     if (validated.to) searchParams.append("to", validated.to);
     if (validated.q) searchParams.append("q", validated.q);
+    if (validated.status) searchParams.append("status", validated.status);
     searchParams.append("page", validated.page.toString());
     searchParams.append("limit", validated.limit.toString());
 
@@ -110,6 +112,16 @@ export const articlesApi = {
       );
     }
     return res.json();
+  },
+
+  async deleteCrawledArticle(id: string): Promise<void> {
+    const res = await fetch(`/api/admin/crawledArticles/${id}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to delete crawled article");
+    }
   },
 
   async generateAiContentFromX(
@@ -190,6 +202,7 @@ export const articlesApi = {
     language?: string;
     extractedText?: string;
     s3ImageUrl?: string;
+    materialImages?: string[];
   }): Promise<unknown> {
     const res = await fetch("/api/admin/generatedArticles/createFromUpload", {
       method: "POST",
@@ -234,6 +247,16 @@ export const articlesApi = {
     });
     if (!res.ok) throw new Error("Failed to fetch generated articles");
     return res.json();
+  },
+
+  async deleteGeneratedArticle(id: string): Promise<void> {
+    const res = await fetch(`/api/admin/generatedArticles/${id}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to delete generated article");
+    }
   },
 
   async updateArticle(
@@ -331,6 +354,22 @@ export const articlesApi = {
     if (!res.ok) {
       const error = await res.json().catch(() => ({}));
       throw new Error(error.error || "Failed to get upload URL");
+    }
+    return res.json();
+  },
+
+  async uploadImage(file: File): Promise<{ url: string; key: string }> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch("/api/admin/upload-image", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to upload image via proxy");
     }
     return res.json();
   },
