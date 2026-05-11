@@ -171,7 +171,7 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
         </div>
 
         {/* Row 2: Logo Bar */}
-        <div className="border-b border-black py-3 lg:py-4">
+        <div className="border-b border-black py-2 lg:py-3">
           <div className="max-w-[1440px] mx-auto px-4 lg:px-6 flex items-center justify-between">
             <div className="flex items-center w-1/3">
               <button 
