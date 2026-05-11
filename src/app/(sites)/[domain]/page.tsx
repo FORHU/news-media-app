@@ -108,7 +108,7 @@ export default async function Page({
 
   const articles = tenantId
     ? await articlesService.getArticles(
-      { limit: 100 },
+      { limit: 100, status: "published" },
       tenantId
     )
     : [];

@@ -16,13 +16,13 @@ async function revalidateArticle(tenantId: string, articleId: string, slug?: str
     if (tenant?.domain) {
       const domain = tenant.domain;
       // Revalidate landing page
-      revalidatePath(`/${domain}`);
+      revalidatePath(`/${domain}`, "page");
       // Revalidate search page
-      revalidatePath(`/${domain}/search`);
+      revalidatePath(`/${domain}/search`, "page");
       // Revalidate specific article page (by ID and slug if available)
-      revalidatePath(`/${domain}/article/${articleId}`);
+      revalidatePath(`/${domain}/article/${articleId}`, "page");
       if (slug) {
-        revalidatePath(`/${domain}/article/${slug}`);
+        revalidatePath(`/${domain}/article/${slug}`, "page");
       }
       console.log(`[Revalidate] Triggered for domain: ${domain}, article: ${articleId}`);
     }
