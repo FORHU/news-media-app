@@ -39,7 +39,7 @@ import { getRequestBaseUrl, buildOgImageUrl } from "@/lib/metadata";
 
 export async function generateMetadata({ params }: { params: Promise<{ domain: string }> }): Promise<Metadata> {
   const { domain } = await params;
-  
+
   let icon = "/icons/newsicons.ico";
   if (domain === "jejutime.com") icon = "/icons/jejutime.ico";
   if (domain === "jejuqq.com") icon = "/icons/jejuqq.ico";
@@ -48,21 +48,20 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
 
   const siteName = getSiteNameFromDomain(domain);
   const baseUrl = await getRequestBaseUrl(domain);
-  const logoPath = `/Logo/${
-    domain === "jejujapan.com"
+  const logoPath = `/Logo/${domain === "jejujapan.com"
       ? "JEJUJAPANLOGO.png"
       : domain === "jejuqq.com"
         ? "JEJUQQLOGO.png"
         : domain === "voicejeju.com"
           ? "VOICEJEJULOGO.png"
           : "JEJUTIMELOGO.png"
-  }`;
+    }`;
   const logoUrl = `${baseUrl}${logoPath}`;
   const { optimized: ogImageOptimized, absolute: ogImageAbsolute } = buildOgImageUrl(
     logoUrl,
     baseUrl
   );
-  
+
   return {
     metadataBase: new URL(baseUrl),
     title: siteName,
@@ -109,26 +108,26 @@ export default async function Page({
 
   const articles = tenantId
     ? await articlesService.getArticles(
-        { limit: 50 },
-        tenantId
-      )
+      { limit: 100 },
+      tenantId
+    )
     : [];
 
   const [topBanners, sidebarBanners, footerBanners] = await Promise.all([
     tenantId
       ? bannersService
-          .getBanners({ position: "HOME_TOP", isActive: true, tenantId })
-          .catch(() => [])
+        .getBanners({ position: "HOME_TOP", isActive: true, tenantId })
+        .catch(() => [])
       : Promise.resolve([]),
     tenantId
       ? bannersService
-          .getBanners({ position: "HOME_SIDEBAR", isActive: true, tenantId })
-          .catch(() => [])
+        .getBanners({ position: "HOME_SIDEBAR", isActive: true, tenantId })
+        .catch(() => [])
       : Promise.resolve([]),
     tenantId
       ? bannersService
-          .getBanners({ position: "GLOBAL_FOOTER", isActive: true, tenantId })
-          .catch(() => [])
+        .getBanners({ position: "GLOBAL_FOOTER", isActive: true, tenantId })
+        .catch(() => [])
       : Promise.resolve([]),
   ]);
 
@@ -136,23 +135,23 @@ export default async function Page({
 
   // --- Design Routing ---
   if (domain === "newsicons.com") {
-      return <NewsIconsLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
+    return <NewsIconsLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
   }
 
   if (domain === "jejutime.com") {
-      return <JejuTimeLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
+    return <JejuTimeLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
   }
 
   if (domain === "jejuqq.com") {
-      return <JejuQQLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
+    return <JejuQQLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
   }
 
   if (domain === "jejujapan.com") {
-      return <JejuJapanLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
+    return <JejuJapanLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
   }
 
   if (domain === "voicejeju.com") {
-      return <VoiceJejuLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
+    return <VoiceJejuLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
   }
 
   // Default design (current layout)

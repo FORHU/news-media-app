@@ -155,7 +155,7 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
       <header className="w-full bg-white flex flex-col font-inter">
         {/* Row 1: Top Bar */}
         <div className="border-b border-gray-200">
-          <div className="max-w-[1440px] mx-auto px-4 lg:px-6 h-10 flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-gray-500">
+          <div className="max-w-[1440px] mx-auto px-4 lg:px-6 h-8 flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-gray-500">
             <div className="flex items-center gap-4">
               <span>{today}</span>
               <span className="hidden sm:inline border-l border-gray-200 pl-4">Today's Paper</span>
@@ -171,7 +171,7 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
         </div>
 
         {/* Row 2: Logo Bar */}
-        <div className="border-b border-black py-6 lg:py-8">
+        <div className="border-b border-black py-3 lg:py-4">
           <div className="max-w-[1440px] mx-auto px-4 lg:px-6 flex items-center justify-between">
             <div className="flex items-center w-1/3">
               <button 
@@ -210,7 +210,7 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
 
         {/* Row 3: Main Navigation (Black Bar) */}
         <div className="bg-black text-white relative">
-          <div className="max-w-[1440px] mx-auto relative px-4 py-3 flex items-center justify-center">
+          <div className="max-w-[1440px] mx-auto relative px-4 py-1.5 flex items-center justify-center">
              <nav 
                ref={navRef}
                className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 w-full text-[11px] font-bold uppercase tracking-[0.15em] text-white/80"

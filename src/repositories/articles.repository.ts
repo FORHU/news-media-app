@@ -62,6 +62,7 @@ const articleSummarySelect = {
   createdAt: true,
   viewCount: true,
   trendingScore: true,
+  content: true,
   category: {
     select: {
       id: true,
@@ -121,7 +122,7 @@ export const articlesRepository = {
       });
     } else {
       and.push({
-        status: { in: ["published", "blog"] },
+        status: { in: ["published", "blog", "article"] },
       });
     }
 

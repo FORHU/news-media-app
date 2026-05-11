@@ -82,13 +82,12 @@ export async function generateMetadata({
     const siteName = getSiteNameFromDomain(domain);
     const baseUrl = await getRequestBaseUrl(domain);
 
-    const logoPath = `/Logo/${
-      normalizedDomain === "jejujapan.com"
+    const logoPath = `/Logo/${normalizedDomain === "jejujapan.com"
         ? "JEJUJAPANLOGO.png"
         : normalizedDomain === "jejuqq.com"
           ? "JEJUQQLOGO.png"
           : "JEJUTIMELOGO.png"
-    }`;
+      }`;
     const logoUrl = `${baseUrl}${logoPath}`;
 
     let icon = "/icons/newsicons.ico";
@@ -111,10 +110,10 @@ export async function generateMetadata({
     const ogImages = optimizedIsLocal
       ? [{ url: ogImageAbsolute, width: 1200, height: 630, alt: siteName }]
       : [
-          // Put same-origin optimized URL first for social crawlers.
-          { url: ogImageOptimized, width: 1200, height: 630, alt: siteName },
-          { url: ogImageAbsolute, width: 1200, height: 630, alt: siteName },
-        ];
+        // Put same-origin optimized URL first for social crawlers.
+        { url: ogImageOptimized, width: 1200, height: 630, alt: siteName },
+        { url: ogImageAbsolute, width: 1200, height: 630, alt: siteName },
+      ];
 
     if (isDev) {
       console.log(
@@ -161,15 +160,14 @@ export async function generateMetadata({
     const description = cleanOgDescription(article.content ?? DEFAULT_SEO.description, 160);
     const siteName = getSiteNameFromDomain(domain);
     const baseUrl = await getRequestBaseUrl(domain);
-    const logoPath = `/Logo/${
-      normalizedDomain === "jejujapan.com"
+    const logoPath = `/Logo/${normalizedDomain === "jejujapan.com"
         ? "JEJUJAPANLOGO.png"
         : normalizedDomain === "jejuqq.com"
           ? "JEJUQQLOGO.png"
           : normalizedDomain === "voicejeju.com"
             ? "VOICEJEJULOGO.png"
             : "JEJUTIMELOGO.png"
-    }`;
+      }`;
     const logoUrl = `${baseUrl}${logoPath}`;
     const canonicalSlug = article.slug ?? article.id;
     const articlePath = `/article/${encodeURIComponent(canonicalSlug)}`;
@@ -205,28 +203,28 @@ export async function generateMetadata({
 
     const ogImages = optimizedIsLocal
       ? [
-          {
-            url: ogImageAbsolute,
-            width: 1200,
-            height: 630,
-            alt: siteName,
-          },
-        ]
+        {
+          url: ogImageAbsolute,
+          width: 1200,
+          height: 630,
+          alt: siteName,
+        },
+      ]
       : [
-          {
-            // Put same-origin optimized URL first for social crawlers.
-            url: ogImageOptimized,
-            width: 1200,
-            height: 630,
-            alt: siteName,
-          },
-          {
-            url: ogImageAbsolute, // Keep source URL as fallback
-            width: 1200,
-            height: 630,
-            alt: siteName,
-          },
-        ];
+        {
+          // Put same-origin optimized URL first for social crawlers.
+          url: ogImageOptimized,
+          width: 1200,
+          height: 630,
+          alt: siteName,
+        },
+        {
+          url: ogImageAbsolute, // Keep source URL as fallback
+          width: 1200,
+          height: 630,
+          alt: siteName,
+        },
+      ];
 
     if (isDev) {
       console.log(
@@ -263,15 +261,14 @@ export async function generateMetadata({
     const siteName = getSiteNameFromDomain(domain);
     const baseUrl = await getRequestBaseUrl(domain);
 
-    const logoPath = `/Logo/${
-      normalizedDomain === "jejujapan.com"
+    const logoPath = `/Logo/${normalizedDomain === "jejujapan.com"
         ? "JEJUJAPANLOGO.png"
         : normalizedDomain === "jejuqq.com"
           ? "JEJUQQLOGO.png"
           : normalizedDomain === "voicejeju.com"
             ? "VOICEJEJULOGO.png"
             : "JEJUTIMELOGO.png"
-    }`;
+      }`;
     const logoUrl = `${baseUrl}${logoPath}`;
     const fallbackImage = logoUrl || DEFAULT_OG_IMAGE;
     const { optimized: ogImageOptimized, absolute: ogImageAbsolute } = buildOgImageUrl(
@@ -305,10 +302,10 @@ export async function generateMetadata({
     const ogImages = optimizedIsLocal
       ? [{ url: ogImageAbsolute, width: 1200, height: 630, alt: siteName }]
       : [
-          // Put same-origin optimized URL first for social crawlers.
-          { url: ogImageOptimized, width: 1200, height: 630, alt: siteName },
-          { url: ogImageAbsolute, width: 1200, height: 630, alt: siteName },
-        ];
+        // Put same-origin optimized URL first for social crawlers.
+        { url: ogImageOptimized, width: 1200, height: 630, alt: siteName },
+        { url: ogImageAbsolute, width: 1200, height: 630, alt: siteName },
+      ];
 
     return {
       metadataBase: new URL(baseUrl),
@@ -382,8 +379,7 @@ export default async function ArticlePage({
   // Fetch only what's needed for the sidebar — fewer articles = smaller ISR page HTML.
   // The full article list is available via client-side fetching if needed.
   const allArticles = await articlesService.getArticleSummaries({
-    limit: 10,
-    status: "published",
+    limit: 20,
   }, tenantId).catch(() => [] as Awaited<ReturnType<typeof articlesService.getArticleSummaries>>);
 
   const dehydratedState = dehydrate(queryClient);

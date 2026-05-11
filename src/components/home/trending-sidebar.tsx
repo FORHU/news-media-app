@@ -1,5 +1,5 @@
 "use client";
- 
+
 import type { Article } from "@/lib/types";
 import { ArticleLink } from "@/components/home/ArticleLink";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
@@ -57,7 +57,7 @@ export function TrendingSidebar({ articles, domain }: TrendingSidebarProps) {
                     {index + 1}
                   </span>
                 ) : (
-                  <div 
+                  <div
                     className="w-8 h-8 rounded-full text-white flex items-center justify-center font-bold text-sm"
                     style={{ backgroundColor: domainColor.hex }}
                   >
@@ -67,14 +67,14 @@ export function TrendingSidebar({ articles, domain }: TrendingSidebarProps) {
               </div>
               <div className="flex-1 min-w-0">
                 {normalizeCategoryName(article.category?.categoryName) ? (
-                  <div 
+                  <div
                     className="text-xs font-semibold mb-1 uppercase"
                     style={{ color: domainColor.hex }}
                   >
                     {normalizeCategoryName(article.category?.categoryName)}
                   </div>
                 ) : null}
-                <h3 
+                <h3
                   className={`text-sm font-bold text-gray-900 transition-colors line-clamp-2 mb-1 ${domain.includes('voicejeju') ? 'font-voltaire uppercase tracking-tight' : 'font-serif'}`}
                   onMouseEnter={(e) => e.currentTarget.style.color = domainColor.hex}
                   onMouseLeave={(e) => e.currentTarget.style.color = '#111827'} // gray-900
