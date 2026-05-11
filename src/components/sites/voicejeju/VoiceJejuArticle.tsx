@@ -190,12 +190,12 @@ export function VoiceJejuArticle({
       </div>
 
       {/* Spacing to separate from Global Header Nav */}
-      <div className="h-4 bg-white border-b border-gray-100" />
+      <div className="h-2 bg-white border-b border-gray-100" />
 
       {/* Immersive Header Wrapper */}
-      <div className="bg-black text-white pt-16 pb-24 mb-16 relative overflow-hidden">
+      <div className="bg-black text-white pt-8 pb-12 mb-8 relative overflow-hidden">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 relative text-center">
-          <div className="flex flex-col sm:flex-row items-center justify-center relative mb-12 gap-6 sm:gap-0 min-h-[40px]">
+          <div className="flex flex-col sm:flex-row items-center justify-center relative mb-8 gap-6 sm:gap-0 min-h-[40px]">
             <button
               type="button"
               onClick={() =>
@@ -215,7 +215,7 @@ export function VoiceJejuArticle({
           </div>
 
           <div className="max-w-5xl mx-auto">
-            <h1 className="text-4xl sm:text-6xl lg:text-8xl font-normal text-white mb-12 font-voltaire tracking-tighter leading-[0.9] uppercase">
+            <h1 className="text-4xl sm:text-6xl lg:text-8xl font-normal text-white mb-8 font-voltaire tracking-tighter leading-[0.9] uppercase">
               {article.title}
             </h1>
             <div className="flex items-center justify-center gap-8">
@@ -232,12 +232,12 @@ export function VoiceJejuArticle({
       </div>
 
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12">
 
           {/* Left Sidebar: Trending Stories */}
-          <aside className="lg:col-span-3 space-y-16 lg:pr-10 border-r border-gray-100 hidden lg:block">
+          <aside className="lg:col-span-3 space-y-8 lg:pr-10 border-r border-gray-100 hidden lg:block">
             <div className="sticky top-32">
-              <div className="border-t-4 border-black pt-12 mb-12">
+              <div className="border-t-4 border-black pt-6 mb-6">
                 <TrendingSidebar articles={trendingArticles} domain="voicejeju.com" />
               </div>
               <AdBanner position="ARTICLE_SIDEBAR" />
@@ -258,7 +258,7 @@ export function VoiceJejuArticle({
 
               {showYoutubePlayer ? (
                 <>
-                  <div className="mb-16 overflow-hidden bg-black aspect-video border border-gray-100">
+                  <div className="mb-8 overflow-hidden bg-black aspect-video border border-gray-100">
                     <iframe
                       src={`https://www.youtube.com/embed/${youtubeId}`}
                       title="YouTube video player"
@@ -270,11 +270,11 @@ export function VoiceJejuArticle({
 
                   {article.imageUrl ? (
                     <>
-                      <div className="text-gray-900 leading-[1.8] whitespace-pre-wrap font-inter text-lg lg:text-xl border-l-4 border-gray-100 pl-10 mb-16 italic opacity-95">
+                      <div className="text-gray-900 leading-[1.8] whitespace-pre-wrap font-inter text-lg lg:text-xl border-l-4 border-gray-100 pl-10 mb-8 italic opacity-95">
                         {firstHalf}
                       </div>
 
-                      <div className="my-16 overflow-hidden bg-gray-50 relative aspect-video border-y border-gray-100">
+                      <div className="my-8 overflow-hidden bg-gray-50 relative aspect-video border-y border-gray-100">
                         <StoryImage
                           src={article.imageUrl}
                           alt={article.title}
@@ -299,7 +299,7 @@ export function VoiceJejuArticle({
                 </>
               ) : (
                 <>
-                  <div className="overflow-hidden bg-gray-50 relative aspect-video lg:aspect-[21/9] border-y border-gray-100 mb-16">
+                  <div className="overflow-hidden bg-gray-50 relative aspect-video lg:aspect-[21/9] border-y border-gray-100 mb-8">
                     <StoryImage
                       src={article.imageUrl}
                       alt={article.title}
@@ -311,14 +311,14 @@ export function VoiceJejuArticle({
                     />
                   </div>
 
-                  <div className="text-gray-900 leading-[1.8] whitespace-pre-wrap font-inter text-lg lg:text-xl max-w-4xl mb-16">
+                  <div className="text-gray-900 leading-[1.8] whitespace-pre-wrap font-inter text-lg lg:text-xl max-w-4xl mb-8">
                     {fullContent}
                   </div>
                 </>
               )}
 
               {referenceLine ? (
-                <div className="mt-20 pt-12 border-t border-black">
+                <div className="mt-12 pt-8 border-t border-black">
                   <p className="text-[11px] text-black font-black uppercase tracking-[0.5em] mb-6">Source & Reference</p>
                   <p className="text-sm text-gray-700 italic leading-relaxed font-inter border-l-2 border-gray-200 pl-6">
                     {referenceLine}
@@ -329,7 +329,7 @@ export function VoiceJejuArticle({
               <ArticleShare
                 site="voicejeju"
                 title={article.title}
-                className="mt-24 py-16 border-y border-gray-100"
+                className="mt-12 py-10 border-y border-gray-100"
               />
             </article>
           </div>
@@ -338,9 +338,9 @@ export function VoiceJejuArticle({
 
       {/* Recommended Articles Section: Editorial Grid */}
       {recommendedArticles.length > 0 && (
-        <section className="bg-black text-white py-24 mt-32">
+        <section className="bg-black text-white py-12 mt-16">
           <div className="max-w-[1440px] mx-auto px-4 lg:px-12">
-            <h2 className="text-[12px] font-black uppercase tracking-[0.6em] mb-16 text-gray-400 text-center">
+            <h2 className="text-[12px] font-black uppercase tracking-[0.6em] mb-10 text-gray-400 text-center">
               Continue Reading
             </h2>
 
@@ -360,9 +360,9 @@ export function VoiceJejuArticle({
                       className="object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                   </div>
-                  <div className="p-8 flex flex-col flex-1">
-                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-[0.4em] mb-4">{rec.category?.categoryName}</span>
-                    <h3 className="text-2xl font-normal font-voltaire mb-4 line-clamp-3 leading-tight group-hover:underline transition-all">
+                  <div className="p-6 flex flex-col flex-1">
+                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-[0.4em] mb-3">{rec.category?.categoryName}</span>
+                    <h3 className="text-2xl font-normal font-voltaire mb-3 line-clamp-3 leading-tight group-hover:underline transition-all">
                       {rec.title}
                     </h3>
                     <p className="text-gray-400 text-sm line-clamp-3 leading-relaxed italic mb-6">
