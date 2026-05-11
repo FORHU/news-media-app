@@ -30,7 +30,7 @@ const VOICE_JEJU_CATEGORIES = [
 
 async function main() {
   console.log("Seeding articles for voicejeju.com...");
-  
+
   // 1. Get or Create Tenant
   let tenant = await prisma.$queryRawUnsafe<{ id: string }[]>(
     `SELECT id FROM public.tenants WHERE domain = $1`, "voicejeju.com"
@@ -59,7 +59,7 @@ async function main() {
     // In a real app, you'd use supabase auth id, but for local mock we just need a valid UUID in the DB
     const dummyId = '00000000-0000-0000-0000-000000000000'; // Replace with a real one if needed or gen one
     await prisma.$executeRawUnsafe(
-      `INSERT INTO public.users (id, tenant_id, email, role, updated_at) VALUES ($1, $2, $3, $4, NOW())`, 
+      `INSERT INTO public.users (id, tenant_id, email, role, updated_at) VALUES ($1, $2, $3, $4, NOW())`,
       crypto.randomUUID(), tenantId, "admin@voicejeju.com", "admin"
     );
     user = await prisma.$queryRawUnsafe<{ id: string }[]>(
@@ -75,28 +75,28 @@ async function main() {
       `SELECT id FROM public.categories WHERE tenant_id = $1 AND category_name = $2`, tenantId, catName
     );
     if (cat.length === 0) {
-       await prisma.$executeRawUnsafe(
-         `INSERT INTO public.categories (id, tenant_id, category_name, updated_at) VALUES (gen_random_uuid()::text, $1, $2, NOW())`, tenantId, catName
-       );
-       cat = await prisma.$queryRawUnsafe<{ id: string }[]>(
-         `SELECT id FROM public.categories WHERE tenant_id = $1 AND category_name = $2`, tenantId, catName
-       );
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO public.categories (id, tenant_id, category_name, updated_at) VALUES (gen_random_uuid()::text, $1, $2, NOW())`, tenantId, catName
+      );
+      cat = await prisma.$queryRawUnsafe<{ id: string }[]>(
+        `SELECT id FROM public.categories WHERE tenant_id = $1 AND category_name = $2`, tenantId, catName
+      );
     }
     categoryMap[catName] = cat[0].id;
   }
 
   console.log("Generating 200 articles for VoiceJeju...");
-  
+
   for (let i = 0; i < 200; i++) {
     const template = articles[i % articles.length];
     const categoryName = VOICE_JEJU_CATEGORIES[i % VOICE_JEJU_CATEGORIES.length];
     const categoryId = categoryMap[categoryName];
-    
+
     // Add more variation to titles
     const prefixes = ["Premium:", "Breaking:", "Exclusive:", "Latest:", "Insight:", "Deep Dive:", "Focus:", "Global:", "Local:"];
     const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
     const title = `${prefix} ${template.title} (Batch ${Math.floor(i / articles.length) + 1} - #${i + 1})`;
-    
+
     // Check if exists
     const existing = await prisma.contentArticle.findFirst({
       where: {
@@ -104,21 +104,21 @@ async function main() {
         title: title
       }
     });
-    
+
     if (!existing) {
-       await prisma.contentArticle.create({
-         data: {
-           tenantId,
-           usersId: userId,
-           categoryId,
-           title: title,
-           content: template.content,
-           imageUrl: template.imageUrl,
-           status: i % 5 === 0 ? "blog" : "article", // Mix some blogs for "Discover" section
-           trendingScore: Math.floor(Math.random() * 100),
-           createdAt: new Date(Date.now() - (i * 3600000)) // Spread them out by hour
-         } as any
-       });
+      await prisma.contentArticle.create({
+        data: {
+          tenantId,
+          usersId: userId,
+          categoryId,
+          title: title,
+          content: template.content,
+          imageUrl: template.imageUrl,
+          status: i % 5 === 0 ? "blog" : "published", // Mix some blogs for "Discover" section
+          trendingScore: Math.floor(Math.random() * 100),
+          createdAt: new Date(Date.now() - (i * 3600000)) // Spread them out by hour
+        } as any
+      });
     }
   }
 

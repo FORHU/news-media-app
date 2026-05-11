@@ -49,14 +49,14 @@ function useTheme(): Theme {
 
 /* ── VoiceJeju ── */
 const voiceJejuTheme: Theme = {
-  bg: 'min-h-screen bg-gray-50 flex items-center justify-center px-4 relative overflow-hidden font-inter',
-  card: 'bg-white border border-gray-100 p-10 md:p-14 relative overflow-hidden shadow-2xl rounded-none',
+  bg: 'min-h-screen bg-gray-50 flex items-center justify-center px-4 py-6 relative overflow-hidden font-inter',
+  card: 'bg-white border border-gray-100 p-6 md:p-14 relative overflow-hidden shadow-2xl rounded-none',
   topBar: 'absolute top-0 left-0 w-full h-1.5 bg-black',
   logo: (
-    <div className="text-center mb-12 flex flex-col items-center">
-      <h1 className="text-6xl font-normal text-black font-voltaire tracking-tighter uppercase leading-none">VoiceJeju</h1>
-      <div className="h-0.5 w-12 bg-[#e60000] mt-4 mb-2" />
-      <p className="text-gray-400 font-bold text-[10px] uppercase tracking-[0.4em]">Editorial Management</p>
+    <div className="text-center mb-6 sm:mb-12 flex flex-col items-center">
+      <h1 className="text-4xl sm:text-6xl font-normal text-black font-voltaire tracking-tighter uppercase leading-none">VoiceJeju</h1>
+      <div className="h-0.5 w-12 bg-[#e60000] mt-2 mb-1 sm:mt-4 sm:mb-2" />
+      <p className="text-gray-400 font-bold text-[9px] sm:text-[10px] uppercase tracking-[0.4em]">Editorial Management</p>
     </div>
   ),
   accent: '#000000',
@@ -67,13 +67,13 @@ const voiceJejuTheme: Theme = {
   inputBgCls: 'bg-white',
   inputRounded: 'rounded-none',
   labelCls: 'text-[10px] font-black text-gray-900 uppercase tracking-[0.25em]',
-  btnCls: 'w-full bg-black text-white py-4 font-black text-[11px] uppercase tracking-[0.3em] hover:bg-gray-900 disabled:opacity-50 transition-all flex items-center justify-center gap-3 group rounded-none',
+  btnCls: 'w-full bg-black text-white py-3 sm:py-4 font-black text-[11px] uppercase tracking-[0.3em] hover:bg-gray-900 disabled:opacity-50 transition-all flex items-center justify-center gap-3 group rounded-none',
   errorCls: 'text-xs text-red-600 bg-red-50 p-4 border border-red-100 font-bold flex items-center gap-3',
   backCls: 'fixed top-6 left-6 sm:top-10 sm:left-10 flex items-center gap-3 text-gray-400 hover:text-black transition-all group z-10 font-black uppercase tracking-[0.3em] text-[10px]',
   backIconCls: 'transition-transform group-hover:-translate-x-1',
   headingCls: 'text-2xl font-voltaire font-normal text-black tracking-tight mb-2 uppercase',
   subtextCls: 'text-sm text-gray-500 font-medium',
-  footerCls: 'text-center mt-10 text-gray-400 font-bold text-[9px] uppercase tracking-[0.4em]',
+  footerCls: 'text-center mt-6 sm:mt-10 text-gray-400 font-bold text-[9px] uppercase tracking-[0.4em]',
   tagline: 'Staff Authentication',
   footerText: '© 2026 VoiceJeju News Network',
   siteName: 'VoiceJeju',
@@ -81,8 +81,8 @@ const voiceJejuTheme: Theme = {
 
 /* ── NewsIcons ── */
 const newsIconsTheme: Theme = {
-  bg: 'min-h-screen bg-white flex items-center justify-center px-4 relative overflow-hidden',
-  card: 'bg-white border-2 border-gray-50 rounded-[2.5rem] shadow-2xl shadow-orange-100/30 p-10 md:p-12 relative overflow-hidden',
+  bg: 'min-h-screen bg-white flex items-center justify-center px-4 py-12 relative overflow-y-auto',
+  card: 'bg-white border-2 border-gray-50 rounded-[2.5rem] shadow-2xl shadow-orange-100/30 p-8 md:p-12 relative overflow-hidden',
   topBar: 'absolute top-0 left-0 w-full h-1.5 bg-[#ff4500]',
   logo: (
     <div className="text-center mb-12">
@@ -112,8 +112,8 @@ const newsIconsTheme: Theme = {
 
 /* ── JejuJapan ── */
 const jejuJapanTheme: Theme = {
-  bg: 'min-h-screen bg-[#f8f8f8] flex items-center justify-center px-4 relative overflow-hidden',
-  card: 'bg-white border-l-4 border-[#bc002d] p-10 md:p-12 relative overflow-hidden shadow-2xl rounded-sm',
+  bg: 'min-h-screen bg-[#f8f8f8] flex items-center justify-center px-4 py-12 relative overflow-y-auto',
+  card: 'bg-white border-l-4 border-[#bc002d] p-8 md:p-12 relative overflow-hidden shadow-2xl rounded-sm',
   topBar: '',
   logo: (
     <div className="text-center mb-10 flex flex-col items-center">
@@ -152,8 +152,8 @@ const jejuJapanTheme: Theme = {
 
 /* ── JejuQQ ── */
 const jejuQQTheme: Theme = {
-  bg: 'min-h-screen bg-[#fdf2f2] flex items-center justify-center px-4 relative overflow-hidden',
-  card: 'bg-[#fee2e2] border-t-4 border-[#dc2626] shadow-lg p-10 md:p-12 relative overflow-hidden rounded-none',
+  bg: 'min-h-screen bg-[#fdf2f2] flex items-center justify-center px-4 py-12 relative overflow-y-auto',
+  card: 'bg-[#fee2e2] border-t-4 border-[#dc2626] shadow-lg p-8 md:p-12 relative overflow-hidden rounded-none',
   topBar: '',
   logo: (
     <div className="text-center mb-10 flex flex-col items-center">
@@ -191,8 +191,8 @@ const jejuQQTheme: Theme = {
 
 /* ── JejuTime ── */
 const jejuTimeTheme: Theme = {
-  bg: 'min-h-screen bg-[#F8FAFC] flex items-center justify-center px-4 relative overflow-hidden',
-  card: 'bg-white rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] p-10 md:p-12 relative overflow-hidden border border-slate-100',
+  bg: 'min-h-screen bg-[#F8FAFC] flex items-center justify-center px-4 py-12 relative overflow-y-auto',
+  card: 'bg-white rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] p-8 md:p-12 relative overflow-hidden border border-slate-100',
   topBar: 'absolute top-0 left-0 w-full h-1 bg-blue-600 rounded-t-3xl',
   logo: (
     <div className="text-center mb-10 flex flex-col items-center">
@@ -350,7 +350,7 @@ function LoginContent() {
     }
   };
 
-  const inputBase = `w-full pl-11 pr-4 py-4 ${theme.inputBgCls} border-2 ${theme.inputRounded} outline-none text-gray-900 font-bold transition-all duration-300 ${theme.inputFocus}`;
+  const inputBase = `w-full pl-11 pr-4 py-3 sm:py-4 ${theme.inputBgCls} border-2 ${theme.inputRounded} outline-none text-gray-900 font-bold transition-all duration-300 ${theme.inputFocus}`;
 
   return (
     <div className={`${theme.bg} site-theme-${theme.siteName.toLowerCase().replace(/\s+/g, '')}-com`}>
@@ -368,7 +368,7 @@ function LoginContent() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-md z-10 mt-12 sm:mt-0"
+        className="w-full max-w-md z-10 mt-0"
       >
         {theme.logo}
 

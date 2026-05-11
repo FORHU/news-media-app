@@ -27,6 +27,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { articlesApi } from '@/lib/api';
 import { Article } from '@/lib/types';
 import { format } from 'date-fns';
+import { getCategoryLabel } from '@/config/categories';
 import { normalizeCategoryName } from '@/lib/categoryDisplay';
 import { extractYoutubeId } from '@/lib/utils';
 import TwitterStatusEmbed from '@/components/article/TwitterStatusEmbed';
@@ -250,7 +251,7 @@ export default function ReadGeneratedArticle({
                                 <div className="flex items-center gap-2 text-gray-400 text-[10px] sm:text-xs md:text-sm font-bold">
                                     <Tag className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-400" />
                                     {normalizeCategoryName(article.category?.categoryName) ? (
-                                        <span>{normalizeCategoryName(article.category?.categoryName)}</span>
+                                        <span>{getCategoryLabel(article.category?.categoryName ?? "")}</span>
                                     ) : null}
                                 </div>
                                 <div className="flex items-center gap-2 text-gray-400 text-[10px] sm:text-xs md:text-sm font-bold">
