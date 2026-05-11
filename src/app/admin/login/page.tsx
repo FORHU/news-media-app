@@ -43,8 +43,41 @@ function useTheme(): Theme {
   if (domain.includes('jejujapan')) return jejuJapanTheme;
   if (domain.includes('jejuqq'))   return jejuQQTheme;
   if (domain.includes('jejutime')) return jejuTimeTheme;
+  if (domain.includes('voicejeju')) return voiceJejuTheme;
   return newsIconsTheme;
 }
+
+/* ── VoiceJeju ── */
+const voiceJejuTheme: Theme = {
+  bg: 'min-h-screen bg-gray-50 flex items-center justify-center px-4 relative overflow-hidden font-inter',
+  card: 'bg-white border border-gray-100 p-10 md:p-14 relative overflow-hidden shadow-2xl rounded-none',
+  topBar: 'absolute top-0 left-0 w-full h-1.5 bg-black',
+  logo: (
+    <div className="text-center mb-12 flex flex-col items-center">
+      <h1 className="text-6xl font-normal text-black font-voltaire tracking-tighter uppercase leading-none">VoiceJeju</h1>
+      <div className="h-0.5 w-12 bg-[#e60000] mt-4 mb-2" />
+      <p className="text-gray-400 font-bold text-[10px] uppercase tracking-[0.4em]">Editorial Management</p>
+    </div>
+  ),
+  accent: '#000000',
+  accentCls: 'bg-black',
+  accentHover: 'hover:bg-gray-800',
+  inputFocus: 'focus:border-black',
+  inputBorder: 'border-gray-200 hover:border-gray-300',
+  inputBgCls: 'bg-white',
+  inputRounded: 'rounded-none',
+  labelCls: 'text-[10px] font-black text-gray-900 uppercase tracking-[0.25em]',
+  btnCls: 'w-full bg-black text-white py-4 font-black text-[11px] uppercase tracking-[0.3em] hover:bg-gray-900 disabled:opacity-50 transition-all flex items-center justify-center gap-3 group rounded-none',
+  errorCls: 'text-xs text-red-600 bg-red-50 p-4 border border-red-100 font-bold flex items-center gap-3',
+  backCls: 'fixed top-6 left-6 sm:top-10 sm:left-10 flex items-center gap-3 text-gray-400 hover:text-black transition-all group z-10 font-black uppercase tracking-[0.3em] text-[10px]',
+  backIconCls: 'transition-transform group-hover:-translate-x-1',
+  headingCls: 'text-2xl font-voltaire font-normal text-black tracking-tight mb-2 uppercase',
+  subtextCls: 'text-sm text-gray-500 font-medium',
+  footerCls: 'text-center mt-10 text-gray-400 font-bold text-[9px] uppercase tracking-[0.4em]',
+  tagline: 'Staff Authentication',
+  footerText: '© 2026 VoiceJeju News Network',
+  siteName: 'VoiceJeju',
+};
 
 /* ── NewsIcons ── */
 const newsIconsTheme: Theme = {
