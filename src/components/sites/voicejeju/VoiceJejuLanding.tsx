@@ -12,7 +12,7 @@ const ClientPagination = dynamic(() => import("@/components/home/ClientPaginatio
 import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
 import { TrendingUp, Clock, ChevronRight, ChevronLeft } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -29,6 +29,13 @@ interface Props {
 export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
    const [currentPage, setCurrentPage] = useState(1);
    const [itemsPerPage, setItemsPerPage] = useState(24);
+   const mainRef = useRef<HTMLDivElement>(null);
+
+   useEffect(() => {
+      if (mainRef.current) {
+         window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+   }, [currentPage, itemsPerPage]);
 
    const hasTopBanner = banners.top && banners.top.length > 0;
 
@@ -101,23 +108,23 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
    };
 
    return (
-      <div className={cn(
-         "bg-white min-h-screen font-inter selection:bg-black selection:text-white",
-         hasTopBanner ? "pt-3" : "pt-6"
-      )}>
-         {/* Top Banner */}
-         {hasTopBanner && (
-            <div className="max-w-[1440px] mx-auto px-4 lg:px-8 mb-4">
+       <div ref={mainRef} className={cn(
+          "bg-white min-h-screen font-inter selection:bg-black selection:text-white",
+          hasTopBanner ? "pt-1" : "pt-2"
+       )}>
+          {/* Top Banner */}
+          {hasTopBanner && (
+             <div className="max-w-[1440px] mx-auto px-4 lg:px-8 mb-2">
                <AdBanner position="HOME_TOP" initialBanners={banners.top} />
             </div>
          )}
 
-         <main className="max-w-[1440px] mx-auto px-4 lg:px-8 py-4 lg:py-6">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-               {/* Left Sidebar — Sticky Editorial Feed */}
+         <main className="max-w-[1440px] mx-auto px-4 lg:px-8 py-2 lg:py-4">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                {/* Left Sidebar — Sticky Editorial Feed */}
                <aside className="lg:col-span-3 hidden lg:block relative">
-                  <div className="sticky top-24 border-t-4 border-black pt-6">
-                     <h3 className="text-[12px] font-black flex items-center w-full mb-6 uppercase tracking-[0.5em] text-black">
+                  <div className="sticky top-24 border-t-4 border-black pt-4">
+                     <h3 className="text-[12px] font-black flex items-center w-full mb-4 uppercase tracking-[0.5em] text-black">
                         <div className="h-[1px] flex-1 bg-black/10 mr-4" />
                         <span className="shrink-0">Latest</span>
                         <div className="h-[1px] flex-1 bg-black/10 ml-4" />
@@ -140,8 +147,8 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
                <div className="lg:col-span-6 border-x border-gray-100 px-3">
                   {/* Hero Section Carousel */}
                   {heroArticle && (
-                     <div className="mb-4">
-                        <div className="relative aspect-[16/9] lg:aspect-[21/9] overflow-hidden mb-4 bg-gray-50 group border-b-4 border-black">
+                     <div className="mb-2">
+                        <div className="relative aspect-[16/9] lg:aspect-[21/9] overflow-hidden mb-2 bg-gray-50 group border-b-4 border-black">
                            <AnimatePresence initial={false} custom={direction} mode="wait">
                               <motion.div
                                  key={page}
@@ -201,7 +208,7 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
                   )}
 
                   {/* Latest Stories List */}
-                  <div className="space-y-6 border-t border-gray-100 pt-4">
+                  <div className="space-y-4 border-t border-gray-100 pt-3">
                      {currentPage === 1 ? (
                         <>
                            {/* High Impact Feature Card */}
