@@ -17,7 +17,8 @@ import {
     Loader2,
     Send,
     EyeOff,
-    Trash2
+    Trash2,
+    Layout
 } from 'lucide-react';
 import { div as MotionDiv } from 'framer-motion/client';
 import Pagination from '@/components/admin/pagination';
@@ -89,7 +90,14 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
     const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
     const [isDeleting, setIsDeleting] = React.useState(false);
     const [isDeletedLocally, setIsDeletedLocally] = React.useState(false);
+    const [isHeadline, setIsHeadline] = React.useState(article.isHeadline ?? false);
+    const [isUpdatingHeadline, setIsUpdatingHeadline] = React.useState(false);
+    const [isHeadlineConfirmOpen, setIsHeadlineConfirmOpen] = React.useState(false);
     const queryClient = useQueryClient();
+
+    React.useEffect(() => {
+        setIsHeadline(article.isHeadline ?? false);
+    }, [article.isHeadline]);
 
     const handleUnpublishClick = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -131,15 +139,41 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
         }
     };
 
+    const handleHeadlineToggle = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (isUpdatingHeadline) return;
+        setIsHeadlineConfirmOpen(true);
+    };
+
+    const handleHeadlineConfirm = async () => {
+        setIsUpdatingHeadline(true);
+        setIsHeadlineConfirmOpen(false);
+        try {
+            const newVal = !isHeadline;
+            await articlesApi.updateArticle(article.id, { isHeadline: newVal });
+            
+            // Comprehensive refetch to sync all other cards
+            await queryClient.refetchQueries({
+                queryKey: ['generatedArticles'],
+                type: 'active'
+            });
+        } catch (error) {
+            console.error('Failed to update headline status:', error);
+            alert('Failed to update headline status. Please try again.');
+        } finally {
+            setIsUpdatingHeadline(false);
+        }
+    };
+
     return (
         <MotionDiv
             variants={variants}
-            whileHover={{ y: -4, scale: 1.005 }}
-            className={`group relative bg-white rounded-[2rem] p-5 shadow-sm hover:shadow-2xl hover:shadow-gray-200/50 border border-gray-100 transition-all duration-300 flex flex-col md:flex-row gap-6 items-start md:items-center ${isDeletedLocally ? 'hidden' : ''}`}
+            whileHover={{ y: -4, scale: 1.002 }}
+            className={`group relative bg-white rounded-[1.5rem] p-3.5 shadow-sm hover:shadow-xl hover:shadow-gray-200/40 border border-gray-100 transition-all duration-300 flex flex-col md:flex-row gap-5 items-start md:items-center ${isDeletedLocally ? 'hidden' : ''}`}
         >
 
             {/* Thumbnail Image Container */}
-            <div className="relative w-full md:w-64 h-48 md:h-44 rounded-[1.5rem] overflow-hidden shadow-inner bg-gray-50 flex-shrink-0">
+            <div className="relative w-full md:w-56 h-36 md:h-32 rounded-[1.2rem] overflow-hidden shadow-inner bg-gray-50 flex-shrink-0">
                 <StoryImage
                     src={article.imageUrl || article.rawArticle?.imageUrl}
                     alt={article.title}
@@ -147,10 +181,15 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                     sizes="(max-width: 768px) 100vw, 256px"
                     className="object-cover transition-transform duration-700 group-hover:scale-110"
                 />
-                <div className="absolute bottom-3 left-3 px-3 py-1 bg-[#ff4500]/90 backdrop-blur-sm text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-lg">
-                    Generated Content
-                </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                
+                {/* HIGH VISIBILITY HEADLINE BADGE */}
+                {isHeadline && (
+                    <div className="absolute top-3 right-3 px-3 py-1 bg-white text-orange-600 text-[10px] font-black uppercase tracking-widest rounded-lg shadow-xl border border-orange-100 z-10 flex items-center gap-1.5 animate-in zoom-in-50 duration-500">
+                        <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
+                        Active Headline
+                    </div>
+                )}
             </div>
 
             {/* Article Content Information */}
@@ -161,7 +200,7 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                         onClick={() => setIsReadModalOpen(true)}
                         className="text-left group/title focus:outline-none"
                     >
-                        <h3 className="text-xl md:text-2xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors line-clamp-1 leading-tight">
+                        <h3 className="text-lg md:text-xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors line-clamp-1 leading-tight">
                             {article.title}
                         </h3>
                     </button>
@@ -217,13 +256,54 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
             </div>
 
             {/* Action Buttons */}
-            <div className="w-full md:w-auto flex flex-col sm:flex-row md:flex-col gap-2 flex-shrink-0 self-stretch md:self-center justify-center">
+            <div className="w-full md:w-[210px] flex flex-col gap-2 flex-shrink-0 self-stretch md:self-center">
+                
+                {/* ── HIGH VISIBILITY HEADLINE CONTROL ── */}
+                <div className={`p-3 rounded-2xl border-2 transition-all duration-500 group/spotlight ${
+                    isHeadline 
+                        ? 'bg-gray-900 border-orange-500 shadow-xl shadow-orange-500/10' 
+                        : 'bg-gray-50 border-gray-100 hover:border-gray-200'
+                }`}>
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-500 ${
+                                isHeadline 
+                                    ? 'bg-orange-500 text-white scale-110 rotate-12 shadow-lg shadow-orange-500/40' 
+                                    : 'bg-white text-gray-400 border border-gray-100'
+                            }`}>
+                                <Layout className="w-4 h-4" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className={`text-[8px] font-black uppercase tracking-widest leading-none mb-0.5 ${
+                                    isHeadline ? 'text-orange-400' : 'text-gray-400'
+                                }`}>Spotlight</span>
+                                <span className={`text-xs font-bold leading-none ${
+                                    isHeadline ? 'text-white' : 'text-gray-900'
+                                }`}>Headline</span>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={handleHeadlineToggle}
+                            disabled={isUpdatingHeadline}
+                            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${
+                                isHeadline ? 'bg-orange-500' : 'bg-gray-200'
+                            }`}
+                        >
+                            <span
+                                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-300 ease-in-out ${
+                                    isHeadline ? 'translate-x-4' : 'translate-x-0'
+                                }`}
+                            />
+                        </button>
+                    </div>
+                </div>
                 <button
                     type="button"
                     onClick={() => setIsReadModalOpen(true)}
-                    className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-sm bg-gray-50 text-gray-700 hover:bg-gray-100 transition-all group/read"
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-gray-50 text-gray-700 hover:bg-gray-100 transition-all group/read"
                 >
-                    <Newspaper className="w-5 h-5 text-gray-400 group-hover/read:text-gray-900 transition-colors" />
+                    <Newspaper className="w-4 h-4 text-gray-400 group-hover/read:text-gray-900 transition-colors" />
                     Read
                 </button>
 
@@ -232,23 +312,23 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                         type="button"
                         onClick={handleUnpublishClick}
                         disabled={isUnpublishing}
-                        className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-sm bg-red-50 text-red-600 hover:bg-red-100 hover:scale-[1.02] active:scale-[0.98] shadow-sm transition-all group/btn disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-red-50 text-red-600 hover:bg-red-100 transition-all group/btn disabled:opacity-50"
                     >
                         {isUnpublishing ? (
-                            <Loader2 className="w-5 h-5 animate-spin" />
+                            <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
-                            <EyeOff className="w-5 h-5 text-red-400 group-hover/btn:text-red-600 transition-colors" />
+                            <EyeOff className="w-4 h-4 text-red-400 group-hover/btn:text-red-600 transition-colors" />
                         )}
-                        Unpublish Article
+                        Unpublish
                     </button>
                 ) : (
                     <button
                         type="button"
                         onClick={() => setIsPublishModalOpen(true)}
-                        className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-sm bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all group/btn"
+                        className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-orange-500/30 hover:shadow-orange-500/50 transition-all group/btn"
                     >
-                        <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                        Publish Article
+                        <Send className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                        Publish
                     </button>
                 )}
 
@@ -256,12 +336,12 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                     type="button"
                     onClick={handleDeleteClick}
                     disabled={isDeleting}
-                    className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-sm bg-gray-50 text-red-600 hover:bg-red-50 hover:scale-[1.02] active:scale-[0.98] shadow-sm transition-all group/delete disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-gray-50 text-red-600 hover:bg-red-50 transition-all group/delete disabled:opacity-50"
                 >
                     {isDeleting ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
-                        <Trash2 className="w-5 h-5 text-red-400 group-hover/delete:text-red-600 transition-colors" />
+                        <Trash2 className="w-4 h-4 text-red-400 group-hover/delete:text-red-600 transition-colors" />
                     )}
                     Delete
                 </button>
@@ -298,6 +378,20 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                     confirmText="Yes, Delete"
                     variant="destructive"
                     isLoading={isDeleting}
+                />
+
+                <ConfirmationModal 
+                    isOpen={isHeadlineConfirmOpen}
+                    onOpenChange={setIsHeadlineConfirmOpen}
+                    onConfirm={handleHeadlineConfirm}
+                    title={isHeadline ? "Remove from Headline?" : "Set as Headline?"}
+                    description={isHeadline 
+                        ? "This article will no longer be featured in the hero spotlight of your site." 
+                        : "This will make this article the primary feature on your site's landing page. Any existing headline will be replaced."
+                    }
+                    confirmText={isHeadline ? "Yes, Remove" : "Yes, Set Headline"}
+                    variant={isHeadline ? "warning" : "default"}
+                    isLoading={isUpdatingHeadline}
                 />
             </div>
         </MotionDiv>

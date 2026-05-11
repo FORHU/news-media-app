@@ -21,6 +21,7 @@ type ContentArticleSupabase = {
   publish_date: string | null;
   created_at: string;
   status: string;
+  is_headline: boolean;
   category: { id: string; category_name: string } | null;
   user: { first_name: string; last_name: string } | null;
   rawArticle: {
@@ -108,6 +109,7 @@ export const generatedArticlesRepository = {
         skip: offset,
         take: limit,
         orderBy: [
+          { isHeadline: "desc" },
           { publishDate: { sort: "desc", nulls: "last" } },
           { createdAt: "desc" },
         ],
@@ -145,6 +147,7 @@ export const generatedArticlesRepository = {
       publish_date: row.publishDate ? row.publishDate.toISOString() : null,
       created_at: row.createdAt.toISOString(),
       status: row.status,
+      is_headline: row.isHeadline,
       category: row.category
         ? { id: row.category.id, category_name: row.category.categoryName }
         : null,

@@ -47,6 +47,7 @@ export const generatedArticlesService = {
         publishDate: article.publish_date,
         createdAt: article.created_at,
         status: article.status,
+        isHeadline: article.is_headline,
         category: {
           id: article.category?.id || "",
           categoryName: normalizeCategoryName(article.category?.category_name) || "",

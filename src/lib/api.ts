@@ -268,6 +268,7 @@ export const articlesApi = {
       imageUrl?: string | null;
       youtubeUrl?: string | null;
       publish?: boolean;
+      isHeadline?: boolean;
     }
   ): Promise<unknown> {
     const res = await fetch(`/api/admin/generatedArticles/${id}/publish`, {
