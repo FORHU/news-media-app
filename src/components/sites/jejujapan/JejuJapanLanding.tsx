@@ -348,7 +348,7 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                <div className="flex items-center justify-between mb-8 relative z-10 border-b border-white/10 pb-6">
                   <h3 className="text-xl sm:text-2xl md:text-3xl font-noto font-black uppercase tracking-[0.1em] flex items-center gap-3">
                      <TrendingUp size={22} className="text-[#bc002d]" />
-                     Featured Report
+                     Spotlight
                   </h3>
                </div>
                
