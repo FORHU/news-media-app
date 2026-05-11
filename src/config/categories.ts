@@ -47,6 +47,18 @@ export const TENANT_CATEGORIES: Record<string, string[]> = {
     "Travel",
     "Science",
   ],
+  "voicejeju.com": [
+    "Jeju Today",
+    "Travel & Tourism",
+    "Food & Restaurants",
+    "Shopping & Markets",
+    "Stay & Accommodation",
+    "Getting Around",
+    "Events & Festivals",
+    "Nature & Outdoors",
+    "Visa & Entry Info",
+    "Local Business & Living"
+  ],
 };
 
 export function getCoreCategories(domain: string): string[] {

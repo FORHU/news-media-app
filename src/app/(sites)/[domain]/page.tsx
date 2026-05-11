@@ -18,6 +18,7 @@ import NewsIconsLanding from "@/components/sites/newsicons/NewsIconsLanding";
 import JejuTimeLanding from "@/components/sites/jejutime/JejuTimeLanding";
 import JejuQQLanding from "@/components/sites/jejuqq/JejuQQLanding";
 import JejuJapanLanding from "@/components/sites/jejujapan/JejuJapanLanding";
+import { VoiceJejuLanding } from "@/components/sites/voicejeju/VoiceJejuLanding";
 
 export const revalidate = 300;
 
@@ -43,6 +44,7 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
   if (domain === "jejutime.com") icon = "/icons/jejutime.ico";
   if (domain === "jejuqq.com") icon = "/icons/jejuqq.ico";
   if (domain === "jejujapan.com") icon = "/icons/jejujapan.ico";
+  if (domain === "voicejeju.com") icon = "/icons/voicejeju.ico";
 
   const siteName = getSiteNameFromDomain(domain);
   const baseUrl = await getRequestBaseUrl(domain);
@@ -51,7 +53,9 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
       ? "JEJUJAPANLOGO.png"
       : domain === "jejuqq.com"
         ? "JEJUQQLOGO.png"
-        : "JEJUTIMELOGO.png"
+        : domain === "voicejeju.com"
+          ? "VOICEJEJULOGO.png"
+          : "JEJUTIMELOGO.png"
   }`;
   const logoUrl = `${baseUrl}${logoPath}`;
   const { optimized: ogImageOptimized, absolute: ogImageAbsolute } = buildOgImageUrl(
@@ -145,6 +149,10 @@ export default async function Page({
 
   if (domain === "jejujapan.com") {
       return <JejuJapanLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
+  }
+
+  if (domain === "voicejeju.com") {
+      return <VoiceJejuLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
   }
 
   // Default design (current layout)

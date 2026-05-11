@@ -36,6 +36,7 @@ export async function middleware(request: NextRequest) {
             const logoFile = 
                 tenantDomain === "jejujapan.com" ? "JEJUJAPANLOGO.png" : 
                 tenantDomain === "jejuqq.com" ? "JEJUQQLOGO.png" : 
+                tenantDomain === "voicejeju.com" ? "VOICEJEJULOGO.png" : 
                 tenantDomain === "newsicons.com" ? "JEJUTIMELOGO.png" : // Placeholder until specific file exists
                 "JEJUTIMELOGO.png"; // Default fallback
             url.pathname = `/Logo/${logoFile}`;

@@ -13,6 +13,8 @@ const JejuQQHeader = dynamic(() => import("./sites/jejuqq/JejuQQHeader"), { ssr:
 const JejuQQFooter = dynamic(() => import("./sites/jejuqq/JejuQQFooter"), { ssr: true });
 const JejuJapanHeader = dynamic(() => import("./sites/jejujapan/JejuJapanHeader"), { ssr: true });
 const JejuJapanFooter = dynamic(() => import("./sites/jejujapan/JejuJapanFooter"), { ssr: true });
+const VoiceJejuHeader = dynamic<{ onOpenNewsletter?: () => void }>(() => import("@/components/sites/voicejeju/VoiceJejuHeader").then(m => m.VoiceJejuHeader), { ssr: true });
+const VoiceJejuFooter = dynamic<{ onOpenNewsletter?: () => void; footerBanners?: any[] }>(() => import("@/components/sites/voicejeju/VoiceJejuFooter").then(m => m.VoiceJejuFooter), { ssr: true });
 
 // Fallbacks
 const DefaultHeader = dynamic(() => import("./Header").then(m => m.Header), { ssr: true });
@@ -30,6 +32,7 @@ export function SiteShell({ children, domain }: SiteShellProps) {
 
   const site = useMemo(() => {
     const d = domain.toLowerCase();
+    if (d.includes("voicejeju")) return "voicejeju";
     if (d.includes("jejutime")) return "jejutime";
     if (d.includes("jejuqq")) return "jejuqq";
     if (d.includes("jejujapan")) return "jejujapan";
@@ -39,6 +42,7 @@ export function SiteShell({ children, domain }: SiteShellProps) {
 
   const renderHeader = () => {
     switch (site) {
+      case "voicejeju": return <VoiceJejuHeader onOpenNewsletter={openNewsletter} />;
       case "jejutime": return <JejuTimeHeader onOpenNewsletter={openNewsletter} />;
       case "jejuqq": return <JejuQQHeader onOpenNewsletter={openNewsletter} />;
       case "jejujapan": return <JejuJapanHeader onOpenNewsletter={openNewsletter} />;
@@ -49,6 +53,7 @@ export function SiteShell({ children, domain }: SiteShellProps) {
 
   const renderFooter = () => {
     switch (site) {
+      case "voicejeju": return <VoiceJejuFooter onOpenNewsletter={openNewsletter} />;
       case "jejutime": return <JejuTimeFooter onOpenNewsletter={openNewsletter} />;
       case "jejuqq": return <JejuQQFooter onOpenNewsletter={openNewsletter} />;
       case "jejujapan": return <JejuJapanFooter onOpenNewsletter={openNewsletter} />;

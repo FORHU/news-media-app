@@ -14,6 +14,7 @@ import ArticlePageClient from "./ArticlePageClient";
 import JejuJapanArticle from "@/components/sites/jejujapan/JejuJapanArticle";
 import JejuQQArticle from "@/components/sites/jejuqq/JejuQQArticle";
 import JejuTimeArticle from "@/components/sites/jejutime/JejuTimeArticle";
+import { VoiceJejuArticle } from "../../../../components/sites/voicejeju/VoiceJejuArticle"; // Site-specific article component
 import { resolveTenantIdFromDomain, getSiteNameFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
 
@@ -94,6 +95,7 @@ export async function generateMetadata({
     if (normalizedDomain === "jejutime.com") icon = "/icons/jejutime.ico";
     if (normalizedDomain === "jejuqq.com") icon = "/icons/jejuqq.ico";
     if (normalizedDomain === "jejujapan.com") icon = "/icons/jejujapan.ico";
+    if (normalizedDomain === "voicejeju.com") icon = "/icons/voicejeju.ico";
 
     const fallbackImage = logoUrl || DEFAULT_OG_IMAGE;
     const { optimized: ogImageOptimized, absolute: ogImageAbsolute } = buildOgImageUrl(
@@ -164,7 +166,9 @@ export async function generateMetadata({
         ? "JEJUJAPANLOGO.png"
         : normalizedDomain === "jejuqq.com"
           ? "JEJUQQLOGO.png"
-          : "JEJUTIMELOGO.png"
+          : normalizedDomain === "voicejeju.com"
+            ? "VOICEJEJULOGO.png"
+            : "JEJUTIMELOGO.png"
     }`;
     const logoUrl = `${baseUrl}${logoPath}`;
     const canonicalSlug = article.slug ?? article.id;
@@ -184,6 +188,7 @@ export async function generateMetadata({
     if (normalizedDomain === "jejutime.com") icon = "/icons/jejutime.ico";
     if (normalizedDomain === "jejuqq.com") icon = "/icons/jejuqq.ico";
     if (normalizedDomain === "jejujapan.com") icon = "/icons/jejujapan.ico";
+    if (normalizedDomain === "voicejeju.com") icon = "/icons/voicejeju.ico";
 
     if (isDev) {
       const hasAbs = Boolean(ogImageAbsolute);
@@ -263,7 +268,9 @@ export async function generateMetadata({
         ? "JEJUJAPANLOGO.png"
         : normalizedDomain === "jejuqq.com"
           ? "JEJUQQLOGO.png"
-          : "JEJUTIMELOGO.png"
+          : normalizedDomain === "voicejeju.com"
+            ? "VOICEJEJULOGO.png"
+            : "JEJUTIMELOGO.png"
     }`;
     const logoUrl = `${baseUrl}${logoPath}`;
     const fallbackImage = logoUrl || DEFAULT_OG_IMAGE;
@@ -276,6 +283,7 @@ export async function generateMetadata({
     if (normalizedDomain === "jejutime.com") icon = "/icons/jejutime.ico";
     if (normalizedDomain === "jejuqq.com") icon = "/icons/jejuqq.ico";
     if (normalizedDomain === "jejujapan.com") icon = "/icons/jejujapan.ico";
+    if (normalizedDomain === "voicejeju.com") icon = "/icons/voicejeju.ico";
 
     const articleUrl = `${baseUrl}/article/${encodeURIComponent(articleId)}`;
 
@@ -389,6 +397,8 @@ export default async function ArticlePage({
           <JejuQQArticle articleId={canonicalSlug} initialOtherArticles={allArticles} />
         ) : domain === "jejutime.com" ? (
           <JejuTimeArticle articleId={canonicalSlug} initialOtherArticles={allArticles} />
+        ) : domain === "voicejeju.com" ? (
+          <VoiceJejuArticle articleId={canonicalSlug} initialOtherArticles={allArticles} />
         ) : (
           <ArticlePageClient articleId={canonicalSlug} initialOtherArticles={allArticles} domain={domain} />
         )}

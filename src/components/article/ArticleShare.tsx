@@ -10,6 +10,7 @@ import {
   FaXTwitter, 
   FaFacebook, 
   FaFacebookMessenger, 
+  FaUniversalAccess,
   FaWhatsapp, 
   FaLinkedin, 
   FaTelegram, 
@@ -27,7 +28,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { FacebookShareButton } from "./FacebookShareButton";
 
-type SiteTheme = "jejutime" | "jejuqq" | "jejujapan" | "newsicons";
+type SiteTheme = "jejutime" | "jejuqq" | "jejujapan" | "newsicons" | "voicejeju";
 
 function normalizeShareUrl(input: string) {
   try {
@@ -39,12 +40,10 @@ function normalizeShareUrl(input: string) {
     const isTenantDomain =
       normalizedHostname === "jejutime.com" ||
       normalizedHostname === "jejuqq.com" ||
-      normalizedHostname === "jejujapan.com";
+      normalizedHostname === "jejujapan.com" ||
+      normalizedHostname === "voicejeju.com";
 
     // In production, force a canonical tenant URL for social crawlers:
-    // - use apex domain (no www)
-    // - use https
-    // - strip non-standard ports
     if (!isLocalhost && isTenantDomain) {
       u.hostname = normalizedHostname;
       u.protocol = "https:";
@@ -63,8 +62,7 @@ function normalizeShareUrl(input: string) {
       u.protocol = "https:";
     }
 
-    // Normalize path segments to a stable encoded form so social crawlers
-    // receive ASCII-safe URLs for non-Latin slugs.
+    // Normalize path segments to a stable encoded form
     u.pathname = u.pathname
       .split("/")
       .map((segment) => {
@@ -208,6 +206,14 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
 
   const getThemeStyles = () => {
     switch (site) {
+      case "voicejeju":
+        return {
+          trigger: "bg-[#e60000] hover:bg-[#cc0000] text-white rounded-full px-6 py-2 shadow-md transition-all font-inter text-sm font-bold tracking-wide",
+          modal: "sm:max-w-lg bg-white border-gray-100 rounded-3xl shadow-2xl",
+          header: "text-gray-900 font-voltaire text-2xl font-normal",
+          item: "rounded-2xl border-gray-100 hover:border-red-100 hover:shadow-sm transition-all",
+          copyBtn: "bg-gray-50 hover:bg-red-50 text-[#e60000] border-gray-100",
+        };
       case "jejutime":
         return {
           trigger: "bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 py-2 shadow-md transition-all font-roboto text-sm font-bold tracking-wide",
@@ -246,21 +252,22 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
 
   const styles = getThemeStyles();
 
-  // Avoid SSR/client hydration mismatch from Radix-generated IDs
-  // (e.g. aria-controls) by rendering dialog UI only on client.
+  // Avoid SSR/client hydration mismatch
   if (!mounted) {
     return (
       <div className={cn("mt-12 pt-8 border-t border-slate-100 flex flex-col items-center gap-6", className)}>
         <p
           className={cn(
             "text-xs font-bold uppercase tracking-[0.2em]",
-            site === "jejutime"
-              ? "text-blue-600/60"
-              : site === "jejuqq"
-                ? "text-[#b91c1c] font-garamond text-sm"
-                : site === "jejujapan"
-                  ? "text-black/40 font-noto"
-                  : "text-gray-400"
+            site === "voicejeju" 
+              ? "text-[#e60000] font-inter" 
+              : site === "jejutime"
+                ? "text-blue-600/60"
+                : site === "jejuqq"
+                  ? "text-[#b91c1c] font-garamond text-sm"
+                  : site === "jejujapan"
+                    ? "text-black/40 font-noto"
+                    : "text-gray-400"
           )}
         >
           {site === "jejuqq" ? "Share the Story" : site === "jejujapan" ? "SHARE" : "Share this article"}
@@ -273,6 +280,7 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
     <div className={cn("mt-12 pt-8 border-t border-slate-100 flex flex-col items-center gap-6", className)}>
       <p className={cn(
         "text-xs font-bold uppercase tracking-[0.2em]",
+        site === "voicejeju" ? "text-[#e60000] font-inter" : 
         site === "jejutime" ? "text-blue-600/60" : 
         site === "jejuqq" ? "text-[#b91c1c] font-garamond text-sm" : 
         site === "jejujapan" ? "text-black/40 font-noto" : "text-gray-400"
@@ -294,7 +302,6 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
             </DialogTitle>
           </DialogHeader>
 
-          {/* Hidden input for copying - more reliable than dynamic creation */}
           <input 
             id={inputId}
             type="text"
@@ -347,7 +354,7 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
           </div>
 
           <div className="mt-6 w-full overflow-hidden">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 px-1">Or copy link</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 px-1 font-inter">Or copy link</p>
             <div className="flex items-center gap-2 w-full">
               <div className="flex-1 bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs text-slate-500 truncate font-mono min-w-0">
                 {shareUrl}

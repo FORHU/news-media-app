@@ -150,7 +150,7 @@ export function HeroSection({ articles }: HeroSectionProps) {
                               5 min read
                             </span>
                           </div>
-                          <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-black mb-1 sm:mb-2 line-clamp-2 md:line-clamp-3 group-hover:text-[#ff4500] transition-colors">
+                          <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-serif font-bold text-black mb-1 sm:mb-2 line-clamp-2 md:line-clamp-3 group-hover:text-[#ff4500] transition-colors">
                             {article.title}
                           </h1>
                           <p className="text-gray-600 text-[11px] sm:text-xs mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3 md:block">
