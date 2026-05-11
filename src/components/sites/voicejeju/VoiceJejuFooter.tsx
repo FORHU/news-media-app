@@ -34,7 +34,7 @@ export function VoiceJejuFooter({ onOpenNewsletter, footerBanners }: FooterProps
           <Link href="/" className="mb-8">
             <span className="text-7xl lg:text-9xl font-normal text-white font-voltaire tracking-tight uppercase">VoiceJeju</span>
           </Link>
-          <div className="flex items-center gap-8 text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500">
+          <div className="flex items-center gap-8 text-[11px] font-bold uppercase tracking-[0.2em] text-gray-400">
              <span>{today}</span>
              <span className="w-1.5 h-1.5 bg-gray-700 rounded-full" />
              <span>Premium Journalism</span>
@@ -53,7 +53,7 @@ export function VoiceJejuFooter({ onOpenNewsletter, footerBanners }: FooterProps
             <p className="text-gray-400 text-sm leading-relaxed max-w-sm mb-10 font-medium">
               We deliver independent, high-impact journalism from the heart of Jeju. Our narratives are crafted to inspire, inform, and ignite global conversations.
             </p>
-            <div className="flex space-x-8 text-gray-500">
+            <div className="flex space-x-8 text-gray-400">
               <Twitter size={20} className="hover:text-white cursor-pointer transition-colors" />
               <Instagram size={20} className="hover:text-white cursor-pointer transition-colors" />
               <Facebook size={20} className="hover:text-white cursor-pointer transition-colors" />
@@ -63,7 +63,7 @@ export function VoiceJejuFooter({ onOpenNewsletter, footerBanners }: FooterProps
 
           <div className="lg:col-span-2">
             <h4 className="text-[11px] font-black text-white mb-8 uppercase tracking-[0.3em]">Explore</h4>
-            <ul className="space-y-4 text-xs text-gray-500 font-bold uppercase tracking-wider">
+            <ul className="space-y-4 text-xs text-gray-400 font-bold uppercase tracking-wider">
               <li><Link href="/" className="hover:text-white transition-colors">Home</Link></li>
               <li><Link href="/#latest-stories" className="hover:text-white transition-colors">Latest News</Link></li>
               <li><Link href="/#trending-stories" className="hover:text-white transition-colors">Trending</Link></li>
@@ -73,7 +73,7 @@ export function VoiceJejuFooter({ onOpenNewsletter, footerBanners }: FooterProps
 
           <div className="lg:col-span-2">
             <h4 className="text-[11px] font-black text-white mb-8 uppercase tracking-[0.3em]">The Desk</h4>
-            <ul className="space-y-4 text-xs text-gray-500 font-bold uppercase tracking-wider">
+            <ul className="space-y-4 text-xs text-gray-400 font-bold uppercase tracking-wider">
               <li><Link href="#" className="hover:text-white transition-colors">Politics</Link></li>
               <li><Link href="#" className="hover:text-white transition-colors">Business</Link></li>
               <li><Link href="#" className="hover:text-white transition-colors">Technology</Link></li>
@@ -96,7 +96,7 @@ export function VoiceJejuFooter({ onOpenNewsletter, footerBanners }: FooterProps
         </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-gray-900 pt-12 flex flex-col md:flex-row justify-between items-center text-[10px] font-bold uppercase tracking-[0.2em] text-gray-600 space-y-6 md:space-y-0">
+        <div className="border-t border-gray-900 pt-12 flex flex-col md:flex-row justify-between items-center text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 space-y-6 md:space-y-0">
           <p>© 2026 VoiceJeju. All rights reserved. Part of the Jeju Global Network.</p>
           <div className="flex space-x-10">
             <Link href="#" className="hover:text-white transition-colors">Privacy</Link>
