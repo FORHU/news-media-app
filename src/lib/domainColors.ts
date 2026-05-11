@@ -8,6 +8,14 @@ export type DomainColor = {
 };
 
 export const DOMAIN_COLORS: Record<string, DomainColor> = {
+  "voicejeju.com": {
+    hex: "#e60000",
+    bgClass: "bg-[#e60000]",
+    textClass: "text-[#e60000]",
+    borderClass: "border-[#e60000]",
+    hoverBgClass: "hover:bg-[#cc0000]",
+    ringClass: "focus:ring-[#e60000]/20",
+  },
   "jejutime.com": {
     hex: "#2563eb",
     bgClass: "bg-[#2563eb]",
@@ -45,6 +53,7 @@ export const DOMAIN_COLORS: Record<string, DomainColor> = {
 export function getDomainColor(domain: string = ""): DomainColor {
   const normalized = domain.toLowerCase();
   
+  if (normalized.includes("voicejeju")) return DOMAIN_COLORS["voicejeju.com"];
   if (normalized.includes("jejutime")) return DOMAIN_COLORS["jejutime.com"];
   if (normalized.includes("jejuqq")) return DOMAIN_COLORS["jejuqq.com"];
   if (normalized.includes("jejujapan")) return DOMAIN_COLORS["jejujapan.com"];

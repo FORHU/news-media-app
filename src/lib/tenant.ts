@@ -64,6 +64,7 @@ export const resolveTenantIdFromDomain = cache(async (domain: string): Promise<s
 export function getSiteNameFromDomain(domain: string | null): string {
   if (!domain) return "NewsIcons";
   const d = domain.toLowerCase();
+  if (d.includes('voicejeju')) return "VoiceJeju";
   if (d.includes('jejujapan')) return "JejuJapan";
   if (d.includes('jejuqq')) return "JejuQQ";
   if (d.includes('jejutime')) return "JejuTime";
@@ -73,6 +74,7 @@ export function getSiteNameFromDomain(domain: string | null): string {
 export function getSiteIconFromDomain(domain: string | null): string {
   if (!domain) return "/icons/newsicons.ico";
   const d = domain.toLowerCase();
+  if (d.includes('voicejeju')) return "/icons/voicejeju.ico";
   if (d.includes('jejujapan')) return "/icons/jejujapan.ico";
   if (d.includes('jejuqq')) return "/icons/jejuqq.ico";
   if (d.includes('jejutime')) return "/icons/jejutime.ico";

@@ -65,7 +65,7 @@ export function FeaturedArticlesSection({
               </div>
             ) : null}
             <h3
-              className="text-sm font-bold text-gray-900 mb-2 transition-colors line-clamp-2"
+              className="text-sm font-serif font-bold text-gray-900 mb-2 transition-colors line-clamp-2"
               onMouseEnter={(e) => e.currentTarget.style.color = domainColor.hex}
               onMouseLeave={(e) => e.currentTarget.style.color = '#111827'}
             >

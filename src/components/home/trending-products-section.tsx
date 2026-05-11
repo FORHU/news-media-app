@@ -27,7 +27,7 @@ export function TrendingProductsSection({
   return (
     <section className="mt-12">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Trending Products</h2>
+        <h2 className="text-2xl font-serif font-bold text-gray-900">Trending Products</h2>
         <Link
           href="/?type=blog"
           className="text-sm text-[#ff4500] hover:underline font-medium flex items-center gap-1"
@@ -53,7 +53,7 @@ export function TrendingProductsSection({
               />
             </div>
             <div className="p-4">
-              <h3 className="text-base font-bold text-gray-900 mb-2 group-hover:text-[#ff4500] transition-colors line-clamp-2">
+              <h3 className="text-base font-serif font-bold text-gray-900 mb-2 group-hover:text-[#ff4500] transition-colors line-clamp-2">
                 {product.title}
               </h3>
               <p className="text-sm text-gray-600 line-clamp-2">
