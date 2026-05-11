@@ -27,7 +27,7 @@ interface Props {
 
 export default function JejuJapanLanding({ tenantId, articles, banners }: Props) {
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(12);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   const sortedArticles = [...articles].sort((a, b) => {
     if ((b.trendingScore || 0) !== (a.trendingScore || 0)) {
@@ -39,24 +39,53 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
   const heroArticles = articles.slice(0, 5);
   const heroIds = new Set(heroArticles.map(a => a.id));
 
-  const allLatestArticles = sortedArticles.filter(a => !heroIds.has(a.id));
-  
+  // Pool of non-hero articles (sorted by trending/date)
+  const pool = sortedArticles.filter(a => !heroIds.has(a.id));
+
+  // Helper: pick unique articles from pool, but allow duplicates if not enough
+  const pickArticles = (count: number, excludeIds: Set<string>) => {
+    const unique = pool.filter(a => !excludeIds.has(a.id));
+    if (unique.length >= count) return unique.slice(0, count);
+    // Not enough unique — fill remaining with duplicates from pool
+    const remaining = count - unique.length;
+    return [...unique, ...pool.filter(a => excludeIds.has(a.id)).slice(0, remaining)];
+  };
+
+  // Track used IDs as we go — each section tries to avoid previous ones
+  const usedIds = new Set<string>([...heroIds]);
+
+  // Right sidebar — Trending: top 10
+  const trendingArticles = pickArticles(10, usedIds);
+  trendingArticles.forEach(a => usedIds.add(a.id));
+
+  // Right sidebar — Must Read: next 5
+  const sidebarPicks = pickArticles(5, usedIds);
+  sidebarPicks.forEach(a => usedIds.add(a.id));
+
+  // Left sidebar — 8 articles
+  const leftSidebarArticles = pickArticles(8, usedIds);
+  leftSidebarArticles.forEach(a => usedIds.add(a.id));
+
+  // Center — Latest Stories (paginated)
+  const uniqueLatest = pool.filter(a => !usedIds.has(a.id));
+  const allLatestArticles = uniqueLatest.length > 0 ? uniqueLatest : pool;
   const totalPages = Math.ceil(allLatestArticles.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const latestStories = allLatestArticles.slice(startIndex, endIndex);
+  latestStories.forEach(a => usedIds.add(a.id));
 
-  const trendingArticles = sortedArticles
-    .filter(a => !heroIds.has(a.id))
-    .slice(0, 10);
-  const trendingIds = new Set(trendingArticles.map(a => a.id));
+  // Horizontal strip — after pagination, before featured
+  const horizontalStrip = pickArticles(5, usedIds);
+  horizontalStrip.forEach(a => usedIds.add(a.id));
 
-  const sidebarPicks = sortedArticles
-    .filter(a => !heroIds.has(a.id) && !trendingIds.has(a.id))
-    .slice(0, 5);
+  // Bottom — Featured Report
+  const featuredArticles = pickArticles(4, usedIds);
 
-  const featuredArticles = articles.slice(0, 4);
-  const trendingProducts = articles.filter((a: any) => a.status === "blog").slice(0, 4);
+  // Bottom — Discover / Blog
+  const trendingProducts = articles
+    .filter((a: any) => a.status === "blog")
+    .slice(0, 4);
 
   const [[page, direction], setPage] = useState([0, 0]);
   const index = heroArticles.length > 0 ? Math.abs(page % heroArticles.length) : 0;
@@ -80,10 +109,30 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-4 md:py-6">
           
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
             
-            {/* Left Content Area */}
-            <div className="lg:col-span-8">
+            {/* Left Sidebar — Article List */}
+            <aside className="hidden lg:block lg:col-span-2">
+              <div className="sticky top-24">
+                <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4 pb-3 border-b-2 border-[#bc002d] flex items-center gap-2">
+                  <Clock size={14} className="text-[#bc002d]" /> Latest
+                </h3>
+                <div className="space-y-4">
+                  {leftSidebarArticles.map((article, i) => (
+                    <Link key={article.id} href={`/article/${article.slug || article.id}`} className="block group">
+                      <div className="relative aspect-[16/10] overflow-hidden mb-1.5 bg-gray-100">
+                        <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="180px" />
+                      </div>
+                      <span className="text-[8px] font-black text-[#bc002d] uppercase tracking-[0.15em] block mb-0.5">{article.category?.categoryName}</span>
+                      <h4 className="text-[11px] font-bold leading-tight group-hover:text-[#bc002d] transition-colors line-clamp-2">{article.title}</h4>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </aside>
+
+            {/* Center Content Area */}
+            <div className="lg:col-span-7">
               
               {/* Hero Section Carousel */}
               {heroArticle && (
@@ -159,19 +208,19 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
               <div className="space-y-4 border-t border-gray-100 pt-8">
                  {currentPage === 1 ? (
                     <>
-                       {/* 1 Large Feature Card */}
+                       {/* 1 Compact Feature Card */}
                        {latestStories.length > 0 && (
-                          <article className="mb-12 group">
-                             <Link href={`/article/${latestStories[0].slug || latestStories[0].id}`} className="flex flex-col lg:flex-row-reverse gap-8 lg:gap-12 items-center">
-                                <div className="relative w-full lg:w-3/5 aspect-video overflow-hidden shadow-md bg-gray-100 shrink-0">
-                                   <StoryImage src={latestStories[0].imageUrl} alt={latestStories[0].title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 1024px) 100vw, 800px" />
+                          <article className="mb-8 group">
+                             <Link href={`/article/${latestStories[0].slug || latestStories[0].id}`} className="flex flex-col sm:flex-row-reverse gap-5 items-center">
+                                <div className="relative w-full sm:w-1/2 aspect-[16/10] overflow-hidden shadow-md bg-gray-100 shrink-0">
+                                   <StoryImage src={latestStories[0].imageUrl} alt={latestStories[0].title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 1024px) 100vw, 500px" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                   <span className="text-[10px] font-black uppercase tracking-[0.2em] mb-4 inline-block px-3 py-1 bg-[#bc002d] text-white">Featured Latest</span>
-                                   <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight mb-4 group-hover:text-[#bc002d] transition-colors tracking-tight">
+                                   <span className="text-[10px] font-black uppercase tracking-[0.2em] mb-2 inline-block px-3 py-1 bg-[#bc002d] text-white">Featured Latest</span>
+                                   <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold leading-tight mb-2 group-hover:text-[#bc002d] transition-colors tracking-tight">
                                       {latestStories[0].title}
                                    </h3>
-                                   <p className="text-gray-600 text-base lg:text-lg line-clamp-4 font-light leading-relaxed">
+                                   <p className="text-gray-600 text-sm lg:text-base line-clamp-3 font-light leading-relaxed">
                                       {latestStories[0].content}
                                    </p>
                                 </div>
@@ -179,35 +228,35 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                           </article>
                        )}
 
-                       {/* 3-Column Grid for next 6 items */}
-                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-                          {latestStories.slice(1, 7).map((article) => (
+                       {/* 3-Column Grid for next 9 items */}
+                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-7 mb-8">
+                          {latestStories.slice(1, 10).map((article) => (
                              <article key={article.id} className="group">
                                 <Link href={`/article/${article.slug || article.id}`}>
-                                   <div className="relative aspect-[16/10] overflow-hidden mb-3 bg-gray-100">
-                                      <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 640px) 100vw, 400px" />
+                                   <div className="relative aspect-[16/10] overflow-hidden mb-2 bg-gray-100">
+                                      <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 640px) 100vw, 300px" />
                                    </div>
-                                   <span className="text-[9px] font-black text-[#bc002d] uppercase tracking-[0.2em] mb-1 block">{article.category?.categoryName}</span>
-                                   <h4 className="text-base font-bold leading-tight group-hover:text-[#bc002d] transition-colors line-clamp-2">{article.title}</h4>
+                                   <span className="text-[9px] font-black text-[#bc002d] uppercase tracking-[0.2em] mb-0.5 block">{article.category?.categoryName}</span>
+                                   <h4 className="text-sm font-bold leading-tight group-hover:text-[#bc002d] transition-colors line-clamp-2">{article.title}</h4>
                                 </Link>
                              </article>
                           ))}
                        </div>
 
-                       {/* Remaining rows */}
-                       <div className="space-y-8">
-                          {latestStories.slice(7).map((article) => (
-                             <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex flex-row gap-4 group items-start border-b border-gray-50 pb-6 last:border-0">
-                                <div className="relative w-28 sm:w-40 md:w-56 aspect-[16/10] overflow-hidden shrink-0 bg-gray-100">
-                                   <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" sizes="250px" />
+                       {/* Remaining rows — compact horizontal cards */}
+                       <div className="space-y-4">
+                          {latestStories.slice(10).map((article) => (
+                             <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex flex-row gap-3 group items-start border-b border-gray-50 pb-4 last:border-0">
+                                <div className="relative w-24 sm:w-32 md:w-44 aspect-[16/10] overflow-hidden shrink-0 bg-gray-100">
+                                   <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" sizes="200px" />
                                 </div>
                                 <div className="flex flex-col justify-center flex-1 min-w-0">
-                                   <span className="text-[10px] font-black text-[#bc002d] uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
-                                      <span className="w-4 h-[1px] bg-[#bc002d]"></span>
+                                   <span className="text-[9px] font-black text-[#bc002d] uppercase tracking-[0.2em] mb-0.5 flex items-center gap-1.5">
+                                      <span className="w-3 h-[1px] bg-[#bc002d]"></span>
                                       {article.category?.categoryName}
                                    </span>
-                                   <h3 className="text-lg font-bold leading-tight mb-1 group-hover:text-[#bc002d] transition-colors line-clamp-2">{article.title}</h3>
-                                   <p className="text-sm text-gray-500 line-clamp-2 font-light leading-relaxed">{article.content}</p>
+                                   <h3 className="text-[15px] font-bold leading-tight mb-0.5 group-hover:text-[#bc002d] transition-colors line-clamp-2">{article.title}</h3>
+                                   <p className="text-xs text-gray-500 line-clamp-1 font-light leading-relaxed">{article.content}</p>
                                 </div>
                              </Link>
                           ))}
@@ -215,19 +264,19 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                     </>
                  ) : (
                     /* Standard list for other pages */
-                    <div className="space-y-8">
+                    <div className="space-y-4">
                        {latestStories.map((article) => (
-                          <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex flex-row gap-4 group items-start border-b border-gray-50 pb-6 last:border-0">
-                             <div className="relative w-28 sm:w-40 md:w-56 aspect-[16/10] overflow-hidden shrink-0 bg-gray-100">
-                                <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" sizes="250px" />
+                          <Link key={article.id} href={`/article/${article.slug || article.id}`} className="flex flex-row gap-3 group items-start border-b border-gray-50 pb-4 last:border-0">
+                             <div className="relative w-24 sm:w-32 md:w-44 aspect-[16/10] overflow-hidden shrink-0 bg-gray-100">
+                                <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" sizes="200px" />
                              </div>
                              <div className="flex flex-col justify-center flex-1 min-w-0">
-                                <span className="text-[10px] font-black text-[#bc002d] uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
-                                   <span className="w-4 h-[1px] bg-[#bc002d]"></span>
+                                <span className="text-[9px] font-black text-[#bc002d] uppercase tracking-[0.2em] mb-0.5 flex items-center gap-1.5">
+                                   <span className="w-3 h-[1px] bg-[#bc002d]"></span>
                                    {article.category?.categoryName}
                                 </span>
-                                <h3 className="text-lg font-bold leading-tight mb-1 group-hover:text-[#bc002d] transition-colors line-clamp-2">{article.title}</h3>
-                                <p className="text-sm text-gray-500 line-clamp-2 font-light leading-relaxed">{article.content}</p>
+                                <h3 className="text-[15px] font-bold leading-tight mb-0.5 group-hover:text-[#bc002d] transition-colors line-clamp-2">{article.title}</h3>
+                                <p className="text-xs text-gray-500 line-clamp-1 font-light leading-relaxed">{article.content}</p>
                              </div>
                           </Link>
                        ))}
@@ -252,7 +301,7 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
             </div>
 
             {/* Right Sidebar */}
-            <aside className="lg:col-span-4">
+            <aside className="lg:col-span-3">
                <div className="bg-[#111] text-white p-6 mb-6">
                   <h3 className="text-base font-noto font-black flex items-center gap-2 mb-6 uppercase tracking-widest border-b border-white/20 pb-4">
                      <TrendingUp size={18} className="text-[#bc002d]" /> Trending
@@ -300,6 +349,29 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
             </aside>
 
           </div>
+
+          {/* Horizontal Article Strip */}
+          {horizontalStrip.length > 0 && (
+            <section className="mt-10 pt-8 border-t border-gray-200">
+              <div className="flex items-center gap-4 mb-6">
+                <h3 className="text-sm font-black uppercase tracking-[0.2em] whitespace-nowrap flex items-center gap-2">
+                  <ChevronRight size={16} className="text-[#bc002d]" /> More Stories
+                </h3>
+                <div className="h-[1px] flex-1 bg-gray-200"></div>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-5">
+                {horizontalStrip.map((article) => (
+                  <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group block">
+                    <div className="relative aspect-[16/10] overflow-hidden mb-2 bg-gray-100">
+                      <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 640px) 50vw, 200px" />
+                    </div>
+                    <span className="text-[8px] font-black text-[#bc002d] uppercase tracking-[0.15em] block mb-0.5">{article.category?.categoryName}</span>
+                    <h4 className="text-xs font-bold leading-tight group-hover:text-[#bc002d] transition-colors line-clamp-2">{article.title}</h4>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Featured Articles */}
           {featuredArticles.length > 0 && (
