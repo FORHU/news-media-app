@@ -23,6 +23,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { format } from 'date-fns';
 
 import { MappedRawArticle, CrawledArticlesResponse } from '@/lib/types';
+import { getCategoryLabel } from '@/config/categories';
 import { Variants } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -141,7 +142,7 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
                         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-full border border-gray-100">
                             <div className="w-1.5 h-1.5 rounded-full bg-gray-400" />
                             <span className="text-xs font-bold text-gray-600">
-                                {normalizeCategoryName(article.category?.categoryName)}
+                                {getCategoryLabel(article.category?.categoryName ?? "")}
                             </span>
                         </div>
                     ) : null}

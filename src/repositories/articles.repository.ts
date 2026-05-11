@@ -146,7 +146,7 @@ export const articlesRepository = {
 
   async findById(id: string, tenantId?: string | null): Promise<Article | null> {
     const where: Prisma.ContentArticleWhereInput = tenantId ? { id, tenantId } : { id };
-    where.status = { in: ["published", "blog"] };
+    where.status = { in: ["published", "blog", "article"] };
     return (await prisma.contentArticle.findFirst({
       where: where as any,
       include: articleDetailInclude,
@@ -156,7 +156,7 @@ export const articlesRepository = {
   async findBySlug(slug: string, tenantId?: string | null): Promise<Article | null> {
     try {
       const where: Prisma.ContentArticleWhereInput = tenantId ? { slug, tenantId } : { slug };
-      where.status = { in: ["published", "blog"] };
+      where.status = { in: ["published", "blog", "article"] };
       return (await prisma.contentArticle.findFirst({
         where: where as any,
         include: articleDetailInclude,
