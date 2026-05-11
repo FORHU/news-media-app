@@ -183,7 +183,7 @@ export function VoiceJejuArticle({
     <div className="bg-white min-h-screen font-inter selection:bg-black selection:text-white pb-20">
       {/* Reading Progress Bar */}
       <div className="fixed top-0 left-0 w-full h-[3px] bg-gray-100 z-[100]">
-        <div 
+        <div
           className="h-full bg-black transition-all duration-150 ease-out"
           style={{ width: `${scrollProgress}%` }}
         />
@@ -195,52 +195,52 @@ export function VoiceJejuArticle({
       {/* Immersive Header Wrapper */}
       <div className="bg-black text-white pt-16 pb-24 mb-16 relative overflow-hidden">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 relative text-center">
-            <div className="flex flex-col sm:flex-row items-center justify-center relative mb-12 gap-6 sm:gap-0 min-h-[40px]">
-                <button
-                  type="button"
-                  onClick={() =>
-                    window.history.length > 1 ? router.back() : router.push("/")
-                  }
-                  className="sm:absolute sm:left-0 inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.5em] text-white/70 hover:text-white transition-all bg-white/5 border border-white/10 px-6 py-2.5 rounded-sm"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  Back
-                </button>
-                
-                {normalizeCategoryName(article.category?.categoryName) && (
-                  <span className="inline-block px-5 py-1.5 bg-white/10 text-white rounded-none text-[10px] font-black uppercase tracking-[0.4em] border border-white/10">
-                    {normalizeCategoryName(article.category?.categoryName)}
-                  </span>
-                )}
-            </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center relative mb-12 gap-6 sm:gap-0 min-h-[40px]">
+            <button
+              type="button"
+              onClick={() =>
+                window.history.length > 1 ? router.back() : router.push("/")
+              }
+              className="sm:absolute sm:left-0 inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.5em] text-white/70 hover:text-white transition-all bg-white/5 border border-white/10 px-6 py-2.5 rounded-sm"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </button>
 
-            <div className="max-w-5xl mx-auto">
-                <h1 className="text-4xl sm:text-6xl lg:text-8xl font-normal text-white mb-12 font-voltaire tracking-tighter leading-[0.9] uppercase">
-                    {article.title}
-                </h1>
-                <div className="flex items-center justify-center gap-8">
-                  <div className="h-[1px] w-16 bg-white/20"></div>
-                  <div className="flex items-center gap-4 text-white/60 text-[11px] font-black uppercase tracking-[0.4em]">
-                    <span>{formattedDate}</span>
-                    <div className="w-1.5 h-1.5 bg-white/40" />
-                    <span>VoiceJeju Team</span>
-                  </div>
-                  <div className="h-[1px] w-16 bg-white/20"></div>
-                </div>
+            {normalizeCategoryName(article.category?.categoryName) && (
+              <span className="inline-block px-5 py-1.5 bg-white/10 text-white rounded-none text-[10px] font-black uppercase tracking-[0.4em] border border-white/10">
+                {normalizeCategoryName(article.category?.categoryName)}
+              </span>
+            )}
+          </div>
+
+          <div className="max-w-5xl mx-auto">
+            <h1 className="text-4xl sm:text-6xl lg:text-8xl font-normal text-white mb-12 font-voltaire tracking-tighter leading-[0.9] uppercase">
+              {article.title}
+            </h1>
+            <div className="flex items-center justify-center gap-8">
+              <div className="h-[1px] w-16 bg-white/20"></div>
+              <div className="flex items-center gap-4 text-white/60 text-[11px] font-black uppercase tracking-[0.4em]">
+                <span>{formattedDate}</span>
+                <div className="w-1.5 h-1.5 bg-white/40" />
+                <span>VoiceJeju Team</span>
+              </div>
+              <div className="h-[1px] w-16 bg-white/20"></div>
             </div>
+          </div>
         </div>
       </div>
 
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24">
-          
+
           {/* Left Sidebar: Trending Stories */}
           <aside className="lg:col-span-3 space-y-16 lg:pr-10 border-r border-gray-100 hidden lg:block">
             <div className="sticky top-32">
-               <div className="border-t-4 border-black pt-12 mb-12">
-                  <TrendingSidebar articles={trendingArticles} domain="voicejeju.com" />
-               </div>
-               <AdBanner position="ARTICLE_SIDEBAR" />
+              <div className="border-t-4 border-black pt-12 mb-12">
+                <TrendingSidebar articles={trendingArticles} domain="voicejeju.com" />
+              </div>
+              <AdBanner position="ARTICLE_SIDEBAR" />
             </div>
           </aside>
 
@@ -326,9 +326,9 @@ export function VoiceJejuArticle({
                 </div>
               ) : null}
 
-              <ArticleShare 
-                site="voicejeju" 
-                title={article.title} 
+              <ArticleShare
+                site="voicejeju"
+                title={article.title}
                 className="mt-24 py-16 border-y border-gray-100"
               />
             </article>
@@ -343,11 +343,11 @@ export function VoiceJejuArticle({
             <h2 className="text-[12px] font-black uppercase tracking-[0.6em] mb-16 text-gray-400 text-center">
               Continue Reading
             </h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 w-full gap-0 border-t border-gray-800">
               {recommendedArticles.map((rec) => (
-                <Link 
-                  key={rec.id} 
+                <Link
+                  key={rec.id}
                   href={`/article/${rec.slug || rec.id}`}
                   className="group flex flex-col h-full border-r border-gray-800 last:border-r-0 hover:bg-white/5 transition-all"
                 >
@@ -362,12 +362,15 @@ export function VoiceJejuArticle({
                   </div>
                   <div className="p-8 flex flex-col flex-1">
                     <span className="text-[9px] font-black text-gray-500 uppercase tracking-[0.4em] mb-4">{rec.category?.categoryName}</span>
-                    <h3 className="text-2xl font-normal font-voltaire mb-6 line-clamp-3 leading-tight group-hover:underline transition-all">
+                    <h3 className="text-2xl font-normal font-voltaire mb-4 line-clamp-3 leading-tight group-hover:underline transition-all">
                       {rec.title}
                     </h3>
+                    <p className="text-gray-400 text-sm line-clamp-3 leading-relaxed italic mb-6">
+                      {rec.content}
+                    </p>
                     <div className="mt-auto flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-gray-600 group-hover:text-white transition-colors">
-                       <Clock size={12} />
-                       <span>5 MIN READ</span>
+                      <Clock size={12} />
+                      <span>5 MIN READ</span>
                     </div>
                   </div>
                 </Link>
