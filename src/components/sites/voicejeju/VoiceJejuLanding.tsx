@@ -124,11 +124,11 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
                 {/* Left Sidebar — Sticky Editorial Feed */}
                <aside className="lg:col-span-3 hidden lg:block relative">
                   <div className="sticky top-24 border-t-4 border-black pt-4">
-                     <h3 className="text-[12px] font-black flex items-center w-full mb-4 uppercase tracking-[0.5em] text-black">
+                     <h2 className="text-[12px] font-black flex items-center w-full mb-4 uppercase tracking-[0.5em] text-black">
                         <div className="h-[1px] flex-1 bg-black/10 mr-4" />
                         <span className="shrink-0">Latest</span>
                         <div className="h-[1px] flex-1 bg-black/10 ml-4" />
-                     </h3>
+                     </h2>
                      <div className="space-y-6">
                         {leftSidebarArticles.map((article) => (
                            <Link key={article.id} href={`/article/${article.slug || article.id}`} className="block group">
@@ -174,7 +174,7 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
                               </motion.div>
                            </AnimatePresence>
 
-                           <div className="absolute top-8 left-8 bg-black text-white text-[11px] font-black px-6 py-2.5 uppercase tracking-[0.4em] z-10">
+                           <div className="absolute top-8 left-1/2 -translate-x-1/2 sm:left-8 sm:translate-x-0 bg-black text-white text-[11px] font-black px-6 py-2.5 uppercase tracking-[0.4em] z-10 whitespace-nowrap">
                               Top Stories
                            </div>
 
@@ -191,17 +191,17 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
                         </div>
 
                         <Link href={`/article/${heroArticle.slug || heroArticle.id}`} className="block group">
-                           <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-voltaire font-normal leading-[0.95] mb-2 group-hover:underline underline-offset-[12px] decoration-1 transition-all tracking-tighter">
+                           <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-voltaire font-normal leading-[0.95] mb-2 group-hover:underline underline-offset-[12px] decoration-1 transition-all tracking-tighter text-center sm:text-left">
                               {heroArticle.title}
                            </h2>
-                           <p className="text-gray-800 text-lg lg:text-xl leading-relaxed line-clamp-5 font-medium mb-4 opacity-95 max-w-4xl border-l-2 border-gray-200 pl-8">
+                           <p className="text-gray-800 text-lg lg:text-xl leading-relaxed line-clamp-5 font-medium mb-6 opacity-95 max-w-4xl text-center sm:text-left mx-auto sm:mx-0">
                               {heroArticle.content}
                            </p>
-                           <div className="flex items-center gap-4">
+                           <div className="flex items-center justify-center sm:justify-start gap-4">
                               <span className="inline-flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.5em] text-black border-2 border-black px-6 py-2.5 hover:bg-black hover:text-white transition-all">
                                  Read Report
                               </span>
-                              <div className="h-[1px] flex-1 bg-gray-100" />
+                              <div className="h-[1px] flex-1 bg-gray-100 hidden sm:block" />
                            </div>
                         </Link>
                      </div>
@@ -218,12 +218,12 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
                                     <div className="relative w-full aspect-[21/9] overflow-hidden bg-gray-50">
                                        <StoryImage src={latestStories[0].imageUrl} alt={latestStories[0].title} fill className="object-cover group-hover:scale-105 transition-all duration-1000" sizes="(max-width: 1024px) 100vw, 900px" />
                                     </div>
-                                    <div className="flex-1 min-w-0">
+                                    <div className="flex-1 min-w-0 flex flex-col items-center sm:items-start">
                                        <span className="text-[10px] font-black uppercase tracking-[0.4em] mb-4 inline-block text-black border-b border-black pb-1">Primary Feed</span>
-                                       <h3 className="text-3xl sm:text-4xl lg:text-5xl font-voltaire font-normal leading-tight mb-4 group-hover:underline transition-all tracking-tight">
+                                       <h2 className="text-3xl sm:text-4xl lg:text-5xl font-voltaire font-normal leading-tight mb-4 group-hover:underline transition-all tracking-tight text-center sm:text-left">
                                           {latestStories[0].title}
-                                       </h3>
-                                       <p className="text-gray-700 text-lg line-clamp-4 font-medium leading-relaxed max-w-3xl">
+                                       </h2>
+                                       <p className="text-gray-700 text-lg line-clamp-4 font-medium leading-relaxed max-w-3xl text-center sm:text-left">
                                           {latestStories[0].content}
                                        </p>
                                     </div>
@@ -258,7 +258,7 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
                                           <div className="w-6 h-[1px] bg-black"></div>
                                           {article.category?.categoryName}
                                        </span>
-                                       <h3 className="text-2xl font-normal font-voltaire leading-tight mb-4 group-hover:underline transition-all line-clamp-2">{article.title}</h3>
+                                       <h2 className="text-2xl font-normal font-voltaire leading-tight mb-4 group-hover:underline transition-all line-clamp-2">{article.title}</h2>
                                        <p className="text-gray-700 text-base line-clamp-3 font-medium leading-relaxed max-w-2xl">{article.content}</p>
                                     </div>
                                  </Link>
@@ -277,7 +277,7 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
                                        <div className="w-6 h-[1px] bg-black"></div>
                                        {article.category?.categoryName}
                                     </span>
-                                    <h3 className="text-2xl font-normal font-voltaire leading-tight mb-4 group-hover:underline transition-all line-clamp-2">{article.title}</h3>
+                                    <h2 className="text-2xl font-normal font-voltaire leading-tight mb-4 group-hover:underline transition-all line-clamp-2">{article.title}</h2>
                                     <p className="text-gray-700 text-base line-clamp-2 font-medium leading-relaxed max-w-2xl">{article.content}</p>
                                  </div>
                               </Link>
@@ -307,11 +307,11 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
                <aside className="lg:col-span-3 relative">
                   <div className="sticky top-24">
                      <div className="border-t-4 border-black pt-4 mb-4">
-                        <h3 className="text-[12px] font-black flex items-center w-full mb-4 uppercase tracking-[0.5em] text-black">
+                        <h2 className="text-[12px] font-black flex items-center w-full mb-4 uppercase tracking-[0.5em] text-black">
                            <div className="h-[1px] flex-1 bg-black/10 mr-6" />
                            <span className="shrink-0">Popular</span>
                            <div className="h-[1px] flex-1 bg-black/10 ml-4" />
-                        </h3>
+                        </h2>
                         <div className="space-y-4">
                            {trendingArticles.map((article, i) => (
                               <Link key={article.id} href={`/article/${article.slug || article.id}`} className="block group">
@@ -332,11 +332,11 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
 
                      {sidebarPicks.length > 0 && (
                         <div className="mb-4 border-t-4 border-black pt-4">
-                           <h3 className="text-[12px] font-black flex items-center w-full mb-4 uppercase tracking-[0.5em] text-black">
+                           <h2 className="text-[12px] font-black flex items-center w-full mb-4 uppercase tracking-[0.5em] text-black">
                               <div className="h-[1px] flex-1 bg-black/10 mr-6" />
                               <span className="shrink-0">In Depth</span>
                               <div className="h-[1px] flex-1 bg-black/10 ml-4" />
-                           </h3>
+                           </h2>
                            <div className="space-y-4">
                               {sidebarPicks.map((article) => (
                                  <Link key={article.id} href={`/article/${article.slug || article.id}`} className="block group">
@@ -363,9 +363,9 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
             {horizontalStrip.length > 0 && (
                <section className="mt-6 pt-4 border-t border-black">
                   <div className="flex items-center justify-between mb-4">
-                     <h3 className="text-[12px] font-black uppercase tracking-[0.5em] flex items-center gap-4 text-black">
+                     <h2 className="text-[12px] font-black uppercase tracking-[0.5em] flex items-center gap-4 text-black">
                         More From VoiceJeju
-                     </h3>
+                     </h2>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8">
                      {horizontalStrip.map((article) => (
@@ -384,9 +384,9 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
             {/* Discover Section */}
             {trendingProducts.length > 0 && (
                <section className="mt-6 pt-4 border-t-8 border-black">
-                  <h3 className="text-[14px] font-black uppercase tracking-[0.6em] mb-4 text-center text-black">
+                  <h2 className="text-[14px] font-black uppercase tracking-[0.6em] mb-4 text-center text-black">
                      VoiceJeju Journal
-                  </h3>
+                  </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
                      {trendingProducts.map((article: any) => (
                         <Link key={article.id} href={`/article/${article.slug || article.id}`} className="block group border-l border-gray-100 pl-6 hover:border-black transition-all">

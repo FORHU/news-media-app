@@ -58,7 +58,7 @@ export function StoryImage(props: StoryImageProps) {
         className={`${className} flex items-center justify-center ${config.padding} text-center leading-tight overflow-hidden`}
         style={{ 
           backgroundColor: color,
-          color: 'white',
+          color: 'black',
           width: '100%',
           height: '100%',
           position: fill ? 'absolute' : 'relative',

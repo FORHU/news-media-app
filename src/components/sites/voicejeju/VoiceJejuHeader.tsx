@@ -177,6 +177,7 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
               <button 
                 onClick={() => setIsSidebarOpen(true)}
                 className="p-2 -ml-2 hover:bg-gray-50 rounded-full transition-colors"
+                aria-label="Open sidebar menu"
               >
                 <Menu size={24} strokeWidth={1.5} />
               </button>
@@ -192,10 +193,11 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
               <button 
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
                 className="p-2 hover:bg-gray-50 rounded-full transition-colors"
+                aria-label={isSearchOpen ? "Close search" : "Open search"}
               >
                 <Search size={20} strokeWidth={1.5} />
               </button>
-              <Link href="/admin/dashboard" className="p-2 hover:bg-gray-50 rounded-full transition-colors">
+              <Link href="/admin/dashboard" className="p-2 hover:bg-gray-50 rounded-full transition-colors" aria-label="Admin Dashboard">
                 <User size={20} strokeWidth={1.5} />
               </Link>
               <button 
@@ -209,7 +211,7 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
         </div>
 
         {/* Row 3: Main Navigation (Black Bar) */}
-        <div className="bg-black text-white relative">
+        <div className="bg-black text-white relative hidden lg:block">
           <div className="max-w-[1440px] mx-auto relative px-4 py-1.5 flex items-center justify-center">
              <nav 
                ref={navRef}
@@ -263,6 +265,7 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
                 type="button"
                 onClick={() => setIsSearchOpen(false)}
                 className="p-2 hover:bg-gray-50 rounded-full transition-colors"
+                aria-label="Close search overlay"
               >
                 <X size={20} />
               </button>
