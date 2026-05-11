@@ -1,5 +1,5 @@
 import { SiteShell } from "@/components/SiteShell";
-import { resolveTenantIdFromDomain, getSiteNameFromDomain } from "@/lib/tenant";
+import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
 import { bannersService } from "@/services/banners.service";
 import { Metadata } from "next";
@@ -49,6 +49,9 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
           alt: siteName,
         },
       ],
+    },
+    icons: {
+      icon: getSiteIconFromDomain(domain),
     }
   };
 }

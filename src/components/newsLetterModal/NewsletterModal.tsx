@@ -66,6 +66,20 @@ const getDomainTheme = (domain: string): ThemeClasses => {
       gradient: "from-[#e60012]/5",
     };
   }
+  if (domain.includes("voicejeju")) {
+    return {
+      bg: "bg-black",
+      text: "text-black",
+      border: "border-black",
+      borderFocus: "focus:border-black",
+      hoverBg: "hover:bg-gray-900",
+      hoverText: "hover:text-black",
+      bgLight: "bg-gray-50",
+      bgLight10: "bg-black/10",
+      font: "font-inter",
+      gradient: "from-black/5",
+    };
+  }
   // Default / NewsIcons
   return {
     bg: "bg-[#ff4500]",

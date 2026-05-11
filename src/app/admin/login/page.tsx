@@ -254,6 +254,7 @@ function LoginContent() {
       if (domain.includes("jejutime")) iconPath = "/icons/jejutime.ico";
       else if (domain.includes("jejuqq")) iconPath = "/icons/jejuqq.ico";
       else if (domain.includes("jejujapan")) iconPath = "/icons/jejujapan.ico";
+      else if (domain.includes("voicejeju")) iconPath = "/icons/voicejeju.ico";
       
       favicon.href = iconPath;
       if (!document.querySelector('link[rel="icon"]')) {

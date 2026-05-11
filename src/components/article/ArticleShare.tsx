@@ -208,11 +208,11 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
     switch (site) {
       case "voicejeju":
         return {
-          trigger: "bg-[#e60000] hover:bg-[#cc0000] text-white rounded-full px-6 py-2 shadow-md transition-all font-inter text-sm font-bold tracking-wide",
-          modal: "sm:max-w-lg bg-white border-gray-100 rounded-3xl shadow-2xl",
-          header: "text-gray-900 font-voltaire text-2xl font-normal",
-          item: "rounded-2xl border-gray-100 hover:border-red-100 hover:shadow-sm transition-all",
-          copyBtn: "bg-gray-50 hover:bg-red-50 text-[#e60000] border-gray-100",
+          trigger: "bg-black hover:bg-gray-900 text-white rounded-none px-8 py-2.5 transition-all font-inter text-[11px] font-black uppercase tracking-[0.2em] border border-black shadow-sm",
+          modal: "sm:max-w-lg bg-white border-black border-2 rounded-none shadow-2xl",
+          header: "text-black font-voltaire text-3xl font-normal uppercase tracking-tight",
+          item: "rounded-none border-gray-100 hover:border-black transition-all",
+          copyBtn: "bg-black text-white hover:bg-gray-900 rounded-none border-none",
         };
       case "jejutime":
         return {
@@ -260,7 +260,7 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
           className={cn(
             "text-xs font-bold uppercase tracking-[0.2em]",
             site === "voicejeju" 
-              ? "text-[#e60000] font-inter" 
+              ? "text-black font-inter" 
               : site === "jejutime"
                 ? "text-blue-600/60"
                 : site === "jejuqq"
@@ -280,7 +280,7 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
     <div className={cn("mt-12 pt-8 border-t border-slate-100 flex flex-col items-center gap-6", className)}>
       <p className={cn(
         "text-xs font-bold uppercase tracking-[0.2em]",
-        site === "voicejeju" ? "text-[#e60000] font-inter" : 
+        site === "voicejeju" ? "text-black font-inter" : 
         site === "jejutime" ? "text-blue-600/60" : 
         site === "jejuqq" ? "text-[#b91c1c] font-garamond text-sm" : 
         site === "jejujapan" ? "text-black/40 font-noto" : "text-gray-400"
