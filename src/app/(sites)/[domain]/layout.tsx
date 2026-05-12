@@ -36,7 +36,9 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
   return {
     metadataBase: new URL(baseUrl),
     title: {
-      default: siteName,
+      // Absolute default so homepage shows just the site name (no "| NewsIcons")
+      absolute: siteName,
+      // Article/child pages will render as: "Article Title | VoiceJeju"
       template: `%s | ${siteName}`,
     },
     openGraph: {

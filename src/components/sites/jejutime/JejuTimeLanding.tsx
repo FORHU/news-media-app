@@ -113,12 +113,9 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                                  <span className="inline-block bg-blue-500/30 backdrop-blur-md px-3 py-1 rounded-md text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-3 sm:mb-4 border border-white/20">
                                     Primary Story
                                  </span>
-                                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-baskerville font-bold leading-tight mb-3 sm:mb-4 group-hover:text-blue-200 transition-colors">
+                                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-baskerville font-bold leading-tight group-hover:text-blue-200 transition-colors">
                                     {mainArticle.title}
                                  </h2>
-                                 <p className="text-white/80 line-clamp-2 text-sm sm:text-lg font-light leading-relaxed">
-                                    {mainArticle.content}
-                                 </p>
                               </div>
                            </Link>
                         </div>
@@ -178,8 +175,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                                           <div className="absolute inset-0 bg-blue-600/0 group-hover:bg-blue-600/5 transition-colors pointer-events-none" />
                                        </div>
                                        <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest block mb-3">{article.category?.categoryName || "Latest"}</span>
-                                       <h4 className="text-xl font-bold mb-3 leading-tight group-hover:text-blue-600 transition-colors line-clamp-2">{article.title}</h4>
-                                       <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed font-light">{article.content}</p>
+                                       <h4 className="text-xl font-bold leading-tight group-hover:text-blue-600 transition-colors line-clamp-2">{article.title}</h4>
                                     </Link>
                                  </article>
                               ))}
@@ -199,8 +195,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                                              <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
                                              <span>5 min read</span>
                                           </div>
-                                          <h4 className="text-lg font-bold mb-2 leading-tight group-hover:text-blue-600 transition-colors line-clamp-2">{article.title}</h4>
-                                          <p className="text-slate-600 text-xs line-clamp-2 leading-relaxed font-light">{article.content}</p>
+                                          <h4 className="text-lg font-bold leading-tight group-hover:text-blue-600 transition-colors line-clamp-2">{article.title}</h4>
                                        </div>
                                     </Link>
                                  </article>

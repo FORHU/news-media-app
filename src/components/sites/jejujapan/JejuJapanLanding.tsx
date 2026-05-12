@@ -10,7 +10,8 @@ import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
 import { TrendingUp, Clock, ChevronRight, ChevronLeft } from "lucide-react";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+const MotionDiv = dynamic(() => import("framer-motion").then(mod => mod.motion.div), { ssr: false });
+const AnimatePresence = dynamic(() => import("framer-motion").then(mod => mod.AnimatePresence), { ssr: false });
 
 interface Props {
   tenantId: string | null;
@@ -145,14 +146,14 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                 <div className="mb-6 md:mb-8">
                   <div className="relative aspect-video lg:aspect-[21/9] overflow-hidden mb-3 bg-gray-100 shadow-md">
                     <AnimatePresence initial={false} custom={direction} mode="wait">
-                      <motion.div
+                      <MotionDiv
                         key={page}
                         custom={direction}
                         variants={variants}
                         initial="enter"
                         animate="center"
                         exit="exit"
-                        transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
+                        transition={{ x: { type: "tween", duration: 0.25 }, opacity: { duration: 0.2 } }}
                         className="h-full w-full absolute inset-0"
                       >
                         <Link href={`/article/${heroArticle.slug || heroArticle.id}`} className="block h-full">
@@ -166,7 +167,7 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                             sizes="(max-width: 1024px) 100vw, 850px"
                           />
                         </Link>
-                      </motion.div>
+                      </MotionDiv>
                     </AnimatePresence>
 
                     <div className="absolute top-4 left-4 bg-[#bc002d] text-white text-[10px] font-black px-4 py-1.5 uppercase tracking-[0.2em] z-10">
@@ -197,12 +198,9 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                   </div>
 
                   <Link href={`/article/${heroArticle.slug || heroArticle.id}`} className="block max-w-4xl">
-                    <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-noto font-black leading-[1.1] mb-4 hover:text-[#bc002d] transition-colors tracking-tight">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-noto font-black leading-[1.1] mb-5 hover:text-[#bc002d] transition-colors tracking-tight">
                       {heroArticle.title}
                     </h2>
-                    <p className="text-gray-600 text-base lg:text-lg leading-relaxed line-clamp-3 font-light mb-5 opacity-90">
-                      {heroArticle.content}
-                    </p>
                     <span className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.3em] text-[#bc002d] hover:text-black transition-colors">
                       Read Full Report <ChevronRight size={14} />
                     </span>
@@ -224,9 +222,6 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                                    <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold leading-tight mb-2 group-hover:text-[#bc002d] transition-colors tracking-tight">
                                       {latestStories[0].title}
                                    </h3>
-                                   <p className="text-gray-600 text-sm lg:text-base line-clamp-3 font-light leading-relaxed">
-                                      {latestStories[0].content}
-                                   </p>
                                 </div>
                              </Link>
                           </article>
@@ -260,7 +255,6 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                                       {article.category?.categoryName}
                                    </span>
                                    <h3 className="text-[15px] font-bold leading-tight mb-0.5 group-hover:text-[#bc002d] transition-colors line-clamp-2">{article.title}</h3>
-                                   <p className="text-xs text-gray-500 line-clamp-1 font-light leading-relaxed">{article.content}</p>
                                 </div>
                              </Link>
                           ))}
@@ -410,7 +404,6 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                         </div>
                         <span className="text-[9px] font-black text-[#bc002d] uppercase tracking-[0.15em] block mb-1">{cat.name}</span>
                         <h4 className="text-sm font-bold leading-tight group-hover:text-[#bc002d] transition-colors line-clamp-2 mb-1">{article.title}</h4>
-                        <p className="text-xs text-gray-500 line-clamp-2 font-light leading-relaxed">{article.content}</p>
                       </Link>
                     ))}
                   </div>

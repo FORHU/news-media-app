@@ -9,11 +9,13 @@ const ClientPagination = dynamic(() => import("@/components/home/ClientPaginatio
    ssr: true,
    loading: () => <div className="h-20 animate-pulse bg-gray-50 w-full" />
 });
+// Lazy-load framer-motion — it's a large bundle and not needed for initial paint
+const MotionDiv = dynamic(() => import("framer-motion").then(mod => mod.motion.div), { ssr: false });
+const AnimatePresence = dynamic(() => import("framer-motion").then(mod => mod.AnimatePresence), { ssr: false });
 import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
 import { TrendingUp, Clock, ChevronRight, ChevronLeft } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -30,6 +32,13 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
    const [currentPage, setCurrentPage] = useState(1);
    const [itemsPerPage, setItemsPerPage] = useState(24);
    const mainRef = useRef<HTMLDivElement>(null);
+
+   // Reduce initial items on mobile for faster paint
+   useEffect(() => {
+      if (typeof window !== "undefined" && window.innerWidth < 768) {
+         setItemsPerPage(12);
+      }
+   }, []);
 
    useEffect(() => {
       if (mainRef.current) {
@@ -63,8 +72,8 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
    // Track used IDs as we go
    const usedIds = new Set<string>([...heroIds]);
 
-   // Right sidebar — Trending: top 5
-   const trendingArticles = pickArticles(5, usedIds);
+   // Right sidebar — Trending: top 10
+   const trendingArticles = pickArticles(10, usedIds);
    trendingArticles.forEach(a => usedIds.add(a.id));
 
    // Right sidebar — Must Read (In Depth): top 5
@@ -102,13 +111,13 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
    };
 
    const variants = {
-      enter: (direction: number) => ({ x: direction > 0 ? 50 : -50, opacity: 0 }),
+      enter: (direction: number) => ({ x: direction > 0 ? 40 : -40, opacity: 0 }),
       center: { zIndex: 1, x: 0, opacity: 1 },
-      exit: (direction: number) => ({ zIndex: 0, x: direction < 0 ? 50 : -50, opacity: 0 })
+      exit: (direction: number) => ({ zIndex: 0, x: direction < 0 ? 40 : -40, opacity: 0 })
    };
 
    return (
-       <div ref={mainRef} className={cn(
+       <div id="top" ref={mainRef} className={cn(
           "bg-white min-h-screen font-inter selection:bg-black selection:text-white",
           hasTopBanner ? "pt-1" : "pt-2"
        )}>
@@ -150,14 +159,14 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
                      <div className="mb-2">
                         <div className="relative aspect-[16/9] lg:aspect-[21/9] overflow-hidden mb-2 bg-gray-50 group border-b-4 border-black">
                            <AnimatePresence initial={false} custom={direction} mode="wait">
-                              <motion.div
+                              <MotionDiv
                                  key={page}
                                  custom={direction}
                                  variants={variants}
                                  initial="enter"
                                  animate="center"
                                  exit="exit"
-                                 transition={{ x: { type: "spring", stiffness: 200, damping: 25 }, opacity: { duration: 0.3 } }}
+                                 transition={{ x: { type: "tween", duration: 0.25 }, opacity: { duration: 0.2 } }}
                                  className="h-full w-full absolute inset-0"
                               >
                                  <Link href={`/article/${heroArticle.slug || heroArticle.id}`} className="block h-full">
@@ -165,13 +174,13 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
                                        src={heroArticle.imageUrl}
                                        alt={heroArticle.title}
                                        fill
-                                       className="object-cover group-hover:scale-105 transition-all duration-1000"
+                                       className="object-cover group-hover:scale-105 transition-all duration-700"
                                        variant="hero"
                                        priority={true}
-                                       sizes="(max-width: 1024px) 100vw, 1000px"
+                                       sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, 900px"
                                     />
                                  </Link>
-                              </motion.div>
+                              </MotionDiv>
                            </AnimatePresence>
 
                            <div className="absolute top-8 left-1/2 -translate-x-1/2 sm:left-8 sm:translate-x-0 bg-black text-white text-[11px] font-black px-6 py-2.5 uppercase tracking-[0.4em] z-10 whitespace-nowrap">
@@ -191,12 +200,9 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
                         </div>
 
                         <Link href={`/article/${heroArticle.slug || heroArticle.id}`} className="block group">
-                           <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-voltaire font-normal leading-[0.95] mb-2 group-hover:underline underline-offset-[12px] decoration-1 transition-all tracking-tighter text-center sm:text-left">
+                           <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-voltaire font-normal leading-[0.95] mb-6 group-hover:underline underline-offset-[12px] decoration-1 transition-all tracking-tighter text-center sm:text-left">
                               {heroArticle.title}
                            </h2>
-                           <p className="text-gray-800 text-lg lg:text-xl leading-relaxed line-clamp-5 font-medium mb-6 opacity-95 max-w-4xl text-center sm:text-left mx-auto sm:mx-0">
-                              {heroArticle.content}
-                           </p>
                            <div className="flex items-center justify-center sm:justify-start gap-4">
                               <span className="inline-flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.5em] text-black border-2 border-black px-6 py-2.5 hover:bg-black hover:text-white transition-all">
                                  Read Report
@@ -208,7 +214,7 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
                   )}
 
                   {/* Latest Stories List */}
-                  <div className="space-y-4 border-t border-gray-100 pt-3">
+                  <div id="latest-stories" className="space-y-4 border-t border-gray-100 pt-3">
                      {currentPage === 1 ? (
                         <>
                            {/* High Impact Feature Card */}
@@ -216,16 +222,13 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
                               <article className="mb-4 group">
                                  <Link href={`/article/${latestStories[0].slug || latestStories[0].id}`} className="flex flex-col gap-4">
                                     <div className="relative w-full aspect-[21/9] overflow-hidden bg-gray-50">
-                                       <StoryImage src={latestStories[0].imageUrl} alt={latestStories[0].title} fill className="object-cover group-hover:scale-105 transition-all duration-1000" sizes="(max-width: 1024px) 100vw, 900px" />
+                                       <StoryImage src={latestStories[0].imageUrl} alt={latestStories[0].title} fill className="object-cover group-hover:scale-105 transition-all duration-700" sizes="(max-width: 768px) 100vw, 900px" />
                                     </div>
                                     <div className="flex-1 min-w-0 flex flex-col items-center sm:items-start">
                                        <span className="text-[10px] font-black uppercase tracking-[0.4em] mb-4 inline-block text-black border-b border-black pb-1">Primary Feed</span>
                                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-voltaire font-normal leading-tight mb-4 group-hover:underline transition-all tracking-tight text-center sm:text-left">
                                           {latestStories[0].title}
                                        </h2>
-                                       <p className="text-gray-700 text-lg line-clamp-4 font-medium leading-relaxed max-w-3xl text-center sm:text-left">
-                                          {latestStories[0].content}
-                                       </p>
                                     </div>
                                  </Link>
                               </article>
@@ -237,7 +240,7 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
                                  <article key={article.id} className="group">
                                     <Link href={`/article/${article.slug || article.id}`}>
                                        <div className="relative aspect-[4/5] overflow-hidden mb-2 bg-gray-50">
-                                          <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-all duration-700" sizes="300px" />
+                                          <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-all duration-500" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 250px" />
                                        </div>
                                        <span className="text-[10px] font-bold text-gray-600 uppercase tracking-[0.3em] mb-3 block">{article.category?.categoryName}</span>
                                        <h4 className="text-[18px] font-normal font-voltaire leading-[1.2] group-hover:text-black group-hover:underline transition-all line-clamp-3">{article.title}</h4>
@@ -258,8 +261,7 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
                                           <div className="w-6 h-[1px] bg-black"></div>
                                           {article.category?.categoryName}
                                        </span>
-                                       <h2 className="text-2xl font-normal font-voltaire leading-tight mb-4 group-hover:underline transition-all line-clamp-2">{article.title}</h2>
-                                       <p className="text-gray-700 text-base line-clamp-3 font-medium leading-relaxed max-w-2xl">{article.content}</p>
+                                       <h2 className="text-2xl font-normal font-voltaire leading-tight mb-2 group-hover:underline transition-all line-clamp-2">{article.title}</h2>
                                     </div>
                                  </Link>
                               ))}
@@ -277,8 +279,7 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
                                        <div className="w-6 h-[1px] bg-black"></div>
                                        {article.category?.categoryName}
                                     </span>
-                                    <h2 className="text-2xl font-normal font-voltaire leading-tight mb-4 group-hover:underline transition-all line-clamp-2">{article.title}</h2>
-                                    <p className="text-gray-700 text-base line-clamp-2 font-medium leading-relaxed max-w-2xl">{article.content}</p>
+                                    <h2 className="text-2xl font-normal font-voltaire leading-tight mb-2 group-hover:underline transition-all line-clamp-2">{article.title}</h2>
                                  </div>
                               </Link>
                            ))}
@@ -306,7 +307,7 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
                {/* Right Sidebar — Sticky Discovery */}
                <aside className="lg:col-span-3 relative">
                   <div className="sticky top-24">
-                     <div className="border-t-4 border-black pt-4 mb-4">
+                     <div id="trending-stories" className="border-t-4 border-black pt-4 mb-4">
                         <h2 className="text-[12px] font-black flex items-center w-full mb-4 uppercase tracking-[0.5em] text-black">
                            <div className="h-[1px] flex-1 bg-black/10 mr-6" />
                            <span className="shrink-0">Popular</span>
@@ -321,8 +322,7 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
                                     </span>
                                     <div className="min-w-0 pt-1">
                                        <span className="text-[9px] text-gray-600 uppercase tracking-[0.3em] block mb-2">{article.category?.categoryName}</span>
-                                       <h4 className="text-[15px] font-normal font-voltaire leading-snug group-hover:underline line-clamp-2 transition-all mb-2">{article.title}</h4>
-                                       <p className="text-gray-600 text-[11px] line-clamp-3 leading-relaxed italic">{article.content}</p>
+                                       <h4 className="text-[15px] font-normal font-voltaire leading-snug group-hover:underline line-clamp-2 transition-all">{article.title}</h4>
                                     </div>
                                  </div>
                               </Link>
@@ -344,8 +344,7 @@ export function VoiceJejuLanding({ tenantId, articles, banners }: Props) {
                                        <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-all duration-700" />
                                     </div>
                                     <span className="text-[10px] font-bold text-gray-600 uppercase tracking-[0.3em] block mb-2">{article.category?.categoryName}</span>
-                                    <h4 className="text-[18px] font-normal font-voltaire leading-tight group-hover:underline transition-all line-clamp-2 mb-2">{article.title}</h4>
-                                    <p className="text-gray-600 text-[12px] line-clamp-3 leading-relaxed italic">{article.content}</p>
+                                    <h4 className="text-[18px] font-normal font-voltaire leading-tight group-hover:underline transition-all line-clamp-2">{article.title}</h4>
                                  </Link>
                               ))}
                            </div>

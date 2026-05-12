@@ -5,7 +5,9 @@ import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
 import { ChevronRight, TrendingUp, ChevronLeft, Clock } from "lucide-react";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import dynamic from "next/dynamic";
+const MotionDiv = dynamic(() => import("framer-motion").then(mod => mod.motion.div), { ssr: false });
+const AnimatePresence = dynamic(() => import("framer-motion").then(mod => mod.AnimatePresence), { ssr: false });
 
 interface Props {
   tenantId: string | null;
@@ -105,14 +107,14 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
             <div className="flex flex-col lg:flex-row-reverse gap-5 lg:gap-8 items-center">
               <div className="relative w-full lg:w-3/5 aspect-[16/9] overflow-hidden rounded-none bg-gray-100 shadow-lg group/image shrink-0 border-2 border-primary">
                 <AnimatePresence initial={false} custom={direction} mode="wait">
-                  <motion.div
+                  <MotionDiv
                     key={page}
                     custom={direction}
                     variants={variants}
                     initial="enter"
                     animate="center"
                     exit="exit"
-                    transition={{ x: { type: "spring", stiffness: 200, damping: 25 }, opacity: { duration: 0.2 } }}
+                    transition={{ x: { type: "tween", duration: 0.25 }, opacity: { duration: 0.2 } }}
                     className="absolute inset-0 h-full w-full"
                   >
                     <Link href={`/article/${mainArticle.slug || mainArticle.id}`} className="block h-full w-full">
@@ -122,9 +124,11 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                         fill
                         className="object-cover"
                         variant="hero"
+                        priority={true}
+                        sizes="(max-width: 1024px) 100vw, 850px"
                       />
                     </Link>
-                  </motion.div>
+                  </MotionDiv>
                 </AnimatePresence>
 
                 {/* Navigation Buttons */}
@@ -157,13 +161,10 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                     <span className="h-0.5 w-8 bg-primary"></span>
                     <span className="text-[11px] text-primary font-bold font-serif uppercase tracking-[0.3em]">{mainArticle.category?.categoryName}</span>
                   </div>
-                  <h2 className="text-[26px] sm:text-[36px] md:text-[44px] lg:text-[52px] font-serif font-bold leading-[1.08] mb-2 group-hover:text-primary transition-colors tracking-tighter">
+                  <h2 className="text-[26px] sm:text-[36px] md:text-[44px] lg:text-[52px] font-serif font-bold leading-[1.08] mb-4 group-hover:text-primary transition-colors tracking-tighter">
                     {mainArticle.title}
                   </h2>
                 </Link>
-                <p className="text-gray-600 text-base leading-relaxed mb-4 line-clamp-3 font-medium">
-                  {mainArticle.content}
-                </p>
                 <Link href={`/article/${mainArticle.slug || mainArticle.id}`} className="inline-flex items-center gap-2 text-[12px] font-black uppercase tracking-widest text-black hover:text-[#dc2626] transition-colors">
                   Read Full Story <ChevronRight size={16} />
                 </Link>
@@ -393,9 +394,6 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                               <h4 className="text-[13px] md:text-[14px] font-bold leading-snug line-clamp-2 group-hover:text-primary transition-colors">
                                 {article.title}
                               </h4>
-                              <p className="text-[12px] text-gray-600 leading-relaxed line-clamp-1 mt-1">
-                                {article.content}
-                              </p>
                             </div>
                           </Link>
                         ))}
@@ -490,12 +488,9 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                                 <span className="text-[9px] text-primary font-bold font-serif uppercase tracking-[0.25em] mb-1.5">
                                   {items[0].category?.categoryName}
                                 </span>
-                                <h5 className="font-serif font-bold leading-tight mb-1.5 group-hover:text-primary transition-colors text-base md:text-lg line-clamp-2">
+                                <h5 className="font-serif font-bold leading-tight group-hover:text-primary transition-colors text-base md:text-lg line-clamp-2">
                                   {items[0].title}
                                 </h5>
-                                <p className="text-[12px] text-gray-600 line-clamp-2 leading-relaxed font-medium">
-                                  {items[0].content}
-                                </p>
                               </Link>
                             )}
 

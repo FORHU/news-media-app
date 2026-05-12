@@ -64,7 +64,10 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
 
   return {
     metadataBase: new URL(baseUrl),
-    title: siteName,
+    // Use absolute title to prevent root layout from appending "| NewsIcons"
+    title: {
+      absolute: siteName,
+    },
     description: DEFAULT_SEO.description,
     icons: {
       icon: icon,
@@ -106,28 +109,29 @@ export default async function Page({
   const { domain } = await params;
   const tenantId = await resolveTenantIdFromDomain(domain);
 
-  const articles = tenantId
-    ? await articlesService.getArticles(
-      { limit: 100, status: "published" },
-      tenantId
-    )
-    : [];
-
-  const [topBanners, sidebarBanners, footerBanners] = await Promise.all([
+  // Landing pages only need summary fields (title, imageUrl, category, etc.)
+  // onlySummary skips the heavy 'content' text field — faster DB query + smaller HTML
+  const [articles, topBanners, sidebarBanners, footerBanners] = await Promise.all([
     tenantId
-      ? bannersService
-        .getBanners({ position: "HOME_TOP", isActive: true, tenantId })
-        .catch(() => [])
+      ? articlesService.getArticles(
+          { limit: 100, status: "published", onlySummary: true },
+          tenantId
+        )
       : Promise.resolve([]),
     tenantId
       ? bannersService
-        .getBanners({ position: "HOME_SIDEBAR", isActive: true, tenantId })
-        .catch(() => [])
+          .getBanners({ position: "HOME_TOP", isActive: true, tenantId })
+          .catch(() => [])
       : Promise.resolve([]),
     tenantId
       ? bannersService
-        .getBanners({ position: "GLOBAL_FOOTER", isActive: true, tenantId })
-        .catch(() => [])
+          .getBanners({ position: "HOME_SIDEBAR", isActive: true, tenantId })
+          .catch(() => [])
+      : Promise.resolve([]),
+    tenantId
+      ? bannersService
+          .getBanners({ position: "GLOBAL_FOOTER", isActive: true, tenantId })
+          .catch(() => [])
       : Promise.resolve([]),
   ]);
 

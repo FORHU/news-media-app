@@ -37,8 +37,6 @@ export function VoiceJejuFooter({ onOpenNewsletter, footerBanners }: FooterProps
           <div className="flex items-center gap-8 text-[11px] font-bold uppercase tracking-[0.2em] text-gray-400">
              <span>{today}</span>
              <span className="w-1.5 h-1.5 bg-gray-700 rounded-full" />
-             <span>Premium Journalism</span>
-             <span className="w-1.5 h-1.5 bg-gray-700 rounded-full" />
              <div className="flex items-center gap-2">
                 <Sun size={12} />
                 <span>Jeju City</span>
@@ -64,20 +62,19 @@ export function VoiceJejuFooter({ onOpenNewsletter, footerBanners }: FooterProps
           <div className="lg:col-span-2">
             <h4 className="text-[11px] font-black text-white mb-8 uppercase tracking-[0.3em]">Explore</h4>
             <ul className="space-y-4 text-xs text-gray-400 font-bold uppercase tracking-wider">
-              <li><Link href="/" className="hover:text-white transition-colors">Home</Link></li>
+              <li><Link href="/#top" className="hover:text-white transition-colors">Home</Link></li>
               <li><Link href="/#latest-stories" className="hover:text-white transition-colors">Latest News</Link></li>
               <li><Link href="/#trending-stories" className="hover:text-white transition-colors">Trending</Link></li>
-              <li><Link href="/search" className="hover:text-white transition-colors">Search Archive</Link></li>
             </ul>
           </div>
 
           <div className="lg:col-span-2">
             <h4 className="text-[11px] font-black text-white mb-8 uppercase tracking-[0.3em]">The Desk</h4>
             <ul className="space-y-4 text-xs text-gray-400 font-bold uppercase tracking-wider">
-              <li><Link href="#" className="hover:text-white transition-colors">Politics</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Business</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Technology</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Culture</Link></li>
+              <li><Link href="/search?category=제주 오늘" className="hover:text-white transition-colors">Jeju Today</Link></li>
+              <li><Link href="/search?category=여행 및 관광" className="hover:text-white transition-colors">Travel & Tourism</Link></li>
+              <li><Link href="/search?category=음식 및 맛집" className="hover:text-white transition-colors">Food & Restaurants</Link></li>
+              <li><Link href="/search?category=이벤트 및 축제" className="hover:text-white transition-colors">Events & Festivals</Link></li>
             </ul>
           </div>
 
