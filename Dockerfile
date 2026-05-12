@@ -9,6 +9,12 @@ COPY package.json package-lock.json* ./
 # Copy prisma directory and config because npm ci triggers postinstall which runs prisma generate
 COPY prisma ./prisma/
 COPY prisma.config.ts ./
+
+# Provide a dummy DATABASE_URL for the prisma generate step during npm ci
+# This avoids the "Cannot resolve environment variable" error without needing the real URL yet
+ARG DATABASE_URL
+ENV DATABASE_URL=${DATABASE_URL:-postgresql://dummy:dummy@localhost:5432/dummy}
+
 RUN npm ci
 
 # Stage 2: Rebuild the source code only when needed
