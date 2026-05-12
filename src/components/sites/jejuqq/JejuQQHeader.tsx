@@ -83,7 +83,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
     <>
       <header className="bg-[#fee2e2] border-b-2 border-[#dc2626]/10 shadow-sm sticky top-0 z-50">
         <div className="bg-[#dc2626] h-1.5 w-full"></div>
-        <div className="max-w-7xl mx-auto px-4 h-16 md:h-24 flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 h-16 md:h-24 flex items-center justify-between gap-2 sm:gap-4">
           {/* Left: Burger & Logo */}
           <div className="flex items-center gap-4 lg:gap-8">
             <button
@@ -101,7 +101,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
             </button>
 
             <Link href="/" className="hover:opacity-90 transition-opacity flex-shrink-0">
-              <div className="relative h-15 w-48 md:h-20 md:w-60 shrink-0 transition-all duration-300 -ml-1">
+              <div className="relative h-10 w-32 sm:h-15 sm:w-48 md:h-20 md:w-60 shrink-0 transition-all duration-300 -ml-1">
                 <Image
                   src="/Logo/JEJUQQLOGO.png"
                   alt="JejuQQ Logo"
@@ -130,7 +130,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center gap-2 sm:gap-6">
+          <div className="flex items-center gap-1 sm:gap-6">
             <button
               onClick={() => setIsSearchOpen(!isSearchOpen)}
               className="lg:hidden text-gray-400 hover:text-[#dc2626] p-2 transition-colors"
@@ -139,7 +139,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
             </button>
             <button
               onClick={onOpenNewsletter}
-              className="bg-[#dc2626] hover:bg-black text-white px-3 sm:px-5 py-2.5 rounded-none text-[10px] font-bold font-serif uppercase tracking-widest transition-all duration-300 shadow-lg shadow-[#dc2626]/20 flex items-center gap-2"
+              className="bg-[#dc2626] hover:bg-black text-white px-2 sm:px-5 py-2 rounded-none text-[10px] font-bold font-serif uppercase tracking-widest transition-all duration-300 shadow-lg shadow-[#dc2626]/20 flex items-center gap-1.5"
             >
               <Mail size={14} strokeWidth={3} />
               <span className="hidden sm:block">Newsletter</span>

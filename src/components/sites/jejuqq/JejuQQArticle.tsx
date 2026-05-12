@@ -144,7 +144,7 @@ export default function JejuQQArticle({
 
 
   return (
-    <div className="bg-[#fdf2f2] text-[#222] min-h-screen">
+    <div className="bg-[#fdf2f2] text-[#222] min-h-screen overflow-x-hidden">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-20">
         <button onClick={() => window.history.length > 1 ? router.back() : router.push("/")} className="inline-flex items-center gap-3 text-xs text-gray-600 hover:text-[#b91c1c] mb-8 transition-colors group font-black uppercase tracking-[0.3em]">
           <div className="w-8 h-8 rounded-none border border-gray-200 flex items-center justify-center group-hover:border-[#b91c1c] group-hover:bg-[#b91c1c] group-hover:text-white transition-colors">
@@ -165,7 +165,7 @@ export default function JejuQQArticle({
                     </span>
                   </div>
                 )}
-                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-garamond font-bold leading-[1.05] mb-6 tracking-tighter">
+                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-garamond font-bold leading-[1.05] mb-6 tracking-tighter break-words">
                   {article.title}
                 </h1>
                 <div className="flex items-center justify-between border-y border-gray-200 py-5">
@@ -200,7 +200,7 @@ export default function JejuQQArticle({
                         {secondHalf && <div className="whitespace-pre-wrap break-words">{secondHalf}</div>}
                       </>
                     ) : (
-                      <div className="whitespace-pre-wrap">{fullContent}</div>
+                      <div className="whitespace-pre-wrap break-words">{fullContent}</div>
                     )}
                   </div>
                 </>
@@ -226,7 +226,7 @@ export default function JejuQQArticle({
               {referenceLine && (
                 <div className="mt-16 pt-10 border-t border-gray-100">
                   <p className="text-sm text-gray-600 font-bold uppercase tracking-[0.2em] mb-4">Original Reference</p>
-                  <p className="text-gray-600 font-garamond italic text-lg leading-relaxed break-all">
+                  <p className="text-gray-600 font-garamond italic text-lg leading-relaxed break-words">
                     {referenceLine}
                   </p>
                 </div>
