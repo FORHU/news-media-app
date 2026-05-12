@@ -1,13 +1,20 @@
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-const s3Client = new S3Client({
-    region: process.env.AWS_REGION!,
-    credentials: {
-        accessKeyId: (process.env.APP_AWS_ACCESS_KEY_ID || process.env.APP_AWS_ACCESS_KEY)!,
-        secretAccessKey: process.env.APP_AWS_SECRET_ACCESS_KEY!,
-    },
-});
+let s3ClientInstance: S3Client | null = null;
+
+function getS3Client() {
+    if (!s3ClientInstance) {
+        s3ClientInstance = new S3Client({
+            region: process.env.AWS_REGION || "us-east-1",
+            credentials: {
+                accessKeyId: (process.env.APP_AWS_ACCESS_KEY_ID || process.env.APP_AWS_ACCESS_KEY || "dummy_key")!,
+                secretAccessKey: (process.env.APP_AWS_SECRET_ACCESS_KEY || "dummy_secret")!,
+            },
+        });
+    }
+    return s3ClientInstance;
+}
 
 /**
  * Uploads a file to AWS S3 and returns the CloudFront or S3 public URL.
@@ -29,7 +36,7 @@ export async function uploadToS3(file: Buffer, fileName: string, contentType: st
     });
 
     try {
-        await s3Client.send(command);
+        await getS3Client().send(command);
 
         if (cloudfrontUrl) {
             return `${cloudfrontUrl}/${key}`;
@@ -58,7 +65,7 @@ export async function getPresignedUploadUrl(fileName: string, contentType: strin
     });
 
     try {
-        const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+        const url = await getSignedUrl(getS3Client(), command, { expiresIn: 3600 });
         return { url, key };
     } catch (error) {
         console.error("Presigned URL Error:", error);

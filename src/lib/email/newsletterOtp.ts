@@ -1,9 +1,17 @@
 import { Resend } from "resend";
 import { buildNewsletterOtpHtml } from "@/emails/newsletterOtpTemplate";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let resendInstance: Resend | null = null;
+
+function getResend() {
+  if (!resendInstance) {
+    resendInstance = new Resend(process.env.RESEND_API_KEY || "re_dummy_key_for_build");
+  }
+  return resendInstance;
+}
 
 export async function sendNewsletterOtpEmail(to: string, code: string) {
+  const resend = getResend();
   await resend.emails.send({
     from: "NewsIcons <no-reply@mail.newsicons.com>",
     to,
