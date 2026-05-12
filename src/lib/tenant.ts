@@ -81,3 +81,13 @@ export function getSiteIconFromDomain(domain: string | null): string {
   return "/icons/newsicons.ico";
 }
 
+export function getSiteLogoFromDomain(domain: string | null): string {
+  if (!domain) return "JEJUTIMELOGO.png";
+  const d = domain.toLowerCase();
+  if (d.includes('voicejeju')) return "VOICEJEJULOGO.png";
+  if (d.includes('jejujapan')) return "JEJUJAPANLOGO.png";
+  if (d.includes('jejuqq')) return "JEJUQQLOGO.png";
+  if (d.includes('jejutime')) return "JEJUTIMELOGO.png";
+  return "JEJUTIMELOGO.png";
+}
+

@@ -1,5 +1,5 @@
 import { SiteShell } from "@/components/SiteShell";
-import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain } from "@/lib/tenant";
+import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
 import { bannersService } from "@/services/banners.service";
 import { Metadata } from "next";
@@ -23,13 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
   const { domain } = await params;
   const siteName = getSiteNameFromDomain(domain);
   const baseUrl = await getRequestBaseUrl(domain);
-  const logoPath = `/Logo/${
-    domain === "jejujapan.com"
-      ? "JEJUJAPANLOGO.png"
-      : domain === "jejuqq.com"
-        ? "JEJUQQLOGO.png"
-        : "JEJUTIMELOGO.png"
-  }`;
+  const logoPath = `/Logo/${getSiteLogoFromDomain(domain)}`;
   const logoUrl = `${baseUrl}${logoPath}`;
   const { absolute: ogImageAbsolute } = buildOgImageUrl(logoUrl, baseUrl);
 
