@@ -50,6 +50,12 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
     baseUrl
   );
 
+  console.log(`[Page Metadata] Generating for ${domain}:`, {
+    siteName,
+    baseUrl,
+    logoUrl
+  });
+
   return {
     metadataBase: new URL(baseUrl),
     title: siteName,
