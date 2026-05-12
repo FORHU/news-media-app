@@ -20,16 +20,14 @@ import {
     Trash2,
     Layout
 } from 'lucide-react';
-import { div as MotionDiv } from 'framer-motion/client';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 import Pagination from '@/components/admin/pagination';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { articlesApi } from '@/lib/api';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { format } from 'date-fns';
-
 import { Article } from '@/lib/types';
-import { Variants } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -146,16 +144,21 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
     };
 
     const handleHeadlineConfirm = async () => {
-        setIsUpdatingHeadline(true);
+        const newVal = !isHeadline;
+        
+        // Close modal immediately and show loading on the button
         setIsHeadlineConfirmOpen(false);
+        setIsUpdatingHeadline(true);
+
         try {
-            const newVal = !isHeadline;
             await articlesApi.updateArticle(article.id, { isHeadline: newVal });
             
-            // Comprehensive refetch to sync all other cards
-            await queryClient.refetchQueries({
-                queryKey: ['generatedArticles'],
-                type: 'active'
+            // Update local state only after successful API call
+            setIsHeadline(newVal);
+            
+            // Invalidate in background to sync other cards
+            queryClient.invalidateQueries({
+                queryKey: ['generatedArticles']
             });
         } catch (error) {
             console.error('Failed to update headline status:', error);
@@ -166,7 +169,7 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
     };
 
     return (
-        <MotionDiv
+        <motion.div
             variants={variants}
             whileHover={{ y: -4, scale: 1.002 }}
             className={`group relative bg-white rounded-[1.5rem] p-3.5 shadow-sm hover:shadow-xl hover:shadow-gray-200/40 border border-gray-100 transition-all duration-300 flex flex-col md:flex-row gap-5 items-start md:items-center ${isDeletedLocally ? 'hidden' : ''}`}
@@ -259,11 +262,23 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
             <div className="w-full md:w-[210px] flex flex-col gap-2 flex-shrink-0 self-stretch md:self-center">
                 
                 {/* ── HIGH VISIBILITY HEADLINE CONTROL ── */}
-                <div className={`p-3 rounded-2xl border-2 transition-all duration-500 group/spotlight ${
+                <div className={`relative p-3 rounded-2xl border-2 transition-all duration-500 group/spotlight overflow-hidden ${
                     isHeadline 
                         ? 'bg-gray-900 border-orange-500 shadow-xl shadow-orange-500/10' 
                         : 'bg-gray-50 border-gray-100 hover:border-gray-200'
                 }`}>
+                    <AnimatePresence>
+                        {isUpdatingHeadline && (
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="absolute inset-0 bg-white/60 backdrop-blur-[1px] z-[40] flex items-center justify-center"
+                            >
+                                <Loader2 className="w-4 h-4 animate-spin text-orange-600" />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                     <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
                             <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-500 ${
@@ -295,6 +310,11 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                                     isHeadline ? 'translate-x-4' : 'translate-x-0'
                                 }`}
                             />
+                            {isUpdatingHeadline && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <Loader2 className="w-3 h-3 animate-spin text-white" />
+                                </div>
+                            )}
                         </button>
                     </div>
                 </div>
@@ -394,7 +414,7 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                     isLoading={isUpdatingHeadline}
                 />
             </div>
-        </MotionDiv>
+        </motion.div>
     );
 }
 
@@ -423,7 +443,7 @@ export default function GeneratedArticlesList({ searchParams }: {
             category: category || undefined,
             status: status || undefined
         }),
-        placeholderData: (prev) => prev,
+        placeholderData: (prev: GeneratedArticlesResponse | undefined) => prev,
     });
     const { data: categories } = useQuery({
         queryKey: ['categories'],
@@ -537,12 +557,12 @@ export default function GeneratedArticlesList({ searchParams }: {
                 { event: '*', schema: 'public', table: 'content_articles' },
                 refetchFromRealtime
             )
-            .subscribe((status, err) => {
+            .subscribe((status: string, err?: Error | null) => {
                 // eslint-disable-next-line no-console
                 console.log('[Realtime] generated_articles channel status:', status, err ?? null);
                 if (status === 'SUBSCRIBED') {
                     void queryClient.refetchQueries({
-                        predicate: (q) =>
+                        predicate: (q: any) =>
                             Array.isArray(q.queryKey) && q.queryKey[0] === 'generatedArticles',
                         type: 'active',
                     });
@@ -613,7 +633,7 @@ export default function GeneratedArticlesList({ searchParams }: {
                         </SelectTrigger>
                         <SelectContent className="max-h-[400px]">
                             <SelectItem value={ALL_CATEGORIES_VALUE}>All Categories</SelectItem>
-                            {(categories ?? []).map((cat) => (
+                            {(categories ?? []).map((cat: any) => (
                                 <SelectItem key={cat.id} value={cat.name} className="font-medium">
                                     {getCategoryLabel(cat.name)}
                                 </SelectItem>
@@ -675,7 +695,7 @@ export default function GeneratedArticlesList({ searchParams }: {
                     <p className="font-bold text-lg">Failed to load generated articles.</p>
                 </div>
             ) : (
-                <MotionDiv
+                <motion.div
                     variants={containerVariants}
                     initial="hidden"
                     animate="visible"
@@ -698,7 +718,7 @@ export default function GeneratedArticlesList({ searchParams }: {
                             <p className="text-gray-300 text-sm italic">Generate some articles to see them here.</p>
                         </div>
                     )}
-                </MotionDiv>
+                </motion.div>
             )}
 
             {/* Pagination Segment */}

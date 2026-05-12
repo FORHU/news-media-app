@@ -67,10 +67,9 @@ export default function ReadGeneratedArticle({
             if (!article) throw new Error("No article selected");
             return articlesApi.updateArticle(article.id, { isHeadline: val });
         },
-        onSuccess: async () => {
-            await queryClient.refetchQueries({
-                queryKey: ['generatedArticles'],
-                type: 'active'
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ['generatedArticles']
             });
         },
         onError: (error: any) => {
@@ -86,9 +85,13 @@ export default function ReadGeneratedArticle({
 
     const handleConfirmHeadline = async () => {
         const newVal = !isHeadline;
+        
+        // Close modal immediately
         setIsConfirmOpen(false);
+
         try {
             await headlineMutation.mutateAsync(newVal);
+            // Reflect change only after success
             setIsHeadline(newVal);
         } catch (error) {
             console.error("Headline update failed:", error);
@@ -162,8 +165,21 @@ export default function ReadGeneratedArticle({
                         backgroundColor: isHeadline ? '#ea580c' : '#f9fafb',
                         borderColor: isHeadline ? '#f97316' : '#e5e7eb'
                     }}
-                    className="px-6 sm:px-8 py-4 flex items-center justify-between transition-all duration-500 flex-shrink-0 z-30 border-b-2"
+                    className="relative px-6 sm:px-8 py-4 flex items-center justify-between transition-all duration-500 flex-shrink-0 z-30 border-b-2"
                 >
+                    <AnimatePresence>
+                        {headlineMutation.isPending && (
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-[40] flex items-center justify-center gap-3"
+                            >
+                                <Loader2 className="w-5 h-5 animate-spin text-orange-600" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-600">Updating Spotlight...</span>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                     <div className="flex items-center gap-4">
                         <motion.div 
                             animate={{ 
