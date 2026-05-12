@@ -10,7 +10,7 @@ import { AdBanner } from "@/components/AdBanner";
 import { articlesService } from "@/services/articles.service";
 import { bannersService } from "@/services/banners.service";
 import { DEFAULT_OG_IMAGE, DEFAULT_SEO } from "@/config/site";
-import { resolveTenantIdFromDomain, getSiteNameFromDomain } from "@/lib/tenant";
+import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
 
 // Domain-specific designs
@@ -40,22 +40,10 @@ import { getRequestBaseUrl, buildOgImageUrl } from "@/lib/metadata";
 export async function generateMetadata({ params }: { params: Promise<{ domain: string }> }): Promise<Metadata> {
   const { domain } = await params;
 
-  let icon = "/icons/newsicons.ico";
-  if (domain === "jejutime.com") icon = "/icons/jejutime.ico";
-  if (domain === "jejuqq.com") icon = "/icons/jejuqq.ico";
-  if (domain === "jejujapan.com") icon = "/icons/jejujapan.ico";
-  if (domain === "voicejeju.com") icon = "/icons/voicejeju.ico";
-
+  const icon = getSiteIconFromDomain(domain);
   const siteName = getSiteNameFromDomain(domain);
   const baseUrl = await getRequestBaseUrl(domain);
-  const logoPath = `/Logo/${domain === "jejujapan.com"
-      ? "JEJUJAPANLOGO.png"
-      : domain === "jejuqq.com"
-        ? "JEJUQQLOGO.png"
-        : domain === "voicejeju.com"
-          ? "VOICEJEJULOGO.png"
-          : "JEJUTIMELOGO.png"
-    }`;
+  const logoPath = `/Logo/${getSiteLogoFromDomain(domain)}`;
   const logoUrl = `${baseUrl}${logoPath}`;
   const { optimized: ogImageOptimized, absolute: ogImageAbsolute } = buildOgImageUrl(
     logoUrl,
@@ -72,7 +60,7 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
     openGraph: {
       title: siteName,
       description: DEFAULT_SEO.description,
-      url: "/",
+      url: baseUrl,
       type: "website",
       images: [
         {

@@ -4,41 +4,43 @@ import { FilterStatusBar } from "@/components/home/filter-status-bar";
 import { LatestStoriesSection } from "@/components/home/latest-stories-section";
 import { articlesService } from "@/services/articles.service";
 import { DEFAULT_OG_IMAGE, DEFAULT_SEO } from "@/config/site";
-import { resolveTenantIdFromDomain } from "@/lib/tenant";
+import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain } from "@/lib/tenant";
+import { getRequestBaseUrl, buildOgImageUrl } from "@/lib/metadata";
 
 export async function generateMetadata({ params }: { params: Promise<{ domain: string }> }): Promise<Metadata> {
   const { domain } = await params;
-  
-  let icon = "/icons/newsicons.ico";
-  if (domain === "jejutime.com") icon = "/icons/jejutime.ico";
-  if (domain === "jejuqq.com") icon = "/icons/jejuqq.ico";
-  if (domain === "jejujapan.com") icon = "/icons/jejujapan.ico";
+  const siteName = getSiteNameFromDomain(domain);
+  const baseUrl = await getRequestBaseUrl(domain);
+  const logoPath = `/Logo/${getSiteLogoFromDomain(domain)}`;
+  const logoUrl = `${baseUrl}${logoPath}`;
+  const { absolute: ogImageAbsolute } = buildOgImageUrl(logoUrl, baseUrl);
 
   return {
-    title: "Search Results",
-    description: "Search results for articles.",
+    title: `Search | ${siteName}`,
+    description: `Search results for ${siteName}`,
     icons: {
-      icon: icon,
+      icon: getSiteIconFromDomain(domain),
     },
     openGraph: {
-      title: "Search Results",
-      description: "Search results for articles.",
+      title: `Search | ${siteName}`,
+      description: `Search results for ${siteName}`,
       url: "/search",
       type: "website",
+      siteName: siteName,
       images: [
         {
-          url: DEFAULT_OG_IMAGE,
+          url: ogImageAbsolute,
           width: 1200,
           height: 630,
-          alt: DEFAULT_SEO.title,
+          alt: siteName,
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: "Search Results",
-      description: "Search results for articles.",
-      images: [DEFAULT_OG_IMAGE],
+      title: `Search | ${siteName}`,
+      description: `Search results for ${siteName}`,
+      images: [ogImageAbsolute],
     },
     alternates: {
       canonical: "/search",
