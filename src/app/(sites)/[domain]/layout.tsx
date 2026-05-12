@@ -27,6 +27,12 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
   const logoUrl = `${baseUrl}${logoPath}`;
   const { absolute: ogImageAbsolute } = buildOgImageUrl(logoUrl, baseUrl);
 
+  console.log(`[Layout Metadata] Generating for ${domain}:`, {
+    siteName,
+    baseUrl,
+    logoUrl
+  });
+
   return {
     metadataBase: new URL(baseUrl),
     title: {
@@ -35,6 +41,7 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
     },
     openGraph: {
       siteName: siteName,
+      url: baseUrl,
       images: [
         {
           url: ogImageAbsolute,

@@ -42,28 +42,35 @@ export function cleanOgDescription(raw: string | null | undefined, maxLen = 160)
   return text.slice(0, maxLen).trim();
 }
 
-export async function getRequestBaseUrl(fallbackDomain: string) {
-  let host = fallbackDomain;
+export async function getRequestBaseUrl(domainFromParams: string) {
+  let host = domainFromParams;
   let protocol = "https";
 
-  // In Next.js, calling headers() during static generation triggers a 
-  // "Dynamic Server Usage" error. We wrap this to avoid breaking the build.
   try {
     const h = await headers();
-    const requestHost = h.get("x-forwarded-host") ?? h.get("host");
-    if (requestHost) {
-      host = requestHost;
-    }
-    const protoHeader = h.get("x-forwarded-proto");
+    
+    // Check if we are local
+    const requestHost = h.get("host") || "";
     const isLocal =
-      host.includes("localhost") ||
-      host.includes("127.0.0.1") ||
-      /:\d+$/.test(host);
-    protocol = protoHeader ?? (isLocal ? "http" : "https");
+      requestHost.includes("localhost") ||
+      requestHost.includes("127.0.0.1") ||
+      /:\d+$/.test(requestHost);
+
+    if (isLocal) {
+      protocol = "http";
+      // If we're local, we might need the actual host (e.g. localhost:3000)
+      if (requestHost) host = requestHost;
+    } else {
+      protocol = h.get("x-forwarded-proto") ?? "https";
+      // In production, we trust the domainFromParams (e.g. 'voicejeju.com')
+      // unless it's missing, then we check headers.
+      if (!host) {
+        host = h.get("x-forwarded-host") ?? h.get("host") ?? "newsicons.com";
+      }
+    }
   } catch (e) {
-    // During static generation (SSG/ISR build), headers() will throw.
-    // We catch it here and use the fallbackDomain (e.g. 'jejutime.com')
-    // which ensures the build succeeds while still providing a valid URL.
+    // Fallback to domainFromParams and https for static generation
+    if (!host) host = "newsicons.com";
   }
 
   return `${protocol}://${host}`;
