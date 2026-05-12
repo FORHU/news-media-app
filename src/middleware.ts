@@ -44,7 +44,9 @@ export async function middleware(request: NextRequest) {
         }
 
         // If it's not an admin or API route, rewrite to the domain-specific path
-        if (!isAdminPage && !isAdminApi && !pathname.startsWith("/api") && !pathname.includes(".")) {
+        const isInternalRewrite = pathname.startsWith(`/${tenantDomain}/`) || pathname === `/${tenantDomain}`;
+
+        if (!isAdminPage && !isAdminApi && !pathname.startsWith("/api") && !pathname.includes(".") && !isInternalRewrite) {
             const url = request.nextUrl.clone();
             url.pathname = `/${tenantDomain}${pathname}`;
             return NextResponse.rewrite(url);

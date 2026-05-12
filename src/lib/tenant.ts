@@ -14,8 +14,9 @@ export function normalizeHostToDomain(host: string | null): string | null {
 }
 
 export function getTenantDomainFromRequest(request: NextRequest): string | null {
+  const hostHeader = request.headers.get("host");
   const cookie = request.cookies.get(TENANT_DOMAIN_COOKIE)?.value;
-  const host = cookie ?? request.headers.get("host");
+  const host = hostHeader ?? cookie;
 
   // Default fallback if no host/cookie is found (e.g. local dev without host header)
   if (!host) return "newsicons.com";
@@ -39,10 +40,19 @@ export const resolveTenantIdFromRequest = cache(async (request: NextRequest): Pr
 
 export { TENANT_DOMAIN_COOKIE };
 
+// Global cache to store tenant ID resolution across requests (react cache only works within one request)
+const tenantIdCache: Record<string, string | null> = {};
+
 export const resolveTenantIdFromDomain = cache(async (domain: string): Promise<string | null> => {
   if (!domain) return null;
 
   const normalized = domain.trim().toLowerCase();
+  
+  // Check global cache first
+  if (normalized in tenantIdCache) {
+    return tenantIdCache[normalized];
+  }
+
   const candidates = new Set<string>([normalized]);
   if (normalized.startsWith("www.")) {
     candidates.add(normalized.slice(4));
@@ -50,15 +60,21 @@ export const resolveTenantIdFromDomain = cache(async (domain: string): Promise<s
     candidates.add(`www.${normalized}`);
   }
 
+  let resolvedId: string | null = null;
   for (const d of candidates) {
     const tenant = await prisma.tenant.findUnique({
       where: { domain: d },
       select: { id: true },
     });
-    if (tenant?.id) return tenant.id;
+    if (tenant?.id) {
+      resolvedId = tenant.id;
+      break;
+    }
   }
 
-  return null;
+  // Store in global cache
+  tenantIdCache[normalized] = resolvedId;
+  return resolvedId;
 });
 
 export function getSiteNameFromDomain(domain: string | null): string {
