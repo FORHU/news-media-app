@@ -15,7 +15,7 @@ import JejuJapanArticle from "@/components/sites/jejujapan/JejuJapanArticle";
 import JejuQQArticle from "@/components/sites/jejuqq/JejuQQArticle";
 import JejuTimeArticle from "@/components/sites/jejutime/JejuTimeArticle";
 import { VoiceJejuArticle } from "@/components/sites/voicejeju/VoiceJejuArticle"; // Site-specific article component
-import { resolveTenantIdFromDomain, getSiteNameFromDomain } from "@/lib/tenant";
+import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
 
 // Pre-render the top 20 articles per domain at build time (SSG).
@@ -72,29 +72,15 @@ export async function generateMetadata({
   const normalizedDomain = domain.trim().toLowerCase().replace(/^www\./, "");
   const isDev = process.env.NODE_ENV !== "production";
 
-  if (isDev) {
-    console.log(
-      `[OG] generateMetadata start domain=${domain} normalized=${normalizedDomain} articleId=${articleId} tenantId=${tenantId}`
-    );
-  }
+
 
   if (!articleId || !tenantId) {
     const siteName = getSiteNameFromDomain(domain);
     const baseUrl = await getRequestBaseUrl(domain);
 
-    const logoPath = `/Logo/${normalizedDomain === "jejujapan.com"
-        ? "JEJUJAPANLOGO.png"
-        : normalizedDomain === "jejuqq.com"
-          ? "JEJUQQLOGO.png"
-          : "JEJUTIMELOGO.png"
-      }`;
+    const logoPath = `/Logo/${getSiteLogoFromDomain(domain)}`;
     const logoUrl = `${baseUrl}${logoPath}`;
-
-    let icon = "/icons/newsicons.ico";
-    if (normalizedDomain === "jejutime.com") icon = "/icons/jejutime.ico";
-    if (normalizedDomain === "jejuqq.com") icon = "/icons/jejuqq.ico";
-    if (normalizedDomain === "jejujapan.com") icon = "/icons/jejujapan.ico";
-    if (normalizedDomain === "voicejeju.com") icon = "/icons/voicejeju.ico";
+    const icon = getSiteIconFromDomain(domain);
 
     const fallbackImage = logoUrl || DEFAULT_OG_IMAGE;
     const { optimized: ogImageOptimized, absolute: ogImageAbsolute } = buildOgImageUrl(
@@ -115,21 +101,13 @@ export async function generateMetadata({
         { url: ogImageAbsolute, width: 1200, height: 630, alt: siteName },
       ];
 
-    if (isDev) {
-      console.log(
-        `[OG] selected images domain=${normalizedDomain} optimizedIsLocal=${optimizedIsLocal} imagesCount=${ogImages.length} first=${ogImages[0]?.url}`
-      );
-    }
+
 
     const articleUrl = articleId
       ? `${baseUrl}/article/${encodeURIComponent(articleId)}`
       : baseUrl;
 
-    if (isDev) {
-      console.log(
-        `[OG] fallback(missing tenant/article) domain=${normalizedDomain} og:image abs=${ogImageAbsolute} og:image opt=${ogImageOptimized}`
-      );
-    }
+
 
     return {
       metadataBase: new URL(baseUrl),
@@ -160,14 +138,7 @@ export async function generateMetadata({
     const description = cleanOgDescription(article.content ?? DEFAULT_SEO.description, 160);
     const siteName = getSiteNameFromDomain(domain);
     const baseUrl = await getRequestBaseUrl(domain);
-    const logoPath = `/Logo/${normalizedDomain === "jejujapan.com"
-        ? "JEJUJAPANLOGO.png"
-        : normalizedDomain === "jejuqq.com"
-          ? "JEJUQQLOGO.png"
-          : normalizedDomain === "voicejeju.com"
-            ? "VOICEJEJULOGO.png"
-            : "JEJUTIMELOGO.png"
-      }`;
+    const logoPath = `/Logo/${getSiteLogoFromDomain(domain)}`;
     const logoUrl = `${baseUrl}${logoPath}`;
     const canonicalSlug = article.slug ?? article.id;
     const articlePath = `/article/${encodeURIComponent(canonicalSlug)}`;
@@ -182,19 +153,9 @@ export async function generateMetadata({
     );
     const usedDbImage = Boolean(dbImageUrl?.trim());
 
-    let icon = "/icons/newsicons.ico";
-    if (normalizedDomain === "jejutime.com") icon = "/icons/jejutime.ico";
-    if (normalizedDomain === "jejuqq.com") icon = "/icons/jejuqq.ico";
-    if (normalizedDomain === "jejujapan.com") icon = "/icons/jejujapan.ico";
-    if (normalizedDomain === "voicejeju.com") icon = "/icons/voicejeju.ico";
+    const icon = getSiteIconFromDomain(domain);
 
-    if (isDev) {
-      const hasAbs = Boolean(ogImageAbsolute);
-      const hasOpt = Boolean(ogImageOptimized);
-      console.log(
-        `[OG] success domain=${normalizedDomain} tenantId=${tenantId} usedDbImage=${usedDbImage} hasOgImage=${hasAbs && hasOpt} og:image abs=${ogImageAbsolute} og:image opt=${ogImageOptimized}`
-      );
-    }
+
 
     const optimizedIsLocal =
       ogImageOptimized.includes(":3000") ||
@@ -226,11 +187,7 @@ export async function generateMetadata({
         },
       ];
 
-    if (isDev) {
-      console.log(
-        `[OG] selected images domain=${normalizedDomain} optimizedIsLocal=${optimizedIsLocal} imagesCount=${ogImages.length} first=${ogImages[0]?.url}`
-      );
-    }
+
 
     return {
       metadataBase: new URL(baseUrl),
@@ -261,14 +218,7 @@ export async function generateMetadata({
     const siteName = getSiteNameFromDomain(domain);
     const baseUrl = await getRequestBaseUrl(domain);
 
-    const logoPath = `/Logo/${normalizedDomain === "jejujapan.com"
-        ? "JEJUJAPANLOGO.png"
-        : normalizedDomain === "jejuqq.com"
-          ? "JEJUQQLOGO.png"
-          : normalizedDomain === "voicejeju.com"
-            ? "VOICEJEJULOGO.png"
-            : "JEJUTIMELOGO.png"
-      }`;
+    const logoPath = `/Logo/${getSiteLogoFromDomain(domain)}`;
     const logoUrl = `${baseUrl}${logoPath}`;
     const fallbackImage = logoUrl || DEFAULT_OG_IMAGE;
     const { optimized: ogImageOptimized, absolute: ogImageAbsolute } = buildOgImageUrl(
@@ -276,23 +226,11 @@ export async function generateMetadata({
       baseUrl
     );
 
-    let icon = "/icons/newsicons.ico";
-    if (normalizedDomain === "jejutime.com") icon = "/icons/jejutime.ico";
-    if (normalizedDomain === "jejuqq.com") icon = "/icons/jejuqq.ico";
-    if (normalizedDomain === "jejujapan.com") icon = "/icons/jejujapan.ico";
-    if (normalizedDomain === "voicejeju.com") icon = "/icons/voicejeju.ico";
+    const icon = getSiteIconFromDomain(domain);
 
     const articleUrl = `${baseUrl}/article/${encodeURIComponent(articleId)}`;
 
-    if (isDev) {
-      const hasAbs = Boolean(ogImageAbsolute);
-      const hasOpt = Boolean(ogImageOptimized);
-      console.warn(
-        `[OG] error path domain=${normalizedDomain} tenantId=${tenantId} error=${String(
-          error
-        )} hasOgImage=${hasAbs && hasOpt} og:image abs=${ogImageAbsolute} og:image opt=${ogImageOptimized}`
-      );
-    }
+
 
     const optimizedIsLocal =
       ogImageOptimized.includes(":3000") ||
