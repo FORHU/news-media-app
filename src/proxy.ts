@@ -6,7 +6,7 @@ import { prisma } from "@/lib/db";
 
 const ADMIN_ROLE_COOKIE = "admin_verified";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     try {
         const { pathname } = request.nextUrl;
         const isAdminPage = pathname.startsWith("/admin");
