@@ -85,7 +85,7 @@ export default function ReadGeneratedArticle({
 
     const handleConfirmHeadline = async () => {
         const newVal = !isHeadline;
-        
+
         // Close modal immediately
         setIsConfirmOpen(false);
 
@@ -160,8 +160,8 @@ export default function ReadGeneratedArticle({
                 className="w-[95vw] sm:max-w-[800px] max-h-[90vh] p-0 overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] border-none bg-white shadow-2xl flex flex-col"
             >
                 {/* ── TOP HEADLINE PRIORITY CONTROL ── */}
-                <motion.div 
-                    animate={{ 
+                <motion.div
+                    animate={{
                         backgroundColor: isHeadline ? '#ea580c' : '#f9fafb',
                         borderColor: isHeadline ? '#f97316' : '#e5e7eb'
                     }}
@@ -169,7 +169,7 @@ export default function ReadGeneratedArticle({
                 >
                     <AnimatePresence>
                         {headlineMutation.isPending && (
-                            <motion.div 
+                            <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
@@ -181,25 +181,22 @@ export default function ReadGeneratedArticle({
                         )}
                     </AnimatePresence>
                     <div className="flex items-center gap-4">
-                        <motion.div 
-                            animate={{ 
+                        <motion.div
+                            animate={{
                                 scale: isHeadline ? 1.1 : 1,
                                 rotate: isHeadline ? 12 : 0,
                                 backgroundColor: isHeadline ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,1)'
                             }}
-                            className={`w-11 h-11 rounded-2xl flex items-center justify-center shadow-sm transition-all duration-500 ${
-                            isHeadline ? 'text-white' : 'text-gray-400 border border-gray-200'
-                        }`}>
+                            className={`w-11 h-11 rounded-2xl flex items-center justify-center shadow-sm transition-all duration-500 ${isHeadline ? 'text-white' : 'text-gray-400 border border-gray-200'
+                                }`}>
                             <Layout className="w-6 h-6" />
                         </motion.div>
                         <div>
-                            <p className={`text-[10px] font-black uppercase tracking-[0.2em] leading-none mb-1.5 ${
-                                isHeadline ? 'text-orange-200' : 'text-gray-400'
-                            }`}>Editorial Priority</p>
+                            <p className={`text-[10px] font-black uppercase tracking-[0.2em] leading-none mb-1.5 ${isHeadline ? 'text-orange-200' : 'text-gray-400'
+                                }`}>Editorial Priority</p>
                             <div className="flex items-center gap-2">
-                                <span className={`text-base font-black leading-none ${
-                                    isHeadline ? 'text-white' : 'text-gray-900'
-                                }`}>Headline Spotlight</span>
+                                <span className={`text-base font-black leading-none ${isHeadline ? 'text-white' : 'text-gray-900'
+                                    }`}>Headline Spotlight</span>
                                 {isHeadline && (
                                     <motion.div
                                         initial={{ opacity: 0, x: -10 }}
@@ -212,10 +209,10 @@ export default function ReadGeneratedArticle({
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-4">
                         {isHeadline && (
-                            <motion.span 
+                            <motion.span
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 className="hidden sm:block text-xs font-bold text-orange-100 italic"
@@ -227,9 +224,8 @@ export default function ReadGeneratedArticle({
                             type="button"
                             disabled={headlineMutation.isPending}
                             onClick={toggleHeadline}
-                            className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${
-                                isHeadline ? "bg-orange-400 shadow-inner" : "bg-gray-300"
-                            }`}
+                            className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${isHeadline ? "bg-orange-400 shadow-inner" : "bg-gray-300"
+                                }`}
                         >
                             <motion.span
                                 animate={{ x: isHeadline ? 20 : 0 }}
@@ -287,7 +283,7 @@ export default function ReadGeneratedArticle({
 
                 {/* Content Area - Optimized for smooth scrolling with GPU acceleration */}
                 <div className="px-4 sm:px-8 py-6 sm:py-8 space-y-6 overflow-y-auto overscroll-contain flex-1 min-h-0 bg-gray-50/30 will-change-transform [-webkit-overflow-scrolling:touch]">
-                    
+
                     {displayImageUrl && !showYoutubeReaderEmbed && (
                         <div className="relative w-full h-48 sm:h-64 rounded-2xl sm:rounded-[2.5rem] overflow-hidden shadow-md mb-6 border border-gray-100">
                             <StoryImage
@@ -302,7 +298,7 @@ export default function ReadGeneratedArticle({
                             </div>
 
                             {isHeadline && (
-                                <motion.div 
+                                <motion.div
                                     initial={{ opacity: 0, scale: 0.8 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     className="absolute bottom-4 right-4 px-4 py-2 bg-orange-600/90 backdrop-blur-md text-white rounded-2xl shadow-2xl border border-orange-400 flex items-center gap-2"
@@ -398,13 +394,13 @@ export default function ReadGeneratedArticle({
                     </Button>
                 </DialogFooter>
 
-                <ConfirmationModal 
+                <ConfirmationModal
                     isOpen={isConfirmOpen}
                     onOpenChange={setIsConfirmOpen}
                     onConfirm={handleConfirmHeadline}
                     title={isHeadline ? "Remove from Headline?" : "Set as Headline?"}
-                    description={isHeadline 
-                        ? "This article will no longer be featured in the hero spotlight of your site." 
+                    description={isHeadline
+                        ? "This article will no longer be featured in the hero spotlight of your site."
                         : "This will make this article the primary feature on your site's landing page. Any existing headline will be replaced."
                     }
                     confirmText={isHeadline ? "Yes, Remove" : "Yes, Set Headline"}
