@@ -157,7 +157,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                     <span className="h-0.5 w-8 bg-primary"></span>
                     <span className="text-[11px] text-primary font-bold font-serif uppercase tracking-[0.3em]">{mainArticle.category?.categoryName}</span>
                   </div>
-                  <h2 className="text-[26px] sm:text-[36px] md:text-[44px] lg:text-[52px] font-serif font-bold leading-[1.08] mb-2 group-hover:text-primary transition-colors tracking-tighter">
+                  <h2 className="text-[26px] sm:text-[36px] md:text-[44px] lg:text-[52px] font-serif font-bold leading-[1.08] mb-2 group-hover:text-primary transition-colors tracking-tighter break-words">
                     {mainArticle.title}
                   </h2>
                 </Link>
@@ -241,7 +241,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                         </div>
                       </div>
 
-                      <div className="min-w-0 pt-0.5 flex-1 relative">
+                      <div className="min-w-0 pt-0.5 flex-1 relative overflow-hidden">
                         <div className="flex items-center gap-2 mb-1.5">
                           <span className="text-[10px] text-primary font-bold font-serif uppercase tracking-[0.2em]">
                             {article.category?.categoryName}
@@ -413,7 +413,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                 <section className="pt-1 border-t border-gray-200">
                   <div className="flex items-center gap-4 mb-2">
                     <h3 className="text-2xl md:text-3xl font-garamond font-bold uppercase tracking-tight whitespace-nowrap">Spotlight</h3>
-                    <div className="h-1 w-full bg-[#dc2626]/10 overflow-hidden">
+                    <div className="h-1 flex-1 bg-[#dc2626]/10 overflow-hidden">
                       <div className="h-full w-1/4 bg-[#dc2626]"></div>
                     </div>
                   </div>
@@ -725,7 +725,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
               </span>
             </div>
 
-            <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory">
+            <div className="flex gap-3 overflow-x-auto pb-4 px-1 snap-x snap-mandatory scrollbar-hide">
               {footerStripArticles.map((article: any) => (
                 <Link
                   key={article.id}
