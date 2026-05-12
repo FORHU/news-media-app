@@ -145,17 +145,17 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
 
     const handleHeadlineConfirm = async () => {
         const newVal = !isHeadline;
-        
+
         // Close modal immediately and show loading on the button
         setIsHeadlineConfirmOpen(false);
         setIsUpdatingHeadline(true);
 
         try {
             await articlesApi.updateArticle(article.id, { isHeadline: newVal });
-            
+
             // Update local state only after successful API call
             setIsHeadline(newVal);
-            
+
             // Invalidate in background to sync other cards
             queryClient.invalidateQueries({
                 queryKey: ['generatedArticles']
@@ -185,7 +185,7 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                     className="object-cover transition-transform duration-700 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                
+
                 {/* HIGH VISIBILITY HEADLINE BADGE */}
                 {isHeadline && (
                     <div className="absolute top-3 right-3 px-3 py-1 bg-white text-orange-600 text-[10px] font-black uppercase tracking-widest rounded-lg shadow-xl border border-orange-100 z-10 flex items-center gap-1.5 animate-in zoom-in-50 duration-500">
@@ -260,16 +260,15 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
 
             {/* Action Buttons */}
             <div className="w-full md:w-[210px] flex flex-col gap-2 flex-shrink-0 self-stretch md:self-center">
-                
+
                 {/* ── HIGH VISIBILITY HEADLINE CONTROL ── */}
-                <div className={`relative p-3 rounded-2xl border-2 transition-all duration-500 group/spotlight overflow-hidden ${
-                    isHeadline 
-                        ? 'bg-gray-900 border-orange-500 shadow-xl shadow-orange-500/10' 
+                <div className={`relative p-3 rounded-2xl border-2 transition-all duration-500 group/spotlight overflow-hidden ${isHeadline
+                        ? 'bg-gray-900 border-orange-500 shadow-xl shadow-orange-500/10'
                         : 'bg-gray-50 border-gray-100 hover:border-gray-200'
-                }`}>
+                    }`}>
                     <AnimatePresence>
                         {isUpdatingHeadline && (
-                            <motion.div 
+                            <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
@@ -281,34 +280,29 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                     </AnimatePresence>
                     <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-500 ${
-                                isHeadline 
-                                    ? 'bg-orange-500 text-white scale-110 rotate-12 shadow-lg shadow-orange-500/40' 
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-500 ${isHeadline
+                                    ? 'bg-orange-500 text-white scale-110 rotate-12 shadow-lg shadow-orange-500/40'
                                     : 'bg-white text-gray-400 border border-gray-100'
-                            }`}>
+                                }`}>
                                 <Layout className="w-4 h-4" />
                             </div>
                             <div className="flex flex-col">
-                                <span className={`text-[8px] font-black uppercase tracking-widest leading-none mb-0.5 ${
-                                    isHeadline ? 'text-orange-400' : 'text-gray-400'
-                                }`}>Spotlight</span>
-                                <span className={`text-xs font-bold leading-none ${
-                                    isHeadline ? 'text-white' : 'text-gray-900'
-                                }`}>Headline</span>
+                                <span className={`text-[8px] font-black uppercase tracking-widest leading-none mb-0.5 ${isHeadline ? 'text-orange-400' : 'text-gray-400'
+                                    }`}>Spotlight</span>
+                                <span className={`text-xs font-bold leading-none ${isHeadline ? 'text-white' : 'text-gray-900'
+                                    }`}>Headline</span>
                             </div>
                         </div>
                         <button
                             type="button"
                             onClick={handleHeadlineToggle}
                             disabled={isUpdatingHeadline}
-                            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${
-                                isHeadline ? 'bg-orange-500' : 'bg-gray-200'
-                            }`}
+                            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${isHeadline ? 'bg-orange-500' : 'bg-gray-200'
+                                }`}
                         >
                             <span
-                                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-300 ease-in-out ${
-                                    isHeadline ? 'translate-x-4' : 'translate-x-0'
-                                }`}
+                                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-300 ease-in-out ${isHeadline ? 'translate-x-4' : 'translate-x-0'
+                                    }`}
                             />
                             {isUpdatingHeadline && (
                                 <div className="absolute inset-0 flex items-center justify-center">
@@ -378,7 +372,7 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                     onOpenChange={setIsPublishModalOpen}
                 />
 
-                <ConfirmationModal 
+                <ConfirmationModal
                     isOpen={isConfirmModalOpen}
                     onOpenChange={setIsConfirmModalOpen}
                     onConfirm={handleUnpublishConfirm}
@@ -389,7 +383,7 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                     isLoading={isUnpublishing}
                 />
 
-                <ConfirmationModal 
+                <ConfirmationModal
                     isOpen={isDeleteModalOpen}
                     onOpenChange={setIsDeleteModalOpen}
                     onConfirm={handleDeleteConfirm}
@@ -400,13 +394,13 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                     isLoading={isDeleting}
                 />
 
-                <ConfirmationModal 
+                <ConfirmationModal
                     isOpen={isHeadlineConfirmOpen}
                     onOpenChange={setIsHeadlineConfirmOpen}
                     onConfirm={handleHeadlineConfirm}
                     title={isHeadline ? "Remove from Headline?" : "Set as Headline?"}
-                    description={isHeadline 
-                        ? "This article will no longer be featured in the hero spotlight of your site." 
+                    description={isHeadline
+                        ? "This article will no longer be featured in the hero spotlight of your site."
                         : "This will make this article the primary feature on your site's landing page. Any existing headline will be replaced."
                     }
                     confirmText={isHeadline ? "Yes, Remove" : "Yes, Set Headline"}
