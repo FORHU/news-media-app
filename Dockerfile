@@ -6,8 +6,9 @@ WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY package.json package-lock.json* ./
-# Copy prisma directory because npm ci triggers postinstall which runs prisma generate
+# Copy prisma directory and config because npm ci triggers postinstall which runs prisma generate
 COPY prisma ./prisma/
+COPY prisma.config.ts ./
 RUN npm ci
 
 # Stage 2: Rebuild the source code only when needed
