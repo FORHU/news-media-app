@@ -53,7 +53,10 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
     },
     icons: {
       icon: getSiteIconFromDomain(domain),
-    }
+    },
+    alternates: {
+      canonical: "/",
+    },
   };
 }
 
