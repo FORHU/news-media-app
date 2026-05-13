@@ -107,3 +107,13 @@ export function getSiteLogoFromDomain(domain: string | null): string {
   return "JEJUTIMELOGO.png";
 }
 
+export function getSiteDescriptionFromDomain(domain: string | null): string {
+  if (!domain) return "Media & Content Hub for curated news, blogs, and insights.";
+  const d = domain.toLowerCase();
+  if (d.includes('voicejeju')) return "Your voice for Jeju news, culture, and community insights.";
+  if (d.includes('jejujapan')) return "The latest news and insights about Jeju from a Japanese perspective.";
+  if (d.includes('jejuqq')) return "Connecting the Jeju community with real-time news and updates.";
+  if (d.includes('jejutime')) return "Timely news and in-depth reporting from across Jeju Island.";
+  return "Media & Content Hub for curated news, blogs, and insights.";
+}
+
