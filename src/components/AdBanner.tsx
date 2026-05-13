@@ -6,7 +6,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ExternalLink } from "lucide-react";
 
-interface Banner {
+export interface Banner {
   id: string;
   imageUrl: string;
   linkUrl: string;
