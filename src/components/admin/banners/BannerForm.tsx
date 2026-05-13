@@ -27,11 +27,28 @@ const POSITIONS = [
   { value: "HOME_SIDEBAR", label: "Homepage Sidebar" },
   { value: "ARTICLE_SIDEBAR", label: "Article Sidebar" },
   { value: "GLOBAL_FOOTER", label: "Global Above-Footer" },
+  { value: "SIDEBAR_L_TOP", label: "Sidebar Left Top" },
+  { value: "SIDEBAR_L_MID", label: "Sidebar Left Middle" },
+  { value: "SIDEBAR_R_MID", label: "Sidebar Right Middle" },
+  { value: "SIDEBAR_R_BTM", label: "Sidebar Right Bottom" },
+  { value: "CONTENT_MID", label: "Main Content Middle" },
 ];
+
+/** Helper to get YouTube ID for preview */
+function getYouTubeId(url: string | null): string | null {
+  if (!url) return null;
+  let videoId = "";
+  if (url.includes("v=")) videoId = url.split("v=")[1]?.split("&")[0];
+  else if (url.includes("youtu.be/")) videoId = url.split("youtu.be/")[1]?.split("?")[0];
+  else if (url.includes("embed/")) videoId = url.split("embed/")[1]?.split("?")[0];
+  return videoId || null;
+}
 
 export default function BannerForm({ open, onOpenChange, banner }: BannerFormProps) {
   const [name, setName] = React.useState<string>(banner?.name || "");
+  const [bannerType, setBannerType] = React.useState<string>(banner?.bannerType || "IMAGE");
   const [imageUrl, setImageUrl] = React.useState<string>(banner?.imageUrl || "");
+  const [youtubeUrl, setYoutubeUrl] = React.useState<string>(banner?.youtubeUrl || "");
   const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [linkUrl, setLinkUrl] = React.useState<string>(banner?.linkUrl || "");
@@ -47,7 +64,9 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
   React.useEffect(() => {
     if (open) {
       setName(banner?.name || "");
+      setBannerType(banner?.bannerType || "IMAGE");
       setImageUrl(banner?.imageUrl || "");
+      setYoutubeUrl(banner?.youtubeUrl || "");
       setPreviewUrl(null);
       setSelectedFile(null);
       setLinkUrl(banner?.linkUrl || "");
@@ -57,10 +76,6 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
       setError(null);
       setFieldErrors({});
     }
-    // Only cleanup previewUrls when component unmounts or modal closes
-    return () => {
-      // Note: We'll handle individual revocations inside handleImageUpload
-    };
   }, [open, banner]);
 
   // Handle final cleanup of any leftover previewUrl on unmount
@@ -146,7 +161,9 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
     // Validate fields before initiating potentially slow upload
     const result = bannerSchema.safeParse({
       name,
-      imageUrl: selectedFile ? "pending-upload" : finalImageUrl, // mock string for initial validation
+      bannerType,
+      imageUrl: bannerType === "IMAGE" && selectedFile ? "pending-upload" : (imageUrl || null),
+      youtubeUrl: youtubeUrl || null,
       linkUrl,
       altText,
       positions,
@@ -167,7 +184,7 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
     setIsUploading(true);
 
     try {
-      if (selectedFile) {
+      if (bannerType === "IMAGE" && selectedFile) {
         finalImageUrl = await uploadBannerToSupabase(selectedFile);
         setImageUrl(finalImageUrl);
       }
@@ -175,7 +192,9 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
       // Re-validate with actual URL
       const finalResult = bannerSchema.safeParse({
         name,
-        imageUrl: finalImageUrl,
+        bannerType,
+        imageUrl: bannerType === "IMAGE" ? finalImageUrl : (imageUrl || null),
+        youtubeUrl: youtubeUrl || null,
         linkUrl,
         altText,
         positions,
@@ -183,7 +202,7 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
       });
 
       if (!finalResult.success) {
-         setError("Validation failed after upload.");
+         setError("Validation failed after process.");
          return;
       }
 
@@ -195,6 +214,8 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
       setIsUploading(false);
     }
   };
+
+  const ytId = getYouTubeId(youtubeUrl);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -231,6 +252,27 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Type Selection */}
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Banner Type</label>
+                <div className="flex gap-2">
+                  {["IMAGE", "VIDEO"].map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setBannerType(type)}
+                      className={`flex-1 py-3 rounded-xl text-xs font-black tracking-widest transition-all border ${
+                        bannerType === type 
+                          ? "bg-gray-900 text-white border-gray-900 shadow-lg" 
+                          : "bg-gray-50 text-gray-400 border-gray-100 hover:bg-gray-100"
+                      }`}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="space-y-5 md:col-span-2">
                 {/* Name Input */}
                 <div className="space-y-2">
@@ -249,47 +291,82 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
                   )}
                 </div>
 
-                {/* Image Upload */}
-                <div className="space-y-2">
-                  <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Banner Image <span className="text-red-500">*</span></label>
-                  <div className="relative group">
-                    {(previewUrl || (imageUrl && imageUrl.trim() !== "")) ? (
-                      <div className="relative aspect-[21/9] rounded-2xl overflow-hidden shadow-inner bg-gray-50 border border-gray-100">
-                        <img 
-                          src={previewUrl || imageUrl} 
-                          alt={altText || "Banner Preview"} 
-                          className="w-full h-full object-cover animate-in fade-in duration-300" 
-                        />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <label className="cursor-pointer bg-white text-gray-900 px-4 py-2 rounded-xl text-xs font-bold shadow-lg hover:scale-105 transition-transform">
-                            Change Image
-                            <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isUploading} />
-                          </label>
+                {bannerType === "IMAGE" ? (
+                  /* Image Upload */
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Banner Image <span className="text-red-500">*</span></label>
+                    <div className="relative group">
+                      {(previewUrl || (imageUrl && imageUrl.trim() !== "")) ? (
+                        <div className="relative aspect-[21/9] rounded-2xl overflow-hidden shadow-inner bg-gray-50 border border-gray-100">
+                          <img 
+                            src={previewUrl || imageUrl} 
+                            alt={altText || "Banner Preview"} 
+                            className="w-full h-full object-cover animate-in fade-in duration-300" 
+                          />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <label className="cursor-pointer bg-white text-gray-900 px-4 py-2 rounded-xl text-xs font-bold shadow-lg hover:scale-105 transition-transform">
+                              Change Image
+                              <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isUploading} />
+                            </label>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <label className="flex flex-col items-center justify-center aspect-[21/9] rounded-2xl bg-[#7c7fff] transition-all cursor-pointer group relative overflow-hidden">
-                        {isUploading ? (
-                          <div className="flex flex-col items-center gap-3">
-                            <Loader2 className="w-8 h-8 text-white animate-spin" />
-                            <span className="text-xs font-black text-white/80 uppercase tracking-widest">Uploading...</span>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center w-full h-full gap-2">
-                            <Upload className="w-10 h-10 text-white/80 group-hover:text-white transition-colors group-hover:-translate-y-1 duration-300" />
-                            <span className="text-2xl font-black text-white tracking-tighter opacity-90 group-hover:opacity-100 transition-opacity">
-                              UPLOAD BANNER
-                            </span>
-                          </div>
-                        )}
-                        <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isUploading} />
-                      </label>
-                    )}
-                    {fieldErrors.imageUrl && (
-                      <p className="text-[10px] font-bold text-red-500 ml-1 mt-1 uppercase tracking-wider">{fieldErrors.imageUrl}</p>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center aspect-[21/9] rounded-2xl bg-[#7c7fff] transition-all cursor-pointer group relative overflow-hidden">
+                          {isUploading ? (
+                            <div className="flex flex-col items-center gap-3">
+                              <Loader2 className="w-8 h-8 text-white animate-spin" />
+                              <span className="text-xs font-black text-white/80 uppercase tracking-widest">Uploading...</span>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center justify-center w-full h-full gap-2">
+                              <Upload className="w-10 h-10 text-white/80 group-hover:text-white transition-colors group-hover:-translate-y-1 duration-300" />
+                              <span className="text-2xl font-black text-white tracking-tighter opacity-90 group-hover:opacity-100 transition-opacity">
+                                UPLOAD BANNER
+                              </span>
+                            </div>
+                          )}
+                          <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isUploading} />
+                        </label>
+                      )}
+                      {fieldErrors.imageUrl && (
+                        <p className="text-[10px] font-bold text-red-500 ml-1 mt-1 uppercase tracking-wider">{fieldErrors.imageUrl}</p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  /* YouTube Input */
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">YouTube URL <span className="text-red-500">*</span></label>
+                    <div className="space-y-4">
+                      <Input
+                        placeholder="https://www.youtube.com/watch?v=..."
+                        value={youtubeUrl}
+                        onChange={(e) => {
+                          setYoutubeUrl(e.target.value);
+                          setFieldErrors(prev => ({ ...prev, youtubeUrl: "" }));
+                        }}
+                        className={`h-12 rounded-xl bg-gray-50 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 border-gray-100 shadow-sm transition-all ${fieldErrors.youtubeUrl ? "border-red-500 bg-red-50/30" : ""}`}
+                      />
+                      {ytId ? (
+                        <div className="relative aspect-video rounded-2xl overflow-hidden shadow-lg bg-black border border-gray-100">
+                          <iframe
+                            src={`https://www.youtube.com/embed/${ytId}`}
+                            className="w-full h-full border-0"
+                            allowFullScreen
+                            title="Preview"
+                          />
+                        </div>
+                      ) : (
+                        <div className="aspect-video rounded-2xl bg-gray-100 flex flex-col items-center justify-center border-2 border-dashed border-gray-200">
+                          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Video Preview</span>
+                        </div>
+                      )}
+                    </div>
+                    {fieldErrors.youtubeUrl && (
+                      <p className="text-[10px] font-bold text-red-500 ml-1 mt-1 uppercase tracking-wider">{fieldErrors.youtubeUrl}</p>
                     )}
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Positions Multi-Select */}
@@ -376,31 +453,31 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
               </div>
             </div>
           </div>
-        </form>
 
-        <DialogFooter className="px-8 py-6 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between gap-4">
-          <div className="flex-1 flex justify-start">
+          <DialogFooter className="px-8 py-6 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between gap-4">
+            <div className="flex-1 flex justify-start">
+              <Button
+                variant="ghost"
+                onClick={() => onOpenChange(false)}
+                className="rounded-xl font-bold text-gray-500 hover:text-gray-900 hover:bg-gray-100 px-6 h-12"
+              >
+                Cancel
+              </Button>
+            </div>
             <Button
-              variant="ghost"
-              onClick={() => onOpenChange(false)}
-              className="rounded-xl font-bold text-gray-500 hover:text-gray-900 hover:bg-gray-100 px-6 h-12"
+              onClick={handleSubmit}
+              disabled={mutation.isPending || isUploading}
+              className="flex-1 max-w-[200px] h-14 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-black text-base shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all px-8"
             >
-              Cancel
+              {mutation.isPending ? (
+                <Loader2 className="w-5 h-5 animate-spin mr-2" />
+              ) : (
+                <Check className="w-5 h-5 mr-2" />
+              )}
+              Save Banner
             </Button>
-          </div>
-          <Button
-            onClick={handleSubmit}
-            disabled={mutation.isPending || isUploading}
-            className="flex-1 max-w-[200px] h-14 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-black text-base shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all px-8"
-          >
-            {mutation.isPending ? (
-              <Loader2 className="w-5 h-5 animate-spin mr-2" />
-            ) : (
-              <Check className="w-5 h-5 mr-2" />
-            )}
-            Save Banner
-          </Button>
-        </DialogFooter>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

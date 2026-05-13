@@ -110,7 +110,16 @@ export default async function Page({
     )
     : [];
 
-  const [topBanners, sidebarBanners, footerBanners] = await Promise.all([
+  const [
+    topBanners,
+    sidebarBanners,
+    footerBanners,
+    sideLTopBanners,
+    sideLMidBanners,
+    sideRMidBanners,
+    sideRBtmBanners,
+    contentMidBanners,
+  ] = await Promise.all([
     tenantId
       ? bannersService
         .getBanners({ position: "HOME_TOP", isActive: true, tenantId })
@@ -126,9 +135,43 @@ export default async function Page({
         .getBanners({ position: "GLOBAL_FOOTER", isActive: true, tenantId })
         .catch(() => [])
       : Promise.resolve([]),
+    tenantId
+      ? bannersService
+        .getBanners({ position: "SIDEBAR_L_TOP", isActive: true, tenantId })
+        .catch(() => [])
+      : Promise.resolve([]),
+    tenantId
+      ? bannersService
+        .getBanners({ position: "SIDEBAR_L_MID", isActive: true, tenantId })
+        .catch(() => [])
+      : Promise.resolve([]),
+    tenantId
+      ? bannersService
+        .getBanners({ position: "SIDEBAR_R_MID", isActive: true, tenantId })
+        .catch(() => [])
+      : Promise.resolve([]),
+    tenantId
+      ? bannersService
+        .getBanners({ position: "SIDEBAR_R_BTM", isActive: true, tenantId })
+        .catch(() => [])
+      : Promise.resolve([]),
+    tenantId
+      ? bannersService
+        .getBanners({ position: "CONTENT_MID", isActive: true, tenantId })
+        .catch(() => [])
+      : Promise.resolve([]),
   ]);
 
-  const banners = { top: topBanners, sidebar: sidebarBanners };
+  const banners = {
+    top: topBanners,
+    sidebar: sidebarBanners,
+    footer: footerBanners,
+    sideLTop: sideLTopBanners,
+    sideLMid: sideLMidBanners,
+    sideRMid: sideRMidBanners,
+    sideRBtm: sideRBtmBanners,
+    contentMid: contentMidBanners,
+  };
 
   // --- Design Routing ---
   if (domain === "newsicons.com") {

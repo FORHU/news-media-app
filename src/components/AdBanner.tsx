@@ -8,10 +8,28 @@ import { ExternalLink } from "lucide-react";
 
 export interface Banner {
   id: string;
-  imageUrl: string;
+  name: string;
+  bannerType?: string;
+  imageUrl: string | null;
+  youtubeUrl: string | null;
   linkUrl: string;
   altText: string | null;
   positions: string[];
+}
+
+function getYouTubeEmbedUrl(url: string | null): string | null {
+  if (!url) return null;
+  let videoId = "";
+  if (url.includes("v=")) {
+    videoId = url.split("v=")[1]?.split("&")[0];
+  } else if (url.includes("youtu.be/")) {
+    videoId = url.split("youtu.be/")[1]?.split("?")[0];
+  } else if (url.includes("embed/")) {
+    videoId = url.split("embed/")[1]?.split("?")[0];
+  } else if (url.includes("shorts/")) {
+    videoId = url.split("shorts/")[1]?.split("?")[0];
+  }
+  return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=0&mute=1&rel=0` : null;
 }
 
 interface AdBannerProps {
@@ -80,12 +98,17 @@ export function AdBanner({
     switch (position) {
       case "HOME_SIDEBAR":
       case "ARTICLE_SIDEBAR":
-        return "aspect-[3/2] sm:aspect-[3/2] lg:aspect-[3/2]"; // Optimized for stacking
+      case "SIDEBAR_L_TOP":
+      case "SIDEBAR_L_MID":
+      case "SIDEBAR_R_MID":
+      case "SIDEBAR_R_BTM":
+        return "aspect-[16/9] sm:aspect-[3/2]"; // Optimized for stacking
       case "HOME_TOP":
       case "GLOBAL_FOOTER":
-        return "aspect-[4/1] sm:aspect-[7/1] lg:aspect-[10/1]"; // Leaderboard/Ribbon
+      case "CONTENT_MID":
+        return "aspect-[16/9] sm:aspect-[7/1] lg:aspect-[10/1]"; // Leaderboard/Ribbon
       default:
-        return "aspect-[3/1] sm:aspect-[7/1] lg:aspect-[10/1]";
+        return "aspect-[16/9] sm:aspect-[3/1] lg:aspect-[10/1]";
     }
   };
 
@@ -98,60 +121,86 @@ export function AdBanner({
   }
 
   const activeBanner = banners[currentIdx];
+  const isVideo = activeBanner.bannerType === "VIDEO" || !!activeBanner.youtubeUrl;
+  const embedUrl = isVideo ? getYouTubeEmbedUrl(activeBanner.youtubeUrl) : null;
 
   return (
-    <div className={`w-full relative overflow-hidden group rounded-xl border border-gray-200 bg-gray-100 ${getAspectRatioClasses()} ${className}`}>
+    <div className={`w-full relative overflow-hidden group rounded-xl border border-gray-200 bg-black ${getAspectRatioClasses()} ${className}`}>
       <AnimatePresence initial={false}>
         <motion.div
           key={activeBanner.id}
-          initial={{ x: "100%" }}
-          animate={{ x: 0 }}
-          exit={{ x: "-100%" }}
-          transition={{ 
-            x: { type: "spring", stiffness: 300, damping: 30 },
-          }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
           className="absolute inset-0 w-full h-full"
         >
-          <Link
-            href={activeBanner.linkUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block w-full h-full relative"
-          >
-            {/* Background Blur Layer */}
-            <div className="absolute inset-0 w-full h-full overflow-hidden">
-              <Image
-                src={activeBanner.imageUrl}
-                alt=""
-                fill
-                className="object-cover blur-2xl scale-110 opacity-50"
-                unoptimized
+          {isVideo && embedUrl ? (
+            <div className="w-full h-full relative z-0">
+              <iframe
+                src={embedUrl}
+                className="w-full h-full absolute inset-0 border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title={activeBanner.name}
               />
-            </div>
-
-            {/* Foreground Content Layer */}
-            <Image
-              src={activeBanner.imageUrl}
-              alt={activeBanner.altText || "Advertisement"}
-              fill
-              className="object-contain relative z-10 transition-transform duration-700 group-hover:scale-[1.02]"
-              unoptimized
-            />
-            {/* Hover overlay hint */}
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-              <div className="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2 text-xs font-semibold text-gray-900 border border-white/20">
-                <span>Visit Sponsor</span>
-                <ExternalLink className="w-3 h-3" />
+              <div className="absolute top-2 left-2 pointer-events-none z-10">
+                <span className="bg-black/60 backdrop-blur-md text-[10px] text-white px-2 py-0.5 rounded-md font-bold uppercase tracking-widest border border-white/10">
+                  Video Report
+                </span>
               </div>
             </div>
-            
-            {/* Ad Label - Moved inside Link or kept absolute in motion.div */}
-            <div className="absolute top-2 left-2 pointer-events-none z-10">
-              <span className="bg-gray-900/40 backdrop-blur-sm text-[10px] text-white px-2 py-0.5 rounded-md font-medium uppercase tracking-widest border border-white/10">
-                Sponsored
-              </span>
-            </div>
-          </Link>
+          ) : (
+            <Link
+              href={activeBanner.linkUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full h-full relative"
+            >
+              {/* Background Blur Layer */}
+              {activeBanner.imageUrl && (
+                <div className="absolute inset-0 w-full h-full overflow-hidden">
+                  <Image
+                    src={activeBanner.imageUrl}
+                    alt=""
+                    fill
+                    className="object-cover blur-2xl scale-110 opacity-50"
+                    unoptimized
+                  />
+                </div>
+              )}
+
+              {/* Foreground Content Layer */}
+              {activeBanner.imageUrl ? (
+                <Image
+                  src={activeBanner.imageUrl}
+                  alt={activeBanner.altText || "Advertisement"}
+                  fill
+                  className="object-contain relative z-10 transition-transform duration-700 group-hover:scale-[1.02]"
+                  unoptimized
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full bg-gray-900 text-gray-500 font-bold uppercase tracking-widest text-[10px]">
+                  {activeBanner.name}
+                </div>
+              )}
+
+              {/* Hover overlay hint */}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100 z-20">
+                <div className="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2 text-xs font-semibold text-gray-900 border border-white/20">
+                  <span>Visit Sponsor</span>
+                  <ExternalLink className="w-3 h-3" />
+                </div>
+              </div>
+              
+              {/* Ad Label */}
+              <div className="absolute top-2 left-2 pointer-events-none z-20">
+                <span className="bg-gray-900/40 backdrop-blur-sm text-[10px] text-white px-2 py-0.5 rounded-md font-medium uppercase tracking-widest border border-white/10">
+                  Sponsored
+                </span>
+              </div>
+            </Link>
+          )}
         </motion.div>
       </AnimatePresence>
     </div>
