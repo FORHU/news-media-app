@@ -16,7 +16,7 @@ import {
   FaTelegram, 
   FaReddit 
 } from "react-icons/fa6";
-import { SiGmail } from "react-icons/si";
+import { SiGmail, SiKakaotalk } from "react-icons/si";
 import {
   Dialog,
   DialogContent,
@@ -109,6 +109,8 @@ const BrandIcon = ({ name, className }: { name: string; className?: string }) =>
       return <FaTelegram {...iconProps} color="#0088cc" className={cn(iconProps.className, "group-hover:!text-white")} />;
     case "Reddit":
       return <FaReddit {...iconProps} color="#FF4500" className={cn(iconProps.className, "group-hover:!text-white")} />;
+    case "KakaoTalk":
+      return <SiKakaotalk {...iconProps} color="#3C1E1E" className={cn(iconProps.className, "group-hover:!text-[#3C1E1E]")} />;
     default:
       return null;
   }
@@ -201,6 +203,11 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
       name: "Reddit",
       color: "hover:bg-[#FF4500] hover:text-white",
       href: `https://www.reddit.com/submit?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(title)}`,
+    },
+    {
+      name: "KakaoTalk",
+      color: "hover:bg-[#FEE500] hover:text-[#3C1E1E]",
+      href: `https://sharer.kakao.com/talk/friends/picker/link?url=${encodeURIComponent(shareUrl)}`,
     },
   ], [title, shareUrl]);
 
@@ -312,7 +319,7 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
             aria-hidden="true"
           />
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6 w-full">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6 w-full">
             {shareOptions.map((option) =>
               option.name === "Facebook" ? (
                 <FacebookShareButton
