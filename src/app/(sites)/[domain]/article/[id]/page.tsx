@@ -69,19 +69,13 @@ export async function generateMetadata({
   const { domain, id } = await params;
   const articleId = decodeURIComponent(id?.trim() ?? "");
   const tenantId = await resolveTenantIdFromDomain(domain);
-  const normalizedDomain = domain.trim().toLowerCase().replace(/^www\./, "");
-  const isDev = process.env.NODE_ENV !== "production";
-
-
+  const siteName = getSiteNameFromDomain(domain);
+  const baseUrl = await getRequestBaseUrl(domain);
+  const icon = getSiteIconFromDomain(domain);
+  const logoPath = `/Logo/${getSiteLogoFromDomain(domain)}`;
+  const logoUrl = `${baseUrl}${logoPath}`;
 
   if (!articleId || !tenantId) {
-    const siteName = getSiteNameFromDomain(domain);
-    const baseUrl = await getRequestBaseUrl(domain);
-
-    const logoPath = `/Logo/${getSiteLogoFromDomain(domain)}`;
-    const logoUrl = `${baseUrl}${logoPath}`;
-    const icon = getSiteIconFromDomain(domain);
-
     const fallbackImage = logoUrl || DEFAULT_OG_IMAGE;
     const { optimized: ogImageOptimized, absolute: ogImageAbsolute } = buildOgImageUrl(
       fallbackImage,
@@ -101,13 +95,9 @@ export async function generateMetadata({
         { url: ogImageAbsolute, width: 1200, height: 630, alt: siteName },
       ];
 
-
-
     const articleUrl = articleId
       ? `${baseUrl}/article/${encodeURIComponent(articleId)}`
       : baseUrl;
-
-
 
     return {
       metadataBase: new URL(baseUrl),
@@ -136,10 +126,6 @@ export async function generateMetadata({
     const article = await articlesService.getArticleBySlugOrId(articleId, tenantId);
     const title = article.title ?? siteName;
     const description = cleanOgDescription(article.content ?? DEFAULT_SEO.description, 160);
-    const siteName = getSiteNameFromDomain(domain);
-    const baseUrl = await getRequestBaseUrl(domain);
-    const logoPath = `/Logo/${getSiteLogoFromDomain(domain)}`;
-    const logoUrl = `${baseUrl}${logoPath}`;
     const canonicalSlug = article.slug ?? article.id;
     const articlePath = `/article/${encodeURIComponent(canonicalSlug)}`;
     const articleUrl = `${baseUrl}${articlePath}`;
@@ -215,18 +201,11 @@ export async function generateMetadata({
       },
     };
   } catch (error) {
-    const siteName = getSiteNameFromDomain(domain);
-    const baseUrl = await getRequestBaseUrl(domain);
-
-    const logoPath = `/Logo/${getSiteLogoFromDomain(domain)}`;
-    const logoUrl = `${baseUrl}${logoPath}`;
     const fallbackImage = logoUrl || DEFAULT_OG_IMAGE;
     const { optimized: ogImageOptimized, absolute: ogImageAbsolute } = buildOgImageUrl(
       fallbackImage,
       baseUrl
     );
-
-    const icon = getSiteIconFromDomain(domain);
 
     const articleUrl = `${baseUrl}/article/${encodeURIComponent(articleId)}`;
 
