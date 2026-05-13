@@ -90,7 +90,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: DEFAULT_SEO.title,
-    template: `%s | ${DEFAULT_SEO.title}`,
+    template: `%s`,
   },
   description: DEFAULT_SEO.description,
   icons: {

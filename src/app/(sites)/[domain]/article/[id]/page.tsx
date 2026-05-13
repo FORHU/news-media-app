@@ -111,12 +111,12 @@ export async function generateMetadata({
 
     return {
       metadataBase: new URL(baseUrl),
-      title: DEFAULT_SEO.title,
+      title: siteName,
       description: DEFAULT_SEO.description,
       icons: { icon },
       alternates: { canonical: articleUrl },
       openGraph: {
-        title: DEFAULT_SEO.title,
+        title: siteName,
         description: DEFAULT_SEO.description,
         url: articleUrl,
         type: "article",
@@ -125,7 +125,7 @@ export async function generateMetadata({
       },
       twitter: {
         card: "summary_large_image",
-        title: DEFAULT_SEO.title,
+        title: siteName,
         description: DEFAULT_SEO.description,
         images: ogImages.map((i) => i.url),
       },
@@ -134,7 +134,7 @@ export async function generateMetadata({
 
   try {
     const article = await articlesService.getArticleBySlugOrId(articleId, tenantId);
-    const title = article.title ?? DEFAULT_SEO.title;
+    const title = article.title ?? siteName;
     const description = cleanOgDescription(article.content ?? DEFAULT_SEO.description, 160);
     const siteName = getSiteNameFromDomain(domain);
     const baseUrl = await getRequestBaseUrl(domain);
@@ -247,12 +247,12 @@ export async function generateMetadata({
 
     return {
       metadataBase: new URL(baseUrl),
-      title: DEFAULT_SEO.title,
+      title: siteName,
       description: DEFAULT_SEO.description,
       icons: { icon },
       alternates: { canonical: articleUrl },
       openGraph: {
-        title: DEFAULT_SEO.title,
+        title: siteName,
         description: DEFAULT_SEO.description,
         url: articleUrl,
         type: "article",
@@ -261,7 +261,7 @@ export async function generateMetadata({
       },
       twitter: {
         card: "summary_large_image",
-        title: DEFAULT_SEO.title,
+        title: siteName,
         description: DEFAULT_SEO.description,
         images: ogImages.map((i) => i.url),
       },
