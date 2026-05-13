@@ -5,13 +5,20 @@ export const bannerPositions = [
   "HOME_SIDEBAR",
   "ARTICLE_SIDEBAR",
   "GLOBAL_FOOTER",
+  "SIDEBAR_L_TOP",
+  "SIDEBAR_L_MID",
+  "SIDEBAR_R_MID",
+  "SIDEBAR_R_BTM",
+  "CONTENT_MID",
 ] as const;
 
 export type BannerPosition = (typeof bannerPositions)[number];
 
-export const bannerSchema = z.object({
+const baseBannerSchema = z.object({
   name: z.string().trim().min(1, "Banner name is required"),
-  imageUrl: z.string().trim().min(1, "Banner image is required"),
+  bannerType: z.enum(["IMAGE", "VIDEO"]).default("IMAGE"),
+  imageUrl: z.string().trim().nullable().optional(),
+  youtubeUrl: z.string().trim().nullable().optional(),
   linkUrl: z
     .string()
     .trim()
@@ -22,6 +29,23 @@ export const bannerSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
+export const bannerSchema = baseBannerSchema.superRefine((data, ctx) => {
+  if (data.bannerType === "IMAGE" && (!data.imageUrl || data.imageUrl.trim() === "")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Image is required for Image banners",
+      path: ["imageUrl"],
+    });
+  }
+  if (data.bannerType === "VIDEO" && (!data.youtubeUrl || data.youtubeUrl.trim() === "")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "YouTube URL is required for Video banners",
+      path: ["youtubeUrl"],
+    });
+  }
+});
+
 export type BannerInput = z.infer<typeof bannerSchema>;
 
-export const bannerUpdateSchema = bannerSchema.partial();
+export const bannerUpdateSchema = baseBannerSchema.partial();

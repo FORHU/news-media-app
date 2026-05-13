@@ -118,9 +118,9 @@ model ContentArticle {
   status            String
   createdAt         DateTime                @default(now()) @map("created_at")
   updatedAt         DateTime                @updatedAt @map("updated_at")
-  viewCount         Int                     @default(0) @map("view_count")
-  trendingScore     Float                   @default(0.0) @map("trending_score")
-  isHeadline        Boolean                 @default(false) @map("is_headline")
+  viewCount         Int?                    @default(0) @map("view_count")
+  trendingScore     Float?                  @default(0.0) @map("trending_score")
+  isHeadline        Boolean?                @default(false) @map("is_headline")
   category          Category                @relation(fields: [categoryId], references: [id])
   rawArticle        RawArticle?             @relation(fields: [rawArticleId], references: [id])
   rawSourceUpload   RawSourceUpload?        @relation(fields: [rawSourceUploadId], references: [id])
@@ -171,11 +171,12 @@ model RawTweet {
   mediaUrls      String[]        @default([]) @map("media_urls")
   thumbnailUrl   String?         @map("thumbnail_url")
   status         String          @default("pending")
-  generationMode String          @default("standalone") @map("generation_mode")
   createdAt      DateTime        @default(now()) @map("created_at")
   updatedAt      DateTime        @updatedAt @map("updated_at")
+  generationMode String?         @default("standalone") @map("generation_mode")
   contentArticle ContentArticle?
   tenant         Tenant          @relation(fields: [tenantId], references: [id])
+
   @@index([tenantId])
   @@map("raw_tweets")
 }
@@ -187,11 +188,12 @@ model RawVideo {
   youtubeUrl         String          @map("youtube_url")
   transcribedContent String          @map("transcribed_content")
   prompt             String?
-  generationMode     String          @default("standalone") @map("generation_mode")
   createdAt          DateTime        @default(now()) @map("created_at")
   updatedAt          DateTime        @updatedAt @map("updated_at")
+  generationMode     String?         @default("standalone") @map("generation_mode")
   contentArticle     ContentArticle?
   tenant             Tenant          @relation(fields: [tenantId], references: [id])
+
   @@index([tenantId])
   @@map("raw_videos")
 }
@@ -289,17 +291,19 @@ model SocialMediaPost {
 }
 
 model Banner {
-  id        String   @id @default(cuid())
-  tenantId  String   @map("tenant_id")
-  name      String   @map("name")
-  imageUrl  String   @map("image_url")
-  linkUrl   String   @map("link_url")
-  altText   String?  @map("alt_text")
-  positions String[] @map("positions")
-  isActive  Boolean  @default(true) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  id         String   @id @default(cuid())
+  tenantId   String   @map("tenant_id")
+  name       String   @map("name")
+  bannerType String   @default("IMAGE") @map("banner_type")
+  imageUrl   String?  @map("image_url")
+  youtubeUrl String?  @map("youtube_url")
+  linkUrl    String   @map("link_url")
+  altText    String?  @map("alt_text")
+  positions  String[] @map("positions")
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  tenant     Tenant   @relation(fields: [tenantId], references: [id])
 
   @@index([tenantId])
   @@map("banners")
