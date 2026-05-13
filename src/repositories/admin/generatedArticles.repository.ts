@@ -147,7 +147,7 @@ export const generatedArticlesRepository = {
       publish_date: row.publishDate ? row.publishDate.toISOString() : null,
       created_at: row.createdAt.toISOString(),
       status: row.status,
-      is_headline: row.isHeadline,
+      is_headline: row.isHeadline ?? false,
       category: row.category
         ? { id: row.category.id, category_name: row.category.categoryName }
         : null,
@@ -182,7 +182,7 @@ export const generatedArticlesRepository = {
             youtube_url: row.rawVideo.youtubeUrl,
             transcribed_content: row.rawVideo.transcribedContent,
             prompt: row.rawVideo.prompt,
-            generation_mode: row.rawVideo.generationMode,
+            generation_mode: row.rawVideo.generationMode ?? "unknown",
             created_at: row.rawVideo.createdAt.toISOString(),
             updated_at: row.rawVideo.updatedAt.toISOString(),
           }
@@ -201,7 +201,7 @@ export const generatedArticlesRepository = {
       rawTweet: row.rawTweet
         ? {
             tweet_id: row.rawTweet.tweetId,
-            generation_mode: row.rawTweet.generationMode,
+            generation_mode: row.rawTweet.generationMode ?? "unknown",
             profile_url: row.rawTweet.profileUrl,
           }
         : null,
