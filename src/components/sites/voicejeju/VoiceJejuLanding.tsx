@@ -658,9 +658,11 @@ function WireCategoryDeskSection({ blocks }: { blocks: { name: string; previews:
 function ReportDeskCluster({
    lead,
    subs,
+   variant = "primary",
 }: {
    lead: LandingArticle;
    subs: LandingArticle[];
+   variant?: "primary" | "secondary";
 }) {
    return (
       <section className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
@@ -686,57 +688,123 @@ function ReportDeskCluster({
                </h3>
             </div>
          </Link>
+
          {subs.length > 0 && (
-            <div className="mt-3 border-t-2 border-black pt-3">
+            <div
+               className={cn(
+                  "mt-3 pt-3",
+                  variant === "primary" ? "border-t-2 border-black" : "border-t border-dashed border-gray-300"
+               )}
+            >
                <div className="mb-3 flex items-center gap-2">
                   <div className="h-px min-w-[1rem] flex-1 bg-gray-300" />
-                  <span className="shrink-0 text-[10px] font-black uppercase tracking-[0.4em] text-black">
-                     More from this desk
+                  <span
+                     className={cn(
+                        "shrink-0 text-[10px] font-black uppercase tracking-[0.4em]",
+                        variant === "primary" ? "text-black" : "text-gray-500"
+                     )}
+                  >
+                     {variant === "primary" ? "More from this desk" : "More picks from this desk"}
                   </span>
                   <div className="h-px min-w-[1rem] flex-1 bg-gray-300" />
                </div>
-               <ul className="flex flex-col gap-2">
-                  {subs.map((a, idx) => (
+
+               <ul
+                  className={cn(
+                     variant === "primary"
+                        ? "flex flex-col gap-2"
+                        : "grid grid-cols-1 gap-3 sm:grid-cols-2",
+                     variant === "secondary" && "bg-gray-50/70 p-2 rounded-md border border-gray-100"
+                  )}
+               >
+                  {subs.slice(0, 4).map((a, idx) => (
                      <li key={a.id}>
-                        <Link
-                           href={articleHref(a)}
-                           className={cn(
-                              "group flex items-start gap-3 rounded-md border border-gray-200/80 bg-gradient-to-r from-gray-50/90 to-white px-2 py-2.5 transition-all",
-                              "hover:border-black hover:shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:-translate-x-px hover:-translate-y-px"
-                           )}
-                        >
-                           <span className="w-7 shrink-0 pt-0.5 text-center font-voltaire text-lg leading-none text-gray-300 transition-colors group-hover:text-black">
-                              {String(idx + 1).padStart(2, "0")}
-                           </span>
-                           <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-sm border border-gray-200 bg-gray-100">
-                              <StoryImage
-                                 src={a.imageUrl}
-                                 alt={a.title}
-                                 fill
-                                 className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                 sizes="44px"
-                              />
-                           </div>
-                           <div className="min-w-0 flex-1 pt-0.5">
-                              {a.category?.categoryName && (
-                                 <span className="mb-0.5 block text-[8px] font-black uppercase tracking-[0.22em] text-gray-500">
-                                    {a.category.categoryName}
-                                 </span>
+                        {variant === "primary" ? (
+                           <Link
+                              href={articleHref(a)}
+                              className={cn(
+                                 "group flex items-start gap-3 rounded-md px-2 py-2.5 transition-all",
+                                 "border border-gray-200/80 bg-gradient-to-r from-gray-50/90 to-white hover:border-black hover:shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:-translate-x-px hover:-translate-y-px"
                               )}
-                              <p className="font-voltaire text-[13px] leading-snug text-gray-900 group-hover:underline decoration-1 underline-offset-2 line-clamp-2">
-                                 {a.title}
-                              </p>
-                              {a.content && (
-                                 <p className="mt-1 line-clamp-1 text-[10px] font-medium leading-relaxed text-gray-500">
-                                    {a.content}
+                           >
+                              <span className="w-7 shrink-0 pt-0.5 text-center font-voltaire text-lg leading-none text-gray-300 transition-colors group-hover:text-black">
+                                 {String(idx + 1).padStart(2, "0")}
+                              </span>
+                              <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-sm border border-gray-200 bg-gray-100">
+                                 <StoryImage
+                                    src={a.imageUrl}
+                                    alt={a.title}
+                                    fill
+                                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                    sizes="44px"
+                                 />
+                              </div>
+                              <div className="min-w-0 flex-1 pt-0.5">
+                                 {a.category?.categoryName && (
+                                    <span className="mb-0.5 block text-[8px] font-black uppercase tracking-[0.22em] text-gray-500">
+                                       {a.category.categoryName}
+                                    </span>
+                                 )}
+                                 <p className="font-voltaire text-[13px] leading-snug text-gray-900 group-hover:underline decoration-1 underline-offset-2 line-clamp-2">
+                                    {a.title}
                                  </p>
-                              )}
-                           </div>
-                           <ChevronRight
-                              className="mt-1 h-4 w-4 shrink-0 text-gray-300 transition-all group-hover:translate-x-0.5 group-hover:text-black"
-                              aria-hidden
-                           />
-                        </Link>
+                                 {a.content && (
+                                    <p className="mt-1 line-clamp-1 text-[10px] font-medium leading-relaxed text-gray-500">
+                                       {a.content}
+                                    </p>
+                                 )}
+                              </div>
+                              <ChevronRight
+                                 className="mt-1 h-4 w-4 shrink-0 text-gray-300 transition-all group-hover:translate-x-0.5 group-hover:text-black"
+                                 aria-hidden
+                              />
+                           </Link>
+                        ) : (
+                           <Link
+                              href={articleHref(a)}
+                              className="group block rounded-2xl border border-gray-200 bg-white px-3 py-2.5 shadow-[0_1px_4px_rgba(15,23,42,0.08)] hover:border-blue-500 hover:shadow-[0_6px_16px_rgba(37,99,235,0.2)] transition-all"
+                           >
+                              <div className="mb-1.5 flex items-center justify-between gap-2">
+                                 <div className="flex items-center gap-1.5 min-w-0">
+                                    <span className="text-[11px] font-semibold text-gray-800 truncate">
+                                       {a.category?.categoryName ?? "채널"}
+                                    </span>
+                                    <span className="text-[10px] text-gray-400 shrink-0">
+                                       {new Date(a.createdAt).toLocaleDateString("ko-KR", {
+                                          month: "2-digit",
+                                          day: "2-digit",
+                                       })}
+                                    </span>
+                                 </div>
+                                 <button
+                                    type="button"
+                                    className="shrink-0 rounded-full border border-blue-500 px-2.5 py-0.5 text-[10px] font-semibold text-blue-600 hover:bg-blue-50"
+                                 >
+                                    +구독
+                                 </button>
+                              </div>
+
+                              <div className="flex items-start gap-3">
+                                 <div className="min-w-0 flex-1">
+                                    <p className="text-[13px] font-voltaire leading-snug text-gray-900 group-hover:underline line-clamp-2">
+                                       {a.title}
+                                    </p>
+                                    <p className="mt-1 space-y-0.5 text-[11px] leading-snug text-gray-600 line-clamp-4">
+                                       {a.content?.trim() ? a.content : a.title}
+                                    </p>
+                                 </div>
+                                 <div className="relative w-30 aspect-square shrink-0 overflow-hidden rounded-md bg-gray-50">
+                                    <StoryImage
+                                       src={a.imageUrl}
+                                       alt={a.title}
+                                       fill
+                                       className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                       sizes="96px"
+                                    />
+                                 </div>
+                              </div>
+                           </Link>
+                        )}
                      </li>
                   ))}
                </ul>
@@ -779,12 +847,12 @@ function ReportDeskStrip({ items }: { items: LandingArticle[] }) {
    if (items.length === 0) return null;
    return (
       <section className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
-         <div className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:thin]">
+         <div className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:thin] snap-x snap-mandatory touch-pan-x [-webkit-overflow-scrolling:touch]">
             {items.map((a) => (
                <Link
                   key={a.id}
                   href={articleHref(a)}
-                  className="group w-[42%] max-w-[11rem] shrink-0 sm:w-[31%] sm:max-w-[10.5rem]"
+                  className="group snap-start w-[42%] max-w-[11rem] shrink-0 sm:w-[31%] sm:max-w-[10.5rem]"
                >
                   <div className="relative mb-2 aspect-[4/5] overflow-hidden rounded-md border border-gray-100 bg-gray-50">
                      <StoryImage
@@ -798,6 +866,11 @@ function ReportDeskStrip({ items }: { items: LandingArticle[] }) {
                   <h4 className="text-[11px] sm:text-[12px] font-voltaire leading-snug text-gray-900 group-hover:underline line-clamp-2">
                      {a.title}
                   </h4>
+                  {(a.content?.trim() ? a.content : a.title) && (
+                     <p className="mt-1 text-[10px] leading-snug text-gray-600 line-clamp-2">
+                        {a.content?.trim() ? a.content : a.title}
+                     </p>
+                  )}
                </Link>
             ))}
          </div>
@@ -862,6 +935,7 @@ function ReportDeskFeed({ articles }: { articles: LandingArticle[] }) {
    let i = 0;
    let seg = 0;
    const n = articles.length;
+   let clusterIndex = 0;
 
    const pushCluster = (leadIdx: number) => {
       const lead = articles[leadIdx];
@@ -870,8 +944,15 @@ function ReportDeskFeed({ articles }: { articles: LandingArticle[] }) {
       const avail = n - leadIdx - 1;
       const subCount = Math.min(maxSubs, Math.max(0, avail));
       const subs = articles.slice(leadIdx + 1, leadIdx + 1 + subCount);
+      const variant = clusterIndex === 0 ? "primary" : "secondary";
+      clusterIndex += 1;
       blocks.push(
-         <ReportDeskCluster key={`rd-cluster-${lead.id}-${leadIdx}`} lead={lead} subs={subs} />
+         <ReportDeskCluster
+            key={`rd-cluster-${lead.id}-${leadIdx}`}
+            lead={lead}
+            subs={subs}
+            variant={variant}
+         />
       );
       return 1 + subCount;
    };
@@ -902,7 +983,9 @@ function ReportDeskFeed({ articles }: { articles: LandingArticle[] }) {
       }
 
       if (kind === 2) {
-         const take = rem >= 3 ? 3 : rem >= 2 ? 2 : 0;
+         const take = Math.min(8, rem);
+         // Keep at least 2 items for layout, but allow more than 3 so the strip
+         // becomes a real horizontal carousel.
          if (take >= 2) {
             blocks.push(
                <ReportDeskStrip key={`rd-strip-${articles[i].id}-${i}`} items={articles.slice(i, i + take)} />
@@ -1258,33 +1341,55 @@ export function VoiceJejuLanding(props: Props) {
                   </div>
                </div>
 
-               {/* The Wire — row 2, same grid columns as center; sidebars stay beside via row-span-2 */}
+               {/* The Wire — row 2, redesigned as subscription-style card grid */}
                {wireHeadlines.length > 0 && (
                   <div className="min-w-0 border-x border-gray-100 px-2 sm:px-3 lg:col-span-6 lg:col-start-4 lg:row-start-2">
-                     <section className="border-y-2 border-black">
-                        <div className="flex items-center justify-between bg-black px-2 py-2 text-white">
-                           <span className="text-[10px] font-black uppercase tracking-[0.45em]">The Wire</span>
-                           <span className="text-[9px] font-bold uppercase tracking-widest text-white/70">
-                              Fresh lines
-                           </span>
+                     <section className="border-y border-gray-200 bg-gray-50/70">
+                        <div className="flex items-center justify-between px-2 py-2.5 sm:px-3">
+                           <div className="flex items-center gap-1.5">
+                              <span className="text-[11px] font-semibold text-gray-900">
+                                 연재를 구독해보세요
+                              </span>
+                              <span className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-gray-300 text-[10px] font-bold text-gray-500">
+                                 i
+                              </span>
+                           </div>
+                           <button
+                              type="button"
+                              className="shrink-0 rounded-full border border-blue-500 px-3 py-1 text-[10px] font-semibold text-blue-600 hover:bg-blue-50"
+                           >
+                              구독 설정
+                           </button>
                         </div>
-                        <ul className="divide-y divide-gray-200 bg-white">
-                           {wireHeadlines.map((article, i) => (
-                              <li key={article.id}>
-                                 <Link
-                                    href={articleHref(article)}
-                                    className="group flex gap-3 px-2 py-2.5 transition-colors hover:bg-gray-50"
-                                 >
-                                    <span className="w-5 shrink-0 pt-0.5 font-voltaire text-[10px] font-black text-gray-400">
-                                       {i + 1}
-                                    </span>
-                                    <span className="min-w-0 font-voltaire text-[13px] leading-snug text-gray-900 group-hover:underline sm:text-sm line-clamp-2">
+                        <div className="grid grid-cols-2 gap-2 border-t border-gray-200 bg-white px-2 pb-2 pt-2 sm:grid-cols-2 sm:gap-3 sm:px-3 sm:pb-3 sm:pt-3">
+                           {wireHeadlines.slice(0, 4).map((article) => (
+                              <Link
+                                 key={article.id}
+                                 href={articleHref(article)}
+                                 className="group flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white hover:border-blue-500 hover:shadow-sm transition-colors"
+                              >
+                                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-50">
+                                    <StoryImage
+                                       src={article.imageUrl}
+                                       alt={article.title}
+                                       fill
+                                       className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                       sizes="(max-width: 768px) 44vw, 220px"
+                                    />
+                                 </div>
+                                 <div className="flex flex-1 flex-col px-2.5 py-2">
+                                    {article.category?.categoryName && (
+                                       <span className="mb-1 inline-block rounded bg-blue-50 px-1.5 py-0.5 text-[9px] font-semibold text-blue-600">
+                                          {article.category.categoryName}
+                                       </span>
+                                    )}
+                                    <p className="min-w-0 font-voltaire text-[12px] leading-snug text-gray-900 group-hover:underline line-clamp-2">
                                        {article.title}
-                                    </span>
-                                 </Link>
-                              </li>
+                                    </p>
+                                 </div>
+                              </Link>
                            ))}
-                        </ul>
+                        </div>
                      </section>
                   </div>
                )}
