@@ -117,9 +117,6 @@ export const metadata: Metadata = {
     description: DEFAULT_SEO.description,
     images: [DEFAULT_OG_IMAGE],
   },
-  alternates: {
-    canonical: "/",
-  },
 };
 
 export default function RootLayout({

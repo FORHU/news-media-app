@@ -63,6 +63,9 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
     icons: {
       icon: icon,
     },
+    alternates: {
+      canonical: "/",
+    },
     openGraph: {
       title: siteName,
       description: DEFAULT_SEO.description,
