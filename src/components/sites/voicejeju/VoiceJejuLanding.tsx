@@ -733,16 +733,13 @@ function ReportDeskCluster({
                                  "border border-gray-200/80 bg-gradient-to-r from-gray-50/90 to-white hover:border-black hover:shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:-translate-x-px hover:-translate-y-px"
                               )}
                            >
-                              <span className="w-7 shrink-0 pt-0.5 text-center font-voltaire text-lg leading-none text-gray-300 transition-colors group-hover:text-black">
-                                 {String(idx + 1).padStart(2, "0")}
-                              </span>
-                              <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-sm border border-gray-200 bg-gray-100">
+                              <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-md border border-gray-200 bg-gray-100">
                                  <StoryImage
                                     src={a.imageUrl}
                                     alt={a.title}
                                     fill
                                     className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                    sizes="44px"
+                                    sizes="96px"
                                  />
                               </div>
                               <div className="min-w-0 flex-1 pt-0.5">
@@ -751,14 +748,12 @@ function ReportDeskCluster({
                                        {a.category.categoryName}
                                     </span>
                                  )}
-                                 <p className="font-voltaire text-[13px] leading-snug text-gray-900 group-hover:underline decoration-1 underline-offset-2 line-clamp-2">
+                                 <p className="font-voltaire text-[13px] leading-snug text-gray-900 group-hover:underline decoration-1 underline-offset-2 line-clamp-3">
                                     {a.title}
                                  </p>
-                                 {a.content && (
-                                    <p className="mt-1 line-clamp-1 text-[10px] font-medium leading-relaxed text-gray-500">
-                                       {a.content}
-                                    </p>
-                                 )}
+                                 <p className="mt-1 line-clamp-3 text-[10px] font-medium leading-relaxed text-gray-500">
+                                    {a.content?.trim() ? a.content : a.title}
+                                 </p>
                               </div>
                               <ChevronRight
                                  className="mt-1 h-4 w-4 shrink-0 text-gray-300 transition-all group-hover:translate-x-0.5 group-hover:text-black"
@@ -1348,11 +1343,6 @@ export function VoiceJejuLanding(props: Props) {
                         </p>
                      </div>
                      <ReportDeskFeed articles={latestStories.slice(0, 5)} />
-                     {banners.contentMid && banners.contentMid.length > 0 && (
-                        <div className="my-6">
-                           <AdBanner position="CONTENT_MID" initialBanners={banners.contentMid} />
-                        </div>
-                     )}
                      <ReportDeskFeed articles={latestStories.slice(5)} />
                   </div>
                </div>

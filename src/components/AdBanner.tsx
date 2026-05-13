@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useId, useMemo, useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,7 +17,7 @@ export interface Banner {
   positions: string[];
 }
 
-function getYouTubeEmbedUrl(url: string | null): string | null {
+function getYouTubeVideoId(url: string | null): string | null {
   if (!url) return null;
   let videoId = "";
   if (url.includes("v=")) {
@@ -29,7 +29,115 @@ function getYouTubeEmbedUrl(url: string | null): string | null {
   } else if (url.includes("shorts/")) {
     videoId = url.split("shorts/")[1]?.split("?")[0];
   }
-  return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=0&mute=1&rel=0` : null;
+  return videoId || null;
+}
+
+declare global {
+  interface Window {
+    YT?: any;
+    onYouTubeIframeAPIReady?: () => void;
+    __ytIframeApiPromise?: Promise<void>;
+  }
+}
+
+function loadYouTubeIframeApi(): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
+  if (window.__ytIframeApiPromise) return window.__ytIframeApiPromise;
+  if (window.YT && window.YT.Player) {
+    window.__ytIframeApiPromise = Promise.resolve();
+    return window.__ytIframeApiPromise;
+  }
+
+  window.__ytIframeApiPromise = new Promise<void>((resolve) => {
+    const existing = document.querySelector<HTMLScriptElement>('script[src="https://www.youtube.com/iframe_api"]');
+    if (!existing) {
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.head.appendChild(tag);
+    }
+    const prev = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => {
+      prev?.();
+      resolve();
+    };
+  });
+
+  return window.__ytIframeApiPromise;
+}
+
+function YouTubeAdPlayer({ videoId, title }: { videoId: string; title: string }) {
+  const reactId = useId();
+  const containerId = useMemo(() => `yt-ad-${reactId.replace(/:/g, "")}`, [reactId]);
+  const playerRef = useRef<any>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      await loadYouTubeIframeApi();
+      if (cancelled) return;
+      const YT = window.YT;
+      if (!YT?.Player) return;
+
+      try {
+        playerRef.current?.destroy?.();
+      } catch {
+        // ignore
+      }
+
+      playerRef.current = new YT.Player(containerId, {
+        videoId,
+        playerVars: {
+          autoplay: 1,
+          mute: 1,
+          playsinline: 1,
+          controls: 0,
+          rel: 0,
+          modestbranding: 1,
+          fs: 0,
+          iv_load_policy: 3,
+          disablekb: 1,
+        },
+        events: {
+          onReady: (e: any) => {
+            try {
+              e.target.mute?.();
+              e.target.playVideo?.();
+            } catch {
+              // ignore
+            }
+          },
+          onStateChange: (e: any) => {
+            // 0 = ended. Restart via API to avoid playlist-based loop UI.
+            if (e?.data === 0) {
+              try {
+                e.target.seekTo?.(0, true);
+                e.target.playVideo?.();
+              } catch {
+                // ignore
+              }
+            }
+          },
+        },
+      });
+    })();
+
+    return () => {
+      cancelled = true;
+      try {
+        playerRef.current?.destroy?.();
+      } catch {
+        // ignore
+      }
+      playerRef.current = null;
+    };
+  }, [containerId, videoId]);
+
+  return (
+    <div className="absolute inset-0 pointer-events-none" aria-label={title}>
+      <div id={containerId} className="w-full h-full" />
+    </div>
+  );
 }
 
 interface AdBannerProps {
@@ -122,7 +230,7 @@ export function AdBanner({
 
   const activeBanner = banners[currentIdx];
   const isVideo = activeBanner.bannerType === "VIDEO" || !!activeBanner.youtubeUrl;
-  const embedUrl = isVideo ? getYouTubeEmbedUrl(activeBanner.youtubeUrl) : null;
+  const videoId = isVideo ? getYouTubeVideoId(activeBanner.youtubeUrl) : null;
 
   return (
     <div className={`w-full relative overflow-hidden group rounded-xl border border-gray-200 bg-black ${getAspectRatioClasses()} ${className}`}>
@@ -135,15 +243,9 @@ export function AdBanner({
           transition={{ duration: 0.5 }}
           className="absolute inset-0 w-full h-full"
         >
-          {isVideo && embedUrl ? (
+          {isVideo && videoId ? (
             <div className="w-full h-full relative z-0">
-              <iframe
-                src={embedUrl}
-                className="w-full h-full absolute inset-0 border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                title={activeBanner.name}
-              />
+              <YouTubeAdPlayer videoId={videoId} title={activeBanner.name} />
               <div className="absolute top-2 left-2 pointer-events-none z-10">
                 <span className="bg-black/60 backdrop-blur-md text-[10px] text-white px-2 py-0.5 rounded-md font-bold uppercase tracking-widest border border-white/10">
                   Video Report
