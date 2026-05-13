@@ -18,19 +18,23 @@ export async function generateStaticParams() {
 }
 
 import { getRequestBaseUrl, buildOgImageUrl } from "@/lib/metadata";
+import { getSiteDescriptionFromDomain } from "@/lib/tenant";
 
 export async function generateMetadata({ params }: { params: Promise<{ domain: string }> }): Promise<Metadata> {
   const { domain } = await params;
   const siteName = getSiteNameFromDomain(domain);
+  const description = getSiteDescriptionFromDomain(domain);
   const baseUrl = await getRequestBaseUrl(domain);
   const logoPath = `/Logo/${getSiteLogoFromDomain(domain)}`;
   const logoUrl = `${baseUrl}${logoPath}`;
   const { absolute: ogImageAbsolute } = buildOgImageUrl(logoUrl, baseUrl);
+  const iconUrl = `${baseUrl}${getSiteIconFromDomain(domain)}`;
 
   console.log(`[Layout Metadata] Generating for ${domain}:`, {
     siteName,
     baseUrl,
-    logoUrl
+    logoUrl,
+    iconUrl
   });
 
   return {
@@ -39,7 +43,10 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
       default: siteName,
       template: `%s | ${siteName}`,
     },
+    description: description,
     openGraph: {
+      title: siteName,
+      description: description,
       siteName: siteName,
       url: baseUrl,
       images: [
@@ -52,7 +59,12 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
       ],
     },
     icons: {
-      icon: getSiteIconFromDomain(domain),
+      icon: [
+        { url: iconUrl },
+        { url: iconUrl, sizes: '32x32', type: 'image/x-icon' },
+      ],
+      shortcut: iconUrl,
+      apple: iconUrl,
     },
     alternates: {
       canonical: "/",
