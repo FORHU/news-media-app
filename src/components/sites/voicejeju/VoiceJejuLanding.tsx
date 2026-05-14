@@ -484,24 +484,26 @@ function WireCategoryDeskSection({ blocks }: { blocks: { name: string; previews:
                               <li key={a.id}>
                                  <Link
                                     href={articleHref(a)}
-                                    className="group flex items-start gap-3 py-2.5 pl-2 pr-3 transition-colors hover:bg-gray-50"
+                                    className="group flex items-start gap-3 py-2.5 px-3 transition-colors hover:bg-gray-50"
                                  >
-                                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center border border-black text-[10px] font-black text-black">
-                                       {i + 1}
-                                    </span>
-                                    <div className="relative h-12 w-14 shrink-0 overflow-hidden bg-gray-100">
+                                    <div className="relative h-24 w-36 sm:h-32 sm:w-48 shrink-0 overflow-hidden bg-gray-100">
                                        <StoryImage
                                           src={a.imageUrl}
                                           alt={a.title}
                                           fill
                                           className="object-cover transition-transform group-hover:scale-105"
-                                          sizes="56px"
+                                          sizes="(max-width: 640px) 144px, 192px"
                                        />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                       <p className="font-voltaire text-[12px] leading-snug text-gray-900 group-hover:underline line-clamp-2">
+                                       <p className="font-voltaire text-[14px] sm:text-[17px] leading-snug text-gray-900 group-hover:underline line-clamp-2 font-bold mb-1.5">
                                           {a.title}
                                        </p>
+                                       {a.content && (
+                                          <p className="text-[11px] sm:text-[13px] text-gray-600 line-clamp-4 leading-relaxed font-medium">
+                                             {a.content}
+                                          </p>
+                                       )}
                                     </div>
                                  </Link>
                               </li>
@@ -727,16 +729,13 @@ function ReportDeskCluster({
                                  "border border-gray-200/80 bg-gradient-to-r from-gray-50/90 to-white hover:border-black hover:shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:-translate-x-px hover:-translate-y-px"
                               )}
                            >
-                              <span className="w-7 shrink-0 pt-0.5 text-center font-voltaire text-lg leading-none text-gray-300 transition-colors group-hover:text-black">
-                                 {String(idx + 1).padStart(2, "0")}
-                              </span>
-                              <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-sm border border-gray-200 bg-gray-100">
+                              <div className="relative h-28 w-44 sm:h-32 sm:w-48 shrink-0 overflow-hidden rounded-sm border border-gray-200 bg-gray-100">
                                  <StoryImage
                                     src={a.imageUrl}
                                     alt={a.title}
                                     fill
                                     className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                    sizes="44px"
+                                    sizes="192px"
                                  />
                               </div>
                               <div className="min-w-0 flex-1 pt-0.5">
@@ -749,7 +748,7 @@ function ReportDeskCluster({
                                     {a.title}
                                  </p>
                                  {a.content && (
-                                    <p className="mt-1 line-clamp-1 text-[10px] font-medium leading-relaxed text-gray-500">
+                                    <p className="mt-1.5 line-clamp-4 text-[11px] sm:text-[12px] font-medium leading-relaxed text-gray-500">
                                        {a.content}
                                     </p>
                                  )}
@@ -1259,8 +1258,8 @@ export function VoiceJejuLanding(props: Props) {
                   {/* Compact spotlight carousel */}
                   {heroArticle && (
                      <div className="mb-4 border-b-4 border-black pb-4">
-                        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 md:gap-4 items-start">
-                           <div className="md:col-span-2 relative h-40 sm:h-44 md:h-full md:min-h-[11rem] overflow-hidden bg-gray-50 group shrink-0 border border-gray-200">
+                        <div className="space-y-3">
+                           <div className="relative overflow-hidden bg-gray-50 group shrink-0 border border-gray-200">
                               <AnimatePresence initial={false} custom={direction} mode="wait">
                                  <motion.div
                                     key={page}
@@ -1283,14 +1282,12 @@ export function VoiceJejuLanding(props: Props) {
                                           className="object-cover group-hover:scale-105 transition-transform duration-500"
                                           variant="hero"
                                           priority
-                                          sizes="(max-width: 768px) 100vw, 320px"
+                                          sizes="(max-width: 768px) 100vw, 720px"
                                        />
                                     </Link>
                                  </motion.div>
                               </AnimatePresence>
-                              <div className="absolute top-2 left-2 bg-black text-white text-[9px] font-black px-2 py-1 uppercase tracking-[0.25em] z-10">
-                                 Spotlight
-                              </div>
+                              <div className="relative aspect-[16/9] w-full" />
                               <div className="absolute bottom-2 right-2 flex gap-1 z-10">
                                  <button
                                     type="button"
@@ -1310,17 +1307,11 @@ export function VoiceJejuLanding(props: Props) {
                                  </button>
                               </div>
                            </div>
-                           <div className="md:col-span-3 min-w-0">
+                           <div className="min-w-0">
                               <Link href={articleHref(heroArticle)} className="block group">
-                                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-voltaire font-normal leading-[1.05] mb-2 group-hover:underline underline-offset-4 decoration-1 tracking-tight">
+                                 <h2 className="text-xl sm:text-2xl lg:text-3xl font-voltaire font-normal leading-tight group-hover:underline underline-offset-4 decoration-1 tracking-tight">
                                     {heroArticle.title}
                                  </h2>
-                                 <p className="text-gray-700 text-sm sm:text-[15px] leading-relaxed line-clamp-4 font-medium">
-                                    {heroArticle.content}
-                                 </p>
-                                 <span className="inline-block mt-3 text-[10px] font-black uppercase tracking-[0.35em] text-black border border-black px-3 py-1.5 hover:bg-black hover:text-white transition-colors">
-                                    Read full report
-                                 </span>
                               </Link>
                            </div>
                         </div>
@@ -1425,25 +1416,27 @@ export function VoiceJejuLanding(props: Props) {
                                  href={articleHref(article)}
                                  className="flex gap-2.5 group items-start py-2 border-b border-gray-100 last:border-0 hover:bg-gray-50/90 transition-colors"
                               >
-                                 <span className="text-2xl sm:text-3xl font-voltaire font-normal text-gray-300 group-hover:text-black transition-colors shrink-0 leading-none w-8 text-center">
-                                    {i + 1}
-                                 </span>
-                                 <div className="relative w-12 h-12 shrink-0 overflow-hidden bg-gray-50 border border-gray-100 mt-0.5">
+                                 <div className="relative h-24 w-36 shrink-0 overflow-hidden bg-gray-50 border border-gray-100">
                                     <StoryImage
                                        src={article.imageUrl}
                                        alt={article.title}
                                        fill
-                                       className="object-cover"
-                                       sizes="48px"
+                                       className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                       sizes="144px"
                                     />
                                  </div>
-                                 <div className="min-w-0 flex-1 pt-0.5">
-                                    <span className="text-[8px] text-gray-500 uppercase tracking-[0.2em] block mb-0.5">
+                                 <div className="min-w-0 flex-1">
+                                    <span className="text-[9px] font-bold text-gray-500 uppercase tracking-[0.2em] block mb-1">
                                        {article.category?.categoryName}
                                     </span>
-                                    <h4 className="text-[13px] font-voltaire leading-snug group-hover:underline line-clamp-2">
+                                    <h4 className="text-[15px] font-voltaire leading-snug group-hover:underline line-clamp-2 font-medium">
                                        {article.title}
                                     </h4>
+                                    {article.content && (
+                                       <p className="text-[11px] text-gray-600 line-clamp-3 mt-1.5 leading-relaxed">
+                                          {article.content}
+                                       </p>
+                                    )}
                                  </div>
                               </Link>
                            ))}
@@ -1499,13 +1492,13 @@ export function VoiceJejuLanding(props: Props) {
                            href={articleHref(article)}
                            className="group block min-w-0"
                         >
-                           <div className="relative w-full h-16 sm:h-[4.5rem] overflow-hidden mb-2 bg-gray-50 border border-gray-100">
+                           <div className="relative w-full h-32 sm:h-36 overflow-hidden mb-2 bg-gray-50 border border-gray-100">
                               <StoryImage
                                  src={article.imageUrl}
                                  alt={article.title}
                                  fill
                                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                                 sizes="120px"
+                                 sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
                               />
                            </div>
                            <span className="text-[8px] font-bold text-gray-500 uppercase tracking-[0.15em] block mb-1 line-clamp-1">
