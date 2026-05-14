@@ -91,7 +91,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const host = headersList.get("host");
   const domain = normalizeHostToDomain(host);
   const siteName = getSiteNameFromDomain(domain);
-  const siteIcon = getSiteIconFromDomain(domain);
+  const siteIcon = `${getSiteIconFromDomain(domain)}?v=2`;
 
   return {
     metadataBase: new URL(SITE_URL),

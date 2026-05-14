@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
   const logoPath = `/Logo/${getSiteLogoFromDomain(domain)}`;
   const logoUrl = `${baseUrl}${logoPath}`;
   const { absolute: ogImageAbsolute } = buildOgImageUrl(logoUrl, baseUrl);
-  const iconUrl = `${baseUrl}${getSiteIconFromDomain(domain)}`;
+  const iconUrl = `${baseUrl}${getSiteIconFromDomain(domain)}?v=2`;
 
   console.log(`[Layout Metadata] Generating for ${domain}:`, {
     siteName,
