@@ -8,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 export function extractYoutubeId(url: string): string | null {
   if (!url || !url.trim()) return null;
   const patterns = [
-    /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/,
+    /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/,
   ];
   for (const p of patterns) {
     const m = url.match(p);

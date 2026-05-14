@@ -294,7 +294,7 @@ model Banner {
   id         String   @id @default(cuid())
   tenantId   String   @map("tenant_id")
   name       String   @map("name")
-  bannerType String   @default("IMAGE") @map("banner_type")
+  banner_type String   @default("IMAGE")
   imageUrl   String?  @map("image_url")
   youtubeUrl String?  @map("youtube_url")
   linkUrl    String   @map("link_url")

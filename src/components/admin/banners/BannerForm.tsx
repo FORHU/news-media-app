@@ -38,15 +38,23 @@ const POSITIONS = [
 function getYouTubeId(url: string | null): string | null {
   if (!url) return null;
   let videoId = "";
-  if (url.includes("v=")) videoId = url.split("v=")[1]?.split("&")[0];
-  else if (url.includes("youtu.be/")) videoId = url.split("youtu.be/")[1]?.split("?")[0];
-  else if (url.includes("embed/")) videoId = url.split("embed/")[1]?.split("?")[0];
+  if (url.includes("v=")) {
+    videoId = url.split("v=")[1]?.split("&")[0];
+  } else if (url.includes("youtu.be/")) {
+    videoId = url.split("youtu.be/")[1]?.split("?")[0];
+  } else if (url.includes("embed/")) {
+    videoId = url.split("embed/")[1]?.split("?")[0];
+  } else if (url.includes("shorts/")) {
+    videoId = url.split("shorts/")[1]?.split("?")[0];
+  } else if (url.includes("live/")) {
+    videoId = url.split("live/")[1]?.split("?")[0];
+  }
   return videoId || null;
 }
 
 export default function BannerForm({ open, onOpenChange, banner }: BannerFormProps) {
   const [name, setName] = React.useState<string>(banner?.name || "");
-  const [bannerType, setBannerType] = React.useState<string>(banner?.bannerType || "IMAGE");
+  const [banner_type, setBannerType] = React.useState<string>(banner?.banner_type || "IMAGE");
   const [imageUrl, setImageUrl] = React.useState<string>(banner?.imageUrl || "");
   const [youtubeUrl, setYoutubeUrl] = React.useState<string>(banner?.youtubeUrl || "");
   const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
@@ -64,7 +72,7 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
   React.useEffect(() => {
     if (open) {
       setName(banner?.name || "");
-      setBannerType(banner?.bannerType || "IMAGE");
+      setBannerType(banner?.banner_type || "IMAGE");
       setImageUrl(banner?.imageUrl || "");
       setYoutubeUrl(banner?.youtubeUrl || "");
       setPreviewUrl(null);
@@ -161,10 +169,10 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
     // Validate fields before initiating potentially slow upload
     const result = bannerSchema.safeParse({
       name,
-      bannerType,
-      imageUrl: bannerType === "IMAGE" && selectedFile ? "pending-upload" : (imageUrl || null),
+      banner_type,
+      imageUrl: banner_type === "IMAGE" && selectedFile ? "pending-upload" : (imageUrl || null),
       youtubeUrl: youtubeUrl || null,
-      linkUrl,
+      linkUrl: banner_type === "VIDEO" ? youtubeUrl : linkUrl,
       altText,
       positions,
       isActive,
@@ -184,7 +192,7 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
     setIsUploading(true);
 
     try {
-      if (bannerType === "IMAGE" && selectedFile) {
+      if (banner_type === "IMAGE" && selectedFile) {
         finalImageUrl = await uploadBannerToSupabase(selectedFile);
         setImageUrl(finalImageUrl);
       }
@@ -192,10 +200,10 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
       // Re-validate with actual URL
       const finalResult = bannerSchema.safeParse({
         name,
-        bannerType,
-        imageUrl: bannerType === "IMAGE" ? finalImageUrl : (imageUrl || null),
+        banner_type,
+        imageUrl: banner_type === "IMAGE" ? finalImageUrl : (imageUrl || null),
         youtubeUrl: youtubeUrl || null,
-        linkUrl,
+        linkUrl: banner_type === "VIDEO" ? youtubeUrl : linkUrl,
         altText,
         positions,
         isActive,
@@ -256,16 +264,22 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
               <div className="space-y-2 md:col-span-2">
                 <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Banner Type</label>
                 <div className="flex gap-2">
-                  {["IMAGE", "VIDEO"].map((type) => (
+                  {["IMAGE", "VIDEO"]
+                    .filter((type) => banner ? banner.banner_type === type : true)
+                    .map((type) => (
                     <button
                       key={type}
                       type="button"
-                      onClick={() => setBannerType(type)}
+                      onClick={() => {
+                        if (banner) return;
+                        setBannerType(type);
+                        setPositions([]);
+                      }}
                       className={`flex-1 py-3 rounded-xl text-xs font-black tracking-widest transition-all border ${
-                        bannerType === type 
+                        banner_type === type 
                           ? "bg-gray-900 text-white border-gray-900 shadow-lg" 
                           : "bg-gray-50 text-gray-400 border-gray-100 hover:bg-gray-100"
-                      }`}
+                      } ${banner ? "cursor-default opacity-100" : ""}`}
                     >
                       {type}
                     </button>
@@ -291,7 +305,7 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
                   )}
                 </div>
 
-                {bannerType === "IMAGE" ? (
+                {banner_type === "IMAGE" ? (
                   /* Image Upload */
                   <div className="space-y-2">
                     <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Banner Image <span className="text-red-500">*</span></label>
@@ -373,7 +387,13 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
               <div className="space-y-2 md:col-span-2">
                 <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Positions <span className="text-red-500">*</span></label>
                 <div className="flex flex-wrap gap-2">
-                  {POSITIONS.map((pos) => {
+                  {POSITIONS.filter(pos => {
+                    if (banner_type === "IMAGE") {
+                      return !["SIDEBAR_L_TOP", "SIDEBAR_L_MID", "SIDEBAR_R_MID", "SIDEBAR_R_BTM", "CONTENT_MID"].includes(pos.value);
+                    } else {
+                      return !["HOME_TOP", "HOME_SIDEBAR", "ARTICLE_SIDEBAR", "GLOBAL_FOOTER"].includes(pos.value);
+                    }
+                  }).map((pos) => {
                     const isSelected = positions.includes(pos.value);
                     return (
                       <button
@@ -404,24 +424,26 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
               </div>
 
               {/* Destination Link */}
-              <div className="space-y-2">
-                <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Destination URL <span className="text-red-500">*</span></label>
-                <div className="relative">
-                  <Input
-                    placeholder="https://example.com/promo"
-                    value={linkUrl}
-                    onChange={(e) => {
-                      setLinkUrl(e.target.value);
-                      setFieldErrors(prev => ({ ...prev, linkUrl: "" }));
-                    }}
-                    className={`h-12 rounded-xl bg-gray-50 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 pr-10 border-gray-100 shadow-sm transition-all ${fieldErrors.linkUrl ? "border-red-500 bg-red-50/30" : ""}`}
-                  />
-                  <ExternalLink className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              {banner_type === "IMAGE" && (
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Destination URL <span className="text-red-500">*</span></label>
+                  <div className="relative">
+                    <Input
+                      placeholder="https://example.com/promo"
+                      value={linkUrl}
+                      onChange={(e) => {
+                        setLinkUrl(e.target.value);
+                        setFieldErrors(prev => ({ ...prev, linkUrl: "" }));
+                      }}
+                      className={`h-12 rounded-xl bg-gray-50 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 pr-10 border-gray-100 shadow-sm transition-all ${fieldErrors.linkUrl ? "border-red-500 bg-red-50/30" : ""}`}
+                    />
+                    <ExternalLink className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  </div>
+                  {fieldErrors.linkUrl && (
+                    <p className="text-[10px] font-bold text-red-500 ml-1 mt-1 uppercase tracking-wider">{fieldErrors.linkUrl}</p>
+                  )}
                 </div>
-                {fieldErrors.linkUrl && (
-                  <p className="text-[10px] font-bold text-red-500 ml-1 mt-1 uppercase tracking-wider">{fieldErrors.linkUrl}</p>
-                )}
-              </div>
+              )}
 
               {/* Alt Text */}
               <div className="space-y-2">
