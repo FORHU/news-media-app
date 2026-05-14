@@ -144,7 +144,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
               <Mail size={14} strokeWidth={3} />
               <span className="hidden sm:block">Newsletter</span>
             </button>
-            <Link href="/admin/login" className="text-[#dc2626] hover:text-black transition-colors flex items-center justify-center" title="Admin Login">
+            <Link href="/admin/dashboard" className="text-[#dc2626] hover:text-black transition-colors flex items-center justify-center" title="Admin" aria-label="Admin dashboard">
               <User size={22} strokeWidth={2} />
             </Link>
           </div>

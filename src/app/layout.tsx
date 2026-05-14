@@ -86,38 +86,46 @@ const inter = Inter({
 });
 
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: {
-    default: DEFAULT_SEO.title,
-    template: `%s`,
-  },
-  description: DEFAULT_SEO.description,
-  icons: {
-    icon: "/icons/newsicons.ico",
-  },
-  openGraph: {
-    title: DEFAULT_SEO.title,
+export async function generateMetadata(): Promise<Metadata> {
+  const headersList = await headers();
+  const host = headersList.get("host");
+  const domain = normalizeHostToDomain(host);
+  const siteName = getSiteNameFromDomain(domain);
+  const siteIcon = `${getSiteIconFromDomain(domain)}?v=2`;
+
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: {
+      default: DEFAULT_SEO.title,
+      template: `%s`,
+    },
     description: DEFAULT_SEO.description,
-    url: "/",
-    siteName: DEFAULT_SEO.title,
-    images: [
-      {
-        url: DEFAULT_OG_IMAGE,
-        width: 1200,
-        height: 630,
-        alt: DEFAULT_SEO.title,
-      },
-    ],
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: DEFAULT_SEO.title,
-    description: DEFAULT_SEO.description,
-    images: [DEFAULT_OG_IMAGE],
-  },
-};
+    icons: {
+      icon: siteIcon,
+    },
+    openGraph: {
+      title: DEFAULT_SEO.title,
+      description: DEFAULT_SEO.description,
+      url: "/",
+      siteName: DEFAULT_SEO.title,
+      images: [
+        {
+          url: DEFAULT_OG_IMAGE,
+          width: 1200,
+          height: 630,
+          alt: DEFAULT_SEO.title,
+        },
+      ],
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: DEFAULT_SEO.title,
+      description: DEFAULT_SEO.description,
+      images: [DEFAULT_OG_IMAGE],
+    },
+  };
+}
 
 export default function RootLayout({
   children,

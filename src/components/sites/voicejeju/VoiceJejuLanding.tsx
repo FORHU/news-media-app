@@ -34,6 +34,10 @@ interface Props {
       top: Banner[];
       sidebar: Banner[];
       footer: Banner[];
+      sideLTop?: Banner[];
+      sideLMid?: Banner[];
+      sideRMid?: Banner[];
+      sideRBtm?: Banner[];
    };
 }
 
@@ -1067,7 +1071,8 @@ function RemainingStoriesArchive({ articles }: { articles: LandingArticle[] }) {
    if (shuffled.length === 0) return null;
 
    return (
-      <section className="mt-6 w-full border-t-2 border-black pt-5" aria-labelledby="archive-wide-heading">
+      <div className="w-full overflow-hidden">
+         <section className="mt-6 w-full border-t-2 border-black pt-5" aria-labelledby="archive-wide-heading">
          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
                <h2
@@ -1123,6 +1128,7 @@ function RemainingStoriesArchive({ articles }: { articles: LandingArticle[] }) {
             </div>
          </div>
       </section>
+   </div>
    );
 }
 
@@ -1240,14 +1246,27 @@ export function VoiceJejuLanding(props: Props) {
                   )}
                >
                   <div className="sticky top-24 self-start border-t-4 border-black pt-3">
+                     {banners.sideLTop && banners.sideLTop.length > 0 && (
+                        <div className="mb-6">
+                           <AdBanner position="SIDEBAR_L_TOP" initialBanners={banners.sideLTop} />
+                        </div>
+                     )}
                      <h2 className="text-[11px] font-black flex items-center w-full mb-3 uppercase tracking-[0.45em] text-black">
                         <div className="h-px flex-1 bg-black/10 mr-3" />
                         <span className="shrink-0">Latest</span>
                         <div className="h-px flex-1 bg-black/10 ml-3" />
                      </h2>
                      <div className="border border-gray-100 bg-white overflow-hidden">
-                        {leftSidebarArticles.map((article, i) => (
+                        {leftSidebarArticles.slice(0, 5).map((article, i) => (
                            <LatestSidebarEntry key={article.id} article={article} index={i} />
+                        ))}
+                        {banners.sideLMid && banners.sideLMid.length > 0 && (
+                           <div className="border-y border-gray-100 bg-gray-50/30 p-2">
+                              <AdBanner position="SIDEBAR_L_MID" initialBanners={banners.sideLMid} />
+                           </div>
+                        )}
+                        {leftSidebarArticles.slice(5).map((article, i) => (
+                           <LatestSidebarEntry key={article.id} article={article} index={i + 5} />
                         ))}
                      </div>
                   </div>
@@ -1443,6 +1462,12 @@ export function VoiceJejuLanding(props: Props) {
                         </div>
                      </div>
 
+                     {banners.sideRMid && banners.sideRMid.length > 0 && (
+                        <div className="py-2">
+                           <AdBanner position="SIDEBAR_R_MID" initialBanners={banners.sideRMid} />
+                        </div>
+                     )}
+
                      {sidebarPicks.length > 0 && (
                         <div className="rounded-lg border border-stone-300/90 bg-gradient-to-b from-stone-50 via-stone-100/50 to-stone-100/80 p-3 shadow-sm">
                            <div className="mb-3 border-b border-stone-300/60 pb-3">
@@ -1458,6 +1483,12 @@ export function VoiceJejuLanding(props: Props) {
                                  <InDepthSidebarEntry key={article.id} article={article} index={i} />
                               ))}
                            </div>
+                        </div>
+                     )}
+
+                     {banners.sideRBtm && banners.sideRBtm.length > 0 && (
+                        <div className="pt-2">
+                           <AdBanner position="SIDEBAR_R_BTM" initialBanners={banners.sideRBtm} />
                         </div>
                      )}
 

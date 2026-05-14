@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { StoryImage } from "@/components/StoryImage";
+import { extractYoutubeId } from "@/lib/utils";
 import BannerForm from "./BannerForm";
 import ConfirmationModal from "@/components/admin/shared/ConfirmationModal";
 
@@ -188,12 +189,20 @@ export default function BannerManagement() {
               key={banner.id}
               variants={itemVariants}
               whileHover={{ y: -2 }}
-              className={`group relative bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border ${viewMode === "list" ? "flex flex-row h-32 items-stretch" : ""} ${
+              onClick={() => handleEdit(banner)}
+              className={`group relative bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer border ${viewMode === "list" ? "flex flex-row h-32 items-stretch" : ""} ${
                 banner.isActive ? "border-gray-100" : "border-gray-200 bg-gray-50/50 opacity-75"
               }`}
             >
               <div className={`${viewMode === "grid" ? "aspect-[3/1]" : "w-48"} relative overflow-hidden bg-gray-50 flex-shrink-0`}>
-                {banner.imageUrl && banner.imageUrl.trim().length > 0 ? (
+                {banner.banner_type === "VIDEO" && banner.youtubeUrl ? (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${extractYoutubeId(banner.youtubeUrl)}?mute=1&controls=0`}
+                    className="w-full h-full pointer-events-none"
+                    allowFullScreen
+                    title={banner.name || "Preview"}
+                  />
+                ) : banner.imageUrl && banner.imageUrl.trim().length > 0 ? (
                   <StoryImage
                     src={banner.imageUrl}
                     alt={banner.altText || "Banner"}
@@ -236,6 +245,7 @@ export default function BannerManagement() {
                       href={banner.linkUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
                       className="truncate hover:underline font-medium"
                       title={banner.linkUrl}
                     >
@@ -245,31 +255,25 @@ export default function BannerManagement() {
                 </div>
 
                 <div className="flex items-center gap-1 flex-shrink-0 bg-gray-50/80 p-1.5 rounded-2xl border border-gray-100">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => toggleMutation.mutate({ id: banner.id, isActive: !banner.isActive })}
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); toggleMutation.mutate({ id: banner.id, isActive: !banner.isActive }) }}
                     title={banner.isActive ? "Deactivate" : "Activate"}
-                    className={`rounded-xl transition-all w-9 h-9 ${
-                      banner.isActive ? "text-orange-500 hover:bg-orange-100/50" : "text-gray-400 hover:bg-gray-200/50"
+                    className={`relative inline-flex h-6 w-10 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none mx-2 ${
+                      banner.isActive ? "bg-orange-500" : "bg-gray-300"
                     }`}
                   >
-                    {banner.isActive ? <Eye className="w-[18px] h-[18px]" /> : <EyeOff className="w-[18px] h-[18px]" />}
-                  </Button>
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                        banner.isActive ? "translate-x-4" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
                   <div className="w-px h-4 bg-gray-200 mx-0.5" />
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleEdit(banner)}
-                    className="rounded-xl text-blue-500 hover:bg-blue-100/50 w-9 h-9"
-                  >
-                    <Edit3 className="w-[18px] h-[18px]" />
-                  </Button>
-                  <div className="w-px h-4 bg-gray-200 mx-0.5" />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeleteClick(banner)}
+                    onClick={(e) => { e.stopPropagation(); handleDeleteClick(banner) }}
                     className="rounded-xl text-red-500 hover:bg-red-100/50 w-9 h-9"
                   >
                     <Trash2 className="w-[18px] h-[18px]" />

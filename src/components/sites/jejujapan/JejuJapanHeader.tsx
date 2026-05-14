@@ -100,7 +100,7 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
               >
                 <Search size={18} />
               </button>
-              <Link href="/admin/login" className="hover:text-white/80 transition-colors" title="Admin Login">
+              <Link href="/admin/dashboard" className="hover:text-white/80 transition-colors" title="Admin" aria-label="Admin dashboard">
                 <User size={18} />
               </Link>
             </div>
