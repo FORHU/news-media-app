@@ -490,24 +490,26 @@ function WireCategoryDeskSection({ blocks }: { blocks: { name: string; previews:
                               <li key={a.id}>
                                  <Link
                                     href={articleHref(a)}
-                                    className="group flex items-start gap-3 py-2.5 pl-2 pr-3 transition-colors hover:bg-gray-50"
+                                    className="group flex items-start gap-3 py-2.5 px-3 transition-colors hover:bg-gray-50"
                                  >
-                                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center border border-black text-[10px] font-black text-black">
-                                       {i + 1}
-                                    </span>
-                                    <div className="relative h-12 w-14 shrink-0 overflow-hidden bg-gray-100">
+                                    <div className="relative h-24 w-36 sm:h-32 sm:w-48 shrink-0 overflow-hidden bg-gray-100">
                                        <StoryImage
                                           src={a.imageUrl}
                                           alt={a.title}
                                           fill
                                           className="object-cover transition-transform group-hover:scale-105"
-                                          sizes="56px"
+                                          sizes="(max-width: 640px) 144px, 192px"
                                        />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                       <p className="font-voltaire text-[12px] leading-snug text-gray-900 group-hover:underline line-clamp-2">
+                                       <p className="font-voltaire text-[14px] sm:text-[17px] leading-snug text-gray-900 group-hover:underline line-clamp-2 font-bold mb-1.5">
                                           {a.title}
                                        </p>
+                                       {a.content && (
+                                          <p className="text-[11px] sm:text-[13px] text-gray-600 line-clamp-4 leading-relaxed font-medium">
+                                             {a.content}
+                                          </p>
+                                       )}
                                     </div>
                                  </Link>
                               </li>
