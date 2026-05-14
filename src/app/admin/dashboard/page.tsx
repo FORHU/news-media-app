@@ -41,6 +41,9 @@ export default function DashboardPage() {
         } else if (hostname.includes('jejutime')) {
             siteName = "JejuTime";
             iconPath = "/icons/jejutime.ico";
+        } else if (hostname.includes('voicejeju')) {
+            siteName = "VoiceJeju";
+            iconPath = "/icons/voicejeju.ico";
         }
         
         document.title = `Admin Dashboard | ${siteName}`;
