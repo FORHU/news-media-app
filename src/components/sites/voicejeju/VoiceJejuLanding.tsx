@@ -9,13 +9,12 @@ const AdBanner = dynamic(() => import("@/components/AdBanner").then(mod => mod.A
 import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
 import { ChevronRight, ChevronLeft } from "lucide-react";
-import React, { useState, useMemo, type ReactNode } from "react";
+import { useState, useMemo, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { TENANT_CATEGORIES } from "@/config/categories";
 
 /** Narrow shape for home feed rows (server passes Prisma-shaped articles). */
-
 interface LandingArticle {
    id: string;
    slug?: string | null;
@@ -35,11 +34,6 @@ interface Props {
       top: Banner[];
       sidebar: Banner[];
       footer: Banner[];
-      sideLTop?: Banner[];
-      sideLMid?: Banner[];
-      sideRMid?: Banner[];
-      sideRBtm?: Banner[];
-      contentMid?: Banner[];
    };
 }
 
@@ -490,24 +484,26 @@ function WireCategoryDeskSection({ blocks }: { blocks: { name: string; previews:
                               <li key={a.id}>
                                  <Link
                                     href={articleHref(a)}
-                                    className="group flex items-start gap-3 py-2.5 pl-2 pr-3 transition-colors hover:bg-gray-50"
+                                    className="group flex items-start gap-3 py-2.5 px-3 transition-colors hover:bg-gray-50"
                                  >
-                                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center border border-black text-[10px] font-black text-black">
-                                       {i + 1}
-                                    </span>
-                                    <div className="relative h-12 w-14 shrink-0 overflow-hidden bg-gray-100">
+                                    <div className="relative h-24 w-36 sm:h-32 sm:w-48 shrink-0 overflow-hidden bg-gray-100">
                                        <StoryImage
                                           src={a.imageUrl}
                                           alt={a.title}
                                           fill
                                           className="object-cover transition-transform group-hover:scale-105"
-                                          sizes="56px"
+                                          sizes="(max-width: 640px) 144px, 192px"
                                        />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                       <p className="font-voltaire text-[12px] leading-snug text-gray-900 group-hover:underline line-clamp-2">
+                                       <p className="font-voltaire text-[14px] sm:text-[17px] leading-snug text-gray-900 group-hover:underline line-clamp-2 font-bold mb-1.5">
                                           {a.title}
                                        </p>
+                                       {a.content && (
+                                          <p className="text-[11px] sm:text-[13px] text-gray-600 line-clamp-4 leading-relaxed font-medium">
+                                             {a.content}
+                                          </p>
+                                       )}
                                     </div>
                                  </Link>
                               </li>
@@ -733,13 +729,13 @@ function ReportDeskCluster({
                                  "border border-gray-200/80 bg-gradient-to-r from-gray-50/90 to-white hover:border-black hover:shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:-translate-x-px hover:-translate-y-px"
                               )}
                            >
-                              <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-md border border-gray-200 bg-gray-100">
+                              <div className="relative h-28 w-44 sm:h-32 sm:w-48 shrink-0 overflow-hidden rounded-sm border border-gray-200 bg-gray-100">
                                  <StoryImage
                                     src={a.imageUrl}
                                     alt={a.title}
                                     fill
                                     className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                    sizes="96px"
+                                    sizes="192px"
                                  />
                               </div>
                               <div className="min-w-0 flex-1 pt-0.5">
@@ -748,12 +744,14 @@ function ReportDeskCluster({
                                        {a.category.categoryName}
                                     </span>
                                  )}
-                                 <p className="font-voltaire text-[13px] leading-snug text-gray-900 group-hover:underline decoration-1 underline-offset-2 line-clamp-3">
+                                 <p className="font-voltaire text-[13px] leading-snug text-gray-900 group-hover:underline decoration-1 underline-offset-2 line-clamp-2">
                                     {a.title}
                                  </p>
-                                 <p className="mt-1 line-clamp-3 text-[10px] font-medium leading-relaxed text-gray-500">
-                                    {a.content?.trim() ? a.content : a.title}
-                                 </p>
+                                 {a.content && (
+                                    <p className="mt-1.5 line-clamp-4 text-[11px] sm:text-[12px] font-medium leading-relaxed text-gray-500">
+                                       {a.content}
+                                    </p>
+                                 )}
                               </div>
                               <ChevronRight
                                  className="mt-1 h-4 w-4 shrink-0 text-gray-300 transition-all group-hover:translate-x-0.5 group-hover:text-black"
@@ -1248,20 +1246,8 @@ export function VoiceJejuLanding(props: Props) {
                         <div className="h-px flex-1 bg-black/10 ml-3" />
                      </h2>
                      <div className="border border-gray-100 bg-white overflow-hidden">
-                        {banners.sideLTop && banners.sideLTop.length > 0 && (
-                           <div className="mb-4">
-                              <AdBanner position="SIDEBAR_L_TOP" initialBanners={banners.sideLTop} />
-                           </div>
-                        )}
                         {leftSidebarArticles.map((article, i) => (
-                           <React.Fragment key={article.id}>
-                              <LatestSidebarEntry article={article} index={i} />
-                              {i === 4 && banners.sideLMid && banners.sideLMid.length > 0 && (
-                                 <div className="my-4 px-2">
-                                    <AdBanner position="SIDEBAR_L_MID" initialBanners={banners.sideLMid} />
-                                 </div>
-                              )}
-                           </React.Fragment>
+                           <LatestSidebarEntry key={article.id} article={article} index={i} />
                         ))}
                      </div>
                   </div>
@@ -1342,8 +1328,7 @@ export function VoiceJejuLanding(props: Props) {
                            Filing queue — clusters, grids, and wire lines
                         </p>
                      </div>
-                     <ReportDeskFeed articles={latestStories.slice(0, 5)} />
-                     <ReportDeskFeed articles={latestStories.slice(5)} />
+                     <ReportDeskFeed articles={latestStories} />
                   </div>
                </div>
 
@@ -1424,67 +1409,57 @@ export function VoiceJejuLanding(props: Props) {
                            <span className="shrink-0">Popular</span>
                            <div className="h-px flex-1 bg-black/10 ml-3" />
                         </h2>
-                         <div className="space-y-1">
-                            {trendingArticles.map((article, i) => (
-                               <Link
-                                  key={article.id}
-                                  href={articleHref(article)}
-                                  className="flex gap-2.5 group items-start py-2 border-b border-gray-100 last:border-0 hover:bg-gray-50/90 transition-colors"
-                               >
-                                  <span className="text-2xl sm:text-3xl font-voltaire font-normal text-gray-300 group-hover:text-black transition-colors shrink-0 leading-none w-8 text-center">
-                                     {i + 1}
-                                  </span>
-                                  <div className="relative w-12 h-12 shrink-0 overflow-hidden bg-gray-50 border border-gray-100 mt-0.5">
-                                     <StoryImage
-                                        src={article.imageUrl}
-                                        alt={article.title}
-                                        fill
-                                        className="object-cover"
-                                        sizes="48px"
-                                     />
-                                  </div>
-                                  <div className="min-w-0 flex-1 pt-0.5">
-                                     <span className="text-[8px] text-gray-500 uppercase tracking-[0.2em] block mb-0.5">
-                                        {article.category?.categoryName}
-                                     </span>
-                                     <h4 className="text-[13px] font-voltaire leading-snug group-hover:underline line-clamp-2">
-                                        {article.title}
-                                     </h4>
-                                  </div>
-                               </Link>
-                            ))}
-                         </div>
-                      </div>
+                        <div className="space-y-1">
+                           {trendingArticles.map((article, i) => (
+                              <Link
+                                 key={article.id}
+                                 href={articleHref(article)}
+                                 className="flex gap-2.5 group items-start py-2 border-b border-gray-100 last:border-0 hover:bg-gray-50/90 transition-colors"
+                              >
+                                 <div className="relative h-24 w-36 shrink-0 overflow-hidden bg-gray-50 border border-gray-100">
+                                    <StoryImage
+                                       src={article.imageUrl}
+                                       alt={article.title}
+                                       fill
+                                       className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                       sizes="144px"
+                                    />
+                                 </div>
+                                 <div className="min-w-0 flex-1">
+                                    <span className="text-[9px] font-bold text-gray-500 uppercase tracking-[0.2em] block mb-1">
+                                       {article.category?.categoryName}
+                                    </span>
+                                    <h4 className="text-[15px] font-voltaire leading-snug group-hover:underline line-clamp-2 font-medium">
+                                       {article.title}
+                                    </h4>
+                                    {article.content && (
+                                       <p className="text-[11px] text-gray-600 line-clamp-3 mt-1.5 leading-relaxed">
+                                          {article.content}
+                                       </p>
+                                    )}
+                                 </div>
+                              </Link>
+                           ))}
+                        </div>
+                     </div>
 
-                      {banners.sideRMid && banners.sideRMid.length > 0 && (
-                         <div className="pt-2">
-                            <AdBanner position="SIDEBAR_R_MID" initialBanners={banners.sideRMid} />
-                         </div>
-                      )}
-
-                      {sidebarPicks.length > 0 && (
-                         <div className="rounded-lg border border-stone-300/90 bg-gradient-to-b from-stone-50 via-stone-100/50 to-stone-100/80 p-3 shadow-sm">
-                            <div className="mb-3 border-b border-stone-300/60 pb-3">
-                               <p className="text-[10px] font-inter italic text-stone-500 mb-1">
-                                  Essays and analysis
-                               </p>
-                               <h2 className="text-[13px] font-voltaire font-light uppercase tracking-[0.35em] text-stone-800">
-                                  In depth
-                               </h2>
-                            </div>
-                            <div className="overflow-hidden rounded-md bg-white/75 ring-1 ring-stone-200/80">
-                               {sidebarPicks.map((article, i) => (
-                                  <InDepthSidebarEntry key={article.id} article={article} index={i} />
-                               ))}
-                            </div>
-                         </div>
-                      )}
-
-                      {banners.sideRBtm && banners.sideRBtm.length > 0 && (
-                         <div className="pt-2">
-                            <AdBanner position="SIDEBAR_R_BTM" initialBanners={banners.sideRBtm} />
-                         </div>
-                      )}
+                     {sidebarPicks.length > 0 && (
+                        <div className="rounded-lg border border-stone-300/90 bg-gradient-to-b from-stone-50 via-stone-100/50 to-stone-100/80 p-3 shadow-sm">
+                           <div className="mb-3 border-b border-stone-300/60 pb-3">
+                              <p className="text-[10px] font-inter italic text-stone-500 mb-1">
+                                 Essays and analysis
+                              </p>
+                              <h2 className="text-[13px] font-voltaire font-light uppercase tracking-[0.35em] text-stone-800">
+                                 In depth
+                              </h2>
+                           </div>
+                           <div className="overflow-hidden rounded-md bg-white/75 ring-1 ring-stone-200/80">
+                              {sidebarPicks.map((article, i) => (
+                                 <InDepthSidebarEntry key={article.id} article={article} index={i} />
+                              ))}
+                           </div>
+                        </div>
+                     )}
 
                      <div className="pb-8">
                         <AdBanner position="HOME_SIDEBAR" initialBanners={banners.sidebar} />
