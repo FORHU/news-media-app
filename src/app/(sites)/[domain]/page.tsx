@@ -9,8 +9,7 @@ import { TrendingProductsSection } from "@/components/home/trending-products-sec
 import { AdBanner } from "@/components/AdBanner";
 import { articlesService } from "@/services/articles.service";
 import { bannersService } from "@/services/banners.service";
-import { DEFAULT_OG_IMAGE, DEFAULT_SEO } from "@/config/site";
-import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain } from "@/lib/tenant";
+import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain, getSiteDescriptionFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
 
 // Domain-specific designs
@@ -58,8 +57,10 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
 
   return {
     metadataBase: new URL(baseUrl),
-    title: siteName,
-    description: DEFAULT_SEO.description,
+    title: {
+      absolute: `${siteName} | ${getSiteDescriptionFromDomain(domain)}`,
+    },
+    description: getSiteDescriptionFromDomain(domain),
     icons: {
       icon: icon,
     },
@@ -68,7 +69,7 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
     },
     openGraph: {
       title: siteName,
-      description: DEFAULT_SEO.description,
+      description: getSiteDescriptionFromDomain(domain),
       url: baseUrl,
       type: "website",
       images: [
@@ -89,7 +90,7 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
     twitter: {
       card: "summary_large_image",
       title: siteName,
-      description: DEFAULT_SEO.description,
+      description: getSiteDescriptionFromDomain(domain),
       images: [ogImageAbsolute, ogImageOptimized],
     },
   };
