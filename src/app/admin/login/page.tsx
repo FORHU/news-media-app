@@ -8,7 +8,7 @@ import { Mail, Lock, Eye, EyeOff, AlertCircle, ChevronRight, ArrowLeft } from 'l
 import { supabase } from '@/lib/supabaseClient';
 import { adminLoginSchema } from '@/lib/validation/login';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getSiteIconFromDomain } from '@/lib/tenant';
+import { getSiteIconFromDomain } from '@/lib/tenant-utils';
 
 /* ─── Domain theme config ─── */
 type Theme = {

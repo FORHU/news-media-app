@@ -9,7 +9,7 @@ import DashboardStatsGrid from '@/components/admin/dashboard/DashboardStatsGrid'
 import ActivityFeed from '@/components/admin/dashboard/ActivityFeed';
 import QueueStatusCard from '@/components/admin/dashboard/HealthMetricsCard';
 import { useQuery } from '@tanstack/react-query';
-import { getSiteNameFromDomain, getSiteIconFromDomain } from '@/lib/tenant';
+import { getSiteNameFromDomain, getSiteIconFromDomain } from '@/lib/tenant-utils';
 
 export default function DashboardPage() {
     const { data, isFetching, isLoading } = useQuery({
