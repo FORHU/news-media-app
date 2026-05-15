@@ -47,6 +47,16 @@ export const TENANT_CATEGORIES: Record<string, string[]> = {
     "Travel",
     "Science",
   ],
+  "skyblueprime.com": [
+    "Breaking News",
+    "Politics",
+    "Business",
+    "Technology",
+    "World",
+    "Science",
+    "Health",
+    "Culture",
+  ],
   "voicejeju.com": [
     "제주 오늘",
     "여행 및 관광",

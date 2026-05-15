@@ -22,6 +22,11 @@ const tenants = [
     slug: "jejujapan",
     siteName: "Jeju Japan",
   },
+  {
+    domain: "skyblueprime.com",
+    slug: "skyblueprime",
+    siteName: "Sky Blue Prime",
+  },
 ];
 
 export async function seedNewsIconsTenants(prisma: PrismaClient) {
