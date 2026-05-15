@@ -10,13 +10,13 @@ function getResend() {
   return resendInstance;
 }
 
-export async function sendNewsletterOtpEmail(to: string, code: string) {
+export async function sendNewsletterOtpEmail(to: string, code: string, siteName: string, domain: string) {
   const resend = getResend();
   await resend.emails.send({
-    from: "NewsIcons <no-reply@mail.newsicons.com>",
+    from: `${siteName} <no-reply@mail.${domain}>`,
     to,
-    subject: "Your NewsIcons Verification Code",
-    html: buildNewsletterOtpHtml(code),
+    subject: `Your ${siteName} Verification Code`,
+    html: buildNewsletterOtpHtml(code, siteName),
   });
 }
 

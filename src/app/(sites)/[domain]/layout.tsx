@@ -60,8 +60,8 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
     },
     icons: {
       icon: [
-        { url: iconUrl },
-        { url: iconUrl, sizes: '32x32', type: 'image/x-icon' },
+        { url: iconUrl, type: 'image/png' },
+        { url: iconUrl, sizes: '32x32', type: 'image/png' },
       ],
       shortcut: iconUrl,
       apple: iconUrl,

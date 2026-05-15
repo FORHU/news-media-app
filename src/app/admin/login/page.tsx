@@ -8,6 +8,7 @@ import { Mail, Lock, Eye, EyeOff, AlertCircle, ChevronRight, ArrowLeft } from 'l
 import { supabase } from '@/lib/supabaseClient';
 import { adminLoginSchema } from '@/lib/validation/login';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getSiteIconFromDomain } from '@/lib/tenant';
 
 /* ─── Domain theme config ─── */
 type Theme = {
@@ -250,11 +251,7 @@ function LoginContent() {
       favicon.rel = 'icon';
       
       const domain = window.location.hostname.toLowerCase();
-      let iconPath = "/icons/newsicons.ico";
-      if (domain.includes("jejutime")) iconPath = "/icons/jejutime.ico";
-      else if (domain.includes("jejuqq")) iconPath = "/icons/jejuqq.ico";
-      else if (domain.includes("jejujapan")) iconPath = "/icons/jejujapan.ico";
-      else if (domain.includes("voicejeju")) iconPath = "/icons/voicejeju.ico";
+      const iconPath = getSiteIconFromDomain(domain);
       
       favicon.href = iconPath;
       if (!document.querySelector('link[rel="icon"]')) {

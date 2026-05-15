@@ -77,6 +77,14 @@ export const resolveTenantIdFromDomain = cache(async (domain: string): Promise<s
   return resolvedId;
 });
 
+export const getTenantById = cache(async (tenantId: string) => {
+  if (!tenantId) return null;
+  return await prisma.tenant.findUnique({
+    where: { id: tenantId },
+    select: { domain: true, siteName: true },
+  });
+});
+
 export function getSiteNameFromDomain(domain: string | null): string {
   if (!domain) return "NewsIcons";
   const d = domain.toLowerCase();
@@ -98,13 +106,13 @@ export function getSiteIconFromDomain(domain: string | null): string {
 }
 
 export function getSiteLogoFromDomain(domain: string | null): string {
-  if (!domain) return "JEJUTIMELOGO.png";
+  if (!domain) return "NEWSICONSLOGO.png";
   const d = domain.toLowerCase();
   if (d.includes('voicejeju')) return "VOICEJEJULOGO.png";
   if (d.includes('jejujapan')) return "JEJUJAPANLOGO.png";
   if (d.includes('jejuqq')) return "JEJUQQLOGO.png";
   if (d.includes('jejutime')) return "JEJUTIMELOGO.png";
-  return "JEJUTIMELOGO.png";
+  return "NEWSICONSLOGO.png";
 }
 
 export function getSiteDescriptionFromDomain(domain: string | null): string {
