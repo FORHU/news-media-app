@@ -42,7 +42,7 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
         <div className="flex items-center justify-between h-16">
           
           {/* Left Side: Menu + Logo + Navigation */}
-          <div className="flex items-center gap-6 h-full">
+          <div className="flex items-center gap-3.5 xl:gap-6 h-full">
             <button
               type="button"
               onClick={() => setIsMenuOpen((o) => !o)}
@@ -60,18 +60,12 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
             </Link>
 
             {/* Desktop Navigation Links */}
-            <nav className="hidden lg:flex items-center gap-6 h-full ml-4">
-              <Link
-                href="/"
-                className="text-xs font-bold uppercase tracking-widest text-sky-950 hover:text-sky-600 transition-colors"
-              >
-                {HOME_CATEGORY_LABEL}
-              </Link>
+            <nav className="hidden lg:flex items-center gap-3.5 xl:gap-5 h-full ml-2 xl:ml-5 whitespace-nowrap">
               {categories.slice(0, 7).map((cat) => (
                 <Link
                   key={cat}
                   href={categoryHref(cat)}
-                  className="text-xs font-bold uppercase tracking-widest text-sky-950 hover:text-sky-600 transition-colors"
+                  className="text-[10px] xl:text-xs font-bold uppercase tracking-widest text-sky-950 hover:text-sky-600 transition-colors whitespace-nowrap"
                 >
                   {cat}
                 </Link>
@@ -80,7 +74,7 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
           </div>
 
           {/* Right Side: Icons + Subscribe */}
-          <div className="flex items-center gap-4 sm:gap-6 h-full">
+          <div className="flex items-center gap-3 xl:gap-6 h-full">
             <button
               type="button"
               onClick={() => setIsSearchOpen(!isSearchOpen)}

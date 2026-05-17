@@ -24,7 +24,7 @@ export function getSiteIconFromDomain(domain: string | null): string {
   if (d.includes('jejujapan')) return "/icons/jejujapan.ico";
   if (d.includes('jejuqq')) return "/icons/jejuqq.ico";
   if (d.includes('jejutime')) return "/icons/jejutime.ico";
-  if (d.includes('skyblueprime')) return "/icons/newsicons.ico";
+  if (d.includes('skyblueprime')) return "/icons/skyblueprime.ico";
   return "/icons/newsicons.ico";
 }
 
