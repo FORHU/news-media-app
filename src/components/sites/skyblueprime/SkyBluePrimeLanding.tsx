@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { ChevronRight, TrendingUp, Sparkles } from "lucide-react";
 import { StoryImage } from "@/components/StoryImage";
 
 const AdBanner = dynamic(() => import("@/components/AdBanner").then((m) => m.AdBanner), {
@@ -37,14 +36,6 @@ function articleHref(article: { slug?: string | null; id: string }) {
   return `/article/${article.slug || article.id}`;
 }
 
-function formatDate(value: string | Date) {
-  return new Date(value).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
 function excerpt(text: string | null | undefined, max = 120) {
   if (!text) return "";
   const plain = text.replace(/<[^>]+>/g, "").trim();
@@ -60,211 +51,206 @@ export default function SkyBluePrimeLanding({ articles, banners }: Props) {
   });
 
   const hero = sorted[0];
-  const heroSide = sorted.slice(1, 3);
-  const featured = sorted.slice(3, 7);
-  const trending = sorted.slice(0, 8);
-  const latest = sorted.slice(3, 15);
+  const picks = sorted.slice(1, 4);
+  const trending = sorted.slice(0, 5);
+
+  const groupedCategoriesMap = new Map<string, ArticleRow[]>();
+  for (const a of sorted) {
+    const cat = a.category?.categoryName || "Uncategorized";
+    if (!groupedCategoriesMap.has(cat)) groupedCategoriesMap.set(cat, []);
+    groupedCategoriesMap.get(cat)!.push(a);
+  }
+  const groupedCategories = Array.from(groupedCategoriesMap.entries()).map(([name, items]) => ({ name, items }));
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-50/80 via-white to-sky-50/40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6">
-        <AdBanner position="HOME_TOP" initialBanners={banners.top as never[]} />
-      </div>
-
-      {/* Hero */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-8 lg:py-12">
-        <div className="flex items-center gap-2 mb-6">
-          <Sparkles className="text-sky-500" size={18} />
-          <span className="text-xs font-bold uppercase tracking-[0.2em] text-sky-600">
-            Today&apos;s spotlight
-          </span>
+    <div className="min-h-screen bg-white">
+      {/* Top Banner Area */}
+      {banners.top && banners.top.length > 0 ? (
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-6 border-b border-sky-100 mb-8">
+          <AdBanner position="HOME_TOP" initialBanners={banners.top as never[]} />
         </div>
-
-        {hero ? (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-            <Link
-              href={articleHref(hero)}
-              className="lg:col-span-8 group relative overflow-hidden rounded-2xl bg-sky-950 shadow-xl shadow-sky-200/50 min-h-[320px] sm:min-h-[400px]"
-            >
-              <StoryImage
-                src={hero.imageUrl}
-                alt={hero.title}
-                fill
-                className="object-cover opacity-90 group-hover:scale-105 transition-transform duration-700"
-                sizes="(max-width: 1024px) 100vw, 66vw"
-                priority
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-sky-950 via-sky-950/50 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
-                {hero.category?.categoryName && (
-                  <span className="inline-block px-3 py-1 mb-3 text-[10px] font-bold uppercase tracking-widest bg-sky-500 text-white rounded-full">
-                    {hero.category.categoryName}
-                  </span>
-                )}
-                <h1 className="text-2xl sm:text-4xl font-bold text-white leading-tight group-hover:underline decoration-sky-400 underline-offset-4">
-                  {hero.title}
-                </h1>
-                <p className="mt-3 text-sm sm:text-base text-sky-100/90 line-clamp-2 max-w-2xl">
-                  {excerpt(hero.content, 160)}
-                </p>
-                <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-sky-300">
-                  Read story <ChevronRight size={14} />
-                </span>
-              </div>
-            </Link>
-
-            <div className="lg:col-span-4 flex flex-col gap-4">
-              {heroSide.map((article) => (
-                <Link
-                  key={article.id}
-                  href={articleHref(article)}
-                  className="group flex gap-4 p-4 rounded-xl bg-white border border-sky-100 shadow-sm hover:shadow-md hover:border-sky-200 transition-all flex-1"
-                >
-                  <div className="relative w-28 h-24 sm:w-32 sm:h-28 shrink-0 rounded-lg overflow-hidden bg-sky-100">
-                    <StoryImage
-                      src={article.imageUrl}
-                      alt={article.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform"
-                      sizes="128px"
-                    />
-                  </div>
-                  <div className="min-w-0 flex flex-col justify-center">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-sky-500 mb-1">
-                      {article.category?.categoryName ?? "News"}
-                    </span>
-                    <h2 className="text-sm font-semibold text-sky-950 line-clamp-3 group-hover:text-sky-600 transition-colors">
-                      {article.title}
-                    </h2>
-                    <time className="mt-2 text-[11px] text-sky-400">{formatDate(article.createdAt)}</time>
-                  </div>
-                </Link>
-              ))}
-              {heroSide.length === 0 && (
-                <div className="flex-1 rounded-xl border border-dashed border-sky-200 bg-sky-50/50 flex items-center justify-center text-sm text-sky-400 p-8">
-                  More stories coming soon
-                </div>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-sky-200 bg-white p-16 text-center">
-            <p className="text-sky-600 font-medium">No published articles yet.</p>
-            <p className="text-sm text-sky-400 mt-2">Check back soon for the latest from Sky Blue Prime.</p>
-          </div>
-        )}
-      </section>
-
-      {/* Featured grid */}
-      {featured.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
-          <div className="flex items-end justify-between mb-6 border-b border-sky-100 pb-4">
-            <h2 className="text-lg font-bold text-sky-950">Featured</h2>
-            <Link href="/search" className="text-xs font-semibold uppercase tracking-wider text-sky-600 hover:text-sky-800 flex items-center gap-0.5">
-              View all <ChevronRight size={14} />
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {featured.map((article) => (
-              <Link
-                key={article.id}
-                href={articleHref(article)}
-                className="group block rounded-xl overflow-hidden bg-white border border-sky-100 hover:shadow-lg hover:border-sky-200 transition-all"
-              >
-                <div className="relative aspect-[4/3] bg-sky-100">
-                  <StoryImage
-                    src={article.imageUrl}
-                    alt={article.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    sizes="(max-width: 640px) 100vw, 25vw"
-                  />
-                </div>
-                <div className="p-4">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-sky-500">
-                    {article.category?.categoryName ?? "News"}
-                  </span>
-                  <h3 className="mt-1 text-sm font-semibold text-sky-950 line-clamp-2 group-hover:text-sky-600">
-                    {article.title}
-                  </h3>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
+      ) : (
+        <div className="mt-8"></div>
       )}
 
-      {/* Latest + Trending */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-16">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <h2 className="text-lg font-bold text-sky-950 mb-6 flex items-center gap-2">
-              <span className="w-1 h-6 bg-sky-500 rounded-full" />
-              Latest stories
-            </h2>
-            <div className="space-y-4">
-              {latest.length > 0 ? (
-                latest.map((article) => (
+      <main className="max-w-[1600px] mx-auto px-4 sm:px-6 pb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
+          
+          {/* Left Column: Today's Picks */}
+          <aside className="lg:col-span-3 order-2 lg:order-1 flex flex-col gap-8">
+            <div className="border-t-4 border-sky-950 pt-2">
+              <h2 className="text-sm font-black uppercase tracking-widest text-sky-950 bg-sky-950 text-white inline-block px-2 py-1 mb-6">
+                Today's Picks
+              </h2>
+              <div className="space-y-8">
+                {picks.map((article) => (
                   <Link
                     key={article.id}
                     href={articleHref(article)}
-                    className="group flex gap-4 p-4 rounded-xl bg-white border border-sky-50 hover:border-sky-200 hover:shadow-sm transition-all"
+                    className="group block"
                   >
-                    <div className="relative w-24 h-20 sm:w-32 sm:h-24 shrink-0 rounded-lg overflow-hidden bg-sky-100">
+                    <div className="relative aspect-[3/2] w-full mb-3 bg-sky-100 overflow-hidden">
                       <StoryImage
                         src={article.imageUrl}
                         alt={article.title}
                         fill
-                        className="object-cover"
-                        sizes="128px"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        sizes="(max-width: 1024px) 100vw, 25vw"
                       />
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-sky-500">
-                        {article.category?.categoryName ?? "News"}
-                      </span>
-                      <h3 className="text-base font-semibold text-sky-950 mt-0.5 line-clamp-2 group-hover:text-sky-600">
+                    <span className="block text-[10px] font-bold uppercase tracking-widest text-sky-500 mb-1">
+                      {article.category?.categoryName ?? "News"}
+                    </span>
+                    <h3 className="text-lg font-bold text-sky-950 leading-tight group-hover:text-sky-600 transition-colors">
+                      {article.title}
+                    </h3>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </aside>
+
+          {/* Middle Column: Hero Article */}
+          <section className="lg:col-span-6 order-1 lg:order-2">
+            {hero ? (
+              <article className="flex flex-col items-center text-center">
+                <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-sky-500 mb-4">
+                  {hero.category?.categoryName ?? "Featured Story"}
+                </span>
+                
+                <Link href={articleHref(hero)} className="group block mb-6">
+                  <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-black text-sky-950 leading-[1.05] tracking-tight group-hover:text-sky-700 transition-colors">
+                    {hero.title}
+                  </h1>
+                </Link>
+
+                <p className="text-lg sm:text-xl text-sky-800/90 max-w-2xl mb-8 leading-relaxed font-medium">
+                  {excerpt(hero.content, 200)}
+                </p>
+
+                <div className="w-full relative aspect-[16/9] bg-sky-100 overflow-hidden">
+                  <Link href={articleHref(hero)} className="group block w-full h-full">
+                    <StoryImage
+                      src={hero.imageUrl}
+                      alt={hero.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-700"
+                      sizes="(max-width: 1024px) 100vw, 50vw"
+                      priority
+                    />
+                  </Link>
+                </div>
+              </article>
+            ) : (
+              <div className="border-t-4 border-sky-950 pt-16 text-center">
+                <p className="text-sky-600 font-medium text-xl">No published articles yet.</p>
+                <p className="text-sm text-sky-500 mt-2">Check back soon for the latest from Sky Blue Prime.</p>
+              </div>
+            )}
+          </section>
+
+          {/* Right Column: Trending Stories */}
+          <aside className="lg:col-span-3 order-3 flex flex-col gap-8">
+            <div className="border-t-4 border-sky-950 pt-2">
+              <h2 className="text-sm font-black uppercase tracking-widest text-sky-950 bg-sky-950 text-white inline-block px-2 py-1 mb-6">
+                Trending Stories
+              </h2>
+              <ol className="space-y-6">
+                {trending.map((article) => (
+                  <li key={article.id} className="border-b border-sky-100 pb-6 last:border-0 last:pb-0">
+                    <Link href={articleHref(article)} className="group block">
+                      <h3 className="text-[1.35rem] font-bold text-sky-950 leading-tight group-hover:text-sky-600 transition-colors">
                         {article.title}
                       </h3>
-                      <p className="text-xs text-sky-500/80 mt-1 line-clamp-1">{excerpt(article.content, 80)}</p>
-                      <time className="text-[11px] text-sky-400 mt-2 block">{formatDate(article.createdAt)}</time>
-                    </div>
-                  </Link>
-                ))
-              ) : (
-                <p className="text-sm text-sky-500 py-8 text-center rounded-xl bg-sky-50">No stories to show.</p>
-              )}
-            </div>
-          </div>
-
-          <aside className="space-y-6">
-            <div className="rounded-xl bg-white border border-sky-100 p-5 shadow-sm">
-              <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-sky-950 mb-4">
-                <TrendingUp size={16} className="text-sky-500" />
-                Trending
-              </h3>
-              <ol className="space-y-4">
-                {trending.map((article, i) => (
-                  <li key={article.id}>
-                    <Link href={articleHref(article)} className="group flex gap-3 items-start">
-                      <span className="text-2xl font-bold text-sky-200 tabular-nums leading-none w-7">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                      <div>
-                        <h4 className="text-sm font-medium text-sky-900 line-clamp-2 group-hover:text-sky-600">
-                          {article.title}
-                        </h4>
-                        <time className="text-[10px] text-sky-400 mt-1 block">{formatDate(article.createdAt)}</time>
-                      </div>
                     </Link>
                   </li>
                 ))}
               </ol>
             </div>
-            <AdBanner position="HOME_SIDEBAR" initialBanners={banners.sidebar as never[]} />
+            
+            <div className="mt-8">
+              <AdBanner position="HOME_SIDEBAR" initialBanners={banners.sidebar as never[]} />
+            </div>
           </aside>
+
         </div>
-      </section>
+
+        {/* Category Blocks */}
+        {groupedCategories.map(group => {
+           const heroArticle = group.items[0];
+           const otherArticles = group.items.slice(1, 5);
+           if (!heroArticle) return null;
+
+           return (
+             <section key={group.name} className="mt-24">
+               {/* Section Header */}
+               <div className="border-t-[6px] border-sky-950 pt-3 mb-10">
+                 <h2 className="text-sm font-black uppercase tracking-widest text-white bg-sky-950 inline-block px-3 py-1.5 leading-none">
+                   {group.name}
+                 </h2>
+               </div>
+
+               {/* Hero Article */}
+               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-10">
+                 <div className="lg:col-span-8 relative aspect-[16/9] lg:aspect-auto lg:h-[500px] overflow-hidden bg-sky-100 group">
+                   <Link href={articleHref(heroArticle)} className="block w-full h-full">
+                     <StoryImage 
+                       src={heroArticle.imageUrl} 
+                       fill 
+                       className="object-cover group-hover:scale-105 transition-transform duration-700" 
+                       alt={heroArticle.title} 
+                       sizes="(max-width: 1024px) 100vw, 66vw"
+                     />
+                   </Link>
+                 </div>
+                 <div className="lg:col-span-4 flex flex-col justify-center">
+                   <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-sky-500 mb-5 block">
+                     {heroArticle.category?.categoryName}
+                   </span>
+                   <Link href={articleHref(heroArticle)} className="block mb-5 group">
+                     <h3 className="text-4xl sm:text-5xl font-black text-sky-950 leading-[1.05] tracking-tight group-hover:text-sky-700 transition-colors">
+                       {heroArticle.title}
+                     </h3>
+                   </Link>
+                   <p className="text-lg text-sky-800/90 mb-8 font-medium leading-relaxed">
+                     {excerpt(heroArticle.content, 200)}
+                   </p>
+                   <span className="text-[11px] font-bold uppercase tracking-widest text-sky-950">
+                     BY SKY BLUE PRIME
+                   </span>
+                 </div>
+               </div>
+
+               {/* Sub-Articles Grid */}
+               {otherArticles.length > 0 && (
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-8 border-t border-sky-200 pt-8">
+                   {otherArticles.map(article => (
+                     <Link href={articleHref(article)} key={article.id} className="grid grid-cols-[1fr_90px] gap-4 group items-start">
+                        <div className="flex flex-col justify-start">
+                          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-sky-500 mb-2 block leading-none">
+                            {article.category?.categoryName}
+                          </span>
+                          <h4 className="text-[16px] font-bold text-sky-950 leading-snug group-hover:text-sky-600 transition-colors">
+                            {article.title}
+                          </h4>
+                        </div>
+                        <div className="relative w-[90px] h-[90px] bg-sky-100 overflow-hidden shrink-0">
+                          <StoryImage 
+                            src={article.imageUrl} 
+                            alt={article.title} 
+                            fill 
+                            className="object-cover group-hover:scale-105 transition-transform duration-500" 
+                            sizes="90px"
+                          />
+                        </div>
+                     </Link>
+                   ))}
+                 </div>
+               )}
+             </section>
+           );
+        })}
+      </main>
     </div>
   );
 }
