@@ -35,6 +35,7 @@ import {
   stripOriginalPostBlock,
 } from "@/lib/tweetArticleDisplay";
 import { ArticleShare } from "@/components/article/ArticleShare";
+import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 
 
 export default function JejuTimeArticle({ 
@@ -264,6 +265,8 @@ export default function JejuTimeArticle({
                   title={article.title} 
                   className="mt-12"
                 />
+
+                <AdsterraNativeBanner />
 
                 {referenceLine && (
                   <div className="mt-16 pt-10 border-t border-blue-50 bg-blue-50/30 p-8 rounded-2xl border-dashed">
