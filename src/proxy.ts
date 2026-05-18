@@ -97,7 +97,11 @@ export async function proxy(request: NextRequest) {
             const tenantId = await resolveTenantIdFromDomain(tenantDomain);
             if (tenantId) {
                 const dbUser = await prisma.user.findFirst({
-                    where: { email: user.email, role: "admin", tenantId },
+                    where: {
+                        email: { equals: user.email, mode: "insensitive" },
+                        role: "admin",
+                        tenantId,
+                    },
                     select: { email: true },
                 });
                 hasAdminRoleDb = Boolean(dbUser);

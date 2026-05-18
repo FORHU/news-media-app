@@ -9,7 +9,7 @@ import {
     File,
     X,
     Check,
-    Loader2
+    Loader2,
 } from "lucide-react";
 import {
     Dialog,
@@ -37,6 +37,7 @@ import {
     ManualArticleImage 
 } from "./ManualGenerationTab";
 import CategorySelectWithOther from "@/components/admin/shared/CategorySelectWithOther";
+import FeaturedImageChoiceSection from "@/components/admin/shared/FeaturedImageChoiceSection";
 
 interface CreateArticleModalProps {
     open: boolean;
@@ -53,6 +54,7 @@ export default function CreateArticleModal({
     const [files, setFiles] = React.useState<File[]>([]);
     const [pastedText, setPastedText] = React.useState("");
     const [imageFile, setImageFile] = React.useState<File | null>(null);
+    const [generateNewImage, setGenerateNewImage] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = React.useState<{
         category?: string;
@@ -73,6 +75,7 @@ export default function CreateArticleModal({
         setIsProcessingFiles(false);
         setSelectedCategory("");
         setLanguage("English");
+        setGenerateNewImage(false);
     }, []);
 
     // Reset form when modal closes
@@ -320,10 +323,22 @@ export default function CreateArticleModal({
                                 fieldErrors={fieldErrors}
                             />
 
+                            <FeaturedImageChoiceSection
+                                value={generateNewImage}
+                                onChange={setGenerateNewImage}
+                                disabled={isModalBusy}
+                                stepNumber="04"
+                                offLabel="No AI image"
+                                offDescription="Use your upload only, or skip a thumbnail for now."
+                                onLabel="Generate with AI"
+                                onDescription="Create a new featured image from the generated article."
+                                borderedTop
+                            />
+
                             {/* Step 2: Configuration - Shared */}
                             <div className="space-y-6 pt-4 border-t border-gray-100">
                                 <div className="flex items-center gap-3">
-                                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 text-purple-600 font-black text-xs">04</span>
+                                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 text-purple-600 font-black text-xs">05</span>
                                     <label className="text-sm font-black uppercase tracking-widest text-gray-900">Configuration</label>
                                 </div>
 

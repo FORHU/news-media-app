@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     // Check if email already exists in Prisma for this tenant to avoid messy partial creations
     const existingUser = await prisma.user.findFirst({ 
       where: { 
-        email,
+        email: { equals: email, mode: 'insensitive' },
         tenantId
       } 
     });
@@ -139,7 +139,7 @@ export async function DELETE(request: NextRequest) {
       throw new Error(`Supabase listUsers error: ${listError.message}`);
     }
 
-    const supabaseUser = users.find(u => u.email === user.email);
+    const supabaseUser = users.find(u => u.email?.toLowerCase() === user.email.toLowerCase());
     
     // 3. Delete from Supabase if found
     if (supabaseUser) {
@@ -211,7 +211,7 @@ export async function PATCH(request: NextRequest) {
 
     // Update in Supabase
     const { data: { users } } = await supabaseAdmin.auth.admin.listUsers();
-    const supabaseUser = users.find(u => u.email === user.email);
+    const supabaseUser = users.find(u => u.email?.toLowerCase() === user.email.toLowerCase());
     
     if (supabaseUser) {
       const authUpdateData: any = {};

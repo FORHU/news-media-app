@@ -1,9 +1,5 @@
 import React from 'react';
-import {
-    Zap,
-    Loader2,
-    X
-} from 'lucide-react';
+import { Zap, Loader2, X } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -24,12 +20,15 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { articlesApi } from '@/lib/api';
 import CategorySelectWithOther from '@/components/admin/shared/CategorySelectWithOther';
+import FeaturedImageChoiceSection from '@/components/admin/shared/FeaturedImageChoiceSection';
 import { LANGUAGE_OPTIONS } from '@/components/admin/generatedContent/CreateArticleModal/ManualGenerationTab';
 
 interface GenerateArticleModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onGenerate: (prompt: string, categoryId: string, language: string) => void;
+    /** Passed by parent; required only if the server uses an image-edit model (e.g. `dall-e-2`) that remixes this URL. */
+    crawledThumbnailUrl?: string | null;
+    onGenerate: (prompt: string, categoryId: string, language: string, generateImage: boolean) => void;
     isPending: boolean;
 }
 
@@ -38,21 +37,23 @@ const GENERATION_PROMPT_MAX_LEN = 4000;
 export default function GenerateArticleModal({
     open,
     onOpenChange,
+    crawledThumbnailUrl: _crawledThumbnailUrl,
     onGenerate,
     isPending
 }: GenerateArticleModalProps) {
     const [generationPrompt, setGenerationPrompt] = React.useState('');
     const [selectedCategory, setSelectedCategory] = React.useState<string>('');
     const [language, setLanguage] = React.useState<string>('English');
+    const [generateNewImage, setGenerateNewImage] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = React.useState<{ category?: string }>({});
 
-    // Reset when opening
     React.useEffect(() => {
         if (open) {
             setGenerationPrompt('');
             setSelectedCategory('');
             setLanguage('English');
+            setGenerateNewImage(false);
             setError(null);
             setFieldErrors({});
         }
@@ -63,7 +64,6 @@ export default function GenerateArticleModal({
         setFieldErrors(prev => ({ ...prev, category: undefined }));
     };
 
-    // Fetch categories
     const { data: categories, isLoading: isLoadingCategories } = useQuery({
         queryKey: ['categories'],
         queryFn: () => articlesApi.getCategories(),
@@ -75,18 +75,15 @@ export default function GenerateArticleModal({
             setFieldErrors({ category: "Please select a category first" });
             return;
         }
-        onGenerate(generationPrompt, selectedCategory, language);
+        onGenerate(generationPrompt, selectedCategory, language, generateNewImage);
         onOpenChange(false);
     };
 
     return (
-        <Dialog
-            open={open}
-            onOpenChange={onOpenChange}
-        >
+        <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-xl p-0 overflow-hidden rounded-[2.5rem] border-none bg-white shadow-2xl">
                 <div className="relative bg-gray-900 px-8 py-10 overflow-hidden">
-                    <button 
+                    <button
                         onClick={() => onOpenChange(false)}
                         className="absolute top-8 right-8 w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 hover:scale-110 active:scale-95 transition-all z-20 group"
                     >
@@ -115,13 +112,11 @@ export default function GenerateArticleModal({
                         </div>
                     )}
 
-                    {/* Category Selection - Now Required */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
                             <span className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 text-orange-600 font-black text-xs">01</span>
                             <label className="text-sm font-black uppercase tracking-widest text-gray-900">Select Category <span className="text-red-500">*</span></label>
                         </div>
-                        
                         <div className="space-y-2">
                             <CategorySelectWithOther
                                 value={selectedCategory}
@@ -141,13 +136,11 @@ export default function GenerateArticleModal({
                         </div>
                     </div>
 
-                    {/* Language Selection */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
                             <span className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 text-purple-600 font-black text-xs">02</span>
                             <label className="text-sm font-black uppercase tracking-widest text-gray-900">Language</label>
                         </div>
-                        
                         <div className="space-y-2">
                             <Select value={language} onValueChange={setLanguage}>
                                 <SelectTrigger className="w-full h-14 rounded-2xl bg-gray-50 border-gray-100 text-base font-bold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm transition-all">
@@ -164,10 +157,18 @@ export default function GenerateArticleModal({
                         </div>
                     </div>
 
-                    {/* Writing Instructions */}
+                    <FeaturedImageChoiceSection
+                        value={generateNewImage}
+                        onChange={setGenerateNewImage}
+                        disabled={isPending}
+                        allowAiRemix
+                        stepNumber="03"
+                        onDescription="Create a new hero image with OpenAI DALL·E from the headline and source story (default: DALL·E 3)."
+                    />
+
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
-                            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-black text-xs">03</span>
+                            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-black text-xs">04</span>
                             <label className="text-sm font-black uppercase tracking-widest text-gray-900">Writing Instructions</label>
                         </div>
                         <div className="space-y-2">
@@ -224,3 +225,5 @@ export default function GenerateArticleModal({
         </Dialog>
     );
 }
+
+

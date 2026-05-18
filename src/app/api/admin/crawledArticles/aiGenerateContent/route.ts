@@ -3,6 +3,20 @@ import { prisma } from "@/lib/db";
 import { generateUniqueArticleSlug } from "@/lib/slug";
 import { z } from "zod";
 import { resolveTenantIdFromRequest } from "@/lib/tenant";
+import { getValidImageSrc } from "@/lib/image-utils";
+import {
+  buildCrawledImageEditPrompt,
+  buildDallE3FeaturedImagePrompt,
+  editImageWithDallE2,
+  fetchImageBytesFromUrl,
+  generateImageWithDallE3,
+  getOpenAiImageModel,
+  isDallE3ImageModel,
+  normalizeImageForOpenAiEdit,
+} from "@/lib/openaiImages";
+import { uploadPngBufferToSupabase } from "@/lib/supabaseArticleImageUpload";
+import type { FeaturedImageGenerationLog } from "@/lib/featuredImageGeneration";
+import sharp from "sharp";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // Allow up to 5 minutes on Vercel Pro/Enterprise
@@ -12,6 +26,7 @@ const RequestSchema = z.object({
   categoryId: z.string().min(1, "categoryId is required"),
   generationPrompt: z.string().optional().or(z.literal("")),
   language: z.string().optional(),
+  generateImage: z.boolean().optional().default(false),
 });
 
 // Safety truncation to avoid token limit errors
@@ -112,7 +127,8 @@ export async function POST(req: NextRequest) {
       articleId: bodyArticleId,
       categoryId,
       generationPrompt: customPrompt,
-      language: requestedLanguage
+      language: requestedLanguage,
+      generateImage,
     } = result.data;
 
     articleId = bodyArticleId;
@@ -202,6 +218,117 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${r
         throw new Error("AI failed to generate a complete article. Please refine your custom prompt and try again.");
       }
 
+      const fallbackThumb = getValidImageSrc(rawArticle.imageUrl);
+      const canFetchSource =
+        !!fallbackThumb && /^https?:\/\//i.test(fallbackThumb);
+      const imageModel = getOpenAiImageModel();
+      let resolvedImageUrl: string | null = null;
+
+      let featuredImageLog: FeaturedImageGenerationLog = {
+        requested: false,
+        openAiModel: imageModel,
+        apiKind: "none",
+        pipelineLabel: "No AI featured image step",
+        outcome: "not_requested",
+        detail: "generateImage was not requested.",
+      };
+
+      if (generateImage) {
+        if (isDallE3ImageModel(imageModel)) {
+          featuredImageLog = {
+            requested: true,
+            openAiModel: imageModel,
+            apiKind: "dall-e-3-generations",
+            pipelineLabel: "DALL·E 3 — OpenAI /v1/images/generations (text-only)",
+            outcome: "openai_error_fallback",
+            detail: "OpenAI image step did not complete.",
+          };
+          try {
+            const storyExcerpt = truncateContent(rawArticle.content || "", 1200);
+            const genPrompt = buildDallE3FeaturedImagePrompt(
+              title,
+              customPrompt || "",
+              storyExcerpt
+            );
+            const generatedBytes = await generateImageWithDallE3(genPrompt);
+            const pngOut = await sharp(generatedBytes).png().toBuffer();
+            resolvedImageUrl = await uploadPngBufferToSupabase(
+              pngOut,
+              tenantId,
+              "openai-dalle3"
+            );
+            featuredImageLog.outcome = "openai_success";
+            featuredImageLog.detail =
+              "New hero image from generated headline, optional custom prompt, and a short raw-article excerpt. Crawled thumbnail was not sent to OpenAI.";
+          } catch (imgErr) {
+            console.error(
+              "[AI Generate] OpenAI image step failed, using crawled thumbnail if available:",
+              imgErr
+            );
+            resolvedImageUrl = fallbackThumb ?? null;
+            featuredImageLog.outcome = "openai_error_fallback";
+            featuredImageLog.detail =
+              imgErr instanceof Error
+                ? `OpenAI failed: ${imgErr.message}. Used crawled thumbnail if available.`
+                : "OpenAI image step failed. Used crawled thumbnail if available.";
+          }
+        } else if (canFetchSource && fallbackThumb) {
+          featuredImageLog = {
+            requested: true,
+            openAiModel: imageModel,
+            apiKind: "openai-image-edits",
+            pipelineLabel: `OpenAI image edits — /v1/images/edits (model: ${imageModel})`,
+            outcome: "openai_error_fallback",
+            detail: "OpenAI image step did not complete.",
+          };
+          try {
+            const rawBytes = await fetchImageBytesFromUrl(fallbackThumb);
+            const pngForEdit = await normalizeImageForOpenAiEdit(rawBytes);
+            const editPrompt = buildCrawledImageEditPrompt(title, customPrompt || "");
+            const editedBytes = await editImageWithDallE2(pngForEdit, editPrompt);
+            const pngOut = await sharp(editedBytes).png().toBuffer();
+            resolvedImageUrl = await uploadPngBufferToSupabase(
+              pngOut,
+              tenantId,
+              "openai-edits"
+            );
+            featuredImageLog.outcome = "openai_success";
+            featuredImageLog.detail =
+              "New hero image from downloaded crawled thumbnail plus an edit prompt.";
+          } catch (imgErr) {
+            console.error(
+              "[AI Generate] OpenAI image step failed, using crawled thumbnail if available:",
+              imgErr
+            );
+            resolvedImageUrl = fallbackThumb ?? null;
+            featuredImageLog.outcome = "openai_error_fallback";
+            featuredImageLog.detail =
+              imgErr instanceof Error
+                ? `OpenAI failed: ${imgErr.message}. Used crawled thumbnail if available.`
+                : "OpenAI image step failed. Used crawled thumbnail if available.";
+          }
+        } else {
+          featuredImageLog = {
+            requested: true,
+            openAiModel: imageModel,
+            apiKind: "openai-image-edits",
+            pipelineLabel: `OpenAI image edits — /v1/images/edits (model: ${imageModel})`,
+            outcome: "openai_skipped_no_source_image",
+            detail:
+              "This model uses /images/edits and needs an absolute http(s) thumbnail URL that can be downloaded. OpenAI was not called.",
+          };
+          console.warn(`[AI Generate] ${featuredImageLog.detail}`);
+          resolvedImageUrl = fallbackThumb ?? null;
+        }
+      } else if (fallbackThumb) {
+        resolvedImageUrl = fallbackThumb;
+      }
+
+      console.log(
+        "[AI Generate] Featured image pipeline:",
+        JSON.stringify(featuredImageLog, null, 2)
+      );
+
       const user =
         (await prisma.user.findFirst({ where: { email: "admin@newsmedia.app", tenantId } })) ||
         (await prisma.user.findFirst({ where: { tenantId } }));
@@ -222,6 +349,7 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${r
           categoryId: resolvedCategoryId,
           rawArticleId: rawArticle.id,
           publishDate,
+          imageUrl: resolvedImageUrl,
         },
       });
 
@@ -230,7 +358,10 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${r
         data: { status: "generated" },
       });
 
-      return NextResponse.json(contentArticle);
+      return NextResponse.json({
+        ...contentArticle,
+        imageGeneration: featuredImageLog,
+      });
     } catch (error: any) {
       clearTimeout(timeout);
 
