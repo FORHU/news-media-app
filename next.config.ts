@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   output: 'standalone',
-  allowedDevOrigins: ["voicejeju.com", "jejuqq.com", "jejujapan.com", "jejutime.com"],
+  allowedDevOrigins: ["voicejeju.com", "jejuqq.com", "jejujapan.com", "jejutime.com", "skyblueprime.com"],
   // Turbopack on Windows can panic (os error 80) when creating junctions into native/Prisma deps.
   serverExternalPackages: [
     "pg",

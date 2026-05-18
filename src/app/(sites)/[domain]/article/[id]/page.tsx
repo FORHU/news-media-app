@@ -14,6 +14,7 @@ import JejuJapanArticle from "@/components/sites/jejujapan/JejuJapanArticle";
 import JejuQQArticle from "@/components/sites/jejuqq/JejuQQArticle";
 import JejuTimeArticle from "@/components/sites/jejutime/JejuTimeArticle";
 import { VoiceJejuArticle } from "@/components/sites/voicejeju/VoiceJejuArticle"; // Site-specific article component
+import SkyBluePrimeArticle from "@/components/sites/skyblueprime/SkyBluePrimeArticle";
 import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain, getSiteDescriptionFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
 
@@ -311,6 +312,8 @@ export default async function ArticlePage({
           <JejuTimeArticle articleId={canonicalSlug} initialOtherArticles={allArticles} />
         ) : domain === "voicejeju.com" ? (
           <VoiceJejuArticle articleId={canonicalSlug} initialOtherArticles={allArticles} />
+        ) : domain === "skyblueprime.com" ? (
+          <SkyBluePrimeArticle articleId={canonicalSlug} initialOtherArticles={allArticles} />
         ) : (
           <ArticlePageClient articleId={canonicalSlug} initialOtherArticles={allArticles} domain={domain} />
         )}

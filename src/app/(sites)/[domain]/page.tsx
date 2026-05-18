@@ -18,6 +18,7 @@ import JejuTimeLanding from "@/components/sites/jejutime/JejuTimeLanding";
 import JejuQQLanding from "@/components/sites/jejuqq/JejuQQLanding";
 import JejuJapanLanding from "@/components/sites/jejujapan/JejuJapanLanding";
 import { VoiceJejuLanding } from "@/components/sites/voicejeju/VoiceJejuLanding";
+import SkyBluePrimeLanding from "@/components/sites/skyblueprime/SkyBluePrimeLanding";
 
 export const revalidate = 300;
 
@@ -193,6 +194,10 @@ export default async function Page({
 
   if (domain === "voicejeju.com") {
     return <VoiceJejuLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
+  }
+
+  if (domain === "skyblueprime.com") {
+    return <SkyBluePrimeLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
   }
 
   // Default design (current layout)

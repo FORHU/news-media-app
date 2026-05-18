@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Playfair_Display, Roboto, Noto_Serif_JP, EB_Garamond, Libre_Baskerville, Space_Mono, Plus_Jakarta_Sans, Arima, Mulish, Voltaire, Inter } from "next/font/google";
+import { Geist, Geist_Mono, Playfair_Display, Roboto, Noto_Serif_JP, EB_Garamond, Libre_Baskerville, Space_Mono, Plus_Jakarta_Sans, Arima, Mulish, Voltaire, Inter, Montserrat, Lora } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { DEFAULT_OG_IMAGE, SITE_URL } from "@/config/site";
@@ -85,6 +85,18 @@ const inter = Inter({
   weight: ["400", "500", "600", "700", "800"],
 });
 
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+});
+
+const lora = Lora({
+  variable: "--font-lora",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
 
 export async function generateMetadata(): Promise<Metadata> {
   const headersList = await headers();
@@ -140,7 +152,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${roboto.variable} ${notoSerifJP.variable} ${ebGaramond.variable} ${libreBaskerville.variable} ${spaceMono.variable} ${plusJakartaSans.variable} ${arima.variable} ${mulish.variable} ${voltaire.variable} ${inter.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${roboto.variable} ${notoSerifJP.variable} ${ebGaramond.variable} ${libreBaskerville.variable} ${spaceMono.variable} ${plusJakartaSans.variable} ${arima.variable} ${mulish.variable} ${voltaire.variable} ${inter.variable} ${montserrat.variable} ${lora.variable} antialiased`}
       >
         <Providers>{children}</Providers>
       </body>
