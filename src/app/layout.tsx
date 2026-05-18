@@ -167,9 +167,7 @@ export default async function RootLayout({
       <head>
         {isJejuTime && (
           <script
-            async
-            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6570729717113319"
-            crossOrigin="anonymous"
+            src="https://pl29482469.effectivecpmnetwork.com/78/b5/21/78b521334f8a5ea3b34dbf21c6f9fafc.js"
           ></script>
         )}
       </head>
@@ -177,6 +175,11 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${roboto.variable} ${notoSerifJP.variable} ${ebGaramond.variable} ${libreBaskerville.variable} ${spaceMono.variable} ${plusJakartaSans.variable} ${arima.variable} ${mulish.variable} ${voltaire.variable} ${inter.variable} ${montserrat.variable} ${lora.variable} antialiased`}
       >
         <Providers>{children}</Providers>
+        {isJejuTime && (
+          <script
+            src="https://pl29482513.effectivecpmnetwork.com/ff/4c/94/ff4c94f2be70d5f135bec2e03d391610.js"
+          ></script>
+        )}
       </body>
     </html>
   );
