@@ -104,7 +104,12 @@ export async function generateMetadata(): Promise<Metadata> {
   const domain = normalizeHostToDomain(host);
   const siteName = getSiteNameFromDomain(domain);
   const siteDescription = getSiteDescriptionFromDomain(domain);
-  const siteIcon = `${getSiteIconFromDomain(domain)}`;
+  
+  const iconPath = getSiteIconFromDomain(domain);
+  const icoUrl = `${iconPath}?v=2`;
+  const hasPng = !iconPath.includes('newsicons.ico');
+  const pngUrl = hasPng ? iconPath.replace('/icons/', '/favicon/').replace('.ico', '.png') + '?v=2' : null;
+
   const protocol = host?.includes("localhost") || host?.includes("127.0.0.1") ? "http" : "https";
   const baseUrl = host ? `${protocol}://${host}` : SITE_URL;
 
@@ -116,9 +121,12 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: siteDescription,
     icons: {
-      icon: siteIcon,
-      shortcut: siteIcon,
-      apple: siteIcon,
+      icon: pngUrl ? [
+        { url: icoUrl, type: 'image/x-icon' },
+        { url: pngUrl, sizes: '512x512', type: 'image/png' },
+      ] : icoUrl,
+      shortcut: icoUrl,
+      apple: pngUrl || icoUrl,
     },
     openGraph: {
       title: siteName,
