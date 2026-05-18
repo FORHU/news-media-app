@@ -3,7 +3,6 @@ import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain
 import { prisma } from "@/lib/db";
 import { bannersService } from "@/services/banners.service";
 import { Metadata } from "next";
-import Script from "next/script";
 
 export async function generateStaticParams() {
   try {
@@ -86,18 +85,9 @@ export default async function SiteLayout({
 }) {
   const { domain } = await params;
   const tenantId = await resolveTenantIdFromDomain(domain);
-  const isJejuTime = domain.toLowerCase().includes('jejutime');
 
   return (
     <div className={`site-theme-${domain.replace(".", "-")}`}>
-      {isJejuTime && (
-        <Script 
-          async 
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6570729717113319" 
-          crossOrigin="anonymous" 
-          strategy="afterInteractive"
-        />
-      )}
       <SiteShell domain={domain}>
         {children}
       </SiteShell>
