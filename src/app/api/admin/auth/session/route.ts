@@ -51,7 +51,11 @@ export async function POST(_request: NextRequest) {
 
         // Verify admin role in database
         const dbUser = await prisma.user.findFirst({
-            where: { email: user.email, role: "admin", tenantId },
+            where: {
+                email: { equals: user.email, mode: "insensitive" },
+                role: "admin",
+                tenantId,
+            },
             select: { role: true },
         });
 

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { TENANT_DOMAIN_COOKIE, getTenantDomainFromRequest, resolveTenantIdFromDomain, getSiteLogoFromDomain } from "@/lib/tenant";
+import { TENANT_DOMAIN_COOKIE, getTenantDomainFromRequest, resolveTenantIdFromDomain, getSiteLogoFromDomain, getSiteIconFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
 
 const ADMIN_ROLE_COOKIE = "admin_verified";
@@ -35,6 +35,14 @@ export async function proxy(request: NextRequest) {
             const url = request.nextUrl.clone();
             const logoFile = getSiteLogoFromDomain(tenantDomain);
             url.pathname = `/Logo/${logoFile}`;
+            return NextResponse.rewrite(url);
+        }
+
+        // Handle favicon.ico specifically to provide domain-specific favicons
+        if (pathname === "/favicon.ico") {
+            const url = request.nextUrl.clone();
+            const iconFile = getSiteIconFromDomain(tenantDomain);
+            url.pathname = iconFile;
             return NextResponse.rewrite(url);
         }
 
@@ -89,7 +97,11 @@ export async function proxy(request: NextRequest) {
             const tenantId = await resolveTenantIdFromDomain(tenantDomain);
             if (tenantId) {
                 const dbUser = await prisma.user.findFirst({
-                    where: { email: user.email, role: "admin", tenantId },
+                    where: {
+                        email: { equals: user.email, mode: "insensitive" },
+                        role: "admin",
+                        tenantId,
+                    },
                     select: { email: true },
                 });
                 hasAdminRoleDb = Boolean(dbUser);
@@ -139,8 +151,7 @@ export const config = {
          * Match all request paths except for the ones starting with:
          * - _next/static (static files)
          * - _next/image (image optimization files)
-         * - favicon.ico (favicon file)
          */
-        "/((?!_next/static|_next/image|favicon.ico).*)",
+        "/((?!_next/static|_next/image).*)",
     ],
 };

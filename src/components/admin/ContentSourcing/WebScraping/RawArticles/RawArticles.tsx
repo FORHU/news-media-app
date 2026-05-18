@@ -23,6 +23,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { format } from 'date-fns';
 
 import { MappedRawArticle, CrawledArticlesResponse } from '@/lib/types';
+import { getValidImageSrc } from '@/lib/image-utils';
 import { getCategoryLabel } from '@/config/categories';
 import { Variants } from 'framer-motion';
 import { Input } from '@/components/ui/input';
@@ -61,9 +62,19 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
 
     const queryClient = useQueryClient();
     const mutation = useMutation({
-        mutationFn: ({ prompt, categoryId, language }: { prompt: string; categoryId: string; language: string }) => {
+        mutationFn: ({
+            prompt,
+            categoryId,
+            language,
+            generateImage,
+        }: {
+            prompt: string;
+            categoryId: string;
+            language: string;
+            generateImage: boolean;
+        }) => {
             const finalPrompt = [prompt?.trim(), `Write the article in ${language}.`].filter(Boolean).join("\n\n");
-            return articlesApi.generateAiContent(article.id, finalPrompt, categoryId, language);
+            return articlesApi.generateAiContent(article.id, finalPrompt, categoryId, language, generateImage);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['crawledArticles'] });
@@ -87,8 +98,7 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
     });
 
     // Normalize image URL to avoid passing empty strings to next/image
-    const rawImage = article.imageUrl ?? '';
-    const imageUrl = typeof rawImage === 'string' ? rawImage.trim() : '';
+    const imageUrl = getValidImageSrc(article.imageUrl);
 
     return (
         <>
@@ -267,7 +277,10 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
         <GenerateArticleModal
             open={promptDialogOpen}
             onOpenChange={setPromptDialogOpen}
-            onGenerate={(prompt, categoryId, language) => mutation.mutate({ prompt, categoryId, language })}
+            crawledThumbnailUrl={getValidImageSrc(article.imageUrl)}
+            onGenerate={(prompt, categoryId, language, generateImage) =>
+                mutation.mutate({ prompt, categoryId, language, generateImage })
+            }
             isPending={mutation.isPending}
         />
 

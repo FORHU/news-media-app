@@ -3,14 +3,16 @@ import { prisma } from "../../src/lib/db";
 import { articles } from "./articles";
 
 const skyBluePrimeCategories = [
-  "AI & Machine Learning",
-  "Gadgets",
-  "Software",
-  "Cybersecurity",
-  "Startups",
-  "Hardware",
-  "Cloud Computing",
-  "Tech Policy",
+  "Artificial Intelligence & Machine Learning",
+  "Software Development & Open Source",
+  "Consumer Tech & Hardware",
+  "Cybersecurity & Digital Privacy",
+  "Startups & Venture Capital",
+  "Big Tech & Market Trends",
+  "Tech Policy, Law, & Regulation",
+  "Emerging Tech & Frontier Sciences",
+  "Digital Culture & Creator Economy",
+  "Enterprise & Cloud Infrastructure",
 ];
 
 async function main() {

@@ -104,7 +104,12 @@ export async function generateMetadata(): Promise<Metadata> {
   const domain = normalizeHostToDomain(host);
   const siteName = getSiteNameFromDomain(domain);
   const siteDescription = getSiteDescriptionFromDomain(domain);
-  const siteIcon = `${getSiteIconFromDomain(domain)}`;
+  
+  const iconPath = getSiteIconFromDomain(domain);
+  const icoUrl = `${iconPath}?v=2`;
+  const hasPng = !iconPath.includes('newsicons.ico');
+  const pngUrl = hasPng ? iconPath.replace('/icons/', '/favicon/').replace('.ico', '.png') + '?v=2' : null;
+
   const protocol = host?.includes("localhost") || host?.includes("127.0.0.1") ? "http" : "https";
   const baseUrl = host ? `${protocol}://${host}` : SITE_URL;
 
@@ -116,9 +121,9 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: siteDescription,
     icons: {
-      icon: siteIcon,
-      shortcut: siteIcon,
-      apple: siteIcon,
+      icon: icoUrl,
+      shortcut: icoUrl,
+      apple: pngUrl || icoUrl,
     },
     openGraph: {
       title: siteName,
@@ -144,19 +149,31 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = await headers();
+  const host = headersList.get("host");
+  const domain = normalizeHostToDomain(host);
+  const isJejuTime = domain?.toLowerCase().includes('jejutime');
+
   return (
     <html lang="en">
+      <head>
+        {/* Popunder script removed to prevent 'click anywhere opens new tab' behavior */}
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${roboto.variable} ${notoSerifJP.variable} ${ebGaramond.variable} ${libreBaskerville.variable} ${spaceMono.variable} ${plusJakartaSans.variable} ${arima.variable} ${mulish.variable} ${voltaire.variable} ${inter.variable} ${montserrat.variable} ${lora.variable} antialiased`}
       >
         <Providers>{children}</Providers>
+        {isJejuTime && (
+          <script
+            src="https://pl29482513.effectivecpmnetwork.com/ff/4c/94/ff4c94f2be70d5f135bec2e03d391610.js"
+          ></script>
+        )}
       </body>
-
     </html>
   );
 }

@@ -16,7 +16,11 @@ export async function POST(request: NextRequest) {
     }
 
     const user = await prisma.user.findFirst({
-      where: { email, role: "admin", tenantId },
+      where: {
+        email: { equals: email, mode: "insensitive" },
+        role: "admin",
+        tenantId,
+      },
       select: { role: true },
     });
 
