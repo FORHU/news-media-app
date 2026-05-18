@@ -48,14 +48,16 @@ export const TENANT_CATEGORIES: Record<string, string[]> = {
     "Science",
   ],
   "skyblueprime.com": [
-    "AI & Machine Learning",
-    "Gadgets",
-    "Software",
+    "Artificial Intelligence",
+    "Software Development",
+    "Consumer Tech",
     "Cybersecurity",
     "Startups",
-    "Hardware",
-    "Cloud Computing",
+    "Big Tech",
     "Tech Policy",
+    "Emerging Tech ",
+    "Digital Culture",
+    "Enterprise & Cloud Infrastructure",
   ],
   "voicejeju.com": [
     "제주 오늘",
@@ -83,7 +85,7 @@ export const CATEGORY_TRANSLATIONS: Record<string, string> = {
   "자연 및 아웃도어": "Nature & Outdoors",
   "비자 및 입국 정보": "Visa & Entry Info",
   "로컬 비즈니스 및 생활": "Local Business & Living",
-  
+
   // Chinese (JejuQQ)
   "济州今日": "Jeju Today",
   "旅游资讯": "Travel & Tourism",

@@ -41,7 +41,7 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
           
-          {/* Left Side: Menu + Logo + Navigation */}
+          {/* Left Side: Menu + Logo */}
           <div className="flex items-center gap-3.5 xl:gap-6 h-full">
             <button
               type="button"
@@ -58,19 +58,6 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
                 SKY<span className="text-sky-400">BLUE</span>PRIME
               </span>
             </Link>
-
-            {/* Desktop Navigation Links */}
-            <nav className="hidden lg:flex items-center gap-3.5 xl:gap-5 h-full ml-2 xl:ml-5 whitespace-nowrap">
-              {categories.slice(0, 7).map((cat) => (
-                <Link
-                  key={cat}
-                  href={categoryHref(cat)}
-                  className="text-[10px] xl:text-xs font-bold uppercase tracking-widest text-sky-950 hover:text-sky-600 transition-colors whitespace-nowrap"
-                >
-                  {cat}
-                </Link>
-              ))}
-            </nav>
           </div>
 
           {/* Right Side: Icons + Subscribe */}
@@ -103,6 +90,21 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
             )}
 
           </div>
+        </div>
+      </div>
+
+      {/* Sub-Header Categories Bar */}
+      <div className="bg-sky-50/50 border-b border-sky-100 hidden lg:block overflow-x-auto scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="max-w-[1600px] mx-auto px-6 py-3 flex items-center justify-start xl:justify-center gap-6 xl:gap-8 text-[11px] font-extrabold uppercase tracking-widest">
+          {categories.map((cat) => (
+            <Link
+              key={cat}
+              href={categoryHref(cat)}
+              className="text-sky-950 hover:text-sky-600 transition-colors whitespace-nowrap shrink-0"
+            >
+              {cat}
+            </Link>
+          ))}
         </div>
       </div>
 
