@@ -3,6 +3,7 @@ import {
   type FetchCrawledArticlesParams,
 } from "@/repositories/admin/crawledArticles.repository";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
+import { getValidImageSrc } from "@/lib/image-utils";
 
 const CRAWL_API_URL = process.env.CRAWL_API_URL;
 
@@ -134,11 +135,7 @@ export const crawledArticlesService = {
     ]);
 
     const articles = data.map((article) => {
-      const rawImg = article.imageUrl;
-      const imageUrl =
-        typeof rawImg === "string" && rawImg.trim().length > 0
-          ? rawImg.trim()
-          : null;
+      const imageUrl = getValidImageSrc(article.imageUrl);
 
       return {
         id: article.id,

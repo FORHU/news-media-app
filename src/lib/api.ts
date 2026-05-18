@@ -91,7 +91,8 @@ export const articlesApi = {
     articleId: string,
     generationPrompt?: string,
     categoryId?: string,
-    language?: string
+    language?: string,
+    generateImage?: boolean
   ): Promise<unknown> {
     const trimmed =
       typeof generationPrompt === "string" ? generationPrompt.trim() : "";
@@ -103,6 +104,7 @@ export const articlesApi = {
         ...(trimmed.length > 0 ? { generationPrompt: trimmed } : {}),
         ...(categoryId ? { categoryId } : {}),
         ...(language ? { language } : {}),
+        generateImage: generateImage === true,
       }),
     });
     if (!res.ok) {

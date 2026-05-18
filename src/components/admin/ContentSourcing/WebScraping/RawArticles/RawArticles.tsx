@@ -23,6 +23,11 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { format } from 'date-fns';
 
 import { MappedRawArticle, CrawledArticlesResponse } from '@/lib/types';
+import { getValidImageSrc } from '@/lib/image-utils';
+import {
+    formatFeaturedImageGenerationLog,
+    type FeaturedImageGenerationLog,
+} from '@/lib/featuredImageGeneration';
 import { getCategoryLabel } from '@/config/categories';
 import { Variants } from 'framer-motion';
 import { Input } from '@/components/ui/input';
@@ -57,17 +62,48 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
     const [readModalOpen, setReadModalOpen] = React.useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
     const [generationError, setGenerationError] = React.useState<string | null>(null);
+    const [imageGenLog, setImageGenLog] = React.useState<FeaturedImageGenerationLog | null>(null);
+    const imageGenClearTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
     const [isDeletedLocally, setIsDeletedLocally] = React.useState(false);
+
+    React.useEffect(() => {
+        return () => {
+            if (imageGenClearTimerRef.current) {
+                clearTimeout(imageGenClearTimerRef.current);
+            }
+        };
+    }, []);
 
     const queryClient = useQueryClient();
     const mutation = useMutation({
-        mutationFn: ({ prompt, categoryId, language }: { prompt: string; categoryId: string; language: string }) => {
+        mutationFn: ({
+            prompt,
+            categoryId,
+            language,
+            generateImage,
+        }: {
+            prompt: string;
+            categoryId: string;
+            language: string;
+            generateImage: boolean;
+        }) => {
             const finalPrompt = [prompt?.trim(), `Write the article in ${language}.`].filter(Boolean).join("\n\n");
-            return articlesApi.generateAiContent(article.id, finalPrompt, categoryId, language);
+            return articlesApi.generateAiContent(article.id, finalPrompt, categoryId, language, generateImage);
         },
-        onSuccess: () => {
+        onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['crawledArticles'] });
             setGenerationError(null);
+            const payload = data as { imageGeneration?: FeaturedImageGenerationLog };
+            if (payload?.imageGeneration) {
+                if (imageGenClearTimerRef.current) {
+                    clearTimeout(imageGenClearTimerRef.current);
+                }
+                setImageGenLog(payload.imageGeneration);
+                imageGenClearTimerRef.current = setTimeout(() => {
+                    setImageGenLog(null);
+                    imageGenClearTimerRef.current = null;
+                }, 20000);
+            }
         },
         onError: (err: Error) => {
             setGenerationError(err.message || 'Failed to generate content. Please try again.');
@@ -87,8 +123,7 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
     });
 
     // Normalize image URL to avoid passing empty strings to next/image
-    const rawImage = article.imageUrl ?? '';
-    const imageUrl = typeof rawImage === 'string' ? rawImage.trim() : '';
+    const imageUrl = getValidImageSrc(article.imageUrl);
 
     return (
         <>
@@ -190,6 +225,11 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
                     type="button"
                     onClick={() => {
                         setGenerationError(null);
+                        setImageGenLog(null);
+                        if (imageGenClearTimerRef.current) {
+                            clearTimeout(imageGenClearTimerRef.current);
+                            imageGenClearTimerRef.current = null;
+                        }
                         setPromptDialogOpen(true);
                     }}
                     disabled={isGenerated || mutation.isPending}
@@ -219,6 +259,16 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
                     <p className="text-[10px] font-black text-red-500 text-center animate-in fade-in slide-in-from-top-1 px-1 max-w-[140px] mx-auto uppercase tracking-tighter leading-tight">
                         {generationError}
                     </p>
+                )}
+                {imageGenLog && (
+                    <div className="mt-1 px-1 max-w-[200px] mx-auto space-y-1 animate-in fade-in slide-in-from-top-1">
+                        <p className="text-[9px] font-black text-teal-700 text-center uppercase tracking-tight leading-tight">
+                            {formatFeaturedImageGenerationLog(imageGenLog)}
+                        </p>
+                        <p className="text-[8px] font-medium text-teal-600/90 text-center leading-snug line-clamp-5">
+                            {imageGenLog.detail}
+                        </p>
+                    </div>
                 )}
             </div>
         </MotionDiv>
@@ -267,7 +317,10 @@ export function CrawledArticleCard({ article, variants }: CrawledArticleCardProp
         <GenerateArticleModal
             open={promptDialogOpen}
             onOpenChange={setPromptDialogOpen}
-            onGenerate={(prompt, categoryId, language) => mutation.mutate({ prompt, categoryId, language })}
+            crawledThumbnailUrl={getValidImageSrc(article.imageUrl)}
+            onGenerate={(prompt, categoryId, language, generateImage) =>
+                mutation.mutate({ prompt, categoryId, language, generateImage })
+            }
             isPending={mutation.isPending}
         />
 

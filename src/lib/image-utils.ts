@@ -1,3 +1,30 @@
+/** Returns a src safe for next/image, or null if invalid. */
+export function getValidImageSrc(src: string | null | undefined): string | null {
+  if (src == null) return null;
+  const trimmed = src.trim();
+  if (!trimmed) return null;
+
+  if (trimmed.startsWith("/")) {
+    return trimmed;
+  }
+
+  let candidate = trimmed;
+  if (candidate.startsWith("//")) {
+    candidate = `https:${candidate}`;
+  }
+
+  try {
+    const url = new URL(candidate);
+    if (url.protocol === "http:" || url.protocol === "https:") {
+      return candidate;
+    }
+  } catch {
+    // not a valid absolute URL
+  }
+
+  return null;
+}
+
 /**
  * Consistent color selection for a title
  */
