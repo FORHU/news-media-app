@@ -29,9 +29,9 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
   const logoUrl = `${baseUrl}${logoPath}`;
   const { absolute: ogImageAbsolute } = buildOgImageUrl(logoUrl, baseUrl);
   const iconPath = getSiteIconFromDomain(domain);
-  const icoUrl = `${baseUrl}${iconPath}?v=2`;
-  const pngPath = iconPath.replace('/icons/', '/favicon/').replace('.ico', '.png');
-  const pngUrl = `${baseUrl}${pngPath}?v=2`;
+  const icoUrl = `${iconPath}?v=2`;
+  const hasPng = !iconPath.includes('newsicons.ico');
+  const pngUrl = hasPng ? iconPath.replace('/icons/', '/favicon/').replace('.ico', '.png') + '?v=2' : null;
 
   console.log(`[Layout Metadata] Generating for ${domain}:`, {
     siteName,
@@ -63,12 +63,9 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
       ],
     },
     icons: {
-      icon: [
-        { url: icoUrl, type: 'image/x-icon' },
-        { url: pngUrl, sizes: '512x512', type: 'image/png' },
-      ],
+      icon: icoUrl,
       shortcut: icoUrl,
-      apple: pngUrl,
+      apple: pngUrl || icoUrl,
     },
     alternates: {
       canonical: "/",

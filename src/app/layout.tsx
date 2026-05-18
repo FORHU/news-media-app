@@ -121,10 +121,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: siteDescription,
     icons: {
-      icon: pngUrl ? [
-        { url: icoUrl, type: 'image/x-icon' },
-        { url: pngUrl, sizes: '512x512', type: 'image/png' },
-      ] : icoUrl,
+      icon: icoUrl,
       shortcut: icoUrl,
       apple: pngUrl || icoUrl,
     },
@@ -165,11 +162,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <head>
-        {isJejuTime && (
-          <script
-            src="https://pl29482469.effectivecpmnetwork.com/78/b5/21/78b521334f8a5ea3b34dbf21c6f9fafc.js"
-          ></script>
-        )}
+        {/* Popunder script removed to prevent 'click anywhere opens new tab' behavior */}
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${roboto.variable} ${notoSerifJP.variable} ${ebGaramond.variable} ${libreBaskerville.variable} ${spaceMono.variable} ${plusJakartaSans.variable} ${arima.variable} ${mulish.variable} ${voltaire.variable} ${inter.variable} ${montserrat.variable} ${lora.variable} antialiased`}

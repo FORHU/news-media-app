@@ -21,6 +21,7 @@ const JejuTimeTrendingProducts = dynamic(() => import("./JejuTimeTrendingProduct
 import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
 import { Suspense } from "react";
+import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 
 interface Props {
    tenantId: string | null;
@@ -117,12 +118,16 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
       articles: articlesByCategory[cat].slice(0, 3)
    }));
 
-
-
    return (
       <div className="bg-[#F8FAFC] text-[#2D3748] font-roboto selection:bg-blue-100">
          <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-4">
             <AdBanner position="HOME_TOP" initialBanners={banners.top} />
+            <div className="hidden sm:block">
+               <AdsterraBanner bannerKey="aba00b63b5a389e5d2af90b014ec46c7" width={728} height={90} />
+            </div>
+            <div className="block sm:hidden">
+               <AdsterraBanner bannerKey="f43b5973d25d0c609c5967198688e794" width={320} height={50} />
+            </div>
          </div>
 
          <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
@@ -399,6 +404,9 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                         initialBanners={banners.sidebar}
                         className="!bg-white !shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] !p-4 !border-slate-100 !rounded-none"
                      />
+                     <div className="bg-white p-4 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-100">
+                        <AdsterraBanner bannerKey="9d6eb67243a0a0a49ad01beafe38cbef" width={300} height={250} />
+                     </div>
                   </div>
                </div>
             </section>
