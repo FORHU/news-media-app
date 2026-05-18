@@ -3,6 +3,7 @@ import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain
 import { prisma } from "@/lib/db";
 import { bannersService } from "@/services/banners.service";
 import { Metadata } from "next";
+import Script from "next/script";
 
 export async function generateStaticParams() {
   try {
@@ -28,13 +29,17 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
   const logoPath = `/Logo/${getSiteLogoFromDomain(domain)}`;
   const logoUrl = `${baseUrl}${logoPath}`;
   const { absolute: ogImageAbsolute } = buildOgImageUrl(logoUrl, baseUrl);
-  const iconUrl = `${baseUrl}${getSiteIconFromDomain(domain)}?v=2`;
+  const iconPath = getSiteIconFromDomain(domain);
+  const icoUrl = `${baseUrl}${iconPath}?v=2`;
+  const pngPath = iconPath.replace('/icons/', '/favicon/').replace('.ico', '.png');
+  const pngUrl = `${baseUrl}${pngPath}?v=2`;
 
   console.log(`[Layout Metadata] Generating for ${domain}:`, {
     siteName,
     baseUrl,
     logoUrl,
-    iconUrl
+    icoUrl,
+    pngUrl
   });
 
   return {
@@ -60,11 +65,11 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
     },
     icons: {
       icon: [
-        { url: iconUrl, type: 'image/png' },
-        { url: iconUrl, sizes: '32x32', type: 'image/png' },
+        { url: icoUrl, type: 'image/x-icon' },
+        { url: pngUrl, sizes: '512x512', type: 'image/png' },
       ],
-      shortcut: iconUrl,
-      apple: iconUrl,
+      shortcut: icoUrl,
+      apple: pngUrl,
     },
     alternates: {
       canonical: "/",
@@ -81,9 +86,18 @@ export default async function SiteLayout({
 }) {
   const { domain } = await params;
   const tenantId = await resolveTenantIdFromDomain(domain);
+  const isJejuTime = domain.toLowerCase().includes('jejutime');
 
   return (
     <div className={`site-theme-${domain.replace(".", "-")}`}>
+      {isJejuTime && (
+        <Script 
+          async 
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6570729717113319" 
+          crossOrigin="anonymous" 
+          strategy="afterInteractive"
+        />
+      )}
       <SiteShell domain={domain}>
         {children}
       </SiteShell>
