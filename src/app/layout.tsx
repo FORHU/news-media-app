@@ -152,19 +152,32 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = await headers();
+  const host = headersList.get("host");
+  const domain = normalizeHostToDomain(host);
+  const isJejuTime = domain?.toLowerCase().includes('jejutime');
+
   return (
     <html lang="en">
+      <head>
+        {isJejuTime && (
+          <script
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6570729717113319"
+            crossOrigin="anonymous"
+          ></script>
+        )}
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${roboto.variable} ${notoSerifJP.variable} ${ebGaramond.variable} ${libreBaskerville.variable} ${spaceMono.variable} ${plusJakartaSans.variable} ${arima.variable} ${mulish.variable} ${voltaire.variable} ${inter.variable} ${montserrat.variable} ${lora.variable} antialiased`}
       >
         <Providers>{children}</Providers>
       </body>
-
     </html>
   );
 }
