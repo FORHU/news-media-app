@@ -2,20 +2,20 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { dehydrate } from "@tanstack/react-query";
 import { notFound, redirect } from "next/navigation";
-import { headers } from "next/headers";
+
 import { createQueryClient } from "@/lib/react-query";
 import { Hydrate } from "@/components/react-query/Hydrate";
 import {
   articlesService,
-  ArticlesServiceError,
 } from "@/services/articles.service";
-import { DEFAULT_OG_IMAGE, DEFAULT_SEO } from "@/config/site";
+import { DEFAULT_OG_IMAGE } from "@/config/site";
 import ArticlePageClient from "./ArticlePageClient";
 import JejuJapanArticle from "@/components/sites/jejujapan/JejuJapanArticle";
 import JejuQQArticle from "@/components/sites/jejuqq/JejuQQArticle";
 import JejuTimeArticle from "@/components/sites/jejutime/JejuTimeArticle";
 import { VoiceJejuArticle } from "@/components/sites/voicejeju/VoiceJejuArticle"; // Site-specific article component
-import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain } from "@/lib/tenant";
+import SkyBluePrimeArticle from "@/components/sites/skyblueprime/SkyBluePrimeArticle";
+import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain, getSiteDescriptionFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
 
 // Pre-render the top 20 articles per domain at build time (SSG).
@@ -101,13 +101,13 @@ export async function generateMetadata({
 
     return {
       metadataBase: new URL(baseUrl),
-      title: siteName,
-      description: DEFAULT_SEO.description,
+      title: "Article",
+      description: getSiteDescriptionFromDomain(domain),
       icons: { icon },
       alternates: { canonical: articleUrl },
       openGraph: {
-        title: siteName,
-        description: DEFAULT_SEO.description,
+        title: "Article",
+        description: getSiteDescriptionFromDomain(domain),
         url: articleUrl,
         type: "article",
         siteName,
@@ -115,8 +115,8 @@ export async function generateMetadata({
       },
       twitter: {
         card: "summary_large_image",
-        title: siteName,
-        description: DEFAULT_SEO.description,
+        title: "Article",
+        description: getSiteDescriptionFromDomain(domain),
         images: ogImages.map((i) => i.url),
       },
     };
@@ -124,8 +124,8 @@ export async function generateMetadata({
 
   try {
     const article = await articlesService.getArticleBySlugOrId(articleId, tenantId);
-    const title = article.title ?? siteName;
-    const description = cleanOgDescription(article.content ?? DEFAULT_SEO.description, 160);
+    const title = article.title ?? "Article";
+    const description = cleanOgDescription(article.content ?? getSiteDescriptionFromDomain(domain), 160);
     const canonicalSlug = article.slug ?? article.id;
     const articlePath = `/article/${encodeURIComponent(canonicalSlug)}`;
     const articleUrl = `${baseUrl}${articlePath}`;
@@ -137,7 +137,7 @@ export async function generateMetadata({
       rawOgImage,
       baseUrl
     );
-    const usedDbImage = Boolean(dbImageUrl?.trim());
+
 
     const icon = getSiteIconFromDomain(domain);
 
@@ -200,7 +200,7 @@ export async function generateMetadata({
         images: ogImages.map((i) => i.url),
       },
     };
-  } catch (error) {
+  } catch {
     const fallbackImage = logoUrl || DEFAULT_OG_IMAGE;
     const { optimized: ogImageOptimized, absolute: ogImageAbsolute } = buildOgImageUrl(
       fallbackImage,
@@ -226,13 +226,13 @@ export async function generateMetadata({
 
     return {
       metadataBase: new URL(baseUrl),
-      title: siteName,
-      description: DEFAULT_SEO.description,
+      title: "Article",
+      description: getSiteDescriptionFromDomain(domain),
       icons: { icon },
       alternates: { canonical: articleUrl },
       openGraph: {
-        title: siteName,
-        description: DEFAULT_SEO.description,
+        title: "Article",
+        description: getSiteDescriptionFromDomain(domain),
         url: articleUrl,
         type: "article",
         siteName,
@@ -240,8 +240,8 @@ export async function generateMetadata({
       },
       twitter: {
         card: "summary_large_image",
-        title: siteName,
-        description: DEFAULT_SEO.description,
+        title: "Article",
+        description: getSiteDescriptionFromDomain(domain),
         images: ogImages.map((i) => i.url),
       },
     };
@@ -312,6 +312,8 @@ export default async function ArticlePage({
           <JejuTimeArticle articleId={canonicalSlug} initialOtherArticles={allArticles} />
         ) : domain === "voicejeju.com" ? (
           <VoiceJejuArticle articleId={canonicalSlug} initialOtherArticles={allArticles} />
+        ) : domain === "skyblueprime.com" ? (
+          <SkyBluePrimeArticle articleId={canonicalSlug} initialOtherArticles={allArticles} />
         ) : (
           <ArticlePageClient articleId={canonicalSlug} initialOtherArticles={allArticles} domain={domain} />
         )}

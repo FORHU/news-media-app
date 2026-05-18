@@ -80,6 +80,20 @@ const getDomainTheme = (domain: string): ThemeClasses => {
       gradient: "from-black/5",
     };
   }
+  if (domain.includes("skyblueprime")) {
+    return {
+      bg: "bg-sky-950",
+      text: "text-sky-950",
+      border: "border-sky-950",
+      borderFocus: "focus:border-sky-950",
+      hoverBg: "hover:bg-sky-900",
+      hoverText: "hover:text-sky-950",
+      bgLight: "bg-sky-50",
+      bgLight10: "bg-sky-950/10",
+      font: "font-sans",
+      gradient: "from-sky-950/5",
+    };
+  }
   // Default / NewsIcons
   return {
     bg: "bg-[#ff4500]",

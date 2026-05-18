@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { TENANT_DOMAIN_COOKIE, getTenantDomainFromRequest, resolveTenantIdFromDomain } from "@/lib/tenant";
+import { TENANT_DOMAIN_COOKIE, getTenantDomainFromRequest, resolveTenantIdFromDomain, getSiteLogoFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
 
 const ADMIN_ROLE_COOKIE = "admin_verified";
@@ -33,12 +33,7 @@ export async function proxy(request: NextRequest) {
         // Handle logo.png specifically to provide domain-specific logos
         if (pathname === "/logo.png") {
             const url = request.nextUrl.clone();
-            const logoFile = 
-                tenantDomain === "jejujapan.com" ? "JEJUJAPANLOGO.png" : 
-                tenantDomain === "jejuqq.com" ? "JEJUQQLOGO.png" : 
-                tenantDomain === "voicejeju.com" ? "VOICEJEJULOGO.png" : 
-                tenantDomain === "newsicons.com" ? "JEJUTIMELOGO.png" : // Placeholder until specific file exists
-                "JEJUTIMELOGO.png"; // Default fallback
+            const logoFile = getSiteLogoFromDomain(tenantDomain);
             url.pathname = `/Logo/${logoFile}`;
             return NextResponse.rewrite(url);
         }

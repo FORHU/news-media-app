@@ -8,6 +8,7 @@ import { Mail, Lock, Eye, EyeOff, AlertCircle, ChevronRight, ArrowLeft } from 'l
 import { supabase } from '@/lib/supabaseClient';
 import { adminLoginSchema } from '@/lib/validation/login';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getSiteIconFromDomain } from '@/lib/tenant-utils';
 
 /* ─── Domain theme config ─── */
 type Theme = {
@@ -44,6 +45,7 @@ function useTheme(): Theme {
   if (domain.includes('jejuqq'))   return jejuQQTheme;
   if (domain.includes('jejutime')) return jejuTimeTheme;
   if (domain.includes('voicejeju')) return voiceJejuTheme;
+  if (domain.includes('skyblueprime')) return skyBluePrimeTheme;
   return newsIconsTheme;
 }
 
@@ -228,6 +230,39 @@ const jejuTimeTheme: Theme = {
   siteName: 'JejuTime',
 };
 
+/* ── SkyBluePrime ── */
+const skyBluePrimeTheme: Theme = {
+  bg: 'min-h-screen bg-sky-50 flex items-center justify-center px-4 py-12 relative overflow-y-auto',
+  card: 'bg-white border-t-8 border-sky-950 shadow-2xl p-8 md:p-12 relative overflow-hidden rounded-sm',
+  topBar: '',
+  logo: (
+    <div className="text-center mb-10 flex flex-col items-center">
+      <div className="text-3xl font-black tracking-tighter text-white bg-sky-950 px-3 py-1 leading-none mb-2">
+        SKY<span className="text-sky-400">BLUE</span>PRIME
+      </div>
+      <p className="text-[10px] font-bold tracking-[0.3em] text-sky-600 uppercase mt-2">Admin Portal</p>
+    </div>
+  ),
+  accent: '#082f49', // sky-950
+  accentCls: 'bg-sky-950',
+  accentHover: 'hover:bg-sky-900',
+  inputFocus: 'focus:border-sky-950',
+  inputBorder: 'border-sky-200 hover:border-sky-300',
+  inputBgCls: 'bg-white',
+  inputRounded: 'rounded-none',
+  labelCls: 'text-[11px] font-bold text-sky-950 uppercase tracking-widest',
+  btnCls: 'w-full bg-sky-950 text-white py-4 font-black text-xs uppercase tracking-widest hover:bg-sky-900 disabled:opacity-60 transition-colors flex items-center justify-center gap-2 group rounded-none',
+  errorCls: 'text-xs text-red-600 bg-red-50 p-3 border border-red-200 font-bold flex items-center gap-2',
+  backCls: 'fixed top-6 left-6 sm:top-10 sm:left-10 flex items-center gap-3 text-sky-800 hover:text-sky-950 transition-all group z-10 font-bold uppercase tracking-widest text-[10px]',
+  backIconCls: 'transition-transform group-hover:-translate-x-1',
+  headingCls: 'text-2xl font-black text-sky-950 tracking-tight mb-1',
+  subtextCls: 'text-sm text-sky-600',
+  footerCls: 'text-center mt-8 text-sky-400 font-bold text-[10px] uppercase tracking-[0.25em]',
+  tagline: 'Secure Access',
+  footerText: '© Sky Blue Prime News',
+  siteName: 'Sky Blue Prime',
+};
+
 /* ─── Shared form logic ─── */
 function LoginContent() {
   const router = useRouter();
@@ -250,11 +285,7 @@ function LoginContent() {
       favicon.rel = 'icon';
       
       const domain = window.location.hostname.toLowerCase();
-      let iconPath = "/icons/newsicons.ico";
-      if (domain.includes("jejutime")) iconPath = "/icons/jejutime.ico";
-      else if (domain.includes("jejuqq")) iconPath = "/icons/jejuqq.ico";
-      else if (domain.includes("jejujapan")) iconPath = "/icons/jejujapan.ico";
-      else if (domain.includes("voicejeju")) iconPath = "/icons/voicejeju.ico";
+      const iconPath = getSiteIconFromDomain(domain);
       
       favicon.href = iconPath;
       if (!document.querySelector('link[rel="icon"]')) {

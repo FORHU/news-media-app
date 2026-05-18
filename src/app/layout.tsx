@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Playfair_Display, Roboto, Noto_Serif_JP, EB_Garamond, Libre_Baskerville, Space_Mono, Plus_Jakarta_Sans, Arima, Mulish, Voltaire, Inter } from "next/font/google";
+import { Geist, Geist_Mono, Playfair_Display, Roboto, Noto_Serif_JP, EB_Garamond, Libre_Baskerville, Space_Mono, Plus_Jakarta_Sans, Arima, Mulish, Voltaire, Inter, Montserrat, Lora } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-import { DEFAULT_OG_IMAGE, DEFAULT_SEO, SITE_URL } from "@/config/site";
+import { DEFAULT_OG_IMAGE, SITE_URL } from "@/config/site";
 import { headers } from "next/headers";
-import { normalizeHostToDomain, getSiteNameFromDomain, getSiteIconFromDomain } from "@/lib/tenant";
+import { normalizeHostToDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteDescriptionFromDomain } from "@/lib/tenant";
 
 // Root layout should be static to allow child routes to use SSG/ISR.
 // Domain-specific metadata is handled in the (sites)/[domain] layout.
@@ -85,43 +85,60 @@ const inter = Inter({
   weight: ["400", "500", "600", "700", "800"],
 });
 
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+});
+
+const lora = Lora({
+  variable: "--font-lora",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
 
 export async function generateMetadata(): Promise<Metadata> {
   const headersList = await headers();
   const host = headersList.get("host");
   const domain = normalizeHostToDomain(host);
   const siteName = getSiteNameFromDomain(domain);
-  const siteIcon = `${getSiteIconFromDomain(domain)}?v=2`;
+  const siteDescription = getSiteDescriptionFromDomain(domain);
+  const siteIcon = `${getSiteIconFromDomain(domain)}`;
+  const protocol = host?.includes("localhost") || host?.includes("127.0.0.1") ? "http" : "https";
+  const baseUrl = host ? `${protocol}://${host}` : SITE_URL;
 
   return {
-    metadataBase: new URL(SITE_URL),
+    metadataBase: new URL(baseUrl),
     title: {
-      default: DEFAULT_SEO.title,
+      default: siteName,
       template: `%s`,
     },
-    description: DEFAULT_SEO.description,
+    description: siteDescription,
     icons: {
       icon: siteIcon,
+      shortcut: siteIcon,
+      apple: siteIcon,
     },
     openGraph: {
-      title: DEFAULT_SEO.title,
-      description: DEFAULT_SEO.description,
+      title: siteName,
+      description: siteDescription,
       url: "/",
-      siteName: DEFAULT_SEO.title,
+      siteName: siteName,
       images: [
         {
           url: DEFAULT_OG_IMAGE,
           width: 1200,
           height: 630,
-          alt: DEFAULT_SEO.title,
+          alt: siteName,
         },
       ],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
-      title: DEFAULT_SEO.title,
-      description: DEFAULT_SEO.description,
+      title: siteName,
+      description: siteDescription,
       images: [DEFAULT_OG_IMAGE],
     },
   };
@@ -135,7 +152,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${roboto.variable} ${notoSerifJP.variable} ${ebGaramond.variable} ${libreBaskerville.variable} ${spaceMono.variable} ${plusJakartaSans.variable} ${arima.variable} ${mulish.variable} ${voltaire.variable} ${inter.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${roboto.variable} ${notoSerifJP.variable} ${ebGaramond.variable} ${libreBaskerville.variable} ${spaceMono.variable} ${plusJakartaSans.variable} ${arima.variable} ${mulish.variable} ${voltaire.variable} ${inter.variable} ${montserrat.variable} ${lora.variable} antialiased`}
       >
         <Providers>{children}</Providers>
       </body>

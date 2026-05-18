@@ -9,8 +9,7 @@ import { TrendingProductsSection } from "@/components/home/trending-products-sec
 import { AdBanner } from "@/components/AdBanner";
 import { articlesService } from "@/services/articles.service";
 import { bannersService } from "@/services/banners.service";
-import { DEFAULT_OG_IMAGE, DEFAULT_SEO } from "@/config/site";
-import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain } from "@/lib/tenant";
+import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain, getSiteDescriptionFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
 
 // Domain-specific designs
@@ -19,6 +18,7 @@ import JejuTimeLanding from "@/components/sites/jejutime/JejuTimeLanding";
 import JejuQQLanding from "@/components/sites/jejuqq/JejuQQLanding";
 import JejuJapanLanding from "@/components/sites/jejujapan/JejuJapanLanding";
 import { VoiceJejuLanding } from "@/components/sites/voicejeju/VoiceJejuLanding";
+import SkyBluePrimeLanding from "@/components/sites/skyblueprime/SkyBluePrimeLanding";
 
 export const revalidate = 300;
 
@@ -58,8 +58,10 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
 
   return {
     metadataBase: new URL(baseUrl),
-    title: siteName,
-    description: DEFAULT_SEO.description,
+    title: {
+      absolute: `${siteName} | ${getSiteDescriptionFromDomain(domain)}`,
+    },
+    description: getSiteDescriptionFromDomain(domain),
     icons: {
       icon: icon,
     },
@@ -68,7 +70,7 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
     },
     openGraph: {
       title: siteName,
-      description: DEFAULT_SEO.description,
+      description: getSiteDescriptionFromDomain(domain),
       url: baseUrl,
       type: "website",
       images: [
@@ -89,7 +91,7 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
     twitter: {
       card: "summary_large_image",
       title: siteName,
-      description: DEFAULT_SEO.description,
+      description: getSiteDescriptionFromDomain(domain),
       images: [ogImageAbsolute, ogImageOptimized],
     },
   };
@@ -192,6 +194,10 @@ export default async function Page({
 
   if (domain === "voicejeju.com") {
     return <VoiceJejuLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
+  }
+
+  if (domain === "skyblueprime.com") {
+    return <SkyBluePrimeLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
   }
 
   // Default design (current layout)

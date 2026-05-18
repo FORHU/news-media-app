@@ -1,4 +1,4 @@
-export function buildNewsletterOtpHtml(code: string) {
+export function buildNewsletterOtpHtml(code: string, siteName: string) {
   return `
     <div style="margin:0;padding:0;background-color:#f4f6f8;font-family:Arial,Helvetica,sans-serif;">
       <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
@@ -9,8 +9,8 @@ export function buildNewsletterOtpHtml(code: string) {
                      box-shadow:0 8px 24px rgba(0,0,0,0.08);padding:40px;">
               <tr>
                 <td align="center" style="padding-bottom:24px;">
-                  <h1 style="margin:0;font-size:22px;color:#ff4500;">
-                    NewsIcons
+                  <h1 style="margin:0;font-size:22px;color:#2563eb;">
+                    ${siteName}
                   </h1>
                 </td>
               </tr>

@@ -1,6 +1,7 @@
 import { newsletterRepository } from "@/repositories/newsletter.repository";
 import { sendNewsletterOtpEmail } from "@/lib/email/newsletterOtp";
 import { NewsletterServiceError } from "@/services/newsletter/NewsletterServiceError";
+import { getTenantById, getSiteNameFromDomain } from "@/lib/tenant";
 
 const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 const MAX_SENDS_PER_WINDOW = 3;
@@ -55,8 +56,14 @@ export const newsletterService = {
       attempts,
     });
 
+    // Resolve tenant info for dynamic email branding
+    const tenant = await getTenantById(tenantId);
+    const domain = tenant?.domain || null;
+    const siteName = tenant?.siteName || getSiteNameFromDomain(domain);
+    const senderDomain = domain || "newsicons.com";
+
     await newsletterRepository.updateLastOtpSentAt(email, tenantId, now);
-    await sendNewsletterOtpEmail(email, code);
+    await sendNewsletterOtpEmail(email, code, siteName, senderDomain);
   },
 
   async verifyOtp(

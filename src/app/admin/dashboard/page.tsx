@@ -9,6 +9,7 @@ import DashboardStatsGrid from '@/components/admin/dashboard/DashboardStatsGrid'
 import ActivityFeed from '@/components/admin/dashboard/ActivityFeed';
 import QueueStatusCard from '@/components/admin/dashboard/HealthMetricsCard';
 import { useQuery } from '@tanstack/react-query';
+import { getSiteNameFromDomain, getSiteIconFromDomain } from '@/lib/tenant-utils';
 
 export default function DashboardPage() {
     const { data, isFetching, isLoading } = useQuery({
@@ -29,22 +30,8 @@ export default function DashboardPage() {
     // Set domain-specific title and favicon
     useEffect(() => {
         const hostname = window.location.hostname.toLowerCase();
-        let siteName = "NewsIcons";
-        let iconPath = "/icons/newsicons.ico";
-        
-        if (hostname.includes('jejujapan')) {
-            siteName = "JejuJapan";
-            iconPath = "/icons/jejujapan.ico";
-        } else if (hostname.includes('jejuqq')) {
-            siteName = "JejuQQ";
-            iconPath = "/icons/jejuqq.ico";
-        } else if (hostname.includes('jejutime')) {
-            siteName = "JejuTime";
-            iconPath = "/icons/jejutime.ico";
-        } else if (hostname.includes('voicejeju')) {
-            siteName = "VoiceJeju";
-            iconPath = "/icons/voicejeju.ico";
-        }
+        const siteName = getSiteNameFromDomain(hostname);
+        const iconPath = getSiteIconFromDomain(hostname);
         
         document.title = `Admin Dashboard | ${siteName}`;
         

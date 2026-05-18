@@ -48,6 +48,14 @@ export const DOMAIN_COLORS: Record<string, DomainColor> = {
     hoverBgClass: "hover:bg-[#e03d00]",
     ringClass: "focus:ring-[#ff4500]/20",
   },
+  "skyblueprime.com": {
+    hex: "#0284c7",
+    bgClass: "bg-sky-600",
+    textClass: "text-sky-600",
+    borderClass: "border-sky-600",
+    hoverBgClass: "hover:bg-sky-700",
+    ringClass: "focus:ring-sky-600/20",
+  },
 };
 
 export function getDomainColor(domain: string = ""): DomainColor {
@@ -57,6 +65,7 @@ export function getDomainColor(domain: string = ""): DomainColor {
   if (normalized.includes("jejutime")) return DOMAIN_COLORS["jejutime.com"];
   if (normalized.includes("jejuqq")) return DOMAIN_COLORS["jejuqq.com"];
   if (normalized.includes("jejujapan")) return DOMAIN_COLORS["jejujapan.com"];
+  if (normalized.includes("skyblueprime")) return DOMAIN_COLORS["skyblueprime.com"];
   
   // Default to NewsIcons
   return DOMAIN_COLORS["newsicons.com"];

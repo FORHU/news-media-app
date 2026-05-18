@@ -28,7 +28,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { FacebookShareButton } from "./FacebookShareButton";
 
-type SiteTheme = "jejutime" | "jejuqq" | "jejujapan" | "newsicons" | "voicejeju";
+type SiteTheme = "jejutime" | "jejuqq" | "jejujapan" | "newsicons" | "voicejeju" | "skyblueprime";
 
 function normalizeShareUrl(input: string) {
   try {
@@ -245,6 +245,14 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
           item: "rounded-none border-black hover:border-[#bc002d] transition-all",
           copyBtn: "bg-black text-white hover:bg-[#bc002d] rounded-none border-none",
         };
+      case "skyblueprime":
+        return {
+          trigger: "bg-sky-950 hover:bg-sky-800 text-white rounded-none px-10 py-3 transition-colors font-sans text-xs font-black uppercase tracking-widest shadow-md",
+          modal: "sm:max-w-lg bg-white border-[3px] border-sky-950 rounded-none shadow-2xl",
+          header: "text-sky-950 font-black text-2xl uppercase tracking-tighter",
+          item: "rounded-none border-sky-100 hover:border-sky-950 hover:bg-sky-50 transition-all",
+          copyBtn: "bg-sky-950 text-white hover:bg-sky-800 rounded-none border-none",
+        };
       case "newsicons":
       default:
         return {
@@ -274,7 +282,9 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
                   ? "text-[#b91c1c] font-garamond text-sm"
                   : site === "jejujapan"
                     ? "text-black/40 font-noto"
-                    : "text-gray-400"
+                    : site === "skyblueprime"
+                      ? "text-sky-500"
+                      : "text-gray-400"
           )}
         >
           {site === "jejuqq" ? "Share the Story" : site === "jejujapan" ? "SHARE" : "Share this article"}
@@ -290,7 +300,8 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
         site === "voicejeju" ? "text-black font-inter" : 
         site === "jejutime" ? "text-blue-600/60" : 
         site === "jejuqq" ? "text-[#b91c1c] font-garamond text-sm" : 
-        site === "jejujapan" ? "text-black/40 font-noto" : "text-gray-400"
+        site === "jejujapan" ? "text-black/40 font-noto" : 
+        site === "skyblueprime" ? "text-sky-500" : "text-gray-400"
       )}>
         {site === "jejuqq" ? "Share the Story" : site === "jejujapan" ? "SHARE" : "Share this article"}
       </p>

@@ -3,7 +3,6 @@ import { Suspense } from "react";
 import { FilterStatusBar } from "@/components/home/filter-status-bar";
 import { LatestStoriesSection } from "@/components/home/latest-stories-section";
 import { articlesService } from "@/services/articles.service";
-import { DEFAULT_OG_IMAGE, DEFAULT_SEO } from "@/config/site";
 import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain } from "@/lib/tenant";
 import { getRequestBaseUrl, buildOgImageUrl } from "@/lib/metadata";
 
@@ -16,13 +15,13 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
   const { absolute: ogImageAbsolute } = buildOgImageUrl(logoUrl, baseUrl);
 
   return {
-    title: `Search | ${siteName}`,
+    title: "Search",
     description: `Search results for ${siteName}`,
     icons: {
       icon: getSiteIconFromDomain(domain),
     },
     openGraph: {
-      title: `Search | ${siteName}`,
+      title: "Search",
       description: `Search results for ${siteName}`,
       url: "/search",
       type: "website",
@@ -38,7 +37,7 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
     },
     twitter: {
       card: "summary_large_image",
-      title: `Search | ${siteName}`,
+      title: "Search",
       description: `Search results for ${siteName}`,
       images: [ogImageAbsolute],
     },
@@ -65,7 +64,7 @@ export default async function SearchPage({
   return (
     <Suspense 
       key={suspenseKey} 
-      fallback={<LatestStoriesSkeleton domain={domain} />}
+      fallback={<LatestStoriesSkeleton />}
     >
       <SearchContent 
         domain={domain} 
@@ -120,7 +119,7 @@ async function SearchContent({
   );
 }
 
-function LatestStoriesSkeleton({ domain }: { domain: string }) {
+function LatestStoriesSkeleton() {
   return (
     <div className="space-y-6">
       {/* Skeleton for FilterStatusBar */}
