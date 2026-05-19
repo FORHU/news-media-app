@@ -20,6 +20,8 @@ export function AdsterraNativeBanner({ domain: propDomain }: AdsterraNativeBanne
         setResolvedDomain("voicejeju.com");
       } else if (hostname.includes("jejujapan")) {
         setResolvedDomain("jejujapan.com");
+      } else if (hostname.includes("jejuqq")) {
+        setResolvedDomain("jejuqq.com");
       } else {
         setResolvedDomain("jejutime.com");
       }
@@ -43,7 +45,7 @@ export function AdsterraNativeBanner({ domain: propDomain }: AdsterraNativeBanne
     script.src = config.src;
     script.async = true;
     script.setAttribute("data-cfasync", "false");
-    
+
     container?.appendChild(script);
 
     return () => {

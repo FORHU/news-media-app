@@ -24,6 +24,8 @@ export default async function SearchLayout({
     ? "jejutime"
     : domain.toLowerCase().includes("jejujapan")
     ? "jejujapan"
+    : domain.toLowerCase().includes("jejuqq")
+    ? "jejuqq"
     : "default";
 
   const tenantConfig = ADSTERRA_CONFIG[tenantKey];

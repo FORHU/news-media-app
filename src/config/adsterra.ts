@@ -31,7 +31,7 @@ export const ADSTERRA_CONFIG: Record<string, AdsterraTenantConfig> = {
       src: "https://pl29482512.effectivecpmnetwork.com/055aa9559be0d3784216da85175a7203/invoke.js",
     },
     banners: {
-      "300x250": "055aa9559be0d3784216da85175a7203", 
+      "300x250": "055aa9559be0d3784216da85175a7203",
       "728x90": "",
       "468x60": "",
       "320x50": "",
@@ -96,14 +96,39 @@ export const ADSTERRA_CONFIG: Record<string, AdsterraTenantConfig> = {
       height: 250,
     },
   },
+  jejuqq: {
+    socialBar: "", // no pop ups
+    native: {
+      containerId: "container-249d6e5263194c6c4d2cd786de3d20a3",
+      src: "https://pl29491540.effectivecpmnetwork.com/249d6e5263194c6c4d2cd786de3d20a3/invoke.js",
+    },
+    banners: {
+      "300x250": "0d641095120f1a94de002144a7ab6071",
+      "728x90": "c44f7e113d44ecd1e176d1d5f7b0ea88",
+      "468x60": "1f3fee34834b51851cdb8d28ff764667",
+      "320x50": "3f85e849865490176ce92ad336244905",
+      "160x600": "66034c1234e0e862f1ad53b987a30ab5",
+    },
+    midArticle: {
+      key: "0d641095120f1a94de002144a7ab6071",
+      width: 300,
+      height: 250,
+    },
+    midFeed: {
+      key: "0d641095120f1a94de002144a7ab6071",
+      width: 300,
+      height: 250,
+    },
+  },
 };
 
 /**
  * Resolves the tenant key based on domain or hostname
  */
-export function getAdsterraTenant(domain: string): "jejujapan" | "voicejeju" | "jejutime" {
+export function getAdsterraTenant(domain: string): "jejujapan" | "voicejeju" | "jejutime" | "jejuqq" {
   const normalized = domain.toLowerCase();
   if (normalized.includes("jejujapan")) return "jejujapan";
   if (normalized.includes("voicejeju")) return "voicejeju";
+  if (normalized.includes("jejuqq")) return "jejuqq";
   return "jejutime";
 }

@@ -65,51 +65,53 @@ export default async function SearchPage({
   const suspenseKey = `${searchQuery || ""}-${categoryParam || ""}`;
 
   return (
-    <Suspense 
-      key={suspenseKey} 
+    <Suspense
+      key={suspenseKey}
       fallback={<LatestStoriesSkeleton />}
     >
-      <SearchContent 
-        domain={domain} 
-        searchQuery={searchQuery} 
-        categoryParam={categoryParam} 
-        tenantId={tenantId} 
+      <SearchContent
+        domain={domain}
+        searchQuery={searchQuery}
+        categoryParam={categoryParam}
+        tenantId={tenantId}
       />
     </Suspense>
   );
 }
 
-async function SearchContent({ 
-  domain, 
-  searchQuery, 
-  categoryParam, 
-  tenantId 
-}: { 
-  domain: string; 
-  searchQuery?: string; 
-  categoryParam?: string; 
+async function SearchContent({
+  domain,
+  searchQuery,
+  categoryParam,
+  tenantId
+}: {
+  domain: string;
+  searchQuery?: string;
+  categoryParam?: string;
   tenantId: string | null;
 }) {
   const articles = tenantId
     ? await articlesService.getArticles(
-        {
-          limit: 50,
-          search: searchQuery,
-          category: categoryParam,
-          status: "published",
-        },
-        tenantId
-      )
+      {
+        limit: 50,
+        search: searchQuery,
+        category: categoryParam,
+        status: "published",
+      },
+      tenantId
+    )
     : [];
 
   // Dynamic Tenant Resolution for Adsterra Config
   const tenantKey = domain.toLowerCase().includes("voicejeju")
     ? "voicejeju"
     : domain.toLowerCase().includes("jejutime")
-    ? "jejutime"
-    : domain.toLowerCase().includes("jejujapan")
-    ? "jejujapan"
-    : "default";
+      ? "jejutime"
+      : domain.toLowerCase().includes("jejujapan")
+        ? "jejujapan"
+        : domain.toLowerCase().includes("jejuqq")
+          ? "jejuqq"
+          : "default";
 
   const tenantConfig = ADSTERRA_CONFIG[tenantKey];
   const adKeys = tenantConfig?.banners;
@@ -164,10 +166,10 @@ function LatestStoriesSkeleton() {
     <div className="space-y-6">
       {/* Skeleton for FilterStatusBar */}
       <div className="mb-6 h-16 bg-gray-50 border border-gray-200 rounded-lg animate-pulse" />
-      
+
       {/* Heading Skeleton */}
       <div className="h-8 w-48 bg-gray-100 rounded mb-6 animate-pulse" />
-      
+
       {/* Latest Stories Skeleton Items */}
       {Array.from({ length: 5 }).map((_, idx) => (
         <div key={idx} className="flex gap-4 pb-6 border-b border-gray-200 animate-pulse">
