@@ -21,8 +21,8 @@ interface JejuJapanFooterProps {
 export default function JejuJapanFooter({ onOpenNewsletter, footerBanners }: JejuJapanFooterProps) {
   return (
     <>
-      <div className="max-w-7xl mx-auto px-6 w-full mb-4 mt-4">
-        <AdBanner position="GLOBAL_FOOTER" />
+      <div className="max-w-7xl mx-auto px-6 w-full">
+        <AdBanner position="GLOBAL_FOOTER" className="my-4" />
       </div>
       <footer className="bg-[#1a1a1a] border-t border-white/10 pt-16 pb-8">
       <div className="max-w-7xl mx-auto px-6">

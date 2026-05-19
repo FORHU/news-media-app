@@ -3,7 +3,19 @@ import sharp from "sharp";
 const OPENAI_IMAGES_EDITS = "https://api.openai.com/v1/images/edits";
 const OPENAI_IMAGES_GENERATIONS = "https://api.openai.com/v1/images/generations";
 const MAX_SOURCE_DOWNLOAD_BYTES = 8 * 1024 * 1024;
-const DALLE_EDIT_SIZE = 1024;
+/** Default landscape hero size (wider than square). Override with OPENAI_IMAGE_SIZE e.g. 1792x1024 */
+const DEFAULT_OPENAI_IMAGE_SIZE = "1536x1024";
+
+function getOpenAiImageSize(): string {
+  const raw = process.env.OPENAI_IMAGE_SIZE?.trim();
+  if (raw && /^\d+x\d+$/i.test(raw)) return raw.toLowerCase();
+  return DEFAULT_OPENAI_IMAGE_SIZE;
+}
+
+function getOpenAiImageDimensions(): { width: number; height: number } {
+  const [w, h] = getOpenAiImageSize().split("x").map(Number);
+  return { width: w, height: h };
+}
 const MAX_EDIT_PROMPT_CHARS = 1200;
 const DALLE3_MAX_PROMPT_CHARS = 4000;
 /** Thematic excerpt only — long verbatim source text makes DALL·E mimic the crawled photo. */
@@ -26,14 +38,17 @@ export function buildCrawledImageEditPrompt(
 ): string {
   const title = articleTitle.trim().slice(0, 220);
   const extra = userWritingPrompt.trim().slice(0, 380);
+  
   const base = [
-    "Heavily re-imagine this reference image: the result must read as a clearly different photograph, not a mild crop or color tweak.",
-    "Change setting, distance to subject, lighting direction, and arrangement of figures or objects. Replace recognizable runway or press-photo staging with a fresh editorial scene that only loosely fits the topic.",
-    "Remove any outlet mastheads, credit lines, stock-agency watermarks, and any clothing emblems or small logos; use plain unbranded wardrobe.",
-    "Do not preserve the same faces, poses, depth-of-field pattern, or iconic framing as the source.",
-    title ? `Story headline for thematic alignment (do not render as text): ${title}.` : "",
-    extra ? `Editor direction: ${extra}` : "",
-    "Photorealistic, natural color, high detail. No overlaid text, captions, or fake logos.",
+    "Edit this reference into a sibling image: keep clear similarities in subject matter, mood, color palette, and scene type so it still reads as the same story beat.",
+    "Display it in a unique way — different crop, camera height, depth, negative space, or asymmetry — so it is not a duplicate frame, but unmistakably related to the source.",
+    "Match the reference medium (photo, graphic, product shot, architecture, landscape, crowd, interior, etc.). Do not switch to a different category.",
+    "If the reference includes people, you may include people with different individuals and poses; if it has no people, do not add people, faces, or silhouettes.",
+    "If the reference is typography or brand graphics, keep that graphic style but use a fresh layout and shapes — do not copy the same words, split-screen, or logo arrangement.",
+    "Remove outlet watermarks, mastheads, and credit overlays. No caption text baked into the image.",
+    title ? `Topic hint only — do not render as text: ${title}.` : "",
+    extra ? `Editor notes: ${extra}.` : "",
+    "Photorealistic or clean editorial graphic as appropriate to the source. Natural, varied lighting — avoid repeating the same cinematic filter on every output.",
   ]
     .filter(Boolean)
     .join(" ");
@@ -59,16 +74,14 @@ export function buildDallE3FeaturedImagePrompt(
     .slice(0, DALLE3_STORY_CONTEXT_MAX_CHARS);
 
   const parts = [
-    "Create an ORIGINAL standalone editorial photograph for a news website hero — not a recreation of any single reference photo or thumbnail.",
-    "Interpret the topic at a thematic and atmospheric level only. Avoid copying a typical layout from the source story (e.g. identical runway lineup, same pose, same depth-of-field portrait row, or press-pool composition).",
-    "Prefer a clearly alternative scene type when the topic is fashion or events: e.g. archival display under soft gallery light, city skyline mood, tailoring workshop detail with unbranded cloth, fabric macro, conceptual still life, or silhouetted crowd — one coherent idea that fits the headline without mirroring a stock runway shot.",
-    "No visible trademarks, fashion brand logos (including small animal or crest marks on shirts), mastheads, watermarks, bylines, or readable overlaid text.",
-    "If people appear, keep them anonymous or non-identifiable; generic professional or casual clothing with zero branded marks.",
-    "Photorealistic, cinematic natural light, sharp detail, realistic color.",
-    title ? `Topic inspired by headline (never spell the headline as text in the image): ${title}.` : "",
-    extra ? `Editor direction: ${extra}` : "",
+    "Create a news hero image that feels related to the story topic — same mood, era, and subject family — but shown in a unique, memorable composition (unexpected angle, framing, or focal point).",
+    "People are optional: include them only when the story clearly calls for human subjects; otherwise use objects, places, graphics, or atmosphere alone.",
+    "If people appear, keep them generic and non-identifiable; no logos on clothing. No trademarks, watermarks, or readable headline text in the image.",
+    "Photorealistic editorial or clean graphic design as fits the topic. Lighting and color should feel natural for the scene, not the same stylized grade every time.",
+    title ? `Story topic (do not spell as text in the image): ${title}.` : "",
+    extra ? `Editor notes: ${extra}.` : "",
     context
-      ? `Short thematic notes from the article — mood and ideas only, not a shot list to copy: ${context}`
+      ? `Thematic context — mood and ideas only: ${context}`
       : "",
   ].filter(Boolean);
 
@@ -123,12 +136,13 @@ export async function fetchImageBytesFromUrl(imageUrl: string): Promise<Buffer> 
 }
 
 /**
- * OpenAI image edits require a square PNG under 4MB. Normalize arbitrary crawled assets.
+ * Normalize crawled/uploaded assets to landscape PNG under 4MB for OpenAI image edits.
  */
 export async function normalizeImageForOpenAiEdit(input: Buffer): Promise<Buffer> {
+  const { width, height } = getOpenAiImageDimensions();
   const png = await sharp(input)
     .rotate()
-    .resize(DALLE_EDIT_SIZE, DALLE_EDIT_SIZE, { fit: "cover", position: "attention" })
+    .resize(width, height, { fit: "cover", position: "attention" })
     .png({ compressionLevel: 9 })
     .toBuffer();
 
@@ -178,7 +192,7 @@ export async function generateImageWithDallE3(prompt: string): Promise<Buffer> {
       model: "dall-e-3",
       prompt,
       n: 1,
-      size: "1024x1024",
+      size: getOpenAiImageSize(),
       quality,
       style,
       response_format: "b64_json",
@@ -246,7 +260,7 @@ export async function editImageWithDallE2(
   form.append("prompt", prompt);
   form.append("model", model);
   form.append("n", "1");
-  form.append("size", `${DALLE_EDIT_SIZE}x${DALLE_EDIT_SIZE}`);
+  form.append("size", getOpenAiImageSize());
   if (gptImage) {
     form.append("output_format", "png");
     if (supportsInputFidelity(model)) {

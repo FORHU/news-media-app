@@ -27,6 +27,9 @@ import {
   stripOriginalPostBlock,
 } from "@/lib/tweetArticleDisplay";
 import { ArticleShare } from "@/components/article/ArticleShare";
+import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
+import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
+import { ADSTERRA_CONFIG } from "@/config/adsterra";
 
 
 export default function JejuJapanArticle({ 
@@ -154,8 +157,31 @@ export default function JejuJapanArticle({
   const secondHalf = paragraphs.slice(midpoint).join("\n\n");
 
 
+  const tenantConfig = ADSTERRA_CONFIG.jejujapan;
+  const adKeys = tenantConfig.banners;
+  const showSkyscrapers = adKeys["160x600"] && adKeys["160x600"].length > 0;
+  const midArticleConfig = tenantConfig.midArticle;
+
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 bg-white font-sans selection:bg-[#bc002d]/10">
+    <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 bg-white font-sans selection:bg-[#bc002d]/10">
+      {/* Floating Left Gutter Skyscraper */}
+      {showSkyscrapers && (
+        <div className="hidden min-[1650px]:block absolute right-full mr-6 top-32 bottom-32 w-[160px] z-30">
+          <div className="sticky top-40">
+            <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+          </div>
+        </div>
+      )}
+
+      {/* Floating Right Gutter Skyscraper */}
+      {showSkyscrapers && (
+        <div className="hidden min-[1650px]:block absolute left-full ml-6 top-32 bottom-32 w-[160px] z-30">
+          <div className="sticky top-40">
+            <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+          </div>
+        </div>
+      )}
+
       {/* Reading Progress Bar — pure DOM, zero re-renders */}
       <div className="fixed top-0 left-0 w-full h-[3px] bg-transparent z-[100] pointer-events-none">
         <div 
@@ -165,9 +191,24 @@ export default function JejuJapanArticle({
         />
       </div>
 
-      <button onClick={() => window.history.length > 1 ? router.back() : router.push("/")} className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#bc002d] mb-8 transition-colors group">
-        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back
-      </button>
+      <div className="relative flex flex-col items-center justify-center gap-4 mb-8 border-b border-gray-100 pb-6 w-full min-h-[90px]">
+        <button 
+          onClick={() => window.history.length > 1 ? router.back() : router.push("/")} 
+          className="lg:absolute lg:left-0 lg:top-1/2 lg:-translate-y-1/2 inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#bc002d] transition-colors group shrink-0 self-start lg:self-auto mb-4 lg:mb-0"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back
+        </button>
+
+        {/* Adsterra Top Leaderboard Banner */}
+        <div className="w-full flex justify-center overflow-hidden">
+          <div className="hidden sm:block">
+            <AdsterraBanner bannerKey={adKeys["728x90"]} width={728} height={90} className="!my-0" />
+          </div>
+          <div className="block sm:hidden">
+            <AdsterraBanner bannerKey={adKeys["320x50"]} width={320} height={50} className="!my-0" />
+          </div>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
         <div className="lg:col-span-2">
@@ -204,12 +245,35 @@ export default function JejuJapanArticle({
                     <div className="my-10 relative aspect-[21/9] bg-gray-100">
                       <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" sizes="(max-width: 1024px) 100vw, 850px" />
                     </div>
+
+                    {/* Adsterra Mid-Article Dynamic Ad */}
+                    {midArticleConfig && (
+                      <div className="my-8 flex justify-center w-full">
+                         <AdsterraBanner bannerKey={midArticleConfig.key} width={midArticleConfig.width} height={midArticleConfig.height} className="!my-0" />
+                      </div>
+                    )}
+
                     {secondHalf && <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto break-words">{secondHalf}</div>}
                   </>
                 ) : (
-                  <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto first-letter:text-6xl first-letter:font-black first-letter:text-[#bc002d] first-letter:float-left first-letter:mr-3 break-words">
-                    {fullContent}
-                  </div>
+                  <>
+                    <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto first-letter:text-6xl first-letter:font-black first-letter:text-[#bc002d] first-letter:float-left first-letter:mr-3 break-words">
+                      {firstHalf}
+                    </div>
+
+                    {/* Adsterra Mid-Article Dynamic Ad */}
+                    {midArticleConfig && (
+                      <div className="my-8 flex justify-center w-full">
+                         <AdsterraBanner bannerKey={midArticleConfig.key} width={midArticleConfig.width} height={midArticleConfig.height} className="!my-0" />
+                      </div>
+                    )}
+
+                    {secondHalf && (
+                      <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto mt-4 break-words">
+                        {secondHalf}
+                      </div>
+                    )}
+                  </>
                 )}
               </>
             ) : (
@@ -220,8 +284,21 @@ export default function JejuJapanArticle({
                   </div>
                 )}
                 <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto first-letter:text-6xl first-letter:font-black first-letter:text-[#bc002d] first-letter:float-left first-letter:mr-3 break-words">
-                  {fullContent}
+                  {firstHalf}
                 </div>
+
+                {/* Adsterra Mid-Article Dynamic Ad */}
+                {midArticleConfig && (
+                  <div className="my-8 flex justify-center w-full">
+                     <AdsterraBanner bannerKey={midArticleConfig.key} width={midArticleConfig.width} height={midArticleConfig.height} className="!my-0" />
+                  </div>
+                )}
+
+                {secondHalf && (
+                  <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto mt-4 break-words">
+                    {secondHalf}
+                  </div>
+                )}
               </>
             )}
 
@@ -230,6 +307,11 @@ export default function JejuJapanArticle({
               title={article.title} 
               className="mt-12"
             />
+
+            {/* Bottom Native Recommendations Widget */}
+            <div className="mt-8 pt-6 border-t border-gray-100">
+               <AdsterraNativeBanner domain="jejujapan.com" />
+            </div>
 
             {referenceLine && (
               <div className="mt-16 pt-10 border-t-2 border-gray-100">
@@ -243,8 +325,8 @@ export default function JejuJapanArticle({
           </article>
         </div>
 
-        <div className="lg:col-span-1 space-y-8">
-          <div className="bg-[#111] text-white p-6 lg:sticky lg:top-28">
+        <div className="lg:col-span-1 lg:sticky lg:top-28 self-start space-y-8">
+          <div className="bg-[#111] text-white p-6">
             <h2 className="text-base font-noto font-black flex items-center gap-2 mb-6 uppercase tracking-widest border-b border-white/20 pb-4">
                <TrendingUp size={18} className="text-[#bc002d]" /> Trending
             </h2>
@@ -262,6 +344,12 @@ export default function JejuJapanArticle({
                ))}
             </div>
           </div>
+
+          {/* Adsterra 300x250 Sidebar Box Ad */}
+          <div className="flex justify-center py-2 border-b border-gray-100">
+             <AdsterraBanner bannerKey={adKeys["300x250"]} width={300} height={250} className="!my-0" />
+          </div>
+
           <AdBanner position="ARTICLE_SIDEBAR" className="!rounded-none shadow-sm" />
         </div>
       </div>

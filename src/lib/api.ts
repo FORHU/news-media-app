@@ -251,6 +251,30 @@ export const articlesApi = {
     return res.json();
   },
 
+  async regenerateGeneratedArticle(
+    id: string,
+    type: "text" | "image",
+    generationPrompt?: string
+  ): Promise<Article> {
+    const trimmed =
+      typeof generationPrompt === "string" ? generationPrompt.trim() : "";
+    const res = await fetch(`/api/admin/generatedArticles/${id}/regenerate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type,
+        ...(trimmed.length > 0 ? { generationPrompt: trimmed } : {}),
+      }),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(
+        typeof error.error === "string" ? error.error : "Regeneration failed"
+      );
+    }
+    return res.json();
+  },
+
   async deleteGeneratedArticle(id: string): Promise<void> {
     const res = await fetch(`/api/admin/generatedArticles/${id}`, {
       method: "DELETE",

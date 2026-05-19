@@ -22,6 +22,7 @@ import { articlesApi } from '@/lib/api';
 import CategorySelectWithOther from '@/components/admin/shared/CategorySelectWithOther';
 import FeaturedImageChoiceSection from '@/components/admin/shared/FeaturedImageChoiceSection';
 import { LANGUAGE_OPTIONS } from '@/components/admin/generatedContent/CreateArticleModal/ManualGenerationTab';
+import { getDefaultGenerateNewImageFromDomain } from '@/lib/tenant-utils';
 
 interface GenerateArticleModalProps {
     open: boolean;
@@ -44,7 +45,9 @@ export default function GenerateArticleModal({
     const [generationPrompt, setGenerationPrompt] = React.useState('');
     const [selectedCategory, setSelectedCategory] = React.useState<string>('');
     const [language, setLanguage] = React.useState<string>('English');
-    const [generateNewImage, setGenerateNewImage] = React.useState(false);
+    const [generateNewImage, setGenerateNewImage] = React.useState(() =>
+        getDefaultGenerateNewImageFromDomain()
+    );
     const [error, setError] = React.useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = React.useState<{ category?: string }>({});
 
@@ -53,7 +56,7 @@ export default function GenerateArticleModal({
             setGenerationPrompt('');
             setSelectedCategory('');
             setLanguage('English');
-            setGenerateNewImage(false);
+            setGenerateNewImage(getDefaultGenerateNewImageFromDomain());
             setError(null);
             setFieldErrors({});
         }

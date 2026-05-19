@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
 
-        // Execute all queries in parallel for maximum speed
+        // Sequential batch on one connection — avoids exhausting Supabase session pool (max ~15).
         const [
             totalGenerated,
             lastWeekGenerated,
@@ -28,35 +28,38 @@ export async function GET(req: NextRequest) {
             activeJobs,
             pendingArticles,
             recentGen,
-            recentCrawl
-        ] = await Promise.all([
-            // Counts
+            recentCrawl,
+        ] = await prisma.$transaction([
             prisma.contentArticle.count({ where: { tenantId } }),
-            prisma.contentArticle.count({ where: { tenantId, createdAt: { gte: oneWeekAgo } } }),
+            prisma.contentArticle.count({
+                where: { tenantId, createdAt: { gte: oneWeekAgo } },
+            }),
             prisma.rawArticle.count({ where: { tenantId } }),
-            prisma.rawArticle.count({ where: { tenantId, createdAt: { gte: todayStart } } }),
+            prisma.rawArticle.count({
+                where: { tenantId, createdAt: { gte: todayStart } },
+            }),
             prisma.crawledUrl.count({ where: { tenantId } }),
-            prisma.crawlJob.count({ 
-                where: { 
-                    tenantId, 
-                    status: { in: ["PENDING", "RUNNING", "IN_PROGRESS", "Crawling"] } 
-                } 
+            prisma.crawlJob.count({
+                where: {
+                    tenantId,
+                    status: {
+                        in: ["PENDING", "RUNNING", "IN_PROGRESS", "Crawling"],
+                    },
+                },
             }),
             prisma.rawArticle.count({ where: { tenantId, status: "pending" } }),
-            
-            // Recent Activity
             prisma.contentArticle.findMany({
                 where: { tenantId },
                 take: 5,
                 orderBy: { createdAt: "desc" },
-                include: { category: true }
+                include: { category: true },
             }),
             prisma.rawArticle.findMany({
                 where: { tenantId },
                 take: 5,
                 orderBy: { createdAt: "desc" },
-                include: { category: true }
-            })
+                include: { category: true },
+            }),
         ]);
 
         const stats = {

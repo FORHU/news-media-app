@@ -5,6 +5,9 @@ import { LatestStoriesSection } from "@/components/home/latest-stories-section";
 import { articlesService } from "@/services/articles.service";
 import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain } from "@/lib/tenant";
 import { getRequestBaseUrl, buildOgImageUrl } from "@/lib/metadata";
+import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
+import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
+import { ADSTERRA_CONFIG } from "@/config/adsterra";
 
 export async function generateMetadata({ params }: { params: Promise<{ domain: string }> }): Promise<Metadata> {
   const { domain } = await params;
@@ -99,6 +102,20 @@ async function SearchContent({
       )
     : [];
 
+  // Dynamic Tenant Resolution for Adsterra Config
+  const tenantKey = domain.toLowerCase().includes("voicejeju")
+    ? "voicejeju"
+    : domain.toLowerCase().includes("jejutime")
+    ? "jejutime"
+    : domain.toLowerCase().includes("jejujapan")
+    ? "jejujapan"
+    : "default";
+
+  const tenantConfig = ADSTERRA_CONFIG[tenantKey];
+  const adKeys = tenantConfig?.banners;
+  const showTopLeaderboard = adKeys && adKeys["728x90"] && adKeys["728x90"].length > 0;
+  const showMobileLeaderboard = adKeys && adKeys["320x50"] && adKeys["320x50"].length > 0;
+
   return (
     <>
       <FilterStatusBar
@@ -108,6 +125,22 @@ async function SearchContent({
         domain={domain}
       />
 
+      {/* Top Search Leaderboard Ad */}
+      {(showTopLeaderboard || showMobileLeaderboard) && (
+        <div className="w-full flex justify-center py-4 border-b border-gray-100 mb-6 overflow-hidden">
+          {showTopLeaderboard && (
+            <div className="hidden sm:block">
+              <AdsterraBanner bannerKey={adKeys["728x90"]} width={728} height={90} className="!my-0" />
+            </div>
+          )}
+          {showMobileLeaderboard && (
+            <div className="block sm:hidden">
+              <AdsterraBanner bannerKey={adKeys["320x50"]} width={320} height={50} className="!my-0" />
+            </div>
+          )}
+        </div>
+      )}
+
       <LatestStoriesSection
         articles={articles}
         error=""
@@ -115,6 +148,13 @@ async function SearchContent({
         isLoading={false}
         domain={domain}
       />
+
+      {/* Bottom Search Native Recommendations */}
+      {tenantConfig?.native && (
+        <div className="mt-12 pt-8 border-t border-gray-100">
+          <AdsterraNativeBanner domain={domain} />
+        </div>
+      )}
     </>
   );
 }

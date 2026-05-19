@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Calendar, Clock } from "lucide-react";
@@ -10,6 +10,8 @@ import type { Article } from "@/lib/types";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
 import { getDomainColor } from "@/lib/domainColors";
 import { ClientPagination } from "@/components/home/ClientPagination";
+import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
+import { ADSTERRA_CONFIG } from "@/config/adsterra";
 
 
 interface LatestStoriesSectionProps {
@@ -118,10 +120,10 @@ export function LatestStoriesSection({
           {(() => {
             const isVoiceJeju = domain.includes('voicejeju');
             const isJejuQQ = domain === 'jejuqq.com';
-            return (searchQuery ? articles : latestStories).map((article) => (
-            <ArticleLink
-              key={article.id}
-              articleIdentifier={article.slug ?? article.id}
+            return (searchQuery ? articles : latestStories).map((article, index) => (
+            <Fragment key={article.id}>
+              <ArticleLink
+                articleIdentifier={article.slug ?? article.id}
               href={`/article/${article.slug ?? article.id}`}
               className={`group cursor-pointer flex ${isJejuQQ || isVoiceJeju ? 'rounded-none' : 'rounded-lg'} ${isJejuQQ ? 'flex-row-reverse' : 'flex-row'} gap-4 pb-6 border-b border-gray-200 hover:bg-gray-50 transition-colors p-2 sm:p-3`}
             >
@@ -164,7 +166,18 @@ export function LatestStoriesSection({
                   </span>
                 </div>
               </div>
-            </ArticleLink>
+              </ArticleLink>
+              {index === 2 && domain.toLowerCase().includes("jejujapan") && (
+                <div className="my-6 py-4 border-y border-gray-100 flex justify-center w-full">
+                  <div className="hidden sm:block">
+                    <AdsterraBanner bannerKey={ADSTERRA_CONFIG.jejujapan.banners["468x60"]} width={468} height={60} className="!my-0" />
+                  </div>
+                  <div className="block sm:hidden">
+                    <AdsterraBanner bannerKey={ADSTERRA_CONFIG.jejujapan.banners["320x50"]} width={320} height={50} className="!my-0" />
+                  </div>
+                </div>
+              )}
+            </Fragment>
           ))
           })()}
 
