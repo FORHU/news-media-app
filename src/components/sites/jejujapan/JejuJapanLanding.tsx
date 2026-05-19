@@ -11,6 +11,9 @@ import Link from "next/link";
 import { TrendingUp, Clock, ChevronRight, ChevronLeft } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
+import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
+import { ADSTERRA_CONFIG } from "@/config/adsterra";
 
 interface Props {
   tenantId: string | null;
@@ -107,13 +110,46 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
     exit: (direction: number) => ({ zIndex: 0, x: direction < 0 ? 50 : -50, opacity: 0 })
   };
 
+  const tenantConfig = ADSTERRA_CONFIG.jejujapan;
+  const adKeys = tenantConfig.banners;
+  const showSkyscrapers = adKeys["160x600"] && adKeys["160x600"].length > 0;
+  const midFeedConfig = tenantConfig.midFeed;
+
   return (
-    <div className="bg-white text-black font-sans">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-4">
+    <div className="bg-white text-black font-sans relative min-h-screen">
+      {/* Floating Left Gutter Skyscraper */}
+      {showSkyscrapers && (
+        <div className="hidden min-[1650px]:block absolute right-[50%] mr-[660px] top-32 bottom-32 w-[160px] z-30">
+          <div className="sticky top-40">
+            <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+          </div>
+        </div>
+      )}
+
+      {/* Floating Right Gutter Skyscraper */}
+      {showSkyscrapers && (
+        <div className="hidden min-[1650px]:block absolute left-[50%] ml-[660px] top-32 bottom-32 w-[160px] z-30">
+          <div className="sticky top-40">
+            <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-4 space-y-4">
         <AdBanner position="HOME_TOP" initialBanners={banners.top} />
+
+        {/* Adsterra Top Leaderboard Banner */}
+        <div className="w-full flex justify-center">
+          <div className="hidden sm:block">
+            <AdsterraBanner bannerKey={adKeys["728x90"]} width={728} height={90} className="!my-0" />
+          </div>
+          <div className="block sm:hidden">
+            <AdsterraBanner bannerKey={adKeys["320x50"]} width={320} height={50} className="!my-0" />
+          </div>
+        </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-4 md:py-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-0 md:pt-6 md:pb-0">
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
             
@@ -247,6 +283,13 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                           ))}
                        </div>
 
+                       {/* Adsterra Mid-Feed Dynamic Banner */}
+                       {midFeedConfig && (
+                          <div className="flex justify-center my-8 py-4 border-y border-gray-100 w-full">
+                             <AdsterraBanner bannerKey={midFeedConfig.key} width={midFeedConfig.width} height={midFeedConfig.height} className="!my-0" />
+                          </div>
+                       )}
+
                        {/* Remaining rows — compact horizontal cards */}
                        <div className="space-y-4">
                           {latestStories.slice(10).map((article) => (
@@ -290,6 +333,11 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                           </Link>
                        ))}
                     </div>
+                </div>
+
+                {/* Adsterra 300x250 Sidebar Box Ad */}
+                <div className="flex justify-center py-2 mb-6 border-b border-gray-100">
+                   <AdsterraBanner bannerKey={adKeys["300x250"]} width={300} height={250} className="!my-0" />
                 </div>
 
                 {/* Must Read Section */}
@@ -418,6 +466,11 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
               ))}
             </div>
           )}
+
+          {/* Bottom Native Recommendations Widget */}
+          <div className="mt-6 border-t border-gray-200 pt-4">
+             <AdsterraNativeBanner domain="jejujapan.com" />
+          </div>
 
         </main>
     </div>

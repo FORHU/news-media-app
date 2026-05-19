@@ -13,6 +13,7 @@ import { normalizeCategoryName } from "@/lib/categoryDisplay";
 import { AdBanner } from "@/components/AdBanner";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
+import { ADSTERRA_CONFIG } from "@/config/adsterra";
 import type { Article } from "@/lib/types";
 import { extractYoutubeId } from "@/lib/utils";
 import TwitterStatusEmbed from "@/components/article/TwitterStatusEmbed";
@@ -181,6 +182,11 @@ export function VoiceJejuArticle({
   const firstHalf = paragraphs.slice(0, midpoint).join("\n\n");
   const secondHalf = paragraphs.slice(midpoint).join("\n\n");
 
+  const tenantConfig = ADSTERRA_CONFIG.voicejeju;
+  const adKeys = tenantConfig.banners;
+  const showSkyscrapers = adKeys["160x600"] && adKeys["160x600"].length > 0;
+  const midArticleConfig = tenantConfig.midArticle;
+
   return (
     <div className="bg-white min-h-screen font-inter selection:bg-black selection:text-white pb-20">
       {/* Reading Progress Bar */}
@@ -243,7 +249,25 @@ export function VoiceJejuArticle({
         </div>
       </div>
 
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 relative">
+        {/* Floating Left Gutter Skyscraper */}
+        {showSkyscrapers && (
+          <div className="hidden min-[1800px]:block absolute right-full mr-6 top-32 bottom-32 w-[160px] z-30">
+            <div className="sticky top-40">
+              <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+            </div>
+          </div>
+        )}
+
+        {/* Floating Right Gutter Skyscraper */}
+        {showSkyscrapers && (
+          <div className="hidden min-[1800px]:block absolute left-full ml-6 top-32 bottom-32 w-[160px] z-30">
+            <div className="sticky top-40">
+              <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12">
 
           {/* Left Sidebar: Trending Stories */}
@@ -289,6 +313,13 @@ export function VoiceJejuArticle({
                         {firstHalf}
                       </div>
 
+                      {/* Adsterra Mid-Article Dynamic Ad */}
+                      {midArticleConfig && (
+                        <div className="my-8 flex justify-center w-full">
+                           <AdsterraBanner bannerKey={midArticleConfig.key} width={midArticleConfig.width} height={midArticleConfig.height} className="!my-0" />
+                        </div>
+                      )}
+
                       <div className="my-8 overflow-hidden bg-gray-50 relative aspect-video border-y border-gray-100">
                         <StoryImage
                           src={article.imageUrl}
@@ -307,9 +338,24 @@ export function VoiceJejuArticle({
                       )}
                     </>
                   ) : (
-                    <div className="text-gray-900 leading-[1.8] whitespace-pre-wrap font-inter text-lg lg:text-xl">
-                      {fullContent}
-                    </div>
+                    <>
+                      <div className="text-gray-900 leading-[1.8] whitespace-pre-wrap font-inter text-lg lg:text-xl">
+                        {firstHalf}
+                      </div>
+
+                      {/* Adsterra Mid-Article Dynamic Ad */}
+                      {midArticleConfig && (
+                        <div className="my-8 flex justify-center w-full">
+                           <AdsterraBanner bannerKey={midArticleConfig.key} width={midArticleConfig.width} height={midArticleConfig.height} className="!my-0" />
+                        </div>
+                      )}
+
+                      {secondHalf && (
+                        <div className="text-gray-900 leading-[1.8] whitespace-pre-wrap font-inter text-lg lg:text-xl mt-4">
+                          {secondHalf}
+                        </div>
+                      )}
+                    </>
                   )}
                 </>
               ) : (
@@ -327,8 +373,21 @@ export function VoiceJejuArticle({
                   </div>
 
                   <div className="text-gray-900 leading-[1.8] whitespace-pre-wrap font-inter text-lg lg:text-xl max-w-4xl mb-8">
-                    {fullContent}
+                    {firstHalf}
                   </div>
+
+                  {/* Adsterra Mid-Article Dynamic Ad */}
+                  {midArticleConfig && (
+                    <div className="my-8 flex justify-center w-full">
+                       <AdsterraBanner bannerKey={midArticleConfig.key} width={midArticleConfig.width} height={midArticleConfig.height} className="!my-0" />
+                    </div>
+                  )}
+
+                  {secondHalf && (
+                    <div className="text-gray-900 leading-[1.8] whitespace-pre-wrap font-inter text-lg lg:text-xl max-w-4xl mb-8 mt-4">
+                      {secondHalf}
+                    </div>
+                  )}
                 </>
               )}
 
