@@ -49,3 +49,14 @@ export function getSiteDescriptionFromDomain(domain: string | null): string {
   if (d.includes('skyblueprime')) return "Premium news, analysis, and stories — clear reporting for a connected world.";
   return "Media & Content Hub for curated news, blogs, and insights.";
 }
+
+/** Jeju site domains default to keeping the crawled thumbnail; others default to OpenAI image remix. */
+const KEEP_SOURCE_IMAGE_DOMAIN_MARKERS = ["jejujapan", "jejuqq", "jejutime"] as const;
+
+export function getDefaultGenerateNewImageFromDomain(domain?: string | null): boolean {
+  const d = (domain ?? (typeof window !== "undefined" ? window.location.hostname : ""))
+    .toLowerCase()
+    .trim();
+  if (!d) return true;
+  return !KEEP_SOURCE_IMAGE_DOMAIN_MARKERS.some((marker) => d.includes(marker));
+}

@@ -315,10 +315,10 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                 <button
                     type="button"
                     onClick={() => setIsReadModalOpen(true)}
-                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-gray-50 text-gray-700 hover:bg-gray-100 transition-all group/read"
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-gray-50 text-gray-700 hover:bg-gray-100 transition-all group/view"
                 >
-                    <Newspaper className="w-4 h-4 text-gray-400 group-hover/read:text-gray-900 transition-colors" />
-                    Read
+                    <Newspaper className="w-4 h-4 text-gray-400 group-hover/view:text-gray-900 transition-colors" />
+                    View
                 </button>
 
                 {isPublished ? (

@@ -13,15 +13,30 @@ type GlobalForPrisma = {
 
 const g = globalThis as unknown as GlobalForPrisma;
 
-// Set to 1 during build so that 11 parallel workers stay under the 15-connection DB limit.
-const maxConnections = process.env.NEXT_PHASE === "phase-production-build" ? 1 : 20;
+function resolvePoolMax(): number {
+  const fromEnv = process.env.DATABASE_POOL_MAX;
+  if (fromEnv) {
+    const parsed = Number.parseInt(fromEnv, 10);
+    if (Number.isFinite(parsed) && parsed > 0) return parsed;
+  }
+  // Supabase session pooler (port 5432) caps at ~15 clients per project.
+  if (process.env.NEXT_PHASE === "phase-production-build") return 1;
+  const url = process.env.DATABASE_URL ?? "";
+  const isSupabaseSessionPooler =
+    url.includes("pooler.supabase.com") && !url.includes(":6543");
+  if (isSupabaseSessionPooler) return 5;
+  return process.env.NODE_ENV === "production" ? 10 : 8;
+}
+
+const maxConnections = resolvePoolMax();
 
 const pool: Pool = g.pool ?? new Pool({
   connectionString: process.env.DATABASE_URL,
   max: maxConnections,
-  // During build, give more time for sequential queries to queue through the single connection.
-  connectionTimeoutMillis: process.env.NEXT_PHASE === "phase-production-build" ? 30000 : 5000,
-  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis:
+    process.env.NEXT_PHASE === "phase-production-build" ? 30000 : 10_000,
+  idleTimeoutMillis: 20_000,
+  allowExitOnIdle: process.env.NODE_ENV !== "production",
 });
 
 // Cache in globalThis for BOTH dev (prevent hot-reload exhaustion)

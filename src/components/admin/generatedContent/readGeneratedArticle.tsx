@@ -13,7 +13,9 @@ import {
     User,
     Layout,
     Loader2,
-    Star
+    Star,
+    FileText,
+    ImageIcon,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -33,6 +35,9 @@ import { extractYoutubeId } from '@/lib/utils';
 import TwitterStatusEmbed from '@/components/article/TwitterStatusEmbed';
 import { StoryImage } from '@/components/StoryImage';
 import ConfirmationModal from '@/components/admin/shared/ConfirmationModal';
+import RegeneratePromptDialog, {
+    type RegeneratePromptType,
+} from '@/components/admin/generatedContent/RegeneratePromptDialog';
 import {
     isSocialCommentaryGenerationMode,
     splitReferenceLineFromContent,
@@ -52,20 +57,26 @@ export default function ReadGeneratedArticle({
 }: ReadGeneratedArticleProps) {
     const queryClient = useQueryClient();
     const [copied, setCopied] = React.useState(false);
+    const [displayArticle, setDisplayArticle] = React.useState<Article | null>(article);
     const [isHeadline, setIsHeadline] = React.useState(article?.isHeadline ?? false);
     const [isConfirmOpen, setIsConfirmOpen] = React.useState(false);
+    const [regenerateError, setRegenerateError] = React.useState<string | null>(null);
+    const [regeneratePromptType, setRegeneratePromptType] =
+        React.useState<RegeneratePromptType | null>(null);
 
     // Sync state when article or open changes
     React.useEffect(() => {
         if (open && article) {
+            setDisplayArticle(article);
             setIsHeadline(article.isHeadline ?? false);
+            setRegenerateError(null);
         }
     }, [open, article]);
 
     const headlineMutation = useMutation({
         mutationFn: (val: boolean) => {
-            if (!article) throw new Error("No article selected");
-            return articlesApi.updateArticle(article.id, { isHeadline: val });
+            if (!displayArticle) throw new Error("No article selected");
+            return articlesApi.updateArticle(displayArticle.id, { isHeadline: val });
         },
         onSuccess: () => {
             queryClient.invalidateQueries({
@@ -75,9 +86,60 @@ export default function ReadGeneratedArticle({
         onError: (error: any) => {
             console.error("Failed to update headline status:", error);
             // Revert local state on error
-            setIsHeadline(article?.isHeadline ?? false);
+            setIsHeadline(displayArticle?.isHeadline ?? false);
         }
     });
+
+    const regenerateTextMutation = useMutation({
+        mutationFn: (generationPrompt: string) => {
+            if (!displayArticle) throw new Error("No article selected");
+            return articlesApi.regenerateGeneratedArticle(
+                displayArticle.id,
+                "text",
+                generationPrompt
+            );
+        },
+        onSuccess: (updated) => {
+            setDisplayArticle(updated);
+            setRegenerateError(null);
+            setRegeneratePromptType(null);
+            queryClient.invalidateQueries({ queryKey: ["generatedArticles"] });
+        },
+        onError: (error: Error) => {
+            setRegenerateError(error.message || "Failed to regenerate text");
+        },
+    });
+
+    const regenerateImageMutation = useMutation({
+        mutationFn: (generationPrompt: string) => {
+            if (!displayArticle) throw new Error("No article selected");
+            return articlesApi.regenerateGeneratedArticle(
+                displayArticle.id,
+                "image",
+                generationPrompt
+            );
+        },
+        onSuccess: (updated) => {
+            setDisplayArticle(updated);
+            setRegenerateError(null);
+            setRegeneratePromptType(null);
+            queryClient.invalidateQueries({ queryKey: ["generatedArticles"] });
+        },
+        onError: (error: Error) => {
+            setRegenerateError(error.message || "Failed to regenerate image");
+        },
+    });
+
+    const handleRegenerateConfirm = (prompt: string) => {
+        if (regeneratePromptType === "text") {
+            regenerateTextMutation.mutate(prompt);
+        } else if (regeneratePromptType === "image") {
+            regenerateImageMutation.mutate(prompt);
+        }
+    };
+
+    const isRegenerating =
+        regenerateTextMutation.isPending || regenerateImageMutation.isPending;
 
     const toggleHeadline = () => {
         setIsConfirmOpen(true);
@@ -98,31 +160,34 @@ export default function ReadGeneratedArticle({
         }
     };
 
-    if (!article) return null;
+    if (!article || !displayArticle) return null;
 
-    const publishDate = article.publishDate || article.createdAt;
-    const authorName = article.user ? `${article.user.firstName}` : 'System';
-    const originalUrl = article.rawArticle?.crawledUrl?.url || (article as any).rawVideo?.youtubeUrl || (article as any).youtubeUrl;
+    const publishDate = displayArticle.publishDate || displayArticle.createdAt;
+    const authorName = displayArticle.user ? `${displayArticle.user.firstName}` : 'System';
+    const originalUrl =
+        displayArticle.rawArticle?.crawledUrl?.url ||
+        displayArticle.rawVideo?.youtubeUrl ||
+        displayArticle.youtubeUrl;
 
-    const rawTweet = article.rawTweet;
-    const rawVideo = article.rawVideo;
+    const rawTweet = displayArticle.rawTweet;
+    const rawVideo = displayArticle.rawVideo;
 
     const isCommentaryTweetArticle =
-        article.sourceType === 'TWEET' &&
+        displayArticle.sourceType === 'TWEET' &&
         isSocialCommentaryGenerationMode(rawTweet?.generationMode);
 
     const isCommentaryVideoArticle =
-        article.sourceType === 'VIDEO' &&
+        displayArticle.sourceType === 'VIDEO' &&
         isSocialCommentaryGenerationMode(rawVideo?.generationMode);
 
-    const ytUrl = rawVideo?.youtubeUrl || article.youtubeUrl;
+    const ytUrl = rawVideo?.youtubeUrl || displayArticle.youtubeUrl;
     const ytId = ytUrl ? extractYoutubeId(ytUrl) : null;
     const legacyVideoNoRow =
-        article.sourceType === 'VIDEO' && Boolean(ytId) && !rawVideo;
+        displayArticle.sourceType === 'VIDEO' && Boolean(ytId) && !rawVideo;
 
     const showYoutubeReaderEmbed =
         Boolean(ytId) &&
-        (article.sourceType !== 'VIDEO' ||
+        (displayArticle.sourceType !== 'VIDEO' ||
             isCommentaryVideoArticle ||
             legacyVideoNoRow);
 
@@ -133,16 +198,16 @@ export default function ReadGeneratedArticle({
         isCommentaryTweetArticle || isCommentaryVideoArticle;
 
     const bodyContent = isCommentaryLayoutArticle
-        ? stripOriginalPostBlock(article.content ?? '')
-        : (article.content ?? '');
+        ? stripOriginalPostBlock(displayArticle.content ?? '')
+        : (displayArticle.content ?? '');
 
     const { main: layoutMain, referenceLine } = splitReferenceLineFromContent(
         bodyContent,
         isCommentaryLayoutArticle
     );
 
-    // Image fallback: Prioritize article.imageUrl, then rawArticle.imageUrl
-    const displayImageUrl = article.imageUrl || article.rawArticle?.imageUrl;
+    const displayImageUrl =
+        displayArticle.imageUrl || displayArticle.rawArticle?.imageUrl;
 
     const handleCopy = () => {
         if (bodyContent) {
@@ -153,6 +218,7 @@ export default function ReadGeneratedArticle({
     };
 
     return (
+        <>
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
                 showCloseButton={false}
@@ -257,13 +323,13 @@ export default function ReadGeneratedArticle({
                         </div>
                         <div className="space-y-2 sm:space-y-3 pr-8 sm:pr-12">
                             <DialogTitle className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight leading-tight line-clamp-2 sm:line-clamp-none">
-                                {article.title}
+                                {displayArticle.title}
                             </DialogTitle>
                             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                                 <div className="flex items-center gap-2 text-gray-400 text-[10px] sm:text-xs md:text-sm font-bold">
                                     <Tag className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-400" />
-                                    {normalizeCategoryName(article.category?.categoryName) ? (
-                                        <span>{getCategoryLabel(article.category?.categoryName ?? "")}</span>
+                                    {normalizeCategoryName(displayArticle.category?.categoryName) ? (
+                                        <span>{getCategoryLabel(displayArticle.category?.categoryName ?? "")}</span>
                                     ) : null}
                                 </div>
                                 <div className="flex items-center gap-2 text-gray-400 text-[10px] sm:text-xs md:text-sm font-bold">
@@ -282,15 +348,39 @@ export default function ReadGeneratedArticle({
                 </div>
 
                 {/* Content Area - Optimized for smooth scrolling with GPU acceleration */}
-                <div className="px-4 sm:px-8 py-6 sm:py-8 space-y-6 overflow-y-auto overscroll-contain flex-1 min-h-0 bg-gray-50/30 will-change-transform [-webkit-overflow-scrolling:touch]">
+                <motion.div className="relative px-4 sm:px-8 py-6 sm:py-8 space-y-6 overflow-y-auto overscroll-contain flex-1 min-h-0 bg-gray-50/30 will-change-transform [-webkit-overflow-scrolling:touch]">
+                    <AnimatePresence>
+                        {isRegenerating && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="absolute inset-0 z-20 bg-white/75 backdrop-blur-[2px] flex flex-col items-center justify-center gap-3"
+                            >
+                                <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+                                <span className="text-xs font-black uppercase tracking-[0.2em] text-indigo-600">
+                                    {regenerateImageMutation.isPending
+                                        ? "Regenerating image…"
+                                        : "Regenerating text…"}
+                                </span>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {regenerateError ? (
+                        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                            {regenerateError}
+                        </div>
+                    ) : null}
 
                     {displayImageUrl && !showYoutubeReaderEmbed && (
-                        <div className="relative w-full h-48 sm:h-64 rounded-2xl sm:rounded-[2.5rem] overflow-hidden shadow-md mb-6 border border-gray-100">
+                        <div className="relative w-full rounded-2xl sm:rounded-[2.5rem] overflow-hidden shadow-md mb-6 border border-gray-100 bg-gray-100">
                             <StoryImage
                                 src={displayImageUrl}
-                                alt={article.title}
-                                fill
-                                className="object-cover"
+                                alt={displayArticle.title}
+                                width={1536}
+                                height={1024}
+                                className="w-full h-auto max-h-[min(55vh,28rem)] object-contain"
                                 sizes="(max-width: 800px) 100vw, 800px"
                             />
                             <div className="absolute top-4 left-4 px-3 py-1 bg-indigo-500/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-lg">
@@ -356,14 +446,46 @@ export default function ReadGeneratedArticle({
                             </div>
                         )}
                     </div>
-                </div>
+                </motion.div>
 
                 {/* Footer Actions */}
-                <DialogFooter className="px-6 sm:px-8 py-4 sm:py-6 bg-white border-t border-gray-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 flex-shrink-0">
+                <DialogFooter className="px-6 sm:px-8 py-4 sm:py-6 bg-white border-t border-gray-100 flex flex-col gap-3 sm:gap-4 flex-shrink-0">
+                    <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 sm:gap-3">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            disabled={isRegenerating || headlineMutation.isPending}
+                            onClick={() => setRegeneratePromptType("text")}
+                            className="rounded-xl sm:rounded-2xl font-bold h-10 sm:h-12 px-4 sm:px-5 border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                        >
+                            {regenerateTextMutation.isPending ? (
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : (
+                                <FileText className="w-4 h-4 mr-2" />
+                            )}
+                            Regenerate Text
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            disabled={isRegenerating || headlineMutation.isPending}
+                            onClick={() => setRegeneratePromptType("image")}
+                            className="rounded-xl sm:rounded-2xl font-bold h-10 sm:h-12 px-4 sm:px-5 border-purple-200 text-purple-700 hover:bg-purple-50"
+                        >
+                            {regenerateImageMutation.isPending ? (
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : (
+                                <ImageIcon className="w-4 h-4 mr-2" />
+                            )}
+                            Regenerate Image
+                        </Button>
+                    </div>
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                         <Button
                             variant="outline"
                             onClick={handleCopy}
+                            disabled={isRegenerating}
                             className={`rounded-xl sm:rounded-2xl font-bold h-10 sm:h-12 px-4 sm:px-6 transition-all border-gray-200 ${copied ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'hover:bg-gray-50'
                                 }`}
                         >
@@ -388,10 +510,12 @@ export default function ReadGeneratedArticle({
                     </div>
                     <Button
                         onClick={() => onOpenChange(false)}
+                        disabled={isRegenerating}
                         className="rounded-xl sm:rounded-2xl font-black bg-gray-900 text-white hover:bg-gray-800 px-6 sm:px-8 h-10 sm:h-12 shadow-lg transition-all"
                     >
                         Close Reader
                     </Button>
+                    </div>
                 </DialogFooter>
 
                 <ConfirmationModal
@@ -409,5 +533,16 @@ export default function ReadGeneratedArticle({
                 />
             </DialogContent>
         </Dialog>
+
+        <RegeneratePromptDialog
+            open={regeneratePromptType !== null}
+            onOpenChange={(next) => {
+                if (!next && !isRegenerating) setRegeneratePromptType(null);
+            }}
+            type={regeneratePromptType ?? "text"}
+            onConfirm={handleRegenerateConfirm}
+            isPending={isRegenerating}
+        />
+        </>
     );
 }
