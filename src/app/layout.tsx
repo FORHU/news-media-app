@@ -152,13 +152,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const headersList = await headers();
-  const host = headersList.get("host");
-  const domain = normalizeHostToDomain(host);
-  const isJejuTime = domain?.toLowerCase().includes('jejutime');
-  const isVoiceJeju = domain?.toLowerCase().includes('voicejeju');
-  const isJejuJapan = domain?.toLowerCase().includes('jejujapan');
-
   return (
     <html lang="en">
       <head>
@@ -168,22 +161,6 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${roboto.variable} ${notoSerifJP.variable} ${ebGaramond.variable} ${libreBaskerville.variable} ${spaceMono.variable} ${plusJakartaSans.variable} ${arima.variable} ${mulish.variable} ${voltaire.variable} ${inter.variable} ${montserrat.variable} ${lora.variable} antialiased`}
       >
         <Providers>{children}</Providers>
-        {isJejuTime && (
-          <script
-            src="https://pl29482513.effectivecpmnetwork.com/ff/4c/94/ff4c94f2be70d5f135bec2e03d391610.js"
-          ></script>
-        )}
-        {isVoiceJeju && (
-          <script
-            src="https://pl29489865.effectivecpmnetwork.com/04/9c/d4/049cd43b6d49b530ad7b97ab5f60155c.js"
-          ></script>
-        )}
-        {isJejuJapan && (
-          <script
-            src="https://pl29490730.effectivecpmnetwork.com/cc/97/c5/cc97c581e8b030bb16b4a17aa655753.js"
-            async
-          ></script>
-        )}
       </body>
     </html>
   );
