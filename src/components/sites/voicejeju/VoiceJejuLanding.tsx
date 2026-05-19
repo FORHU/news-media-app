@@ -8,6 +8,7 @@ const AdBanner = dynamic(() => import("@/components/AdBanner").then(mod => mod.A
 });
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
+import { ADSTERRA_CONFIG } from "@/config/adsterra";
 import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
 import { ChevronRight, ChevronLeft } from "lucide-react";
@@ -1221,13 +1222,35 @@ export function VoiceJejuLanding(props: Props) {
       exit: (dir: number) => ({ zIndex: 0, x: dir < 0 ? 40 : -40, opacity: 0 }),
    };
 
-   return (
-      <div
-         className={cn(
-            "bg-white min-h-screen font-inter selection:bg-black selection:text-white",
-            hasTopBanner ? "pt-1" : "pt-2"
-         )}
-      >
+    const tenantConfig = ADSTERRA_CONFIG.voicejeju;
+    const adKeys = tenantConfig.banners;
+    const showSkyscrapers = adKeys["160x600"] && adKeys["160x600"].length > 0;
+    const midFeedConfig = tenantConfig.midFeed;
+
+    return (
+       <div
+          className={cn(
+             "bg-white min-h-screen font-inter selection:bg-black selection:text-white relative",
+             hasTopBanner ? "pt-1" : "pt-2"
+          )}
+       >
+          {/* Floating Left Gutter Skyscraper */}
+          {showSkyscrapers && (
+             <div className="hidden min-[1800px]:block absolute right-[50%] mr-[740px] top-32 bottom-32 w-[160px] z-30">
+                <div className="sticky top-40">
+                   <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+                </div>
+             </div>
+          )}
+
+          {/* Floating Right Gutter Skyscraper */}
+          {showSkyscrapers && (
+             <div className="hidden min-[1800px]:block absolute left-[50%] ml-[740px] top-32 bottom-32 w-[160px] z-30">
+                <div className="sticky top-40">
+                   <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+                </div>
+             </div>
+          )}
          {hasTopBanner && (
             <div className="max-w-[1440px] mx-auto px-4 lg:px-8 mb-2">
                <AdBanner position="HOME_TOP" initialBanners={banners.top} />
@@ -1366,15 +1389,12 @@ export function VoiceJejuLanding(props: Props) {
                      <ReportDeskFeed articles={latestStories} />
                   </div>
 
-                  {/* Adsterra Mid-Feed Horizontal Banner */}
-                  <div className="flex justify-center w-full">
-                     <div className="hidden sm:block w-full">
-                        <AdsterraBanner bannerKey="6db5eb2e2ba54ace04066062d6bfe736" width={468} height={60} className="!my-2" />
+                  {/* Adsterra Mid-Feed Dynamic Banner */}
+                  {midFeedConfig && (
+                     <div className="flex justify-center w-full">
+                        <AdsterraBanner bannerKey={midFeedConfig.key} width={midFeedConfig.width} height={midFeedConfig.height} className="!my-2" />
                      </div>
-                     <div className="block sm:hidden w-full">
-                        <AdsterraBanner bannerKey="d68b3e9b0c05a075a85176317f822b6d" width={320} height={50} className="!my-2" />
-                     </div>
-                  </div>
+                  )}
                </div>
 
                {/* The Wire — row 2, redesigned as subscription-style card grid */}

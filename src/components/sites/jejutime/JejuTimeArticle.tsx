@@ -37,6 +37,7 @@ import {
 import { ArticleShare } from "@/components/article/ArticleShare";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
+import { ADSTERRA_CONFIG } from "@/config/adsterra";
 
 
 export default function JejuTimeArticle({ 
@@ -168,6 +169,11 @@ export default function JejuTimeArticle({
   const secondHalf = paragraphs.slice(midpoint).join("\n\n");
 
 
+  const tenantConfig = ADSTERRA_CONFIG.jejutime;
+  const adKeys = tenantConfig.banners;
+  const showSkyscrapers = adKeys["160x600"] && adKeys["160x600"].length > 0;
+  const midArticleConfig = tenantConfig.midArticle;
+
   return (
     <main className="min-h-screen bg-[#F8FAFC] text-[#2D3748] font-roboto selection:bg-blue-100 pb-20">
       {/* Reading Progress Bar */}
@@ -220,7 +226,25 @@ export default function JejuTimeArticle({
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        {/* Floating Left Gutter Skyscraper */}
+        {showSkyscrapers && (
+          <div className="hidden min-[1650px]:block absolute right-full mr-6 top-32 bottom-32 w-[160px] z-30">
+            <div className="sticky top-40">
+              <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+            </div>
+          </div>
+        )}
+
+        {/* Floating Right Gutter Skyscraper */}
+        {showSkyscrapers && (
+          <div className="hidden min-[1650px]:block absolute left-full ml-6 top-32 bottom-32 w-[160px] z-30">
+            <div className="sticky top-40">
+              <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             <div className="lg:col-span-8">
             <article className="bg-white p-8 md:p-12 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-100">
@@ -241,15 +265,38 @@ export default function JejuTimeArticle({
                     {article.imageUrl ? (
                       <>
                         <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap mb-10 break-words">{firstHalf}</div>
+                        
+                        {/* Adsterra Mid-Article Dynamic Ad */}
+                        {midArticleConfig && (
+                          <div className="my-10 flex justify-center border-y border-slate-100 py-6 bg-slate-50/50">
+                            <AdsterraBanner bannerKey={midArticleConfig.key} width={midArticleConfig.width} height={midArticleConfig.height} className="!my-0" />
+                          </div>
+                        )}
+
                         <div className="my-12 relative aspect-[16/9] bg-slate-100 overflow-hidden shadow-lg ring-1 ring-black/5">
                         <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" sizes="(max-width: 640px) 400px, (max-width: 1024px) 100vw, 850px" />
                         </div>
                         {secondHalf && <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap break-words">{secondHalf}</div>}
                       </>
                     ) : (
-                      <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-light break-words">
-                        {fullContent}
-                      </div>
+                      <>
+                        <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-light break-words">
+                          {firstHalf}
+                        </div>
+
+                        {/* Adsterra Mid-Article Dynamic Ad */}
+                        {midArticleConfig && (
+                          <div className="my-10 flex justify-center border-y border-slate-100 py-6 bg-slate-50/50">
+                            <AdsterraBanner bannerKey={midArticleConfig.key} width={midArticleConfig.width} height={midArticleConfig.height} className="!my-0" />
+                          </div>
+                        )}
+
+                        {secondHalf && (
+                          <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-light break-words mt-8">
+                            {secondHalf}
+                          </div>
+                        )}
+                      </>
                     )}
                 </>
                 ) : (
@@ -260,8 +307,21 @@ export default function JejuTimeArticle({
                       </div>
                     )}
                     <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-light break-words">
-                    {fullContent}
+                      {firstHalf}
                     </div>
+
+                    {/* Adsterra Mid-Article Dynamic Ad */}
+                    {midArticleConfig && (
+                      <div className="my-10 flex justify-center border-y border-slate-100 py-6 bg-slate-50/50">
+                        <AdsterraBanner bannerKey={midArticleConfig.key} width={midArticleConfig.width} height={midArticleConfig.height} className="!my-0" />
+                      </div>
+                    )}
+
+                    {secondHalf && (
+                      <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-light break-words mt-8">
+                        {secondHalf}
+                      </div>
+                    )}
                 </>
                 )}
 
@@ -285,7 +345,7 @@ export default function JejuTimeArticle({
             </article>
             </div>
 
-            <div className="lg:col-span-4 space-y-8">
+            <div className="lg:col-span-4 lg:sticky lg:top-28 self-start space-y-8">
             <div className="bg-white shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] p-6 border border-slate-100">
                 <TrendingSidebar articles={trendingArticles} domain={domain} />
             </div>

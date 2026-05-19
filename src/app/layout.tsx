@@ -157,6 +157,7 @@ export default async function RootLayout({
   const domain = normalizeHostToDomain(host);
   const isJejuTime = domain?.toLowerCase().includes('jejutime');
   const isVoiceJeju = domain?.toLowerCase().includes('voicejeju');
+  const isJejuJapan = domain?.toLowerCase().includes('jejujapan');
 
   return (
     <html lang="en">
@@ -175,6 +176,12 @@ export default async function RootLayout({
         {isVoiceJeju && (
           <script
             src="https://pl29489865.effectivecpmnetwork.com/04/9c/d4/049cd43b6d49b530ad7b97ab5f60155c.js"
+          ></script>
+        )}
+        {isJejuJapan && (
+          <script
+            src="https://pl29490730.effectivecpmnetwork.com/cc/97/c5/cc97c581e8b030bb16b4a17aa655753.js"
+            async
           ></script>
         )}
       </body>
