@@ -2,12 +2,9 @@ import sharp from "sharp";
 import { getValidImageSrc } from "@/lib/image-utils";
 import {
   buildCrawledImageEditPrompt,
-  buildDallE3FeaturedImagePrompt,
-  editImageWithDallE2,
+  editImageWithGptImageMini,
   fetchImageBytesFromUrl,
-  generateImageWithDallE3,
   getOpenAiImageModel,
-  isDallE3ImageModel,
   normalizeImageForOpenAiEdit,
 } from "@/lib/openaiImages";
 import { uploadPngBufferToSupabase } from "@/lib/supabaseArticleImageUpload";
@@ -19,12 +16,12 @@ export type RunOpenAiFeaturedImageParams = {
   /** Revision notes or custom writing prompt for the image step */
   userPrompt?: string;
   sourceImageUrl?: string | null;
-  /** Story excerpt for DALL·E 3 text-only generations */
-  storyExcerpt?: string;
+  /** Short article excerpt — thematic hints only; steers “same story, different look” away from the thumbnail alone */
+  storyContext?: string;
 };
 
 /**
- * Featured hero images always go through OpenAI (`/v1/images/edits` or `/v1/images/generations`).
+ * Featured hero images: source thumbnail + prompt → OpenAI `/v1/images/edits` (`gpt-image-1-mini`).
  * Never uses GENERATE_CONTENT_API `/chat`.
  */
 export async function runOpenAiFeaturedImagePipeline(
@@ -34,7 +31,7 @@ export async function runOpenAiFeaturedImagePipeline(
     throw new Error("OPENAI_API_KEY is not configured for image regeneration.");
   }
 
-  const { tenantId, articleTitle, userPrompt = "", storyExcerpt = "" } = params;
+  const { tenantId, articleTitle, userPrompt = "", storyContext = "" } = params;
   const customPrompt = userPrompt.trim();
   const fallbackThumb = getValidImageSrc(params.sourceImageUrl ?? null);
   const canFetchSource =
@@ -46,50 +43,16 @@ export async function runOpenAiFeaturedImagePipeline(
     requested: true,
     openAiModel: imageModel,
     apiKind: "none",
-    pipelineLabel: "OpenAI featured image",
+    pipelineLabel: "OpenAI featured image (gpt-image-1-mini)",
     outcome: "openai_error_fallback",
     detail: "OpenAI image step did not complete.",
   };
 
-  if (isDallE3ImageModel(imageModel)) {
+  if (canFetchSource && fallbackThumb) {
     log = {
       requested: true,
       openAiModel: imageModel,
-      apiKind: "dall-e-3-generations",
-      pipelineLabel: "OpenAI /v1/images/generations (DALL·E 3)",
-      outcome: "openai_error_fallback",
-      detail: "OpenAI image step did not complete.",
-    };
-    try {
-      const genPrompt = buildDallE3FeaturedImagePrompt(
-        articleTitle,
-        customPrompt,
-        storyExcerpt
-      );
-      const generatedBytes = await generateImageWithDallE3(genPrompt);
-      const pngOut = await sharp(generatedBytes).png().toBuffer();
-      resolvedImageUrl = await uploadPngBufferToSupabase(
-        pngOut,
-        tenantId,
-        "openai-dalle3"
-      );
-      log.outcome = "openai_success";
-      log.detail =
-        "New hero image from OpenAI generations (headline, user prompt, story excerpt).";
-    } catch (err) {
-      console.error("[OpenAI Image] DALL·E 3 generation failed:", err);
-      resolvedImageUrl = fallbackThumb ?? null;
-      log.outcome = "openai_error_fallback";
-      log.detail =
-        err instanceof Error
-          ? `OpenAI failed: ${err.message}. Used source thumbnail if available.`
-          : "OpenAI image step failed. Used source thumbnail if available.";
-    }
-  } else if (canFetchSource && fallbackThumb) {
-    log = {
-      requested: true,
-      openAiModel: imageModel,
-      apiKind: "openai-image-edits",
+      apiKind: "gpt-image-mini-edits",
       pipelineLabel: `OpenAI /v1/images/edits (${imageModel})`,
       outcome: "openai_error_fallback",
       detail: "OpenAI image step did not complete.",
@@ -97,19 +60,23 @@ export async function runOpenAiFeaturedImagePipeline(
     try {
       const rawBytes = await fetchImageBytesFromUrl(fallbackThumb);
       const pngForEdit = await normalizeImageForOpenAiEdit(rawBytes);
-      const editPrompt = buildCrawledImageEditPrompt(articleTitle, customPrompt);
-      const editedBytes = await editImageWithDallE2(pngForEdit, editPrompt);
+      const editPrompt = buildCrawledImageEditPrompt(
+        articleTitle,
+        customPrompt,
+        storyContext.trim() || undefined
+      );
+      const editedBytes = await editImageWithGptImageMini(pngForEdit, editPrompt);
       const pngOut = await sharp(editedBytes).png().toBuffer();
       resolvedImageUrl = await uploadPngBufferToSupabase(
         pngOut,
         tenantId,
-        "openai-edits"
+        "gpt-image-mini"
       );
       log.outcome = "openai_success";
       log.detail =
-        "New hero image from OpenAI edits (source thumbnail + revision prompt).";
+        "New hero image from gpt-image-1-mini edits (source thumbnail + revision prompt).";
     } catch (err) {
-      console.error("[OpenAI Image] Image edit failed:", err);
+      console.error("[OpenAI Image] gpt-image-1-mini edit failed:", err);
       resolvedImageUrl = fallbackThumb ?? null;
       log.outcome = "openai_error_fallback";
       log.detail =
@@ -121,11 +88,11 @@ export async function runOpenAiFeaturedImagePipeline(
     log = {
       requested: true,
       openAiModel: imageModel,
-      apiKind: "openai-image-edits",
+      apiKind: "gpt-image-mini-edits",
       pipelineLabel: `OpenAI /v1/images/edits (${imageModel})`,
       outcome: "openai_skipped_no_source_image",
       detail:
-        "Edit models need a downloadable http(s) source image. OpenAI was not called.",
+        "gpt-image-1-mini edits need a downloadable http(s) source image. OpenAI was not called.",
     };
     resolvedImageUrl = fallbackThumb ?? null;
   }
