@@ -110,3 +110,35 @@ The long-form article page components (`JejuJapanArticle`, `JejuTimeArticle`, `V
 Skyscraper elements (`160x600`) are placed symmetrically on wide screen viewports (`min-[1650px]`) and optimized with standard offsets:
 *   **Sticky Offset**: Sits sticky under the header using `top-40` (`160px`).
 *   **Layout Boundaries**: Wrapped inside elements bound by `top-32` and `bottom-32` parent markers to prevent overlapping the website headers or absolute bottom footers.
+
+---
+
+## 5. JejuQQ.com Integration & Layout Fixes
+
+A complete Adsterra integration was implemented for **JejuQQ.com** following the established design system, including the resolution of a critical layout bug that was causing the right skyscraper ad to overlap content and bleed into the footer.
+
+### 🛠️ File Changes & Explanations
+
+#### 📄 `src/config/adsterra.ts`
+* **Changes**: Added the `jejuqq` tenant configuration mapping including:
+  * Top leaderboard banner keys (`728x90` and `320x50`).
+  * Gutter skyscraper banner keys (`160x600`).
+  * Mid-article and mid-feed square box ad configurations (`300x250`).
+  * Sponsored Recommendations native widget configuration (`container-249d6e5263194c6c4d2cd786de3d20a3`).
+  * Removed all intrusive popups (`socialBar: ""` and no popunder keys).
+
+#### 📄 `src/components/ads/AdsterraNativeBanner.tsx`
+* **Changes**: Added hostname matching for `jejuqq` so that it resolves `jejuqq.com` correctly and retrieves its corresponding native banner configuration.
+
+#### 📄 `src/components/sites/jejuqq/JejuQQLanding.tsx` & `JejuQQArticle.tsx`
+* **Changes**:
+  * Injected top leaderboards, left/right sticky skyscrapers, and sponsored recommendations.
+  * For the Landing page, inserted the `midFeed` square banner between the main article streams.
+  * For the Article page, dynamically inserted the `midArticle` banner in the middle of paragraph splits.
+  * Removed `overflow-x-hidden` from the root `div` wrapper. This is critical because any ancestor with `overflow: hidden` breaks the browser's CSS sticky context (`position: sticky`), which previously prevented the skyscraper gutter ads from sliding down the viewport.
+
+#### 📄 `src/app/(sites)/[domain]/search/layout.tsx` & `page.tsx`
+* **Changes**:
+  * Added `jejuqq` domain resolution switch to `search/layout.tsx` to ensure skyscraper components render.
+  * Removed duplicate local container wrappers and skyscraper code in `search/page.tsx`. Since the page component is nested inside the layout's main column (`lg:col-span-2`), absolute positioning relative to it caused the right skyscraper to overlap the search content.
+  * The outer skyscraper ads are now positioned relative to the outer centered container, aligning them perfectly in the viewport gutters and stopping them above the footer.
