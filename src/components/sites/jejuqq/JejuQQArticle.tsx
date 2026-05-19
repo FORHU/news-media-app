@@ -7,11 +7,11 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, TrendingUp } from "lucide-react";
 
 import dynamic from "next/dynamic";
-const AdBanner = dynamic(() => import("@/components/AdBanner").then(mod => mod.AdBanner), { 
+const AdBanner = dynamic(() => import("@/components/AdBanner").then(mod => mod.AdBanner), {
   ssr: true,
   loading: () => <div className="h-[250px] animate-pulse bg-slate-50 flex items-center justify-center text-[10px] text-slate-300 font-bold uppercase tracking-widest border border-slate-100" />
 });
-const TwitterStatusEmbed = dynamic(() => import("@/components/article/TwitterStatusEmbed"), { 
+const TwitterStatusEmbed = dynamic(() => import("@/components/article/TwitterStatusEmbed"), {
   ssr: false,
   loading: () => <div className="h-[450px] animate-pulse bg-slate-50 flex items-center justify-center text-slate-400 text-xs font-bold uppercase tracking-widest border border-slate-100" />
 });
@@ -31,6 +31,9 @@ import {
   stripOriginalPostBlock,
 } from "@/lib/tweetArticleDisplay";
 import { ArticleShare } from "@/components/article/ArticleShare";
+import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
+import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
+import { ADSTERRA_CONFIG } from "@/config/adsterra";
 
 
 export default function JejuQQArticle({
@@ -43,6 +46,10 @@ export default function JejuQQArticle({
   domain?: string;
 }) {
   const router = useRouter();
+  const tenantConfig = ADSTERRA_CONFIG.jejuqq;
+  const adKeys = tenantConfig.banners;
+  const showSkyscrapers = adKeys["160x600"] && adKeys["160x600"].length > 0;
+  const midArticleConfig = tenantConfig.midArticle;
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -144,8 +151,37 @@ export default function JejuQQArticle({
 
 
   return (
-    <div className="bg-[#fdf2f2] text-[#222] min-h-screen overflow-x-hidden">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-20">
+    <div className="bg-[#fdf2f2] text-[#222] min-h-screen">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-20 relative">
+        {/* Floating Left Gutter Skyscraper */}
+        {showSkyscrapers && (
+          <div className="hidden min-[1650px]:block absolute right-full mr-6 top-32 bottom-32 w-[160px] z-30">
+            <div className="sticky top-40">
+              <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+            </div>
+          </div>
+        )}
+
+        {/* Floating Right Gutter Skyscraper */}
+        {showSkyscrapers && (
+          <div className="hidden min-[1650px]:block absolute left-full ml-6 top-32 bottom-32 w-[160px] z-30">
+            <div className="sticky top-40">
+              <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+            </div>
+          </div>
+        )}
+
+        {/* Top Leaderboard */}
+        {adKeys["728x90"] && adKeys["320x50"] && (
+          <div className="w-full flex justify-center mb-6 overflow-hidden">
+            <div className="hidden sm:block">
+              <AdsterraBanner bannerKey={adKeys["728x90"]} width={728} height={90} className="!my-0" />
+            </div>
+            <div className="block sm:hidden">
+              <AdsterraBanner bannerKey={adKeys["320x50"]} width={320} height={50} className="!my-0" />
+            </div>
+          </div>
+        )}
         <button onClick={() => window.history.length > 1 ? router.back() : router.push("/")} className="inline-flex items-center gap-3 text-xs text-gray-600 hover:text-[#b91c1c] mb-8 transition-colors group font-black uppercase tracking-[0.3em]">
           <div className="w-8 h-8 rounded-none border border-gray-200 flex items-center justify-center group-hover:border-[#b91c1c] group-hover:bg-[#b91c1c] group-hover:text-white transition-colors">
             <ArrowLeft className="w-4 h-4" />
@@ -194,13 +230,26 @@ export default function JejuQQArticle({
                     {article.imageUrl ? (
                       <>
                         <div className="whitespace-pre-wrap mb-10 break-words">{firstHalf}</div>
+                        {midArticleConfig && (
+                          <div className="my-2 py-2 flex justify-center w-full">
+                            <AdsterraBanner bannerKey={midArticleConfig.key} width={midArticleConfig.width} height={midArticleConfig.height} className="!my-0" />
+                          </div>
+                        )}
                         <div className="my-12 relative aspect-[16/9] bg-gray-100 rounded-none overflow-hidden shadow-lg border-2 border-[#dc2626]">
                           <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" sizes="(max-width: 1024px) 100vw, 850px" />
                         </div>
                         {secondHalf && <div className="whitespace-pre-wrap break-words">{secondHalf}</div>}
                       </>
                     ) : (
-                      <div className="whitespace-pre-wrap break-words">{fullContent}</div>
+                      <>
+                        <div className="whitespace-pre-wrap mb-10 break-words">{firstHalf}</div>
+                        {midArticleConfig && (
+                          <div className="my-2 py-2 flex justify-center w-full">
+                            <AdsterraBanner bannerKey={midArticleConfig.key} width={midArticleConfig.width} height={midArticleConfig.height} className="!my-0" />
+                          </div>
+                        )}
+                        {secondHalf && <div className="whitespace-pre-wrap break-words">{secondHalf}</div>}
+                      </>
                     )}
                   </div>
                 </>
@@ -212,14 +261,20 @@ export default function JejuQQArticle({
                     </div>
                   )}
                   <div className="prose prose-lg font-garamond max-w-none prose-headings:font-black prose-p:leading-relaxed prose-p:text-gray-700 whitespace-pre-wrap break-words">
-                    {fullContent}
+                    <div className="whitespace-pre-wrap mb-10 break-words">{firstHalf}</div>
+                    {midArticleConfig && (
+                      <div className="my-2 py-2 flex justify-center w-full">
+                        <AdsterraBanner bannerKey={midArticleConfig.key} width={midArticleConfig.width} height={midArticleConfig.height} className="!my-0" />
+                      </div>
+                    )}
+                    {secondHalf && <div className="whitespace-pre-wrap break-words">{secondHalf}</div>}
                   </div>
                 </>
               )}
 
-              <ArticleShare 
-                site="jejuqq" 
-                title={article.title} 
+              <ArticleShare
+                site="jejuqq"
+                title={article.title}
                 className="mt-12"
               />
 
@@ -233,6 +288,11 @@ export default function JejuQQArticle({
               )}
 
             </article>
+
+            {/* Bottom Native Recommendations Widget */}
+            <div className="mt-8 border-t border-gray-200 pt-6">
+              <AdsterraNativeBanner domain="jejuqq.com" />
+            </div>
           </div>
 
           <div className="lg:col-span-4 space-y-10">
