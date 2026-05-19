@@ -30,15 +30,12 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
   const { absolute: ogImageAbsolute } = buildOgImageUrl(logoUrl, baseUrl);
   const iconPath = getSiteIconFromDomain(domain);
   const icoUrl = `${iconPath}?v=2`;
-  const hasPng = !iconPath.includes('newsicons.ico');
-  const pngUrl = hasPng ? iconPath.replace('/icons/', '/favicon/').replace('.ico', '.png') + '?v=2' : null;
 
   console.log(`[Layout Metadata] Generating for ${domain}:`, {
     siteName,
     baseUrl,
     logoUrl,
-    icoUrl,
-    pngUrl
+    icoUrl
   });
 
   return {
@@ -65,7 +62,7 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
     icons: {
       icon: icoUrl,
       shortcut: icoUrl,
-      apple: pngUrl || icoUrl,
+      apple: icoUrl,
     },
     alternates: {
       canonical: "/",

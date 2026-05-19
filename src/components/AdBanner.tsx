@@ -96,7 +96,7 @@ export function AdBanner({
   }, [banners.length]); // Only length matters; avoid ref-equality resets
 
   // Determine aspect ratio based on position
-  const getAspectRatioClasses = () => {
+  const getAspectRatioClasses = (isVideoAd: boolean) => {
     switch (position) {
       case "HOME_SIDEBAR":
       case "ARTICLE_SIDEBAR":
@@ -104,7 +104,7 @@ export function AdBanner({
       case "SIDEBAR_L_MID":
       case "SIDEBAR_R_MID":
       case "SIDEBAR_R_BTM":
-        return "aspect-[16/9] sm:aspect-[3/2]"; // Optimized for stacking
+        return isVideoAd ? "aspect-video" : "aspect-[16/9] sm:aspect-[3/2]"; // Optimized for video vs image
       case "HOME_TOP":
       case "GLOBAL_FOOTER":
       case "CONTENT_MID":
@@ -127,7 +127,7 @@ export function AdBanner({
   const videoId = isVideo ? getYouTubeVideoId(activeBanner.youtubeUrl) : null;
 
   return (
-    <div className={`w-full relative overflow-hidden group rounded-xl border border-gray-200 bg-black ${getAspectRatioClasses()} ${className}`}>
+    <div className={`w-full relative overflow-hidden group ${isVideo ? "rounded-none" : "rounded-xl"} border border-gray-200 bg-black ${getAspectRatioClasses(isVideo)} ${className}`}>
       <AnimatePresence initial={false}>
         <motion.div
           key={activeBanner.id}
@@ -148,17 +148,11 @@ export function AdBanner({
                 <iframe
                   src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0&iv_load_policy=3&enablejsapi=1`}
                   title={activeBanner.name}
-                  className="absolute top-1/2 left-1/2 w-[115%] h-[115%] -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                  className="absolute inset-0 w-full h-full border-0 pointer-events-none"
                   allow="autoplay; encrypted-media"
                 />
                 {/* Overlay to catch clicks for the Link */}
                 <div className="absolute inset-0 z-10" />
-                
-                <div className="absolute top-2 left-2 z-20">
-                  <span className="bg-red-600 backdrop-blur-md text-[10px] text-white px-2 py-0.5 rounded-md font-bold uppercase tracking-widest border border-white/20 shadow-lg">
-                    YouTube
-                  </span>
-                </div>
               </div>
             ) : (
               <>
