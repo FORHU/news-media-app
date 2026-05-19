@@ -15,7 +15,6 @@ import {
     Search,
     Newspaper,
     Loader2,
-    Send,
     EyeOff,
     Trash2,
     Layout
@@ -34,8 +33,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar as ShadCalendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import CreateArticleModal from '@/components/admin/generatedContent/CreateArticleModal/createArticleModal';
-import ReadGeneratedArticle from '@/components/admin/generatedContent/readGeneratedArticle';
-import PublishArticleModal from '@/components/admin/generatedContent/PublishArticleModal';
+import ArticleEditorModal from '@/components/admin/generatedContent/ArticleEditorModal';
 
 import { StoryImage } from '@/components/StoryImage';
 import ConfirmationModal from '@/components/admin/shared/ConfirmationModal';
@@ -81,8 +79,7 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
     const isPublished = article.status === 'published';
     const publishDate = article.publishDate || article.createdAt;
 
-    const [isReadModalOpen, setIsReadModalOpen] = React.useState(false);
-    const [isPublishModalOpen, setIsPublishModalOpen] = React.useState(false);
+    const [isEditorModalOpen, setIsEditorModalOpen] = React.useState(false);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = React.useState(false);
     const [isUnpublishing, setIsUnpublishing] = React.useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
@@ -200,7 +197,7 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                 <div className="space-y-2">
                     <button
                         type="button"
-                        onClick={() => setIsReadModalOpen(true)}
+                        onClick={() => setIsEditorModalOpen(true)}
                         className="text-left group/title focus:outline-none"
                     >
                         <h3 className="text-lg md:text-xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors line-clamp-1 leading-tight">
@@ -314,11 +311,15 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                 </div>
                 <button
                     type="button"
-                    onClick={() => setIsReadModalOpen(true)}
-                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-gray-50 text-gray-700 hover:bg-gray-100 transition-all group/view"
+                    onClick={() => setIsEditorModalOpen(true)}
+                    className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all group/review ${
+                        isPublished
+                            ? 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                            : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-orange-500/30 hover:shadow-orange-500/50'
+                    }`}
                 >
-                    <Newspaper className="w-4 h-4 text-gray-400 group-hover/view:text-gray-900 transition-colors" />
-                    View
+                    <Newspaper className={`w-4 h-4 transition-colors ${isPublished ? 'text-gray-400 group-hover/review:text-gray-900' : ''}`} />
+                    {isPublished ? 'Edit' : 'Review'}
                 </button>
 
                 {isPublished ? (
@@ -335,16 +336,7 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                         )}
                         Unpublish
                     </button>
-                ) : (
-                    <button
-                        type="button"
-                        onClick={() => setIsPublishModalOpen(true)}
-                        className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-orange-500/30 hover:shadow-orange-500/50 transition-all group/btn"
-                    >
-                        <Send className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                        Publish
-                    </button>
-                )}
+                ) : null}
 
                 <button
                     type="button"
@@ -360,16 +352,10 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                     Delete
                 </button>
 
-                <ReadGeneratedArticle
+                <ArticleEditorModal
                     article={article}
-                    open={isReadModalOpen}
-                    onOpenChange={setIsReadModalOpen}
-                />
-
-                <PublishArticleModal
-                    article={article}
-                    open={isPublishModalOpen}
-                    onOpenChange={setIsPublishModalOpen}
+                    open={isEditorModalOpen}
+                    onOpenChange={setIsEditorModalOpen}
                 />
 
                 <ConfirmationModal
