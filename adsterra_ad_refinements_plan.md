@@ -8,6 +8,9 @@ This reference plan serves as the architectural specification and implementation
 
 To avoid script collisions and enforce layout compliance, all keys, scripts, containers, and ad dimensions are managed centrally.
 
+> [!NOTE]
+> **Intrusive Ads Removal**: Both the Popunder and Social Bar (popup notification bar) scripts have been fully removed from the global layout (`src/app/layout.tsx`) across all three sites (JejuJapan, JejuTime, and VoiceJeju) to ensure a premium, non-intrusive user experience.
+
 ### 📄 `src/config/adsterra.ts`
 *   **Role**: Single source of truth for ad campaigns, keys, containers, and dimensions.
 *   **Structure**: Every tenant defines specialized `banners`, `midArticle`, and `midFeed` config parameters:
