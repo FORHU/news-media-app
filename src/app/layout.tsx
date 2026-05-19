@@ -107,8 +107,6 @@ export async function generateMetadata(): Promise<Metadata> {
   
   const iconPath = getSiteIconFromDomain(domain);
   const icoUrl = `${iconPath}?v=2`;
-  const hasPng = !iconPath.includes('newsicons.ico');
-  const pngUrl = hasPng ? iconPath.replace('/icons/', '/favicon/').replace('.ico', '.png') + '?v=2' : null;
 
   const protocol = host?.includes("localhost") || host?.includes("127.0.0.1") ? "http" : "https";
   const baseUrl = host ? `${protocol}://${host}` : SITE_URL;
@@ -123,7 +121,7 @@ export async function generateMetadata(): Promise<Metadata> {
     icons: {
       icon: icoUrl,
       shortcut: icoUrl,
-      apple: pngUrl || icoUrl,
+      apple: icoUrl,
     },
     openGraph: {
       title: siteName,
@@ -158,6 +156,7 @@ export default async function RootLayout({
   const host = headersList.get("host");
   const domain = normalizeHostToDomain(host);
   const isJejuTime = domain?.toLowerCase().includes('jejutime');
+  const isVoiceJeju = domain?.toLowerCase().includes('voicejeju');
 
   return (
     <html lang="en">
@@ -171,6 +170,11 @@ export default async function RootLayout({
         {isJejuTime && (
           <script
             src="https://pl29482513.effectivecpmnetwork.com/ff/4c/94/ff4c94f2be70d5f135bec2e03d391610.js"
+          ></script>
+        )}
+        {isVoiceJeju && (
+          <script
+            src="https://pl29489865.effectivecpmnetwork.com/04/9c/d4/049cd43b6d49b530ad7b97ab5f60155c.js"
           ></script>
         )}
       </body>

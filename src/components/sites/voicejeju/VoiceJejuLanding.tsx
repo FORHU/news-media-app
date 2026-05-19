@@ -6,6 +6,8 @@ const AdBanner = dynamic(() => import("@/components/AdBanner").then(mod => mod.A
    ssr: true,
    loading: () => <div className="h-[120px] animate-pulse bg-gray-50 flex items-center justify-center text-[10px] text-gray-400 font-bold uppercase tracking-widest" />
 });
+import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
+import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
 import { ChevronRight, ChevronLeft } from "lucide-react";
@@ -1232,6 +1234,16 @@ export function VoiceJejuLanding(props: Props) {
             </div>
          )}
 
+         {/* Adsterra Top Leaderboards */}
+         <div className="max-w-[1440px] mx-auto px-4 lg:px-8 mb-2">
+            <div className="hidden sm:block">
+               <AdsterraBanner bannerKey="c242943e75df6497a5929d27852b1159" width={728} height={90} />
+            </div>
+            <div className="block sm:hidden">
+               <AdsterraBanner bannerKey="d68b3e9b0c05a075a85176317f822b6d" width={320} height={50} />
+            </div>
+         </div>
+
          <main className="max-w-[1440px] mx-auto px-4 lg:px-8 py-2 lg:py-4">
             <div className="grid grid-cols-1 gap-y-6 lg:grid-cols-12 lg:gap-x-5 lg:gap-y-5">
                {/* Left — spans center + Wire (+ category row) on desktop; sticky until grid ends */}
@@ -1268,6 +1280,10 @@ export function VoiceJejuLanding(props: Props) {
                         {leftSidebarArticles.slice(5).map((article, i) => (
                            <LatestSidebarEntry key={article.id} article={article} index={i + 5} />
                         ))}
+                     </div>
+                     {/* Adsterra Left Sidebar Banner */}
+                     <div className="mt-6 flex justify-center border-t border-gray-100 pt-6">
+                        <AdsterraBanner bannerKey="1fc758c95674c51a8dc1e7bdff580f7e" width={300} height={250} />
                      </div>
                   </div>
                </aside>
@@ -1348,6 +1364,16 @@ export function VoiceJejuLanding(props: Props) {
                         </p>
                      </div>
                      <ReportDeskFeed articles={latestStories} />
+                  </div>
+
+                  {/* Adsterra Mid-Feed Horizontal Banner */}
+                  <div className="flex justify-center w-full">
+                     <div className="hidden sm:block w-full">
+                        <AdsterraBanner bannerKey="6db5eb2e2ba54ace04066062d6bfe736" width={468} height={60} className="!my-2" />
+                     </div>
+                     <div className="block sm:hidden w-full">
+                        <AdsterraBanner bannerKey="d68b3e9b0c05a075a85176317f822b6d" width={320} height={50} className="!my-2" />
+                     </div>
                   </div>
                </div>
 
@@ -1460,6 +1486,11 @@ export function VoiceJejuLanding(props: Props) {
                               </Link>
                            ))}
                         </div>
+                     </div>
+
+                     {/* Adsterra Sidebar Banner */}
+                     <div className="py-2 flex justify-center">
+                        <AdsterraBanner bannerKey="1fc758c95674c51a8dc1e7bdff580f7e" width={300} height={250} />
                      </div>
 
                      {banners.sideRMid && banners.sideRMid.length > 0 && (
@@ -1576,6 +1607,11 @@ export function VoiceJejuLanding(props: Props) {
                   </div>
                </section>
             )}
+
+            {/* Adsterra Bottom Native Recommendations */}
+            <div className="mt-4 border-t border-gray-200 pt-2">
+               <AdsterraNativeBanner domain="voicejeju.com" />
+            </div>
          </main>
       </div>
    );

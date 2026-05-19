@@ -11,6 +11,8 @@ import { StoryImage } from "@/components/StoryImage";
 import { articlesApi } from "@/lib/api";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
 import { AdBanner } from "@/components/AdBanner";
+import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
+import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import type { Article } from "@/lib/types";
 import { extractYoutubeId } from "@/lib/utils";
 import TwitterStatusEmbed from "@/components/article/TwitterStatusEmbed";
@@ -231,6 +233,16 @@ export function VoiceJejuArticle({
         </div>
       </div>
 
+      {/* Adsterra Top Leaderboards */}
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 mb-2">
+        <div className="hidden sm:block">
+          <AdsterraBanner bannerKey="c242943e75df6497a5929d27852b1159" width={728} height={90} />
+        </div>
+        <div className="block sm:hidden">
+          <AdsterraBanner bannerKey="d68b3e9b0c05a075a85176317f822b6d" width={320} height={50} />
+        </div>
+      </div>
+
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12">
 
@@ -241,6 +253,9 @@ export function VoiceJejuArticle({
                 <TrendingSidebar articles={trendingArticles} domain="voicejeju.com" />
               </div>
               <AdBanner position="ARTICLE_SIDEBAR" />
+              <div className="mt-2 flex justify-center">
+                <AdsterraBanner bannerKey="1fc758c95674c51a8dc1e7bdff580f7e" width={300} height={250} />
+              </div>
             </div>
           </aside>
 
@@ -325,6 +340,11 @@ export function VoiceJejuArticle({
                   </p>
                 </div>
               ) : null}
+
+              {/* Adsterra Native Recommendations Banner */}
+              <div className="mt-2">
+                <AdsterraNativeBanner domain="voicejeju.com" />
+              </div>
 
               <ArticleShare
                 site="voicejeju"

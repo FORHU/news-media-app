@@ -33,7 +33,7 @@ export function AdsterraBanner({ bannerKey, width, height, className = "" }: Ads
   `;
 
   return (
-    <div className={`flex justify-center items-center w-full my-6 overflow-hidden ${className}`}>
+    <div className={`flex justify-center items-center w-full my-2 overflow-hidden ${className}`}>
       <iframe
         srcDoc={html}
         width={width}
