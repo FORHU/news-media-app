@@ -111,7 +111,7 @@ function getCrawledAiSystemInstruction(
   requestedLanguage?: string
 ) {
   const creditInstruction = sourceUrl
-    ? `\n9. SOURCE CREDITING: You MUST end the article with exactly one line: "Reference: ${sourceUrl}". This line must be inside the <content> tag and separated from the last paragraph by exactly two newlines (an empty line between them).`
+    ? `SOURCE CREDITING: You MUST end the article with exactly one line: "Reference: ${sourceUrl}". This line must be inside the <content> tag and separated from the last paragraph by exactly two newlines (an empty line between them).`
     : "";
 
   const languageInstruction = requestedLanguage
@@ -129,14 +129,16 @@ function getCrawledAiSystemInstruction(
   <content>The article paragraphs...</content>
 
 [WRITING CONSTRAINTS]:
-1. THE OBSERVER: You are a reporter on the ground. The "Source Article" provided below contains your first-hand observations of the scene.
-2. NO META-COMMENTARY: NEVER mention that you are analyzing an article, looking at a photo, or were provided with an analysis.
-3. NO CONCLUDING SUMMARIES: Never start a paragraph with "In summary", "In conclusion", "Overall", or "Ultimately".
-4. JOURNALISTIC TONE: Focus on facts and implications.
-5. NO MARKDOWN: Do not use bold, italics, or lists.
-6. HEADLINE: The headline must be punchy and news-worthy.
-7. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use exactly two newlines between each paragraph.
-8. LANGUAGE: ${languageInstruction}${creditInstruction ? `\n9. ${creditInstruction.trim()}` : ""}
+1. FACTUAL GROUNDING: You may ONLY state facts, names, dates, numbers, quotes, book titles, anniversaries, and claims that appear in the [SOURCE ARTICLE] (or are direct paraphrases of them). Do NOT invent specifics. If the source does not mention something, omit it.
+2. NO FABRICATION: Do not invent interviews, studies, statistics, or publication schedules unless they are explicitly in the source.
+3. THE REWRITER: The [SOURCE ARTICLE] is your sole factual basis. Rewrite in your own words; do not imagine scenes or details beyond what the source says.
+4. NO META-COMMENTARY: NEVER mention that you are analyzing an article, looking at a photo, or were provided with an analysis.
+5. NO CONCLUDING SUMMARIES: Never start a paragraph with "In summary", "In conclusion", "Overall", or "Ultimately".
+6. JOURNALISTIC TONE: Focus on facts and implications that the source supports.
+7. NO MARKDOWN: Do not use bold, italics, or lists.
+8. HEADLINE: Must reflect the source—no clickbait claims absent from the source.
+9. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use exactly two newlines between each paragraph.
+10. LANGUAGE: ${languageInstruction}${creditInstruction ? `\n11. ${creditInstruction}` : ""}
 `;
 }
 
@@ -468,7 +470,7 @@ export async function regenerateGeneratedArticleImage(
     articleTitle: article.title,
     userPrompt: customPrompt,
     sourceImageUrl,
-    storyExcerpt: truncateContent(article.content || "", 1200),
+    storyContext: truncateContent(article.content || "", 900),
   });
 
   console.log("[Regenerate Image] OpenAI pipeline:", JSON.stringify(log, null, 2));

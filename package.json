@@ -7,7 +7,11 @@
     "build": "cross-env NEXT_DISABLE_TURBOPACK=1 next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "backup": "tsx scripts/backup/run-all.ts",
+    "backup:db": "tsx scripts/backup/backup-database.ts",
+    "backup:storage": "tsx scripts/backup/backup-storage.ts",
+    "restore:public": "tsx scripts/backup/restore-public.ts"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"

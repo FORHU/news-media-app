@@ -4,10 +4,10 @@
  */
 export type FeaturedImageGenerationLog = {
   requested: boolean;
-  /** Model id from env (e.g. dall-e-3, gpt-image-1, dall-e-2). */
+  /** Always `gpt-image-1-mini`. */
   openAiModel: string;
   /** Which API shape was used (or none). */
-  apiKind: "dall-e-3-generations" | "openai-image-edits" | "none";
+  apiKind: "gpt-image-mini-edits" | "none";
   /** Short human-readable pipeline name. */
   pipelineLabel: string;
   outcome:
