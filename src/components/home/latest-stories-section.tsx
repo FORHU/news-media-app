@@ -64,9 +64,15 @@ export function LatestStoriesSection({
   return (
     <div id="latest-stories" className="lg:col-span-2 scroll-mt-24">
       <div className="flex items-center justify-between mb-6">
-        <h2 className={`text-2xl font-bold text-gray-900 ${domain.includes('voicejeju') ? 'font-voltaire uppercase tracking-tight text-3xl border-b-2 border-black pb-2' : 'font-serif'}`}>
-          Latest Stories
-        </h2>
+        {domain.includes('skyblueprime') ? (
+          <div className="border-t-[4px] border-sky-950 pt-3 w-full">
+            <h2 className="text-[13px] font-black text-sky-950 uppercase tracking-widest">Latest Stories</h2>
+          </div>
+        ) : (
+          <h2 className={`text-2xl font-bold text-gray-900 ${domain.includes('voicejeju') ? 'font-voltaire uppercase tracking-tight text-3xl border-b-2 border-black pb-2' : 'font-serif'}`}>
+            Latest Stories
+          </h2>
+        )}
       </div>
 
       {isLoading ? (
@@ -120,53 +126,89 @@ export function LatestStoriesSection({
           {(() => {
             const isVoiceJeju = domain.includes('voicejeju');
             const isJejuQQ = domain === 'jejuqq.com';
+            const isSkyBluePrime = domain.includes('skyblueprime');
             return (searchQuery ? articles : latestStories).map((article, index) => (
             <Fragment key={article.id}>
-              <ArticleLink
-                articleIdentifier={article.slug ?? article.id}
-              href={`/article/${article.slug ?? article.id}`}
-              className={`group cursor-pointer flex ${isJejuQQ || isVoiceJeju ? 'rounded-none' : 'rounded-lg'} ${isJejuQQ ? 'flex-row-reverse' : 'flex-row'} gap-4 pb-6 border-b border-gray-200 hover:bg-gray-50 transition-colors p-2 sm:p-3`}
-            >
-              <div className={`relative w-28 sm:w-40 h-20 sm:h-28 bg-gray-200 ${isJejuQQ ? 'rounded-none border-2 border-primary' : 'rounded-lg'} overflow-hidden flex-shrink-0`}>
-                <StoryImage
-                  src={article.imageUrl}
-                  alt={article.title}
-                  width={400}
-                  height={200}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  variant="thumbnail"
-                />
-              </div>
-              <div className="flex-1 min-w-0 text-left">
-                <div className="flex items-center gap-2 mb-2">
-                  {normalizeCategoryName(article.category?.categoryName) ? (
-                      <span className={`inline-block ${isJejuQQ ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-700'} px-2 py-0.5 rounded text-xs font-semibold uppercase`}>
+              {isSkyBluePrime ? (
+                <ArticleLink
+                  articleIdentifier={article.slug ?? article.id}
+                  href={`/article/${article.slug ?? article.id}`}
+                  className="group cursor-pointer flex flex-row gap-4 pb-6 border-b border-sky-100 hover:bg-sky-50/50 transition-colors p-2 sm:p-3"
+                >
+                  <div className="relative w-28 sm:w-36 h-20 sm:h-24 bg-sky-100 overflow-hidden flex-shrink-0">
+                    <StoryImage
+                      src={article.imageUrl}
+                      alt={article.title}
+                      width={400}
+                      height={200}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      variant="thumbnail"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    {normalizeCategoryName(article.category?.categoryName) && (
+                      <span className="block text-[10px] font-bold uppercase tracking-widest text-sky-500 mb-1.5">
                         {normalizeCategoryName(article.category?.categoryName)}
                       </span>
-                  ) : null}
-                </div>
-                <h3 
-                  className={`text-lg font-bold text-gray-900 mb-2 transition-colors line-clamp-2 ${isVoiceJeju ? 'font-voltaire uppercase tracking-tight text-xl' : 'font-serif'}`}
-                  onMouseEnter={(e) => e.currentTarget.style.color = domainColor.hex}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#111827'} // gray-900
+                    )}
+                    <h3 className="text-[17px] font-bold text-sky-950 mb-2 leading-tight line-clamp-2 group-hover:text-sky-600 transition-colors">
+                      {article.title}
+                    </h3>
+                    <p className="text-sm text-sky-800/70 mb-2 line-clamp-2 font-medium">
+                      {truncateContent(article.content)}
+                    </p>
+                    <span className="text-[9px] font-bold text-sky-950 uppercase tracking-widest">
+                      {formatDate(article.createdAt)}
+                    </span>
+                  </div>
+                </ArticleLink>
+              ) : (
+                <ArticleLink
+                  articleIdentifier={article.slug ?? article.id}
+                  href={`/article/${article.slug ?? article.id}`}
+                  className={`group cursor-pointer flex ${isJejuQQ || isVoiceJeju ? 'rounded-none' : 'rounded-lg'} ${isJejuQQ ? 'flex-row-reverse' : 'flex-row'} gap-4 pb-6 border-b border-gray-200 hover:bg-gray-50 transition-colors p-2 sm:p-3`}
                 >
-                  {article.title}
-                </h3>
-                <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                  {truncateContent(article.content)}
-                </p>
-                <div className="flex items-center gap-4 text-xs text-gray-500">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5" />
-                    {formatDate(article.createdAt)}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    5 min read
-                  </span>
-                </div>
-              </div>
-              </ArticleLink>
+                  <div className={`relative w-28 sm:w-40 h-20 sm:h-28 bg-gray-200 ${isJejuQQ ? 'rounded-none border-2 border-primary' : 'rounded-lg'} overflow-hidden flex-shrink-0`}>
+                    <StoryImage
+                      src={article.imageUrl}
+                      alt={article.title}
+                      width={400}
+                      height={200}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      variant="thumbnail"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <div className="flex items-center gap-2 mb-2">
+                      {normalizeCategoryName(article.category?.categoryName) ? (
+                        <span className={`inline-block ${isJejuQQ ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-700'} px-2 py-0.5 rounded text-xs font-semibold uppercase`}>
+                          {normalizeCategoryName(article.category?.categoryName)}
+                        </span>
+                      ) : null}
+                    </div>
+                    <h3
+                      className={`text-lg font-bold text-gray-900 mb-2 transition-colors line-clamp-2 ${isVoiceJeju ? 'font-voltaire uppercase tracking-tight text-xl' : 'font-serif'}`}
+                      onMouseEnter={(e) => e.currentTarget.style.color = domainColor.hex}
+                      onMouseLeave={(e) => e.currentTarget.style.color = '#111827'}
+                    >
+                      {article.title}
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                      {truncateContent(article.content)}
+                    </p>
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5" />
+                        {formatDate(article.createdAt)}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" />
+                        5 min read
+                      </span>
+                    </div>
+                  </div>
+                </ArticleLink>
+              )}
               {index === 2 && domain.toLowerCase().includes("jejujapan") && (
                 <div className="my-6 py-4 border-y border-gray-100 flex justify-center w-full">
                   <div className="hidden sm:block">
@@ -174,6 +216,16 @@ export function LatestStoriesSection({
                   </div>
                   <div className="block sm:hidden">
                     <AdsterraBanner bannerKey={ADSTERRA_CONFIG.jejujapan.banners["320x50"]} width={320} height={50} className="!my-0" />
+                  </div>
+                </div>
+              )}
+              {index === 2 && isSkyBluePrime && (
+                <div className="my-6 py-4 border-y border-sky-100 flex justify-center w-full bg-sky-50/30">
+                  <div className="hidden sm:block">
+                    <AdsterraBanner bannerKey={ADSTERRA_CONFIG.skyblueprime.banners["468x60"]} width={468} height={60} className="!my-0" />
+                  </div>
+                  <div className="block sm:hidden">
+                    <AdsterraBanner bannerKey={ADSTERRA_CONFIG.skyblueprime.banners["320x50"]} width={320} height={50} className="!my-0" />
                   </div>
                 </div>
               )}

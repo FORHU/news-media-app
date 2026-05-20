@@ -22,6 +22,8 @@ export function AdsterraNativeBanner({ domain: propDomain }: AdsterraNativeBanne
         setResolvedDomain("jejujapan.com");
       } else if (hostname.includes("jejuqq")) {
         setResolvedDomain("jejuqq.com");
+      } else if (hostname.includes("skyblueprime")) {
+        setResolvedDomain("skyblueprime.com");
       } else {
         setResolvedDomain("jejutime.com");
       }
