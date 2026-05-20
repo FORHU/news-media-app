@@ -55,3 +55,6 @@ next-env.d.ts
 
 #Claude
 CLAUDE.md
+
+# Supabase / local backups (may contain production data)
+/backups/
