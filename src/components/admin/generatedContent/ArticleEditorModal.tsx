@@ -40,18 +40,16 @@ import TwitterStatusEmbed from "@/components/article/TwitterStatusEmbed";
 import RegeneratePromptDialog, {
     type RegeneratePromptType,
 } from "@/components/admin/generatedContent/RegeneratePromptDialog";
-async function uploadImageToSupabase(file: File): Promise<string> {
-    const { supabase } = await import("@/lib/supabaseClient");
-    const ext = file.name.split(".").pop() ?? "jpg";
-    const path = `article-images/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const { error } = await supabase.storage.from("articles").upload(path, file, {
-        cacheControl: "3600",
-        upsert: false,
+async function uploadImageToS3(file: File): Promise<string> {
+    const res = await fetch("/api/admin/upload-image-presigned", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filename: file.name, contentType: file.type }),
     });
-    if (error) throw new Error(error.message);
-    const {
-        data: { publicUrl },
-    } = supabase.storage.from("articles").getPublicUrl(path);
+    if (!res.ok) throw new Error("Failed to get upload URL");
+    const { presignedUrl, publicUrl } = await res.json();
+    const uploadRes = await fetch(presignedUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+    if (!uploadRes.ok) throw new Error("Failed to upload image");
     return publicUrl;
 }
 
@@ -203,7 +201,7 @@ export default function ArticleEditorModal({
             if (imageFile) {
                 setIsUploadingImage(true);
                 try {
-                    finalImageUrl = await uploadImageToSupabase(imageFile);
+                    finalImageUrl = await uploadImageToS3(imageFile);
                 } finally {
                     setIsUploadingImage(false);
                 }

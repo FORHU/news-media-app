@@ -4,7 +4,6 @@ import { prisma } from "@/lib/db";
 import { generateUniqueArticleSlug } from "@/lib/slug";
 import { z } from "zod";
 import { getTenantDomainFromRequest, resolveTenantIdFromRequest } from "@/lib/tenant";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { uploadToS3 } from "@/lib/s3";
 
 export const dynamic = "force-dynamic";
@@ -30,34 +29,16 @@ function detectImageExtension(mimeType: string): string {
   return "jpg"; // Default to jpg to avoid Next.js .bin optimization errors
 }
 
-async function uploadBase64ImageToSupabase(dataUrl: string, tenantId: string): Promise<string> {
+async function uploadBase64ImageToS3(dataUrl: string, tenantId: string): Promise<string> {
   const match = dataUrl.match(DATA_URL_IMAGE_REGEX);
-  if (!match) {
-    throw new Error("Invalid base64 image format.");
-  }
+  if (!match) throw new Error("Invalid base64 image format.");
 
   const mimeType = match[1];
-  const base64Payload = match[2];
-  const fileBuffer = Buffer.from(base64Payload, "base64");
+  const fileBuffer = Buffer.from(match[2], "base64");
   const extension = detectImageExtension(mimeType);
-  const bucket = process.env.SUPABASE_ARTICLES_BUCKET || "articles";
-  const path = `article-images/manual-uploads/${tenantId}/${Date.now()}-${randomUUID()}.${extension}`;
+  const filename = `manual-uploads-${tenantId}-${Date.now()}-${randomUUID()}.${extension}`;
 
-  const { error } = await supabaseAdmin.storage.from(bucket).upload(path, fileBuffer, {
-    contentType: mimeType,
-    upsert: false,
-  });
-
-  if (error) {
-    throw new Error(`Supabase image upload failed: ${error.message}`);
-  }
-
-  const { data } = supabaseAdmin.storage.from(bucket).getPublicUrl(path);
-  if (!data?.publicUrl) {
-    throw new Error("Supabase image upload succeeded, but public URL is missing.");
-  }
-
-  return data.publicUrl;
+  return uploadToS3(fileBuffer, filename, mimeType);
 }
 
 function truncateContent(text: string, limit: number = 12000): string {
@@ -265,7 +246,7 @@ export async function POST(req: NextRequest) {
     const rawSourceUploadId = makeCuid();
     const normalizedIncomingImageUrl = s3ImageUrl?.trim() || "";
     const resolvedImageUrl = normalizedIncomingImageUrl.startsWith("data:image/")
-      ? await uploadBase64ImageToSupabase(normalizedIncomingImageUrl, tenantId)
+      ? await uploadBase64ImageToS3(normalizedIncomingImageUrl, tenantId)
       : normalizedIncomingImageUrl;
     const promptToStore =
       [prompt, language ? `Write the entire article in ${language}.` : ""]

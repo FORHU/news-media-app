@@ -198,10 +198,10 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${r
         throw new Error(errorMsg);
       }
 
-      const { response } = await chatRes.json();
-      if (!response) throw new Error("AI service returned empty response");
+      const rawJson = await chatRes.json();
+      const response = rawJson.response ?? rawJson.text ?? rawJson.content ?? rawJson.result ?? rawJson.output ?? null;
+      if (!response) throw new Error(`AI service returned empty response. Keys: ${Object.keys(rawJson).join(", ")}`);
 
-      // Extract parts using the helper
       const extracted = extractArticleData(response, rawArticle.title);
       title = extracted.title;
       content = extracted.content;

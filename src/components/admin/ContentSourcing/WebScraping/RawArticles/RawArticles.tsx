@@ -18,7 +18,6 @@ import Pagination from '@/components/admin/pagination';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { articlesApi } from '@/lib/api';
-import { supabase } from '@/lib/supabaseClient';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { format } from 'date-fns';
 
@@ -325,7 +324,7 @@ export default function RawArticles({ searchParams }: {
         }),
         placeholderData: (prev) => prev,
         staleTime: 0,
-        // Event-driven: Supabase realtime should cause a refetch.
+        refetchInterval: 3000,
     });
 
     const articles = data?.articles || [];
@@ -387,51 +386,6 @@ export default function RawArticles({ searchParams }: {
         setStatusDraft(status);
     }, [status]);
 
-    React.useEffect(() => {
-
-        let lastRefetchAt = 0;
-        const throttleMs = 500;
-
-        const refetchFromRealtime = () => {
-
-            const now = Date.now();
-            if (now - lastRefetchAt < throttleMs) return;
-            lastRefetchAt = now;
-
-            const isCrawledArticlesQuery = (q: { queryKey?: unknown }) => {
-                return Array.isArray(q.queryKey) && q.queryKey[0] === 'crawledArticles';
-            };
-
-            queryClient.invalidateQueries({
-                predicate: isCrawledArticlesQuery,
-            });
-
-            void queryClient.refetchQueries({
-                predicate: isCrawledArticlesQuery,
-                type: 'active',
-            });
-        };
-
-        const channel = supabase
-            .channel('realtime:crawled_articles')
-            .on(
-                'postgres_changes',
-                { event: '*', schema: 'public', table: 'raw_articles' },
-                refetchFromRealtime
-            )
-            .on(
-                'postgres_changes',
-                { event: '*', schema: 'public', table: 'content_articles' },
-                refetchFromRealtime
-            )
-            .subscribe((status, err) => {
-                // no-op: subscription is used only to keep the realtime listeners alive
-            });
-
-        return () => {
-            supabase.removeChannel(channel);
-        };
-    }, [queryClient]);
 
     React.useEffect(() => {
         const t = setTimeout(() => {
