@@ -12,8 +12,7 @@ import { ADSTERRA_CONFIG } from "@/config/adsterra";
 import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
 import { ChevronRight, ChevronLeft } from "lucide-react";
-import { useState, useMemo, type ReactNode } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef, useMemo, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { TENANT_CATEGORIES } from "@/config/categories";
 
@@ -70,7 +69,7 @@ function CompactArticleRow({
             />
          </div>
          <div className="min-w-0 flex-1">
-            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-[0.2em] block mb-1">
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] block mb-1">
                {article.category?.categoryName}
             </span>
             <h3 className="text-[14px] sm:text-[15px] font-normal font-voltaire leading-snug text-gray-900 group-hover:underline line-clamp-2">
@@ -100,7 +99,7 @@ function LatestSidebarFeatured({ article }: { article: LandingArticle }) {
    return (
       <Link
          href={articleHref(article)}
-         className="block group border-b-2 border-black bg-white p-2 hover:bg-gray-50/80 transition-colors"
+         className="block group border-b-2 border-black py-3 px-0 hover:bg-gray-50/80 transition-colors"
       >
          <div className="relative aspect-[5/3] w-full overflow-hidden mb-2.5 border border-gray-200">
             <StoryImage
@@ -111,7 +110,7 @@ function LatestSidebarFeatured({ article }: { article: LandingArticle }) {
                sizes="(max-width: 1280px) 30vw, 280px"
             />
             <div className="absolute bottom-0 inset-x-0 h-1/2 bg-gradient-to-t from-black/55 to-transparent pointer-events-none" />
-            <span className="absolute bottom-2 left-2 text-[9px] font-black uppercase tracking-[0.25em] text-white drop-shadow-sm">
+            <span className="absolute bottom-2 left-2 text-[10px] font-black uppercase tracking-[0.25em] text-white drop-shadow-sm">
                {article.category?.categoryName}
             </span>
          </div>
@@ -126,9 +125,9 @@ function LatestSidebarWire({ article }: { article: LandingArticle }) {
    return (
       <Link
          href={articleHref(article)}
-         className="group block border-b border-gray-100 py-3 px-2 hover:bg-gray-50 transition-colors border-l-[3px] border-black -ml-px pl-3"
+         className="group block border-b border-gray-100 py-3 px-0 hover:bg-gray-50/80 transition-colors border-l-[3px] border-black pl-3"
       >
-         <span className="text-[8px] font-black text-gray-500 uppercase tracking-[0.35em] block mb-1.5">
+         <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.35em] block mb-1.5">
             {article.category?.categoryName}
          </span>
          <p className="text-[13px] font-voltaire leading-snug text-gray-900 group-hover:underline line-clamp-3">
@@ -154,7 +153,7 @@ function LatestSidebarSplit({ article }: { article: LandingArticle }) {
             />
          </div>
          <div className="min-w-0 flex-1 flex flex-col justify-center py-0.5">
-            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-[0.2em] block mb-1">
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] block mb-1">
                {article.category?.categoryName}
             </span>
             <h3 className="text-[15px] font-normal font-voltaire leading-snug text-gray-900 group-hover:underline line-clamp-3">
@@ -186,7 +185,7 @@ function LatestSidebarReverse({ article }: { article: LandingArticle }) {
             />
          </div>
          <div className="min-w-0 flex-1">
-            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-[0.2em] block mb-1">
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] block mb-1">
                {article.category?.categoryName}
             </span>
             <h3 className="text-[14px] sm:text-[15px] font-normal font-voltaire leading-snug text-gray-900 group-hover:underline line-clamp-2">
@@ -229,9 +228,9 @@ function InDepthCompactRow({ article }: { article: LandingArticle }) {
    return (
       <Link
          href={articleHref(article)}
-         className="flex gap-3 group items-start border-b border-stone-200/70 py-3 px-2 last:border-b-0 hover:bg-white/85 transition-colors"
+         className="flex gap-3 group items-start border-b border-stone-200/70 py-3 px-0 last:border-b-0 hover:bg-stone-50 transition-colors"
       >
-         <div className="relative w-16 h-16 shrink-0 overflow-hidden rounded-md bg-stone-200/50 ring-1 ring-stone-300/60">
+         <div className="relative w-16 h-16 shrink-0 overflow-hidden bg-stone-100 border border-stone-200/80">
             <StoryImage
                src={article.imageUrl}
                alt={article.title}
@@ -261,9 +260,9 @@ function InDepthLead({ article }: { article: LandingArticle }) {
    return (
       <Link
          href={articleHref(article)}
-         className="group block border-b border-stone-200/70 bg-white/50 p-3 hover:bg-white/90 transition-colors"
+         className="group block border-b border-stone-200/70 py-3 px-0 hover:bg-stone-50 transition-colors"
       >
-         <div className="relative aspect-[8/5] w-full overflow-hidden mb-3 rounded-md ring-1 ring-stone-300/70 shadow-sm">
+         <div className="relative aspect-[8/5] w-full overflow-hidden mb-3 border border-stone-200/80">
             <StoryImage
                src={article.imageUrl}
                alt={article.title}
@@ -271,7 +270,7 @@ function InDepthLead({ article }: { article: LandingArticle }) {
                className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                sizes="(max-width: 1280px) 28vw, 260px"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-stone-900/45 via-stone-900/5 to-transparent pointer-events-none rounded-md" />
+            <div className="absolute inset-0 bg-gradient-to-t from-stone-900/45 via-stone-900/5 to-transparent pointer-events-none" />
          </div>
          <span className="text-[10px] font-medium text-stone-500 tracking-wide block mb-1">
             {article.category?.categoryName}
@@ -292,7 +291,7 @@ function InDepthSplitBottom({ article }: { article: LandingArticle }) {
    return (
       <Link
          href={articleHref(article)}
-         className="group flex flex-col border-b border-stone-200/70 py-3 px-2 hover:bg-white/80 transition-colors bg-stone-50/30"
+         className="group flex flex-col border-b border-stone-200/70 py-3 px-0 hover:bg-stone-50 transition-colors"
       >
          <span className="text-[10px] font-medium text-stone-500 tracking-wide mb-1">
             {article.category?.categoryName}
@@ -300,7 +299,7 @@ function InDepthSplitBottom({ article }: { article: LandingArticle }) {
          <h3 className="text-[15px] font-inter font-semibold leading-snug text-stone-900 group-hover:underline decoration-stone-400 line-clamp-2 mb-2.5">
             {article.title}
          </h3>
-         <div className="relative h-[5rem] w-full overflow-hidden rounded-md ring-1 ring-stone-300/60 shrink-0 mt-auto shadow-sm">
+         <div className="relative h-[5rem] w-full overflow-hidden border border-stone-200/80 shrink-0 mt-auto">
             <StoryImage
                src={article.imageUrl}
                alt={article.title}
@@ -317,7 +316,7 @@ function InDepthExcerptBar({ article }: { article: LandingArticle }) {
    return (
       <Link
          href={articleHref(article)}
-         className="group block border-b border-stone-200/70 py-3 px-3 mx-1 rounded-md bg-white/70 hover:bg-white transition-colors ring-1 ring-stone-200/50 my-1"
+         className="group block border-b border-stone-200/70 py-3 px-0 hover:bg-stone-50 transition-colors"
       >
          {article.content && (
             <p className="text-[11px] text-stone-700 leading-relaxed line-clamp-3 font-inter italic mb-2.5 border-l-[3px] border-stone-400 pl-3">
@@ -338,7 +337,7 @@ function InDepthOverline({ article }: { article: LandingArticle }) {
    return (
       <Link
          href={articleHref(article)}
-         className="group block border-b border-stone-200/70 py-4 px-3 hover:bg-white/80 transition-colors"
+         className="group block border-b border-stone-200/70 py-4 px-0 hover:bg-stone-50 transition-colors"
       >
          <span className="text-[10px] font-medium text-stone-500 tracking-[0.12em] block mb-2">
             {article.category?.categoryName}
@@ -359,9 +358,9 @@ function InDepthRibbon({ article }: { article: LandingArticle }) {
    return (
       <Link
          href={articleHref(article)}
-         className="flex gap-3 group items-center border-b border-stone-200/70 py-3 px-2 hover:bg-white/80 transition-colors"
+         className="flex gap-3 group items-center border-b border-stone-200/70 py-3 px-0 hover:bg-stone-50 transition-colors"
       >
-         <div className="relative w-[3.25rem] h-[3.25rem] shrink-0 overflow-hidden rounded-full bg-stone-200/60 ring-2 ring-stone-300/50">
+         <div className="relative w-[3.25rem] h-[3.25rem] shrink-0 overflow-hidden rounded-full border border-stone-200/80 bg-stone-50">
             <StoryImage
                src={article.imageUrl}
                alt={article.title}
@@ -452,7 +451,7 @@ function WireCategoryDeskSection({ blocks }: { blocks: { name: string; previews:
       <div className="mt-5 space-y-6 border-t-2 border-black pt-5">
          <div className="flex items-center gap-2">
             <div className="h-px min-w-[1rem] flex-1 bg-gray-300" />
-            <span className="shrink-0 text-[9px] font-black uppercase tracking-[0.35em] text-gray-600">
+            <span className="shrink-0 text-[10px] font-black uppercase tracking-[0.35em] text-gray-600">
                Beyond the wire — by category
             </span>
             <div className="h-px min-w-[1rem] flex-1 bg-gray-300" />
@@ -463,7 +462,7 @@ function WireCategoryDeskSection({ blocks }: { blocks: { name: string; previews:
                const browse = (
                   <Link
                      href={`/search?category=${encodeURIComponent(name)}`}
-                     className="shrink-0 text-[8px] font-black uppercase tracking-[0.25em] text-gray-500 underline-offset-2 transition-colors hover:text-black hover:underline"
+                     className="shrink-0 text-[10px] font-black uppercase tracking-[0.25em] text-gray-700 underline-offset-2 transition-colors hover:text-black hover:underline"
                   >
                      View all
                   </Link>
@@ -573,7 +572,7 @@ function WireCategoryDeskSection({ blocks }: { blocks: { name: string; previews:
                            </h4>
                            <Link
                               href={`/search?category=${encodeURIComponent(name)}`}
-                              className="text-[8px] font-black uppercase tracking-[0.2em] text-white/80 hover:text-white"
+                              className="text-[10px] font-black uppercase tracking-[0.2em] text-white hover:text-white"
                            >
                               View all
                            </Link>
@@ -615,7 +614,7 @@ function WireCategoryDeskSection({ blocks }: { blocks: { name: string; previews:
                      </div>
                      {leadA && (
                         <Link href={articleHref(leadA)} className="group block border-b border-gray-200">
-                           <div className="relative aspect-[2.4/1] w-full bg-gray-100">
+                           <div className="relative aspect-[2.4/1] w-full bg-gray-100 overflow-hidden">
                               <StoryImage
                                  src={leadA.imageUrl}
                                  alt={leadA.title}
@@ -674,56 +673,48 @@ function ReportDeskCluster({
    variant?: "primary" | "secondary";
 }) {
    return (
-      <section className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+      <section className="py-2 bg-white">
          <Link
             href={articleHref(lead)}
-            className="flex gap-3 group mb-1 pb-3 border-b border-gray-100"
+            className="block group mb-3 pb-3 border-b border-gray-100"
          >
-            <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-md border border-gray-200 bg-gray-50">
+            <div className="relative aspect-[16/9] w-full overflow-hidden rounded border border-gray-100 bg-gray-50 mb-3">
                <StoryImage
                   src={lead.imageUrl}
                   alt={lead.title}
                   fill
                   className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  sizes="96px"
+                  sizes="(max-width: 768px) 100vw, 560px"
                />
             </div>
-            <div className="min-w-0 flex-1">
-               <span className="text-[9px] font-black uppercase tracking-[0.28em] text-gray-500 block mb-1">
+            <div className="min-w-0">
+               <span className="text-[10px] font-black uppercase tracking-[0.28em] text-gray-500 block mb-1">
                   {lead.category?.categoryName}
                </span>
-               <h3 className="text-[15px] sm:text-base font-voltaire leading-snug text-gray-900 group-hover:underline line-clamp-3">
+               <h3 className="text-[17px] sm:text-lg font-voltaire leading-snug text-gray-900 group-hover:underline line-clamp-3">
                   {lead.title}
                </h3>
+               {lead.content && (
+                  <p className="mt-2 text-[12px] sm:text-[13px] font-normal leading-relaxed text-gray-600 line-clamp-3">
+                     {lead.content}
+                  </p>
+               )}
             </div>
          </Link>
 
          {subs.length > 0 && (
-            <div
-               className={cn(
-                  "mt-3 pt-3",
-                  variant === "primary" ? "border-t-2 border-black" : "border-t border-dashed border-gray-300"
-               )}
-            >
-               <div className="mb-3 flex items-center gap-2">
-                  <div className="h-px min-w-[1rem] flex-1 bg-gray-300" />
-                  <span
-                     className={cn(
-                        "shrink-0 text-[10px] font-black uppercase tracking-[0.4em]",
-                        variant === "primary" ? "text-black" : "text-gray-500"
-                     )}
-                  >
+            <div className="mt-4 pt-3 border-t border-gray-100">
+               <div className="mb-3 flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">
                      {variant === "primary" ? "More from this desk" : "More picks from this desk"}
                   </span>
-                  <div className="h-px min-w-[1rem] flex-1 bg-gray-300" />
                </div>
 
                <ul
                   className={cn(
                      variant === "primary"
-                        ? "flex flex-col gap-2"
-                        : "grid grid-cols-1 gap-3 sm:grid-cols-2",
-                     variant === "secondary" && "bg-gray-50/70 p-2 rounded-md border border-gray-100"
+                        ? "flex flex-col"
+                        : "grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-2"
                   )}
                >
                   {subs.slice(0, 4).map((a, idx) => (
@@ -731,81 +722,68 @@ function ReportDeskCluster({
                         {variant === "primary" ? (
                            <Link
                               href={articleHref(a)}
-                              className={cn(
-                                 "group flex items-start gap-3 rounded-md px-2 py-2.5 transition-all",
-                                 "border border-gray-200/80 bg-gradient-to-r from-gray-50/90 to-white hover:border-black hover:shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:-translate-x-px hover:-translate-y-px"
-                              )}
+                              className="group flex items-start gap-4 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 transition-colors"
                            >
-                              <div className="relative h-28 w-44 sm:h-32 sm:w-48 shrink-0 overflow-hidden rounded-sm border border-gray-200 bg-gray-100">
+                              <div className="relative h-20 w-32 sm:h-24 sm:w-36 shrink-0 overflow-hidden rounded bg-gray-50 border border-gray-100">
                                  <StoryImage
                                     src={a.imageUrl}
                                     alt={a.title}
                                     fill
                                     className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                    sizes="192px"
+                                    sizes="144px"
                                  />
                               </div>
                               <div className="min-w-0 flex-1 pt-0.5">
                                  {a.category?.categoryName && (
-                                    <span className="mb-0.5 block text-[8px] font-black uppercase tracking-[0.22em] text-gray-500">
+                                    <span className="mb-1 block text-[10px] font-black uppercase tracking-[0.22em] text-gray-500">
                                        {a.category.categoryName}
                                     </span>
                                  )}
-                                 <p className="font-voltaire text-[13px] leading-snug text-gray-900 group-hover:underline decoration-1 underline-offset-2 line-clamp-2">
+                                 <h4 className="font-voltaire text-[14px] sm:text-[15px] font-normal leading-snug text-gray-900 group-hover:underline line-clamp-2">
                                     {a.title}
-                                 </p>
+                                 </h4>
                                  {a.content && (
-                                    <p className="mt-1.5 line-clamp-4 text-[11px] sm:text-[12px] font-medium leading-relaxed text-gray-500">
+                                    <p className="mt-1 line-clamp-2 text-[11px] sm:text-[12px] font-normal leading-relaxed text-gray-500">
                                        {a.content}
                                     </p>
                                  )}
                               </div>
-                              <ChevronRight
-                                 className="mt-1 h-4 w-4 shrink-0 text-gray-300 transition-all group-hover:translate-x-0.5 group-hover:text-black"
-                                 aria-hidden
-                              />
                            </Link>
                         ) : (
                            <Link
                               href={articleHref(a)}
-                              className="group block rounded-2xl border border-gray-200 bg-white px-3 py-2.5 shadow-[0_1px_4px_rgba(15,23,42,0.08)] hover:border-blue-500 hover:shadow-[0_6px_16px_rgba(37,99,235,0.2)] transition-all"
+                              className="group block py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 transition-colors"
                            >
-                              <div className="mb-1.5 flex items-center justify-between gap-2">
-                                 <div className="flex items-center gap-1.5 min-w-0">
-                                    <span className="text-[11px] font-semibold text-gray-800 truncate">
-                                       {a.category?.categoryName ?? "채널"}
-                                    </span>
-                                    <span className="text-[10px] text-gray-400 shrink-0">
-                                       {new Date(a.createdAt).toLocaleDateString("ko-KR", {
-                                          month: "2-digit",
-                                          day: "2-digit",
-                                       })}
-                                    </span>
-                                 </div>
-                                 <button
-                                    type="button"
-                                    className="shrink-0 rounded-full border border-blue-500 px-2.5 py-0.5 text-[10px] font-semibold text-blue-600 hover:bg-blue-50"
-                                 >
-                                    +구독
-                                 </button>
+                              <div className="mb-1 flex items-center gap-1.5 min-w-0">
+                                 <span className="text-[10px] font-black uppercase tracking-[0.22em] text-gray-500 truncate">
+                                    {a.category?.categoryName ?? "채널"}
+                                 </span>
+                                 <span className="text-[10px] text-gray-400 shrink-0">
+                                    {new Date(a.createdAt).toLocaleDateString("ko-KR", {
+                                       month: "2-digit",
+                                       day: "2-digit",
+                                    })}
+                                 </span>
                               </div>
 
-                              <div className="flex items-start gap-3">
+                              <div className="flex items-start gap-4">
                                  <div className="min-w-0 flex-1">
-                                    <p className="text-[13px] font-voltaire leading-snug text-gray-900 group-hover:underline line-clamp-2">
+                                    <h4 className="text-[14px] sm:text-[15px] font-voltaire leading-snug text-gray-900 group-hover:underline line-clamp-2">
                                        {a.title}
-                                    </p>
-                                    <p className="mt-1 space-y-0.5 text-[11px] leading-snug text-gray-600 line-clamp-4">
-                                       {a.content?.trim() ? a.content : a.title}
-                                    </p>
+                                    </h4>
+                                    {a.content?.trim() && (
+                                       <p className="mt-1 text-[11px] leading-relaxed text-gray-500 line-clamp-2">
+                                          {a.content}
+                                       </p>
+                                    )}
                                  </div>
-                                 <div className="relative w-30 aspect-square shrink-0 overflow-hidden rounded-md bg-gray-50">
+                                 <div className="relative w-20 h-20 shrink-0 overflow-hidden rounded bg-gray-50 border border-gray-100">
                                     <StoryImage
                                        src={a.imageUrl}
                                        alt={a.title}
                                        fill
                                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                       sizes="96px"
+                                       sizes="80px"
                                     />
                                  </div>
                               </div>
@@ -823,11 +801,11 @@ function ReportDeskCluster({
 function ReportDeskGrid({ items }: { items: LandingArticle[] }) {
    if (items.length === 0) return null;
    return (
-      <section className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+      <section className="py-4 bg-white">
          <div className="grid grid-cols-2 gap-3">
             {items.map((a) => (
                <Link key={a.id} href={articleHref(a)} className="group min-w-0 block">
-                  <div className="relative mb-2 aspect-[4/3] overflow-hidden rounded-md border border-gray-100 bg-gray-50">
+                  <div className="relative mb-2 aspect-[4/3] overflow-hidden rounded bg-gray-50 border border-gray-100">
                      <StoryImage
                         src={a.imageUrl}
                         alt={a.title}
@@ -836,10 +814,10 @@ function ReportDeskGrid({ items }: { items: LandingArticle[] }) {
                         sizes="(max-width: 768px) 45vw, 200px"
                      />
                   </div>
-                  <h4 className="text-[12px] sm:text-[13px] font-voltaire leading-snug text-gray-900 group-hover:underline line-clamp-2">
+                  <h3 className="text-[12px] sm:text-[13px] font-voltaire leading-snug text-gray-900 group-hover:underline line-clamp-2">
                      {a.title}
-                  </h4>
-                  <span className="mt-1 block text-[8px] font-bold uppercase tracking-[0.2em] text-gray-500 line-clamp-1">
+                  </h3>
+                  <span className="mt-1 block text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 line-clamp-1">
                      {a.category?.categoryName}
                   </span>
                </Link>
@@ -852,7 +830,7 @@ function ReportDeskGrid({ items }: { items: LandingArticle[] }) {
 function ReportDeskStrip({ items }: { items: LandingArticle[] }) {
    if (items.length === 0) return null;
    return (
-      <section className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+      <section className="py-4 bg-white">
          <div className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:thin] snap-x snap-mandatory touch-pan-x [-webkit-overflow-scrolling:touch]">
             {items.map((a) => (
                <Link
@@ -860,7 +838,7 @@ function ReportDeskStrip({ items }: { items: LandingArticle[] }) {
                   href={articleHref(a)}
                   className="group snap-start w-[42%] max-w-[11rem] shrink-0 sm:w-[31%] sm:max-w-[10.5rem]"
                >
-                  <div className="relative mb-2 aspect-[4/5] overflow-hidden rounded-md border border-gray-100 bg-gray-50">
+                  <div className="relative mb-2 aspect-[4/5] overflow-hidden rounded bg-gray-50 border border-gray-100">
                      <StoryImage
                         src={a.imageUrl}
                         alt={a.title}
@@ -869,12 +847,12 @@ function ReportDeskStrip({ items }: { items: LandingArticle[] }) {
                         sizes="160px"
                      />
                   </div>
-                  <h4 className="text-[11px] sm:text-[12px] font-voltaire leading-snug text-gray-900 group-hover:underline line-clamp-2">
+                  <h3 className="text-[11px] sm:text-[12px] font-voltaire leading-snug text-gray-900 group-hover:underline line-clamp-2">
                      {a.title}
-                  </h4>
-                  {(a.content?.trim() ? a.content : a.title) && (
+                  </h3>
+                  {a.content?.trim() && (
                      <p className="mt-1 text-[10px] leading-snug text-gray-600 line-clamp-2">
-                        {a.content?.trim() ? a.content : a.title}
+                        {a.content}
                      </p>
                   )}
                </Link>
@@ -886,9 +864,9 @@ function ReportDeskStrip({ items }: { items: LandingArticle[] }) {
 
 function ReportDeskWide({ article }: { article: LandingArticle }) {
    return (
-      <section className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+      <section className="py-4 bg-white">
          <Link href={articleHref(article)} className="group block">
-            <div className="relative aspect-[2.1/1] w-full bg-gray-50">
+            <div className="relative aspect-[2.1/1] w-full bg-gray-50 overflow-hidden rounded border border-gray-100">
                <StoryImage
                   src={article.imageUrl}
                   alt={article.title}
@@ -897,11 +875,11 @@ function ReportDeskWide({ article }: { article: LandingArticle }) {
                   sizes="(max-width: 768px) 100vw, 640px"
                />
                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
-               <span className="absolute bottom-2 left-2 text-[9px] font-black uppercase tracking-[0.3em] text-white drop-shadow">
+               <span className="absolute bottom-2 left-2 text-[10px] font-black uppercase tracking-[0.3em] text-white drop-shadow">
                   {article.category?.categoryName}
                </span>
             </div>
-            <div className="p-3">
+            <div className="py-3 px-0">
                <h3 className="text-lg font-voltaire leading-tight text-gray-900 group-hover:underline line-clamp-2 sm:text-xl">
                   {article.title}
                </h3>
@@ -919,13 +897,13 @@ function ReportDeskWide({ article }: { article: LandingArticle }) {
 function ReportDeskTextRun({ items }: { items: LandingArticle[] }) {
    if (items.length === 0) return null;
    return (
-      <section className="rounded-lg border border-gray-200 bg-white p-2 shadow-sm">
+      <section className="py-2 bg-white">
          <ul className="divide-y divide-gray-100">
             {items.map((a) => (
                <li key={a.id}>
                   <Link
                      href={articleHref(a)}
-                     className="block px-2 py-2.5 text-[12px] font-voltaire leading-snug text-gray-800 hover:bg-gray-50 line-clamp-2"
+                     className="block px-0 py-2.5 text-[12px] font-voltaire leading-snug text-gray-800 hover:bg-gray-50 line-clamp-2"
                   >
                      {a.title}
                   </Link>
@@ -1068,7 +1046,7 @@ function RemainingStoriesArchive({ articles }: { articles: LandingArticle[] }) {
          .map((a) => a.id)
          .sort()
          .join("|");
-      return shuffleArchiveSeeded(articles, `voicejeju-archive|${seed}`);
+      return shuffleArchiveSeeded(articles, `voicejeju-archive|${seed}`).slice(0, 20);
    }, [articles]);
 
    if (shuffled.length === 0) return null;
@@ -1090,7 +1068,7 @@ function RemainingStoriesArchive({ articles }: { articles: LandingArticle[] }) {
             </div>
             <Link
                href="/search"
-               className="shrink-0 self-start border border-black px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.25em] text-black transition-colors hover:bg-black hover:text-white sm:self-auto"
+               className="shrink-0 self-start border border-black px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.25em] text-black transition-colors hover:bg-black hover:text-white sm:self-auto"
             >
                Full index →
             </Link>
@@ -1113,7 +1091,7 @@ function RemainingStoriesArchive({ articles }: { articles: LandingArticle[] }) {
                         />
                         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent opacity-80" />
                         {a.category?.categoryName && (
-                           <span className="absolute bottom-2 left-2 text-[8px] font-black uppercase tracking-[0.25em] text-white drop-shadow">
+                           <span className="absolute bottom-2 left-2 text-[10px] font-black uppercase tracking-[0.25em] text-white drop-shadow">
                               {a.category.categoryName}
                            </span>
                         )}
@@ -1208,19 +1186,40 @@ export function VoiceJejuLanding(props: Props) {
       .filter((a) => !homeDisplayedIds.has(a.id))
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-   const [[page, direction], setPage] = useState([0, 0]);
-   const index = heroArticles.length > 0 ? Math.abs(page % heroArticles.length) : 0;
+   const [page, setPage] = useState(0);
+   const [heroFade, setHeroFade] = useState(false);
+   const fadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+   const heroCount = heroArticles.length;
+   const index = heroCount > 0 ? ((page % heroCount) + heroCount) % heroCount : 0;
    const heroArticle = heroArticles[index];
 
-   const paginate = (newDirection: number) => {
-      setPage([page + newDirection, newDirection]);
+   const goToSlide = (targetIndex: number) => {
+      if (fadeTimer.current) clearTimeout(fadeTimer.current);
+      setHeroFade(true);
+      fadeTimer.current = setTimeout(() => {
+         setPage(targetIndex);
+         setHeroFade(false);
+         fadeTimer.current = null;
+      }, 150);
    };
 
-   const variants = {
-      enter: (dir: number) => ({ x: dir > 0 ? 40 : -40, opacity: 0 }),
-      center: { zIndex: 1, x: 0, opacity: 1 },
-      exit: (dir: number) => ({ zIndex: 0, x: dir < 0 ? 40 : -40, opacity: 0 }),
+   const paginate = (newDirection: number) => {
+      goToSlide(((page + newDirection) % heroCount + heroCount) % heroCount);
    };
+
+   useEffect(() => {
+      if (heroCount <= 1) return;
+      const id = setInterval(() => {
+         if (fadeTimer.current) return;
+         setHeroFade(true);
+         fadeTimer.current = setTimeout(() => {
+            setPage((p) => (p + 1) % heroCount);
+            setHeroFade(false);
+            fadeTimer.current = null;
+         }, 150);
+      }, 5000);
+      return () => clearInterval(id);
+   }, [heroCount]);
 
     const tenantConfig = ADSTERRA_CONFIG.voicejeju;
     const adKeys = tenantConfig.banners;
@@ -1259,12 +1258,16 @@ export function VoiceJejuLanding(props: Props) {
 
          {/* Adsterra Top Leaderboards */}
          <div className="max-w-[1440px] mx-auto px-4 lg:px-8 mb-2">
-            <div className="hidden sm:block">
-               <AdsterraBanner bannerKey="c242943e75df6497a5929d27852b1159" width={728} height={90} />
-            </div>
-            <div className="block sm:hidden">
-               <AdsterraBanner bannerKey="d68b3e9b0c05a075a85176317f822b6d" width={320} height={50} />
-            </div>
+            {adKeys["728x90"] && (
+               <div className="hidden sm:block">
+                  <AdsterraBanner bannerKey={adKeys["728x90"]} width={728} height={90} />
+               </div>
+            )}
+            {adKeys["320x50"] && (
+               <div className="block sm:hidden">
+                  <AdsterraBanner bannerKey={adKeys["320x50"]} width={320} height={50} />
+               </div>
+            )}
          </div>
 
          <main className="max-w-[1440px] mx-auto px-4 lg:px-8 py-2 lg:py-4">
@@ -1291,12 +1294,12 @@ export function VoiceJejuLanding(props: Props) {
                         <span className="shrink-0">Latest</span>
                         <div className="h-px flex-1 bg-black/10 ml-3" />
                      </h2>
-                     <div className="border border-gray-100 bg-white overflow-hidden">
+                     <div className="space-y-1">
                         {leftSidebarArticles.slice(0, 5).map((article, i) => (
                            <LatestSidebarEntry key={article.id} article={article} index={i} />
                         ))}
                         {banners.sideLMid && banners.sideLMid.length > 0 && (
-                           <div className="border-y border-gray-100 bg-gray-50/30 p-2">
+                           <div className="py-2.5 border-b border-gray-100 flex justify-center">
                               <AdBanner position="SIDEBAR_L_MID" initialBanners={banners.sideLMid} />
                            </div>
                         )}
@@ -1306,7 +1309,7 @@ export function VoiceJejuLanding(props: Props) {
                      </div>
                      {/* Adsterra Left Sidebar Banner */}
                      <div className="mt-6 flex justify-center border-t border-gray-100 pt-6">
-                        <AdsterraBanner bannerKey="1fc758c95674c51a8dc1e7bdff580f7e" width={300} height={250} />
+                        <AdsterraBanner bannerKey={adKeys["300x250"]} width={300} height={250} />
                      </div>
                   </div>
                </aside>
@@ -1318,35 +1321,51 @@ export function VoiceJejuLanding(props: Props) {
                      <div className="mb-4 border-b-4 border-black pb-4">
                         <div className="space-y-3">
                            <div className="relative overflow-hidden bg-gray-50 group shrink-0 border border-gray-200">
-                              <AnimatePresence initial={false} custom={direction} mode="wait">
-                                 <motion.div
-                                    key={page}
-                                    custom={direction}
-                                    variants={variants}
-                                    initial="enter"
-                                    animate="center"
-                                    exit="exit"
-                                    transition={{
-                                       x: { type: "spring", stiffness: 260, damping: 28 },
-                                       opacity: { duration: 0.22 },
-                                    }}
-                                    className="absolute inset-0"
-                                 >
-                                    <Link href={articleHref(heroArticle)} className="block h-full relative">
-                                       <StoryImage
-                                          src={heroArticle.imageUrl}
-                                          alt={heroArticle.title}
-                                          fill
-                                          className="object-cover group-hover:scale-105 transition-transform duration-500"
-                                          variant="hero"
-                                          priority
-                                          sizes="(max-width: 768px) 100vw, 720px"
-                                       />
-                                    </Link>
-                                 </motion.div>
-                              </AnimatePresence>
+                              <div
+                                 className={cn(
+                                    "absolute inset-0 transition-opacity duration-150",
+                                    heroFade ? "opacity-0" : "opacity-100"
+                                 )}
+                              >
+                                 <Link href={articleHref(heroArticle)} className="block h-full relative">
+                                    <StoryImage
+                                       src={heroArticle.imageUrl}
+                                       alt={heroArticle.title}
+                                       fill
+                                       className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                       variant="hero"
+                                       priority
+                                       sizes="(max-width: 768px) 100vw, 720px"
+                                    />
+                                 </Link>
+                              </div>
                               <div className="relative aspect-[16/9] w-full" />
-                              <div className="absolute bottom-2 right-2 flex gap-1 z-10">
+                              {/* Dot indicators — bottom left */}
+                              {heroCount > 1 && (
+                                 <div className="absolute bottom-3 left-3 flex items-center gap-1.5 z-10">
+                                    {heroArticles.map((_, i) => (
+                                       <button
+                                          key={i}
+                                          type="button"
+                                          onClick={() => goToSlide(i)}
+                                          aria-label={`Go to story ${i + 1}`}
+                                          className={cn(
+                                             "h-1.5 rounded-full transition-all duration-200",
+                                             i === index
+                                                ? "w-5 bg-white"
+                                                : "w-1.5 bg-white/50 hover:bg-white/80"
+                                          )}
+                                       />
+                                    ))}
+                                 </div>
+                              )}
+                              {/* Prev / Next + counter — bottom right */}
+                              <div className="absolute bottom-2 right-2 flex items-center gap-1 z-10">
+                                 {heroCount > 1 && (
+                                    <span className="text-[10px] font-bold text-white/80 tabular-nums mr-1">
+                                       {index + 1} / {heroCount}
+                                    </span>
+                                 )}
                                  <button
                                     type="button"
                                     onClick={() => paginate(-1)}
@@ -1382,9 +1401,6 @@ export function VoiceJejuLanding(props: Props) {
                         <h2 className="text-[11px] font-black uppercase tracking-[0.45em] text-black">
                            Report desk
                         </h2>
-                        <p className="mt-1.5 text-[10px] font-bold uppercase tracking-[0.28em] text-gray-500">
-                           Filing queue — clusters, grids, and wire lines
-                        </p>
                      </div>
                      <ReportDeskFeed articles={latestStories} />
                   </div>
@@ -1401,23 +1417,12 @@ export function VoiceJejuLanding(props: Props) {
                {wireHeadlines.length > 0 && (
                   <div className="min-w-0 border-x border-gray-100 px-2 sm:px-3 lg:col-span-6 lg:col-start-4 lg:row-start-2">
                      <section className="border-y border-gray-200 bg-gray-50/70">
-                        <div className="flex items-center justify-between px-2 py-2.5 sm:px-3">
-                           <div className="flex items-center gap-1.5">
-                              <span className="text-[11px] font-semibold text-gray-900">
-                                 연재를 구독해보세요
-                              </span>
-                              <span className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-gray-300 text-[10px] font-bold text-gray-500">
-                                 i
-                              </span>
-                           </div>
-                           <button
-                              type="button"
-                              className="shrink-0 rounded-full border border-blue-500 px-3 py-1 text-[10px] font-semibold text-blue-600 hover:bg-blue-50"
-                           >
-                              구독 설정
-                           </button>
+                        <div className="px-2 py-2.5 sm:px-3 border-b border-gray-200">
+                           <h2 className="text-[11px] font-black uppercase tracking-[0.45em] text-black">
+                              More stories
+                           </h2>
                         </div>
-                        <div className="grid grid-cols-2 gap-2 border-t border-gray-200 bg-white px-2 pb-2 pt-2 sm:grid-cols-2 sm:gap-3 sm:px-3 sm:pb-3 sm:pt-3">
+                        <div className="grid grid-cols-2 gap-2 bg-white px-2 pb-2 pt-2 sm:grid-cols-2 sm:gap-3 sm:px-3 sm:pb-3 sm:pt-3">
                            {wireHeadlines.slice(0, 4).map((article) => (
                               <Link
                                  key={article.id}
@@ -1435,7 +1440,7 @@ export function VoiceJejuLanding(props: Props) {
                                  </div>
                                  <div className="flex flex-1 flex-col px-2.5 py-2">
                                     {article.category?.categoryName && (
-                                       <span className="mb-1 inline-block rounded bg-blue-50 px-1.5 py-0.5 text-[9px] font-semibold text-blue-600">
+                                       <span className="mb-1 inline-block rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-600">
                                           {article.category.categoryName}
                                        </span>
                                     )}
@@ -1491,12 +1496,12 @@ export function VoiceJejuLanding(props: Props) {
                                     />
                                  </div>
                                  <div className="min-w-0 flex-1">
-                                    <span className="text-[9px] font-bold text-gray-500 uppercase tracking-[0.2em] block mb-1">
+                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] block mb-1">
                                        {article.category?.categoryName}
                                     </span>
-                                    <h4 className="text-[15px] font-voltaire leading-snug group-hover:underline line-clamp-2 font-medium">
+                                    <h3 className="text-[15px] font-voltaire leading-snug group-hover:underline line-clamp-2 font-medium">
                                        {article.title}
-                                    </h4>
+                                    </h3>
                                     {article.content && (
                                        <p className="text-[11px] text-gray-600 line-clamp-3 mt-1.5 leading-relaxed">
                                           {article.content}
@@ -1510,7 +1515,7 @@ export function VoiceJejuLanding(props: Props) {
 
                      {/* Adsterra Sidebar Banner */}
                      <div className="py-2 flex justify-center">
-                        <AdsterraBanner bannerKey="1fc758c95674c51a8dc1e7bdff580f7e" width={300} height={250} />
+                        <AdsterraBanner bannerKey={adKeys["300x250"]} width={300} height={250} />
                      </div>
 
                      {banners.sideRMid && banners.sideRMid.length > 0 && (
@@ -1520,16 +1525,18 @@ export function VoiceJejuLanding(props: Props) {
                      )}
 
                      {sidebarPicks.length > 0 && (
-                        <div className="rounded-lg border border-stone-300/90 bg-gradient-to-b from-stone-50 via-stone-100/50 to-stone-100/80 p-3 shadow-sm">
-                           <div className="mb-3 border-b border-stone-300/60 pb-3">
+                        <div className="border-t-4 border-stone-800 pt-3">
+                           <div className="mb-3">
                               <p className="text-[10px] font-inter italic text-stone-500 mb-1">
                                  Essays and analysis
                               </p>
-                              <h2 className="text-[13px] font-voltaire font-light uppercase tracking-[0.35em] text-stone-800">
-                                 In depth
+                              <h2 className="text-[11px] font-black flex items-center w-full uppercase tracking-[0.45em] text-stone-800">
+                                 <div className="h-px flex-1 bg-stone-800/10 mr-3" />
+                                 <span className="shrink-0">In depth</span>
+                                 <div className="h-px flex-1 bg-stone-800/10 ml-3" />
                               </h2>
                            </div>
-                           <div className="overflow-hidden rounded-md bg-white/75 ring-1 ring-stone-200/80">
+                           <div className="space-y-1">
                               {sidebarPicks.map((article, i) => (
                                  <InDepthSidebarEntry key={article.id} article={article} index={i} />
                               ))}
@@ -1553,7 +1560,7 @@ export function VoiceJejuLanding(props: Props) {
             {/* Mobile: extra latest block when sidebar hidden */}
             <section className="lg:hidden mt-6 border-t-4 border-black pt-4">
                <h2 className="text-[11px] font-black uppercase tracking-[0.45em] mb-3">More headlines</h2>
-               <div className="border border-gray-100 bg-white max-h-[480px] overflow-y-auto">
+               <div className="border border-gray-100 bg-white">
                   {leftSidebarArticles.slice(0, 10).map((article, i) => (
                      <LatestSidebarEntry key={`m-${article.id}`} article={article} index={i} />
                   ))}
@@ -1586,9 +1593,9 @@ export function VoiceJejuLanding(props: Props) {
                            <span className="text-[8px] font-bold text-gray-500 uppercase tracking-[0.15em] block mb-1 line-clamp-1">
                               {article.category?.categoryName}
                            </span>
-                           <h4 className="text-[12px] sm:text-[13px] font-voltaire leading-tight group-hover:underline line-clamp-2">
+                           <h3 className="text-[12px] sm:text-[13px] font-voltaire leading-tight group-hover:underline line-clamp-2">
                               {article.title}
-                           </h4>
+                           </h3>
                         </Link>
                      ))}
                   </div>
@@ -1616,9 +1623,9 @@ export function VoiceJejuLanding(props: Props) {
                                  sizes="160px"
                               />
                            </div>
-                           <h4 className="text-[12px] sm:text-[13px] font-voltaire leading-snug group-hover:underline line-clamp-2 mb-1">
+                           <h3 className="text-[12px] sm:text-[13px] font-voltaire leading-snug group-hover:underline line-clamp-2 mb-1">
                               {article.title}
-                           </h4>
+                           </h3>
                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-[0.25em] group-hover:text-black">
                               Read
                            </span>

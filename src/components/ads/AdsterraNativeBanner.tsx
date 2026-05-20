@@ -62,7 +62,7 @@ export function AdsterraNativeBanner({ domain: propDomain }: AdsterraNativeBanne
 
   return (
     <div className="w-full my-2 bg-white p-4 border border-slate-100 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] rounded-xl">
-      <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-3 text-center">
+      <div className="text-[10px] text-slate-600 font-bold uppercase tracking-widest mb-3 text-center">
         Sponsored Recommendations
       </div>
 
