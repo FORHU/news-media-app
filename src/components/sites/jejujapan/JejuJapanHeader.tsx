@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Search, Menu, Globe, User, X, ChevronDown, Mail } from "lucide-react";
 import { getCoreCategories, HOME_CATEGORY_LABEL, normalizeCategoryKey } from "@/config/categories";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,8 +21,10 @@ function categoryHref(categoryName: string) {
 
 export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
+  const isSearchPage = pathname === "/search";
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
@@ -133,51 +135,35 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
             </div>
           </div>
  
-          <nav className="hidden lg:flex flex-1 justify-center items-center space-x-6 text-[12px] font-bold uppercase tracking-[0.15em] text-slate-500 mx-8">
-            {coreCategories.slice(0, 5).map((cat) => (
-              <Link 
-                key={cat} 
+          <nav className="hidden lg:flex flex-1 justify-center items-center gap-2 xl:gap-4 text-[9px] xl:text-[10px] font-bold uppercase tracking-[0.04em] xl:tracking-[0.07em] text-slate-500 mx-2 xl:mx-6 flex-wrap">
+            {coreCategories.map((cat) => (
+              <Link
+                key={cat}
                 href={`/search?category=${encodeURIComponent(cat)}`}
                 className="hover:text-[#bc002d] transition-colors whitespace-nowrap"
               >
                 {cat}
               </Link>
             ))}
-            {coreCategories.length > 5 && (
-              <div className="relative group cursor-pointer flex items-center gap-1 hover:text-[#bc002d] py-2">
-                 MORE <ChevronDown size={14} />
-                 <div className="absolute top-full right-0 pt-2 hidden group-hover:block z-50">
-                    <div className="bg-white shadow-2xl border border-gray-100 p-4 rounded-sm grid grid-cols-2 gap-x-8 gap-y-3 min-w-[300px]">
-                       {coreCategories.slice(5).map((cat) => (
-                         <Link 
-                            key={cat} 
-                            href={categoryHref(cat)} 
-                            className="text-gray-500 hover:text-[#bc002d] text-xs font-medium whitespace-nowrap transition-colors"
-                         >
-                            {cat}
-                         </Link>
-                       ))}
-                    </div>
-                 </div>
-              </div>
-            )}
           </nav>
         </div>
 
-        {/* Mobile Categories Scroll Bar */}
-        <div className="lg:hidden border-t border-gray-50 bg-white overflow-hidden">
-          <div className="flex overflow-x-auto scrollbar-hide py-3 px-4 sm:px-6 space-x-6 text-[10px] font-bold uppercase tracking-widest text-gray-500">
-            {coreCategories.map((cat) => (
-              <Link 
-                key={cat} 
-                href={categoryHref(cat)}
-                className="hover:text-[#bc002d] transition-colors whitespace-nowrap"
-              >
-                {cat}
-              </Link>
-            ))}
+        {/* Mobile Categories Scroll Bar — hidden on /search since the page renders its own chip bar */}
+        {!isSearchPage && (
+          <div className="lg:hidden border-t border-gray-50 bg-white overflow-hidden">
+            <div className="flex overflow-x-auto scrollbar-hide py-3 px-4 sm:px-6 space-x-6 text-[10px] font-bold uppercase tracking-widest text-gray-500">
+              {coreCategories.map((cat) => (
+                <Link
+                  key={cat}
+                  href={categoryHref(cat)}
+                  className="hover:text-[#bc002d] transition-colors whitespace-nowrap"
+                >
+                  {cat}
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
         {/* Mobile Search Overlay */}
         <AnimatePresence>
           {isMobileSearchOpen && (

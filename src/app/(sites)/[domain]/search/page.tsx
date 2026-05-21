@@ -100,7 +100,7 @@ async function SearchContent({
     tenantId
       ? articlesService.getArticles(
         {
-          limit: 50,
+          limit: 100,
           search: searchQuery,
           category: categoryParam,
           status: "published",
@@ -143,16 +143,182 @@ async function SearchContent({
 
   const isVoiceJeju = domain.toLowerCase().includes("voicejeju");
   const isSkyBluePrime = domain.toLowerCase().includes("skyblueprime");
+  const isJejuJapan = domain.toLowerCase().includes("jejujapan");
 
   const activeCategory = categoryParam ? decodeURIComponent(categoryParam) : null;
   const heroLabel = activeCategory ?? (searchQuery ? `"${searchQuery}"` : "전체 기사");
   const voicejejuCategories = isVoiceJeju ? (TENANT_CATEGORIES["voicejeju.com"] ?? []) : [];
+  const jejuJapanCategories = isJejuJapan ? (TENANT_CATEGORIES["jejujapan.com"] ?? []) : [];
 
   const sbpLabel = searchQuery
     ? `Search: "${searchQuery}"`
     : categoryParam
       ? decodeURIComponent(categoryParam)
       : "All Stories";
+
+  if (isJejuJapan) {
+    const jejuJapanHeroLabel = activeCategory ?? (searchQuery ? `「${searchQuery}」` : "全記事");
+    return (
+      <>
+        {/* Newspaper-style section header — no full-bleed */}
+        <div className="mb-6 pt-2">
+          <div className="flex items-center gap-1.5 text-[9px] font-bold tracking-widest text-gray-400 mb-3 uppercase">
+            <Link href="/" className="hover:text-[#bc002d] transition-colors">JEJU JAPAN</Link>
+            <span className="text-gray-300">›</span>
+            <span className="text-[#bc002d]">
+              {activeCategory ?? (searchQuery ? "検索結果" : "全記事")}
+            </span>
+          </div>
+          <div className="flex items-center justify-between gap-4 border-b-[3px] border-[#bc002d] pb-3">
+            <h1 className="text-2xl sm:text-3xl font-black text-gray-900 leading-tight tracking-tight">
+              {jejuJapanHeroLabel}
+            </h1>
+            <span className="flex-shrink-0 bg-[#bc002d] text-white text-[9px] font-black px-3 py-1.5 tracking-widest">
+              {articles.length}件の記事
+            </span>
+          </div>
+        </div>
+
+        {/* Mobile category chip bar */}
+        {jejuJapanCategories.length > 0 && (
+          <div className="lg:hidden flex gap-2 mb-6 pb-4 border-b border-gray-100 overflow-x-auto scrollbar-hide">
+            <Link
+              href="/search"
+              className={`flex-shrink-0 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest border transition-all whitespace-nowrap ${
+                !activeCategory && !searchQuery
+                  ? "bg-[#bc002d] text-white border-[#bc002d]"
+                  : "bg-white text-gray-600 border-gray-200 hover:border-[#bc002d] hover:text-[#bc002d]"
+              }`}
+            >
+              全記事
+            </Link>
+            {jejuJapanCategories.map((cat) => (
+              <Link
+                key={cat}
+                href={activeCategory === cat ? "/search" : `/search?category=${encodeURIComponent(cat)}`}
+                className={`flex-shrink-0 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest border transition-all whitespace-nowrap ${
+                  activeCategory === cat
+                    ? "bg-[#bc002d] text-white border-[#bc002d]"
+                    : "bg-white text-gray-600 border-gray-200 hover:border-[#bc002d] hover:text-[#bc002d]"
+                }`}
+              >
+                {cat}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-8 lg:gap-10 mb-12 items-start">
+          {/* Main content */}
+          <div className="min-w-0">
+            <FilterStatusBar
+              searchQuery={searchQuery || null}
+              categoryName={categoryParam ? decodeURIComponent(categoryParam) : null}
+              resultCount={articles.length}
+              domain={domain}
+            />
+
+            {/* Top ad */}
+            {(showTopLeaderboard || showMobileLeaderboard) && (
+              <div className="w-full flex justify-center py-4 border-b border-gray-100 mb-6 overflow-hidden">
+                {showTopLeaderboard && desktopLeaderboardKey && (
+                  <div className="hidden sm:block">
+                    <AdsterraBanner bannerKey={desktopLeaderboardKey} width={desktopLeaderboardWidth} height={desktopLeaderboardHeight} className="!my-0" />
+                  </div>
+                )}
+                {showMobileLeaderboard && adKeys?.["320x50"] && (
+                  <div className="block sm:hidden">
+                    <AdsterraBanner bannerKey={adKeys["320x50"]} width={320} height={50} className="!my-0" />
+                  </div>
+                )}
+              </div>
+            )}
+
+            <LatestStoriesSection
+              articles={articles}
+              error=""
+              searchQuery={searchQuery || null}
+              categoryName={categoryParam ? decodeURIComponent(categoryParam) : null}
+              isLoading={false}
+              domain={domain}
+            />
+
+            {tenantConfig?.native && (
+              <div className="mt-12 pt-8 border-t border-gray-100">
+                <AdsterraNativeBanner domain={domain} />
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar — boxed newspaper column */}
+          <aside className="hidden lg:block space-y-0 border border-gray-200 divide-y divide-gray-200 self-start sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto">
+            {/* Category index */}
+            {jejuJapanCategories.length > 0 && (
+              <div>
+                <div className="bg-[#bc002d] px-4 py-2.5">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-white">カテゴリー</h3>
+                </div>
+                <div className="flex flex-col bg-white">
+                  <Link
+                    href="/search"
+                    className={`px-4 py-2.5 text-[11px] font-bold border-b border-gray-100 transition-colors flex items-center justify-between group ${
+                      !activeCategory
+                        ? "text-[#bc002d] bg-[#bc002d]/5"
+                        : "text-gray-700 hover:text-[#bc002d] hover:bg-gray-50"
+                    }`}
+                  >
+                    <span>全記事</span>
+                    {!activeCategory && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#bc002d] flex-shrink-0" />
+                    )}
+                  </Link>
+                  {jejuJapanCategories.map((cat) => (
+                    <Link
+                      key={cat}
+                      href={activeCategory === cat ? "/search" : `/search?category=${encodeURIComponent(cat)}`}
+                      className={`px-4 py-2.5 text-[11px] font-bold border-b border-gray-100 last:border-0 transition-colors flex items-center justify-between group ${
+                        activeCategory === cat
+                          ? "text-[#bc002d] bg-[#bc002d]/5"
+                          : "text-gray-700 hover:text-[#bc002d] hover:bg-gray-50"
+                      }`}
+                    >
+                      <span>{cat}</span>
+                      {activeCategory === cat && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#bc002d] flex-shrink-0" />
+                      )}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Trending */}
+            <TrendingSidebar articles={trendingArticles} domain={domain} />
+
+            {showSidebarBox && adKeys?.["300x250"] && (
+              <div className="flex justify-center p-4 bg-white">
+                <AdsterraBanner bannerKey={adKeys["300x250"]} width={300} height={250} className="!my-0" />
+              </div>
+            )}
+            <div className="bg-white p-4">
+              <AdBanner position="HOME_SIDEBAR" initialBanners={sidebarBanners} />
+            </div>
+          </aside>
+
+          {/* Mobile sidebar — below content */}
+          <div className="lg:hidden space-y-8">
+            <TrendingSidebar articles={trendingArticles} domain={domain} />
+            {showSidebarBox && adKeys?.["300x250"] && (
+              <div className="flex justify-center border-b border-gray-100 pb-6">
+                <AdsterraBanner bannerKey={adKeys["300x250"]} width={300} height={250} className="!my-0" />
+              </div>
+            )}
+            <AdBanner position="HOME_SIDEBAR" initialBanners={sidebarBanners} />
+          </div>
+        </div>
+      </>
+    );
+  }
 
   if (isVoiceJeju) {
     return (

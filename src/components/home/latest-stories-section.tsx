@@ -18,6 +18,7 @@ interface LatestStoriesSectionProps {
   articles: Article[];
   error: string;
   searchQuery: string | null;
+  categoryName?: string | null;
   isLoading?: boolean;
   domain: string;
 }
@@ -43,6 +44,7 @@ export function LatestStoriesSection({
   articles,
   error,
   searchQuery,
+  categoryName,
   isLoading = false,
   domain,
 }: LatestStoriesSectionProps) {
@@ -98,6 +100,12 @@ export function LatestStoriesSection({
           <div className="border-t-[4px] border-sky-950 pt-3 w-full">
             <h2 className="text-[13px] font-black text-sky-950 uppercase tracking-widest">Latest Stories</h2>
           </div>
+        ) : domain.includes('jejujapan') ? (
+          <div className="border-t-4 border-[#bc002d] pt-3 w-full">
+            <h2 className="text-[13px] font-black text-gray-900 uppercase tracking-widest">
+              {categoryName ? categoryName : searchQuery ? "検索結果" : "最新記事"}
+            </h2>
+          </div>
         ) : (
           <h2 className={`text-2xl font-bold text-gray-900 ${domain.includes('voicejeju') ? 'font-voltaire uppercase tracking-tight text-3xl' : 'font-serif'}`}>
             Latest Stories
@@ -141,6 +149,20 @@ export function LatestStoriesSection({
               Clear Filters
             </button>
           </div>
+        ) : domain.includes("jejujapan") ? (
+          <div className="py-24 text-center border-y border-gray-100">
+            <p className="text-3xl font-bold text-gray-900 mb-3">記事が見つかりません</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8">
+              検索条件を変更してください
+            </p>
+            <button
+              type="button"
+              onClick={clearSearch}
+              className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-white bg-[#bc002d] px-6 py-3 hover:bg-[#a0001f] transition-all"
+            >
+              Clear Filters
+            </button>
+          </div>
         ) : (
           <div className="text-center py-16">
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -169,6 +191,7 @@ export function LatestStoriesSection({
             const isVoiceJeju = domain.includes('voicejeju');
             const isJejuQQ = domain === 'jejuqq.com';
             const isSkyBluePrime = domain.includes('skyblueprime');
+            const isJejuJapan = domain.includes('jejujapan');
             return latestStories.map((article, index) => (
             <Fragment key={article.id}>
               {isSkyBluePrime ? (
@@ -237,6 +260,39 @@ export function LatestStoriesSection({
                     </span>
                   </div>
                 </ArticleLink>
+              ) : isJejuJapan ? (
+                <ArticleLink
+                  articleIdentifier={article.slug ?? article.id}
+                  href={`/article/${article.slug ?? article.id}`}
+                  className="group cursor-pointer flex flex-row gap-4 py-5 border-b border-gray-100 hover:bg-red-50/20 transition-colors"
+                >
+                  <div className="relative w-32 sm:w-44 flex-shrink-0 overflow-hidden bg-gray-100" style={{ aspectRatio: "4/3" }}>
+                    <StoryImage
+                      src={article.imageUrl}
+                      alt={article.title}
+                      fill
+                      sizes="(max-width: 640px) 128px, 176px"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      variant="thumbnail"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    {normalizeCategoryName(article.category?.categoryName) && (
+                      <span className="inline-block text-[#bc002d] text-[9px] font-black uppercase tracking-[0.3em] border border-[#bc002d] px-2 py-0.5 mb-2">
+                        {normalizeCategoryName(article.category?.categoryName)}
+                      </span>
+                    )}
+                    <h3 className="text-[16px] font-bold text-gray-900 mb-2 leading-tight line-clamp-2 group-hover:text-[#bc002d] transition-colors">
+                      {article.title}
+                    </h3>
+                    <p className="text-sm text-gray-500 mb-3 line-clamp-2 leading-relaxed">
+                      {truncateContent(article.content)}
+                    </p>
+                    <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-gray-400">
+                      {formatDate(article.createdAt)} · {Math.max(1, Math.ceil((article.content ?? "").trim().split(/\s+/).filter(Boolean).length / 200))} min read
+                    </span>
+                  </div>
+                </ArticleLink>
               ) : (
                 <ArticleLink
                   articleIdentifier={article.slug ?? article.id}
@@ -285,9 +341,9 @@ export function LatestStoriesSection({
                 </ArticleLink>
               )}
               {index === 2 && domain.toLowerCase().includes("jejujapan") && (
-                <div className="my-6 py-4 border-y border-gray-100 flex justify-center w-full">
+                <div className="my-6 py-4 border-y border-gray-100 flex justify-center w-full overflow-hidden">
                   <div className="hidden sm:block">
-                    <AdsterraBanner bannerKey={ADSTERRA_CONFIG.jejujapan.banners["468x60"]} width={468} height={60} className="!my-0" />
+                    <AdsterraBanner bannerKey={ADSTERRA_CONFIG.jejujapan.banners["728x90"]} width={728} height={90} className="!my-0" />
                   </div>
                   <div className="block sm:hidden">
                     <AdsterraBanner bannerKey={ADSTERRA_CONFIG.jejujapan.banners["320x50"]} width={320} height={50} className="!my-0" />

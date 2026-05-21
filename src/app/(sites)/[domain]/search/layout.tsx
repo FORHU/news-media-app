@@ -38,11 +38,12 @@ export default async function SearchLayout({
   const showSidebarBox = adKeys && adKeys["300x250"] && adKeys["300x250"].length > 0;
 
   const isVoiceJeju = domain.toLowerCase().includes("voicejeju");
+  const isJejuJapan = domain.toLowerCase().includes("jejujapan");
   const isSkyBluePrime = domain.toLowerCase().includes("skyblueprime");
 
   // Trending stories are "constant" for the search session, so we fetch them here
-  // (We skip fetching in layout if VoiceJeju, since VoiceJeju renders its sidebar inside page.tsx)
-  const [trendingArticles, sidebarBanners] = isVoiceJeju
+  // (We skip fetching in layout if VoiceJeju or JejuJapan, since those render their sidebar inside page.tsx)
+  const [trendingArticles, sidebarBanners] = (isVoiceJeju || isJejuJapan)
     ? [[], []]
     : await Promise.all([
         tenantId
@@ -60,6 +61,30 @@ export default async function SearchLayout({
   const desktopLeaderboardHeight = adKeys?.["728x90"] ? 90 : 60;
   const showDesktopLeaderboard = !!desktopLeaderboardKey;
   const showMobileLeaderboard = !!(adKeys?.["320x50"] && adKeys["320x50"].length > 0);
+
+  if (isJejuJapan) {
+    return (
+      <div className="bg-white">
+        <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
+          {showSkyscrapers && adKeys?.["160x600"] && (
+            <div className="hidden min-[1650px]:block absolute right-full mr-6 top-32 bottom-32 w-[160px] z-30">
+              <div className="sticky top-40">
+                <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+              </div>
+            </div>
+          )}
+          {showSkyscrapers && adKeys?.["160x600"] && (
+            <div className="hidden min-[1650px]:block absolute left-full ml-6 top-32 bottom-32 w-[160px] z-30">
+              <div className="sticky top-40">
+                <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+              </div>
+            </div>
+          )}
+          {children}
+        </main>
+      </div>
+    );
+  }
 
   if (isVoiceJeju) {
     return (

@@ -322,12 +322,12 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                        {trendingArticles.map((article, i) => (
                           <Link key={article.id} href={`/article/${article.slug || article.id}`} className="block group">
                              <div className="flex gap-4">
-                                <span className="text-3xl font-noto font-black text-white/30 group-hover:text-[#bc002d] transition-colors shrink-0">
+                                <span className="text-3xl font-noto font-black text-white/50 group-hover:text-[#bc002d] transition-colors shrink-0">
                                    {String(i + 1).padStart(2, '0')}
                                 </span>
                                 <div className="min-w-0">
-                                   <span className="text-[9px] text-gray-500 uppercase tracking-[0.2em] block mb-1">{article.category?.categoryName}</span>
-                                   <h4 className="text-sm font-bold leading-snug group-hover:text-white/80 line-clamp-2 transition-colors">{article.title}</h4>
+                                   <span className="text-[9px] text-gray-400 uppercase tracking-[0.2em] block mb-1">{article.category?.categoryName}</span>
+                                   <h4 className="text-sm font-bold leading-snug group-hover:text-[#bc002d] line-clamp-2 transition-colors">{article.title}</h4>
                                 </div>
                              </div>
                           </Link>
@@ -406,9 +406,9 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                         <div className="relative aspect-[16/10] overflow-hidden mb-4 bg-white/5">
                            <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300" />
                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                           <span className="absolute bottom-3 left-3 text-4xl font-noto font-black text-white/30 group-hover:text-[#bc002d] transition-colors">0{i + 1}</span>
+                           <span className="absolute bottom-3 left-3 text-4xl font-noto font-black text-white/50 group-hover:text-[#bc002d] transition-colors">0{i + 1}</span>
                         </div>
-                        <span className="text-[10px] text-[#bc002d] font-black uppercase mb-2 block tracking-[0.3em]">{article.category?.categoryName}</span>
+                        <span className="text-[10px] text-red-400 font-black uppercase mb-2 block tracking-[0.3em]">{article.category?.categoryName}</span>
                         <h4 className="text-base md:text-lg font-bold leading-tight group-hover:text-[#bc002d] transition-colors line-clamp-2">{article.title}</h4>
                      </Link>
                   ))}
