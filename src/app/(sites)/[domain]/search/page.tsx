@@ -4,6 +4,10 @@ import Link from "next/link";
 import { FilterStatusBar } from "@/components/home/filter-status-bar";
 import { LatestStoriesSection } from "@/components/home/latest-stories-section";
 import { articlesService } from "@/services/articles.service";
+import { bannersService } from "@/services/banners.service";
+import { TrendingSidebar } from "@/components/home/trending-sidebar";
+import { CategoryFilterSidebar } from "@/components/home/category-filter-sidebar";
+import { AdBanner } from "@/components/AdBanner";
 import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain } from "@/lib/tenant";
 import { getRequestBaseUrl, buildOgImageUrl } from "@/lib/metadata";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
@@ -92,17 +96,27 @@ async function SearchContent({
   categoryParam?: string;
   tenantId: string | null;
 }) {
-  const articles = tenantId
-    ? await articlesService.getArticles(
-      {
-        limit: 50,
-        search: searchQuery,
-        category: categoryParam,
-        status: "published",
-      },
-      tenantId
-    )
-    : [];
+  const [articles, trendingArticles, sidebarBanners] = await Promise.all([
+    tenantId
+      ? articlesService.getArticles(
+        {
+          limit: 50,
+          search: searchQuery,
+          category: categoryParam,
+          status: "published",
+        },
+        tenantId
+      )
+      : Promise.resolve([]),
+    tenantId
+      ? articlesService.getArticles({ limit: 10, status: "published" }, tenantId)
+      : Promise.resolve([]),
+    tenantId
+      ? bannersService
+        .getBanners({ position: "HOME_SIDEBAR", isActive: true, tenantId })
+        .catch(() => [])
+      : Promise.resolve([]),
+  ]);
 
   // Dynamic Tenant Resolution for Adsterra Config
   const tenantKey = domain.toLowerCase().includes("voicejeju")
@@ -125,6 +139,7 @@ async function SearchContent({
   const desktopLeaderboardHeight = adKeys?.["728x90"] ? 90 : 60;
   const showTopLeaderboard = !!desktopLeaderboardKey;
   const showMobileLeaderboard = !!(adKeys && adKeys["320x50"] && adKeys["320x50"].length > 0);
+  const showSidebarBox = adKeys && adKeys["300x250"] && adKeys["300x250"].length > 0;
 
   const isVoiceJeju = domain.toLowerCase().includes("voicejeju");
   const isSkyBluePrime = domain.toLowerCase().includes("skyblueprime");
@@ -136,43 +151,93 @@ async function SearchContent({
   const sbpLabel = searchQuery
     ? `Search: "${searchQuery}"`
     : categoryParam
-    ? decodeURIComponent(categoryParam)
-    : "All Stories";
+      ? decodeURIComponent(categoryParam)
+      : "All Stories";
 
-  return (
-    <>
-      {isVoiceJeju && (
+  if (isVoiceJeju) {
+    return (
+      <>
         <div className="bg-black text-white pt-8 pb-10 mb-6 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
-          <p className="text-[9px] font-black uppercase tracking-[0.6em] text-white/40 mb-4 text-center">
-            {searchQuery ? "Search Results" : "Category"}
-          </p>
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-normal font-voltaire tracking-tighter leading-[0.9] uppercase text-white text-center mb-4">
             {heroLabel}
           </h1>
-          <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/40 text-center">
+          <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white text-center">
             {articles.length} {articles.length === 1 ? "result" : "results"}
           </p>
         </div>
-      )}
 
-      {isVoiceJeju && voicejejuCategories.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-6 pb-4 border-b border-gray-100">
-          {voicejejuCategories.map((cat) => (
-            <Link
-              key={cat}
-              href={`/search?category=${encodeURIComponent(cat)}`}
-              className={`px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.3em] border transition-all whitespace-nowrap ${
-                activeCategory === cat
+        {/* Mobile-only Category filter chips — top of content (horizontal wrap) */}
+        {voicejejuCategories.length > 0 && (
+          <div className="lg:hidden flex flex-wrap gap-1.5 mb-6 pb-4 border-b border-gray-100">
+            {voicejejuCategories.map((cat) => (
+              <Link
+                key={cat}
+                href={`/search?category=${encodeURIComponent(cat)}`}
+                className={`px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.3em] border transition-all whitespace-nowrap ${activeCategory === cat
                   ? "bg-black text-white border-black"
-                  : "bg-white text-black border-black hover:bg-black hover:text-white"
-              }`}
-            >
-              {cat}
-            </Link>
-          ))}
-        </div>
-      )}
+                  : "bg-white text-black border-black/20 hover:border-black hover:bg-black hover:text-white"
+                  }`}
+              >
+                {cat}
+              </Link>
+            ))}
+          </div>
+        )}
 
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-12">
+          {/* Main Content Column */}
+          <div className="lg:col-span-9">
+            <FilterStatusBar
+              searchQuery={searchQuery || null}
+              categoryName={categoryParam ? decodeURIComponent(categoryParam) : null}
+              resultCount={articles.length}
+              domain={domain}
+            />
+
+            <LatestStoriesSection
+              articles={articles}
+              error=""
+              searchQuery={searchQuery || null}
+              isLoading={false}
+              domain={domain}
+            />
+
+            {/* Bottom Search Native Recommendations */}
+            {tenantConfig?.native && (
+              <div className="mt-12 pt-8 border-t border-gray-100">
+                <AdsterraNativeBanner domain={domain} />
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar Column */}
+          <aside className="lg:col-span-3 space-y-8">
+            {/* Category filter chips — top of sidebar for VoiceJeju (Desktop only) */}
+            {voicejejuCategories.length > 0 && (
+              <div className="hidden lg:block">
+                <Suspense fallback={null}>
+                  <CategoryFilterSidebar categories={voicejejuCategories} />
+                </Suspense>
+              </div>
+            )}
+            <TrendingSidebar
+              articles={trendingArticles}
+              domain={domain}
+            />
+            {showSidebarBox && adKeys?.["300x250"] && (
+              <div className="flex justify-center border-b border-gray-100 pb-6">
+                <AdsterraBanner bannerKey={adKeys["300x250"]} width={300} height={250} className="!my-0" />
+              </div>
+            )}
+            <AdBanner position="HOME_SIDEBAR" initialBanners={sidebarBanners} />
+          </aside>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
       {isSkyBluePrime && (
         <div className="border-t-[6px] border-sky-950 pt-3 mb-6">
           <h1 className="text-[11px] font-black uppercase tracking-widest text-white bg-sky-950 inline-block px-3 py-1.5 leading-none">
@@ -188,8 +253,8 @@ async function SearchContent({
         domain={domain}
       />
 
-      {/* Top Search Leaderboard Ad (VoiceJeju renders this in layout.tsx instead) */}
-      {!isVoiceJeju && (showTopLeaderboard || showMobileLeaderboard) && (
+      {/* Top Search Leaderboard Ad */}
+      {(showTopLeaderboard || showMobileLeaderboard) && (
         <div className="w-full flex justify-center py-4 border-b border-gray-100 mb-6 overflow-hidden">
           {showTopLeaderboard && desktopLeaderboardKey && (
             <div className="hidden sm:block">

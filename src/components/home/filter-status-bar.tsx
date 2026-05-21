@@ -44,22 +44,22 @@ export function FilterStatusBar({
         onSubmit={handleVoiceJejuSearch}
         className="flex items-center gap-3 mb-6 pb-4 border-b-2 border-black"
       >
-        <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
+        <Search className="w-4 h-4 text-gray-500 flex-shrink-0" />
         <input
           type="text"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           placeholder="Refine search…"
-          className="flex-1 min-w-0 bg-transparent text-sm font-inter text-black placeholder:text-gray-400 focus:outline-none py-1"
+          className="flex-1 min-w-0 bg-transparent text-sm font-inter text-black placeholder:text-gray-500 focus:outline-none py-1"
         />
-        <span className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 whitespace-nowrap flex-shrink-0">
+        <span className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-700 whitespace-nowrap flex-shrink-0">
           {resultCount} {resultCount === 1 ? "result" : "results"}
         </span>
         {(searchQuery || categoryName) && (
           <button
             type="button"
             onClick={clearFilters}
-            className="flex items-center gap-1 text-[9px] font-black uppercase tracking-[0.4em] text-black border border-black px-3 py-1.5 hover:bg-black hover:text-white transition-all flex-shrink-0"
+            className="flex items-center gap-1 text-[9px] font-black uppercase tracking-[0.4em] text-black border-2 border-black px-3 py-1.5 hover:bg-black hover:text-white transition-all flex-shrink-0"
           >
             <X className="w-3 h-3" />
             Clear
