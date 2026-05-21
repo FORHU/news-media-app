@@ -165,11 +165,10 @@ export async function POST(req: NextRequest) {
       if (language !== "English") await sleep(1500);
       const translated = await translate(baseUrl, title, content, language);
 
-      // 4. Find a user to attribute the article to
-      const user = await prisma.user.findFirst({
-        where: { tenantId: tenant.id },
-        select: { id: true },
-      });
+      // 4. Find a user for this tenant — prefer moderator, fall back to any user
+      const user =
+        (await prisma.user.findFirst({ where: { tenantId: tenant.id, role: "moderator" }, select: { id: true } })) ??
+        (await prisma.user.findFirst({ where: { tenantId: tenant.id }, select: { id: true } }));
       if (!user) throw new Error(`No user found for tenant: ${domain}`);
 
       // 5. Save article as pending

@@ -15,12 +15,8 @@ export async function GET(request: NextRequest) {
     const limit = 10;
     const skip = (page - 1) * limit;
 
-    const where = {
-      tenantId,
-      sourceType: "MANUAL" as const,
-      user: { role: "moderator" },
-      ...(status ? { status } : {}),
-    };
+    const base = { tenantId, sourceType: "MANUAL" as const, user: { role: "moderator" } };
+    const where = { ...base, ...(status ? { status } : {}) };
 
     const [articles, total, pendingCount, publishedCount] = await Promise.all([
       prisma.contentArticle.findMany({
@@ -41,12 +37,8 @@ export async function GET(request: NextRequest) {
         take: limit,
       }),
       prisma.contentArticle.count({ where }),
-      prisma.contentArticle.count({
-        where: { tenantId, sourceType: "MANUAL", user: { role: "moderator" }, status: "pending" },
-      }),
-      prisma.contentArticle.count({
-        where: { tenantId, sourceType: "MANUAL", user: { role: "moderator" }, status: "published" },
-      }),
+      prisma.contentArticle.count({ where: { ...base, status: "pending" } }),
+      prisma.contentArticle.count({ where: { ...base, status: "published" } }),
     ]);
 
     return NextResponse.json({

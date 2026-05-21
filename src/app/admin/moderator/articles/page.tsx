@@ -18,7 +18,7 @@ interface Article {
     user: { firstName: string; lastName: string };
 }
 
-type StatusFilter = "all" | "pending" | "published";
+type StatusFilter = "all" | "published";
 
 function StatusBadge({ status }: { status: string }) {
     const isPublished = status === "published";
@@ -88,7 +88,6 @@ export default function ModeratorArticlesPage() {
 
     const filterTabs: { key: StatusFilter; label: string; count: number }[] = [
         { key: "all", label: "All", count: counts.pending + counts.published },
-        { key: "pending", label: "Pending", count: counts.pending },
         { key: "published", label: "Published", count: counts.published },
     ];
 
