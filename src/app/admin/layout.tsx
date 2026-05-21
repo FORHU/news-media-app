@@ -1,5 +1,7 @@
 import { Metadata } from "next";
 import { headers } from "next/headers";
+
+export const dynamic = 'force-dynamic';
 import { normalizeHostToDomain, getSiteIconFromDomain, getSiteNameFromDomain } from "@/lib/tenant";
 
 export async function generateMetadata(): Promise<Metadata> {

@@ -32,7 +32,7 @@ const COPY: Record<
     text: {
         title: "Revise article text",
         description:
-            "Describe how you want the headline and body changed. This runs through the article writer (/chat), not OpenAI image generation.",
+            "Describe how you want the headline and body changed. This uses the article writer (/chat), not OpenAI images.",
         placeholder:
             "E.g. shorten to 3 paragraphs, lead with the policy impact, keep a neutral tone, do not change the reference line…",
         confirm: "Regenerate text",
@@ -40,7 +40,7 @@ const COPY: Record<
     image: {
         title: "Revise featured image",
         description:
-            "Describe how the hero image should differ. This runs through OpenAI Images only (edits or DALL·E 3), not the article /chat writer.",
+            "Describe how the hero image should differ. This uses OpenAI Images only, not the article /chat writer.",
         placeholder:
             "E.g. wider landscape crop, less text on the graphic, cooler colors, avoid showing faces…",
         confirm: "Regenerate image",
@@ -57,6 +57,7 @@ export default function RegeneratePromptDialog({
     const [prompt, setPrompt] = React.useState("");
     const [error, setError] = React.useState<string | null>(null);
     const copy = COPY[type];
+    const isText = type === "text";
 
     React.useEffect(() => {
         if (open) {
@@ -77,22 +78,33 @@ export default function RegeneratePromptDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-lg rounded-2xl">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-lg font-black">
-                        {type === "text" ? (
-                            <FileText className="w-5 h-5 text-indigo-600" />
-                        ) : (
-                            <ImageIcon className="w-5 h-5 text-purple-600" />
-                        )}
-                        {copy.title}
-                    </DialogTitle>
-                    <DialogDescription className="text-sm text-gray-600 leading-relaxed">
-                        {copy.description}
-                    </DialogDescription>
-                </DialogHeader>
+            <DialogContent className="w-[min(96vw,520px)] sm:max-w-lg rounded-2xl border border-gray-200/80 shadow-2xl p-0 gap-0 overflow-hidden">
+                <div
+                    className={`px-6 pt-6 pb-4 border-b ${isText ? "bg-indigo-50/80 border-indigo-100" : "bg-purple-50/80 border-purple-100"}`}
+                >
+                    <DialogHeader className="space-y-2 text-left">
+                        <DialogTitle className="flex items-center gap-2.5 text-lg font-black text-gray-900">
+                            <span
+                                className={`flex h-10 w-10 items-center justify-center rounded-xl ${isText ? "bg-indigo-100 text-indigo-700" : "bg-purple-100 text-purple-700"}`}
+                            >
+                                {isText ? (
+                                    <FileText className="h-5 w-5" />
+                                ) : (
+                                    <ImageIcon className="h-5 w-5" />
+                                )}
+                            </span>
+                            {copy.title}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-gray-600 leading-relaxed pl-[3.25rem]">
+                            {copy.description}
+                        </DialogDescription>
+                    </DialogHeader>
+                </div>
 
-                <div className="space-y-2">
+                <div className="px-6 py-5 space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                        Revision instructions
+                    </label>
                     <Textarea
                         value={prompt}
                         onChange={(e) => {
@@ -100,11 +112,11 @@ export default function RegeneratePromptDialog({
                             if (error) setError(null);
                         }}
                         placeholder={copy.placeholder}
-                        className="min-h-[120px] rounded-xl resize-none"
+                        className="min-h-[140px] rounded-xl resize-none bg-gray-50/80 border-gray-200 focus-visible:ring-2 focus-visible:ring-offset-0"
                         disabled={isPending}
                         autoFocus
                     />
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center justify-between gap-2 min-h-[1.25rem]">
                         <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 tabular-nums">
                             {prompt.length} / {PROMPT_MAX_LEN}
                         </p>
@@ -114,12 +126,13 @@ export default function RegeneratePromptDialog({
                     </div>
                 </div>
 
-                <DialogFooter className="gap-2 sm:gap-2">
+                <DialogFooter className="px-6 py-4 bg-gray-50/80 border-t border-gray-100 flex-row gap-2 sm:justify-end">
                     <Button
                         type="button"
                         variant="ghost"
                         onClick={() => onOpenChange(false)}
                         disabled={isPending}
+                        className="rounded-xl font-bold"
                     >
                         Cancel
                     </Button>
@@ -127,15 +140,11 @@ export default function RegeneratePromptDialog({
                         type="button"
                         onClick={handleConfirm}
                         disabled={isPending}
-                        className={
-                            type === "text"
-                                ? "bg-indigo-600 hover:bg-indigo-700"
-                                : "bg-purple-600 hover:bg-purple-700"
-                        }
+                        className={`rounded-xl font-bold text-white shadow-sm ${isText ? "bg-indigo-600 hover:bg-indigo-700" : "bg-purple-600 hover:bg-purple-700"}`}
                     >
                         {isPending ? (
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ) : type === "text" ? (
+                        ) : isText ? (
                             <FileText className="w-4 h-4 mr-2" />
                         ) : (
                             <ImageIcon className="w-4 h-4 mr-2" />

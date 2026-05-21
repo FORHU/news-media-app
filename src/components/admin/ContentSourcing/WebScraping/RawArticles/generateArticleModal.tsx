@@ -27,7 +27,7 @@ import { getDefaultGenerateNewImageFromDomain } from '@/lib/tenant-utils';
 interface GenerateArticleModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    /** Passed by parent; required only if the server uses an image-edit model (e.g. `dall-e-2`) that remixes this URL. */
+    /** Passed by parent; required for gpt-image-1-mini edits that remix this thumbnail URL. */
     crawledThumbnailUrl?: string | null;
     onGenerate: (prompt: string, categoryId: string, language: string, generateImage: boolean) => void;
     isPending: boolean;
@@ -136,6 +136,9 @@ export default function GenerateArticleModal({
                             {fieldErrors.category && (
                                 <p className="text-[10px] font-black text-red-500 uppercase tracking-widest ml-1 animate-in fade-in slide-in-from-top-1">{fieldErrors.category}</p>
                             )}
+                            <p className="text-xs text-gray-500 font-medium leading-relaxed px-1">
+                                The category you pick is saved on the article as-is (the AI does not auto-detect it). Choose the label that matches this story.
+                            </p>
                         </div>
                     </div>
 

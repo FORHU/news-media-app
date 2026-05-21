@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { createServerClient } from "@supabase/ssr";
-import { TENANT_DOMAIN_COOKIE, getTenantDomainFromRequest, resolveTenantIdFromDomain, getSiteLogoFromDomain, getSiteIconFromDomain } from "@/lib/tenant";
-import { prisma } from "@/lib/db";
-
-const ADMIN_ROLE_COOKIE = "admin_verified";
+import { verifyAdminJwt, ADMIN_JWT_COOKIE, ADMIN_ROLE_COOKIE } from "@/lib/auth";
+import { TENANT_DOMAIN_COOKIE, getTenantDomainFromRequest, getSiteLogoFromDomain, getSiteIconFromDomain } from "@/lib/tenant";
 
 export async function proxy(request: NextRequest) {
     try {
@@ -16,10 +13,10 @@ export async function proxy(request: NextRequest) {
 
         // Tenant scoping (domain-based).
         const tenantDomain = getTenantDomainFromRequest(request);
-        
+
         // Create initial response
         let response = NextResponse.next({ request });
-        
+
         if (tenantDomain) {
             response.cookies.set(TENANT_DOMAIN_COOKIE, tenantDomain, {
                 httpOnly: true,
@@ -30,7 +27,6 @@ export async function proxy(request: NextRequest) {
         }
 
         // 1. PUBLIC ROUTE REWRITING
-        // Handle logo.png specifically to provide domain-specific logos
         if (pathname === "/logo.png") {
             const url = request.nextUrl.clone();
             const logoFile = getSiteLogoFromDomain(tenantDomain);
@@ -38,7 +34,6 @@ export async function proxy(request: NextRequest) {
             return NextResponse.rewrite(url);
         }
 
-        // Handle favicon.ico specifically to provide domain-specific favicons
         if (pathname === "/favicon.ico") {
             const url = request.nextUrl.clone();
             const iconFile = getSiteIconFromDomain(tenantDomain);
@@ -46,7 +41,6 @@ export async function proxy(request: NextRequest) {
             return NextResponse.rewrite(url);
         }
 
-        // If it's not an admin or API route, rewrite to the domain-specific path
         const isInternalRewrite = pathname.startsWith(`/${tenantDomain}/`) || pathname === `/${tenantDomain}`;
 
         if (!isAdminPage && !isAdminApi && !pathname.startsWith("/api") && !pathname.includes(".") && !isInternalRewrite) {
@@ -55,7 +49,7 @@ export async function proxy(request: NextRequest) {
             return NextResponse.rewrite(url);
         }
 
-        // 2. ADMIN AUTHENTICATION LOGIC (Preserved)
+        // 2. ADMIN AUTHENTICATION LOGIC
         if (!isAdminPage && !isAdminApi) {
             return response;
         }
@@ -64,52 +58,10 @@ export async function proxy(request: NextRequest) {
             return response;
         }
 
-        let supabaseResponse = response;
-
-        const supabase = createServerClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-            {
-                cookies: {
-                    getAll: () => request.cookies.getAll(),
-                    setAll: (cookiesToSet) => {
-                        cookiesToSet.forEach(({ name, value, options }) =>
-                            request.cookies.set({ name, value, ...options })
-                        );
-                        supabaseResponse = NextResponse.next({ request });
-                        cookiesToSet.forEach(({ name, value, options }) =>
-                            supabaseResponse.cookies.set(name, value, options)
-                        );
-                    },
-                },
-            }
-        );
-
-        const {
-            data: { user },
-        } = await supabase.auth.getUser();
-
-        const adminRoleCookie = request.cookies.get(ADMIN_ROLE_COOKIE)?.value;
-        const hasAdminRoleCookie = adminRoleCookie === "verified";
-        let hasAdminRoleDb = false;
-
-        if (user?.email && tenantDomain) {
-            const tenantId = await resolveTenantIdFromDomain(tenantDomain);
-            if (tenantId) {
-                const dbUser = await prisma.user.findFirst({
-                    where: {
-                        email: { equals: user.email, mode: "insensitive" },
-                        role: "admin",
-                        tenantId,
-                    },
-                    select: { email: true },
-                });
-                hasAdminRoleDb = Boolean(dbUser);
-            }
-        }
-
-        const hasAdminRole = hasAdminRoleCookie || hasAdminRoleDb;
-        const isAuthenticated = Boolean(user) && hasAdminRole;
+        // Verify JWT from httpOnly cookie — jose is Edge-compatible, no DB call needed.
+        const token = request.cookies.get(ADMIN_JWT_COOKIE)?.value;
+        const payload = token ? await verifyAdminJwt(token) : null;
+        const isAuthenticated = Boolean(payload && payload.role === "admin");
 
         if (!isAuthenticated) {
             if (isAdminApi) {
@@ -117,16 +69,10 @@ export async function proxy(request: NextRequest) {
             }
             const loginUrl = new URL("/admin/login", request.url);
             loginUrl.searchParams.set("redirectTo", pathname);
-            const redirectResponse = NextResponse.redirect(loginUrl);
-            request.cookies.getAll().forEach((cookie) => {
-                if (cookie.name.startsWith('sb-')) {
-                    redirectResponse.cookies.set(cookie.name, cookie.value);
-                }
-            });
-            return redirectResponse;
+            return NextResponse.redirect(loginUrl);
         }
 
-        supabaseResponse.cookies.set(ADMIN_ROLE_COOKIE, "verified", {
+        response.cookies.set(ADMIN_ROLE_COOKIE, "verified", {
             httpOnly: true,
             sameSite: "lax",
             secure: process.env.NODE_ENV === "production",
@@ -134,12 +80,12 @@ export async function proxy(request: NextRequest) {
             maxAge: 60 * 60 * 24,
         });
 
-        supabaseResponse.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-        supabaseResponse.headers.set("Pragma", "no-cache");
-        supabaseResponse.headers.set("Expires", "0");
-        supabaseResponse.headers.set("Surrogate-Control", "no-store");
+        response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+        response.headers.set("Pragma", "no-cache");
+        response.headers.set("Expires", "0");
+        response.headers.set("Surrogate-Control", "no-store");
 
-        return supabaseResponse;
+        return response;
     } catch (error) {
         return NextResponse.next();
     }
