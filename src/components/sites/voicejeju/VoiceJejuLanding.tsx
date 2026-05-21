@@ -125,14 +125,25 @@ function LatestSidebarWire({ article }: { article: LandingArticle }) {
    return (
       <Link
          href={articleHref(article)}
-         className="group block border-b border-gray-100 py-3 px-0 hover:bg-gray-50/80 transition-colors border-l-[3px] border-black pl-3"
+         className="flex gap-3 group items-start border-b border-gray-100 py-2.5 pl-3 border-l-[3px] border-l-black hover:bg-gray-50/80 transition-colors"
       >
-         <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.35em] block mb-1.5">
-            {article.category?.categoryName}
-         </span>
-         <p className="text-[13px] font-voltaire leading-snug text-gray-900 group-hover:underline line-clamp-3">
-            {article.title}
-         </p>
+         <div className="relative w-20 h-20 shrink-0 overflow-hidden bg-gray-50 border border-gray-100">
+            <StoryImage
+               src={article.imageUrl}
+               alt={article.title}
+               fill
+               className="object-cover group-hover:scale-105 transition-transform duration-300"
+               sizes="80px"
+            />
+         </div>
+         <div className="min-w-0 flex-1">
+            <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.35em] block mb-1.5">
+               {article.category?.categoryName}
+            </span>
+            <p className="text-[13px] font-voltaire leading-snug text-gray-900 group-hover:underline line-clamp-3">
+               {article.title}
+            </p>
+         </div>
       </Link>
    );
 }
@@ -143,7 +154,7 @@ function LatestSidebarSplit({ article }: { article: LandingArticle }) {
          href={articleHref(article)}
          className="flex gap-3 group items-stretch border-b border-gray-100 py-3 hover:bg-gray-50/90 transition-colors"
       >
-         <div className="relative w-[5.25rem] shrink-0 aspect-[3/4] overflow-hidden bg-gray-50 border border-gray-900/15">
+         <div className="relative w-20 h-20 shrink-0 overflow-hidden bg-gray-50 border border-gray-900/15">
             <StoryImage
                src={article.imageUrl}
                alt={article.title}
@@ -173,7 +184,7 @@ function LatestSidebarReverse({ article }: { article: LandingArticle }) {
    return (
       <Link
          href={articleHref(article)}
-         className="flex flex-row-reverse gap-3 group items-start border-b border-gray-100 py-2.5 sm:py-3 hover:bg-gray-50/90 transition-colors text-right"
+         className="flex flex-row-reverse gap-3 group items-start border-b border-gray-100 py-2.5 sm:py-3 hover:bg-gray-50/90 transition-colors"
       >
          <div className="relative w-[72px] h-[72px] sm:w-20 sm:h-20 shrink-0 overflow-hidden bg-gray-50 border border-gray-100">
             <StoryImage
