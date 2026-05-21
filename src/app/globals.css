@@ -215,23 +215,23 @@ body {
 }
 
 .site-theme-jejuqq-com {
-  font-family: var(--font-mulish);
+  font-family: var(--font-plus-jakarta);
   --primary: oklch(0.55 0.15 25);
   --background: oklch(0.98 0.015 25);
 
-  /* Mulish for all Sans/Body content */
-  --font-sans: var(--font-mulish);
-  --font-roboto: var(--font-mulish);
-  --font-noto: var(--font-mulish);
-  --font-geist-sans: var(--font-mulish);
+  /* Plus Jakarta Sans for body/UI */
+  --font-sans: var(--font-plus-jakarta);
+  --font-roboto: var(--font-plus-jakarta);
+  --font-geist-sans: var(--font-plus-jakarta);
 
-  /* Arima for all Mono/Serif/Headline content */
-  --font-mono: var(--font-arima);
-  --font-serif: var(--font-arima);
-  --font-baskerville: var(--font-arima);
-  --font-playfair: var(--font-arima);
-  --font-garamond: var(--font-arima);
-  --font-geist-mono: var(--font-arima);
+  /* Noto Serif JP for all headline/serif slots — CJK-capable editorial serif */
+  --font-noto: var(--font-noto-serif-jp);
+  --font-mono: var(--font-noto-serif-jp);
+  --font-serif: var(--font-noto-serif-jp);
+  --font-baskerville: var(--font-noto-serif-jp);
+  --font-playfair: var(--font-noto-serif-jp);
+  --font-garamond: var(--font-noto-serif-jp);
+  --font-geist-mono: var(--font-noto-serif-jp);
 }
 
 .site-theme-jejujapan-com {

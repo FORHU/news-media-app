@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { resolveTenantIdFromDomain } from "@/lib/tenant";
 import { articlesService } from "@/services/articles.service";
 import { bannersService } from "@/services/banners.service";
@@ -5,6 +6,7 @@ import { TrendingSidebar } from "@/components/home/trending-sidebar";
 import { AdBanner } from "@/components/AdBanner";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
+import { TENANT_CATEGORIES } from "@/config/categories";
 
 export default async function SearchLayout({
   children,
@@ -39,11 +41,12 @@ export default async function SearchLayout({
 
   const isVoiceJeju = domain.toLowerCase().includes("voicejeju");
   const isJejuJapan = domain.toLowerCase().includes("jejujapan");
+  const isJejuQQ = domain.toLowerCase().includes("jejuqq");
   const isSkyBluePrime = domain.toLowerCase().includes("skyblueprime");
 
   // Trending stories are "constant" for the search session, so we fetch them here
-  // (We skip fetching in layout if VoiceJeju or JejuJapan, since those render their sidebar inside page.tsx)
-  const [trendingArticles, sidebarBanners] = (isVoiceJeju || isJejuJapan)
+  // (We skip fetching in layout if VoiceJeju, JejuJapan, or JejuQQ, since those render their sidebar inside page.tsx)
+  const [trendingArticles, sidebarBanners] = (isVoiceJeju || isJejuJapan || isJejuQQ)
     ? [[], []]
     : await Promise.all([
         tenantId
@@ -66,6 +69,30 @@ export default async function SearchLayout({
     return (
       <div className="bg-white">
         <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
+          {showSkyscrapers && adKeys?.["160x600"] && (
+            <div className="hidden min-[1650px]:block absolute right-full mr-6 top-32 bottom-32 w-[160px] z-30">
+              <div className="sticky top-40">
+                <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+              </div>
+            </div>
+          )}
+          {showSkyscrapers && adKeys?.["160x600"] && (
+            <div className="hidden min-[1650px]:block absolute left-full ml-6 top-32 bottom-32 w-[160px] z-30">
+              <div className="sticky top-40">
+                <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+              </div>
+            </div>
+          )}
+          {children}
+        </main>
+      </div>
+    );
+  }
+
+  if (isJejuQQ) {
+    return (
+      <div className="bg-[#fdf2f2] min-h-screen">
+        <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-10">
           {showSkyscrapers && adKeys?.["160x600"] && (
             <div className="hidden min-[1650px]:block absolute right-full mr-6 top-32 bottom-32 w-[160px] z-30">
               <div className="sticky top-40">

@@ -144,11 +144,13 @@ async function SearchContent({
   const isVoiceJeju = domain.toLowerCase().includes("voicejeju");
   const isSkyBluePrime = domain.toLowerCase().includes("skyblueprime");
   const isJejuJapan = domain.toLowerCase().includes("jejujapan");
+  const isJejuQQ = domain.toLowerCase().includes("jejuqq");
 
   const activeCategory = categoryParam ? decodeURIComponent(categoryParam) : null;
   const heroLabel = activeCategory ?? (searchQuery ? `"${searchQuery}"` : "전체 기사");
   const voicejejuCategories = isVoiceJeju ? (TENANT_CATEGORIES["voicejeju.com"] ?? []) : [];
   const jejuJapanCategories = isJejuJapan ? (TENANT_CATEGORIES["jejujapan.com"] ?? []) : [];
+  const jejuqqCategories = isJejuQQ ? (TENANT_CATEGORIES["jejuqq.com"] ?? []) : [];
 
   const sbpLabel = searchQuery
     ? `Search: "${searchQuery}"`
@@ -397,6 +399,161 @@ async function SearchContent({
             )}
             <AdBanner position="HOME_SIDEBAR" initialBanners={sidebarBanners} />
           </aside>
+        </div>
+      </>
+    );
+  }
+
+  if (isJejuQQ) {
+    return (
+      <>
+        {/* Bold editorial header — top accent line + large serif title */}
+        <div className="mb-6 pt-2">
+          <div className="flex items-center gap-1.5 text-[9px] font-bold tracking-widest text-gray-500 mb-4 uppercase">
+            <Link href="/" className="hover:text-[#dc2626] transition-colors">JEJUQQ</Link>
+            <span className="text-gray-400">›</span>
+            <span className="text-[#dc2626]">
+              {activeCategory ?? (searchQuery ? "Search Results" : "All Articles")}
+            </span>
+          </div>
+          <div className="border-t-4 border-[#dc2626] pt-4">
+            <div className="flex items-start justify-between gap-4">
+              <h1 className="text-3xl sm:text-4xl font-serif font-black text-gray-900 leading-tight tracking-tight">
+                {activeCategory ?? (searchQuery ? `"${searchQuery}"` : "All Articles")}
+              </h1>
+              <span className="flex-shrink-0 text-[9px] font-black uppercase tracking-[0.3em] text-gray-600 mt-2 font-serif">
+                {articles.length} articles
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile category — underline tab style */}
+        {jejuqqCategories.length > 0 && (
+          <div className="lg:hidden flex gap-5 mb-6 pb-0 border-b border-gray-200 overflow-x-auto scrollbar-hide">
+            <Link
+              href="/search"
+              className={`flex-shrink-0 pb-3 text-[11px] font-serif font-bold uppercase tracking-wider transition-all whitespace-nowrap border-b-2 -mb-px ${
+                !activeCategory && !searchQuery
+                  ? "text-[#dc2626] border-[#dc2626]"
+                  : "text-gray-700 border-transparent hover:text-gray-900 hover:border-gray-500"
+              }`}
+            >
+              All
+            </Link>
+            {jejuqqCategories.map((cat) => (
+              <Link
+                key={cat}
+                href={activeCategory === cat ? "/search" : `/search?category=${encodeURIComponent(cat)}`}
+                className={`flex-shrink-0 pb-3 text-[11px] font-serif font-bold uppercase tracking-wider transition-all whitespace-nowrap border-b-2 -mb-px ${
+                  activeCategory === cat
+                    ? "text-[#dc2626] border-[#dc2626]"
+                    : "text-gray-500 border-transparent hover:text-gray-800 hover:border-gray-400"
+                }`}
+              >
+                {cat}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-8 lg:gap-10 mb-12 items-start">
+          {/* Main content */}
+          <div className="min-w-0">
+            {/* Top leaderboard ad */}
+            {(showTopLeaderboard || showMobileLeaderboard) && (
+              <div className="w-full flex justify-center py-4 border-b border-gray-200 mb-6 overflow-hidden">
+                {showTopLeaderboard && desktopLeaderboardKey && (
+                  <div className="hidden sm:block">
+                    <AdsterraBanner bannerKey={desktopLeaderboardKey} width={desktopLeaderboardWidth} height={desktopLeaderboardHeight} className="!my-0" />
+                  </div>
+                )}
+                {showMobileLeaderboard && adKeys?.["320x50"] && (
+                  <div className="block sm:hidden">
+                    <AdsterraBanner bannerKey={adKeys["320x50"]} width={320} height={50} className="!my-0" />
+                  </div>
+                )}
+              </div>
+            )}
+
+            <LatestStoriesSection
+              articles={articles}
+              error=""
+              searchQuery={searchQuery || null}
+              categoryName={categoryParam ? decodeURIComponent(categoryParam) : null}
+              isLoading={false}
+              domain={domain}
+            />
+
+            {tenantConfig?.native && (
+              <div className="mt-10 pt-6 border-t-2 border-[#dc2626]/20">
+                <AdsterraNativeBanner domain={domain} transparent />
+              </div>
+            )}
+          </div>
+
+          {/* Desktop sidebar — landing-page widget style */}
+          <aside className="hidden lg:block space-y-4 self-start sticky top-24">
+            {jejuqqCategories.length > 0 && (
+              <div className="bg-gray-50 border-2 border-[#dc2626] p-4">
+                <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200">
+                  <span className="w-2 h-2 bg-[#dc2626] flex-shrink-0" />
+                  <h3 className="text-[14px] font-serif font-bold uppercase tracking-tight">Categories</h3>
+                </div>
+                <div className="space-y-0">
+                  <Link
+                    href="/search"
+                    className={`flex items-center gap-3 py-2 border-b border-gray-200 text-[12px] font-bold transition-colors group ${
+                      !activeCategory
+                        ? "text-[#dc2626]"
+                        : "text-gray-900 hover:text-[#dc2626]"
+                    }`}
+                  >
+                    <span className="text-[10px] font-black text-gray-500 tabular-nums font-serif group-hover:text-[#dc2626]/60 transition-colors">00</span>
+                    <span className="flex-1">All Articles</span>
+                    {!activeCategory && <span className="w-1.5 h-1.5 bg-[#dc2626] flex-shrink-0" />}
+                  </Link>
+                  {jejuqqCategories.map((cat, i) => (
+                    <Link
+                      key={cat}
+                      href={activeCategory === cat ? "/search" : `/search?category=${encodeURIComponent(cat)}`}
+                      className={`flex items-center gap-3 py-2 border-b border-gray-200 last:border-0 text-[12px] font-bold transition-colors group ${
+                        activeCategory === cat
+                          ? "text-[#dc2626]"
+                          : "text-gray-900 hover:text-[#dc2626]"
+                      }`}
+                    >
+                      <span className="text-[10px] font-black text-gray-500 tabular-nums font-serif group-hover:text-[#dc2626]/60 transition-colors">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <span className="flex-1">{cat}</span>
+                      {activeCategory === cat && <span className="w-1.5 h-1.5 bg-[#dc2626] flex-shrink-0" />}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <TrendingSidebar articles={trendingArticles} domain={domain} />
+
+            {showSidebarBox && adKeys?.["300x250"] && (
+              <div className="flex justify-center">
+                <AdsterraBanner bannerKey={adKeys["300x250"]} width={300} height={250} className="!my-0" />
+              </div>
+            )}
+            <AdBanner position="HOME_SIDEBAR" initialBanners={sidebarBanners} />
+          </aside>
+
+          {/* Mobile sidebar — below content */}
+          <div className="lg:hidden space-y-8">
+            <TrendingSidebar articles={trendingArticles} domain={domain} />
+            {showSidebarBox && adKeys?.["300x250"] && (
+              <div className="flex justify-center border-b border-gray-200 pb-6">
+                <AdsterraBanner bannerKey={adKeys["300x250"]} width={300} height={250} className="!my-0" />
+              </div>
+            )}
+            <AdBanner position="HOME_SIDEBAR" initialBanners={sidebarBanners} />
+          </div>
         </div>
       </>
     );

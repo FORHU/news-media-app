@@ -35,7 +35,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
-  const heroArticles = articles.slice(0, 5);
+  const heroArticles = sortedArticles.slice(0, 5);
   const heroIds = new Set(heroArticles.map(a => a.id));
 
   const allLatestArticles = sortedArticles.filter(a => !heroIds.has(a.id));
@@ -198,7 +198,9 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                   </h2>
                 </Link>
                 <p className="text-gray-600 text-base leading-relaxed mb-4 line-clamp-3 font-medium">
-                  {mainArticle.content}
+                  {mainArticle.content
+                    ? mainArticle.content.replace(/<[^>]*>/g, "").slice(0, 200)
+                    : ""}
                 </p>
                 <Link href={`/article/${mainArticle.slug || mainArticle.id}`} className="inline-flex items-center gap-2 text-[12px] font-black uppercase tracking-widest text-black hover:text-[#dc2626] transition-colors">
                   Read Full Story <ChevronRight size={16} />

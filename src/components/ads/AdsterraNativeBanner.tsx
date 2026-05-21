@@ -6,9 +6,10 @@ import { ADSTERRA_CONFIG, getAdsterraTenant } from "@/config/adsterra";
 
 interface AdsterraNativeBannerProps {
   domain?: string;
+  transparent?: boolean;
 }
 
-export function AdsterraNativeBanner({ domain: propDomain }: AdsterraNativeBannerProps) {
+export function AdsterraNativeBanner({ domain: propDomain, transparent }: AdsterraNativeBannerProps) {
   const [resolvedDomain, setResolvedDomain] = useState<string>("");
 
   useEffect(() => {
@@ -61,7 +62,7 @@ export function AdsterraNativeBanner({ domain: propDomain }: AdsterraNativeBanne
   if (!resolvedDomain || !config) return null;
 
   return (
-    <div className="w-full my-2 bg-white p-4 border border-slate-100 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] rounded-xl">
+    <div className={`w-full my-2 p-4 ${transparent ? "bg-transparent border-0 shadow-none" : "bg-white border border-slate-100 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] rounded-xl"}`}>
       <div className="text-[10px] text-slate-600 font-bold uppercase tracking-widest mb-3 text-center">
         Sponsored Recommendations
       </div>

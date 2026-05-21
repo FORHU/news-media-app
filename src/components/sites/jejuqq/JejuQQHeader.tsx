@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Search, Mail, X, ChevronDown, User } from "lucide-react";
+import { Search, Mail, X, User, ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
 import { getCoreCategories, HOME_CATEGORY_LABEL, normalizeCategoryKey } from "@/config/categories";
@@ -26,6 +26,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const userTypingRef = useRef(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -60,23 +61,24 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
     }, new Map<string, string>())
   ).map(([, name]) => name);
 
-  const categoryLinks = [
-    { name: HOME_CATEGORY_LABEL, link: "/" },
-    ...coreCategories.map((categoryName) => ({
-      name: categoryName,
-      link: categoryHref(categoryName),
-    })),
-  ];
-
   useEffect(() => {
+    userTypingRef.current = false;
     setQuery(searchParams.get("search") ?? "");
   }, [searchParams]);
 
+  useEffect(() => {
+    if (!userTypingRef.current) return;
+    const timer = setTimeout(() => {
+      const trimmed = query.trim();
+      router.push(trimmed ? `/search?search=${encodeURIComponent(trimmed)}` : "/search");
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [query, router]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (query.trim()) {
-      router.push(`/search?search=${encodeURIComponent(query.trim())}`);
-    }
+    const trimmed = query.trim();
+    router.push(trimmed ? `/search?search=${encodeURIComponent(trimmed)}` : "/search");
   };
 
   return (
@@ -121,7 +123,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                 <input
                   type="text"
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  onChange={(e) => { userTypingRef.current = true; setQuery(e.target.value); }}
                   placeholder="SEARCH FOR STORIES..."
                   className="w-full pl-11 pr-4 bg-gray-50 border-2 border-primary rounded-none h-11 text-[11px] font-bold outline-none focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
                 />
@@ -158,7 +160,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
               <input
                 type="text"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => { userTypingRef.current = true; setQuery(e.target.value); }}
                 placeholder="SEARCH FOR STORIES..."
                 className="w-full pl-11 pr-4 bg-gray-50 border-2 border-[#dc2626] rounded-none h-12 text-[12px] font-bold outline-none focus:bg-white focus:border-[#dc2626] transition-all"
               />
@@ -176,7 +178,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
         <div className="border-t border-gray-100 hidden lg:block">
           <div className="max-w-7xl mx-auto px-4 flex flex-row justify-center items-center py-4">
             <nav className="flex flex-wrap justify-center gap-x-12 gap-y-4 text-[13px] font-bold font-serif uppercase tracking-tighter text-gray-600">
-              {coreCategories.slice(0, 6).map((cat) => (
+              {coreCategories.map((cat) => (
                 <Link
                   key={cat}
                   href={`/search?category=${encodeURIComponent(cat)}`}
@@ -186,24 +188,6 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#dc2626] group-hover:w-full transition-all duration-300"></span>
                 </Link>
               ))}
-              {coreCategories.length > 6 && (
-                <div className="relative group cursor-pointer flex items-center gap-1 hover:text-[#dc2626] py-2">
-                  MORE <ChevronDown size={14} />
-                  <div className="absolute top-full right-0 pt-2 hidden group-hover:block z-50">
-                    <div className="bg-white shadow-2xl border border-gray-100 p-6 rounded-none grid grid-cols-2 gap-x-10 gap-y-4 min-w-[350px]">
-                      {coreCategories.slice(6).map((cat) => (
-                        <Link
-                          key={cat}
-                          href={categoryHref(cat)}
-                          className="text-gray-500 hover:text-[#dc2626] text-xs font-bold whitespace-nowrap transition-colors uppercase tracking-widest"
-                        >
-                          {cat}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
             </nav>
           </div>
         </div>
@@ -232,7 +216,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                 animate={{ x: 0 }}
                 exit={{ x: "-100%" }}
                 transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                className="fixed left-0 top-0 h-[100dvh] w-full sm:w-80 max-w-[85vw] bg-white z-[70] shadow-2xl flex flex-col overflow-hidden"
+                className="fixed left-0 top-0 h-[100dvh] w-full sm:w-80 max-w-[85vw] bg-[#fdf2f2] z-[70] shadow-2xl flex flex-col overflow-hidden"
               >
                 <div className="flex-shrink-0 bg-[#dc2626] h-14 px-5 flex items-center justify-between">
                   <button
@@ -254,30 +238,55 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                 </div>
 
                 <div className="flex-1 overflow-y-auto">
-                  <nav className="py-2">
-                    {categoryLinks.map((cat) => (
+                  {/* "Browse" section label — matches landing page section header pattern */}
+                  <div className="flex items-center gap-3 px-6 pt-5 pb-3">
+                    <span className="h-0.5 w-8 bg-[#dc2626]" />
+                    <span className="text-[10px] font-bold font-serif uppercase tracking-[0.25em] text-[#dc2626]">Browse</span>
+                  </div>
+
+                  <nav>
+                    {/* Home / Latest News — filled square marker, no number */}
+                    <Link
+                      href="/"
+                      onClick={() => setIsSidebarOpen(false)}
+                      className="group flex items-center gap-4 px-6 py-3 border-b border-[#dc2626]/10 transition-all duration-200"
+                    >
+                      <span className="w-2 h-2 bg-[#dc2626] shrink-0" />
+                      <span className="inline-block text-[14px] font-bold font-serif text-gray-900 group-hover:text-[#dc2626] group-hover:translate-x-1 transition-all duration-200">
+                        {HOME_CATEGORY_LABEL}
+                      </span>
+                    </Link>
+
+                    {/* Numbered category links (01–N) */}
+                    {coreCategories.map((categoryName, i) => (
                       <Link
-                        key={cat.name}
-                        href={cat.link}
+                        key={categoryName}
+                        href={categoryHref(categoryName)}
                         onClick={() => setIsSidebarOpen(false)}
-                        className="block px-6 py-3.5 text-[15px] font-bold font-serif text-gray-900 hover:text-[#dc2626] hover:bg-[#dc2626]/5 border-b border-gray-100 transition-colors"
+                        className="group flex items-center gap-4 px-6 py-3 border-b border-[#dc2626]/10 transition-all duration-200"
                       >
-                        {cat.name}
+                        <span className="text-[13px] font-serif font-bold text-[#dc2626]/50 group-hover:text-[#dc2626]/80 tabular-nums shrink-0 w-6 transition-colors">
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <span className="inline-block text-[14px] font-bold font-serif text-gray-900 group-hover:text-[#dc2626] group-hover:translate-x-1 transition-all duration-200">
+                          {categoryName}
+                        </span>
                       </Link>
                     ))}
+
                     {overflowCategories.length > 0 && (
                       <details className="group">
-                        <summary className="flex items-center justify-between px-6 py-3.5 text-[15px] font-bold font-serif text-gray-900 hover:text-[#dc2626] hover:bg-[#dc2626]/5 border-b border-gray-100 transition-colors cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                        <summary className="flex items-center justify-between px-6 py-3 text-[14px] font-bold font-serif text-gray-900 hover:text-[#dc2626] border-b border-[#dc2626]/10 transition-colors cursor-pointer list-none [&::-webkit-details-marker]:hidden">
                           <span>More</span>
-                          <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-[#dc2626] group-open:rotate-180 transition-transform" />
+                          <ChevronDown className="w-4 h-4 text-[#dc2626]/50 group-hover:text-[#dc2626] group-open:rotate-180 transition-transform" />
                         </summary>
-                        <div className="bg-gray-50">
+                        <div className="bg-[#fdf2f2]/80">
                           {overflowCategories.map((name) => (
                             <Link
                               key={name}
                               href={categoryHref(name)}
                               onClick={() => setIsSidebarOpen(false)}
-                              className="block px-10 py-2.5 text-sm text-gray-600 hover:text-[#dc2626] hover:bg-[#dc2626]/5 transition-colors"
+                              className="block px-10 py-2.5 text-sm font-serif text-gray-600 hover:text-[#dc2626] border-b border-[#dc2626]/10 transition-all duration-200"
                             >
                               {name}
                             </Link>
@@ -288,11 +297,12 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                   </nav>
                 </div>
 
-                <div className="flex-shrink-0 border-t border-gray-100 p-5">
+                {/* Footer — bg-[#fee2e2] matches JejuQQFooter */}
+                <div className="flex-shrink-0 bg-[#fee2e2] border-t border-[#dc2626]/10 p-5">
                   <button
                     type="button"
                     onClick={() => { setIsSidebarOpen(false); onOpenNewsletter?.(); }}
-                    className="w-full flex items-center justify-center gap-3 py-3 bg-black text-white text-xs font-bold font-serif uppercase tracking-widest hover:bg-[#dc2626] transition-colors mb-4"
+                    className="w-full flex items-center justify-center gap-3 py-3 bg-[#dc2626] text-white text-xs font-bold font-serif uppercase tracking-widest hover:bg-black transition-colors mb-4"
                   >
                     <Mail className="w-4 h-4" />
                     Newsletter
