@@ -95,6 +95,7 @@ body {
 }
 
 @custom-variant v-short (@media (max-height: 480px));
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   --radius: 0.625rem;

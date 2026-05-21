@@ -4,6 +4,8 @@ import { signAdminJwt, ADMIN_JWT_COOKIE, ADMIN_ROLE_COOKIE } from "@/lib/auth";
 import { resolveTenantIdFromRequest } from "@/lib/tenant";
 import bcrypt from "bcryptjs";
 
+const MODERATOR_ALLOWED_DOMAINS = ["voicejeju.com", "jejuqq.com", "jejujapan.com", "jejutime.com"];
+
 export async function POST(request: NextRequest) {
   try {
     const tenantId = await resolveTenantIdFromRequest(request);
@@ -17,14 +19,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
     }
 
-    const user = await prisma.user.findFirst({
-      where: {
-        email: { equals: email, mode: "insensitive" },
-        role: "admin",
-        tenantId,
-      },
+    const currentTenant = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { domain: true },
+    });
+
+    const currentDomain = currentTenant?.domain ?? "";
+
+    // Try admin lookup scoped to current tenant first
+    let user = await prisma.user.findFirst({
+      where: { email: { equals: email, mode: "insensitive" }, role: "admin", tenantId },
       select: { id: true, email: true, password: true, role: true, tenantId: true },
     });
+
+    // If not found as admin, try moderator across ALL tenants
+    if (!user) {
+      if (!MODERATOR_ALLOWED_DOMAINS.includes(currentDomain)) {
+        return NextResponse.json({ error: "Invalid login credentials" }, { status: 401 });
+      }
+      user = await prisma.user.findFirst({
+        where: { email: { equals: email, mode: "insensitive" }, role: "moderator" },
+        select: { id: true, email: true, password: true, role: true, tenantId: true },
+      });
+    }
 
     if (!user) {
       return NextResponse.json({ error: "Invalid login credentials" }, { status: 401 });
@@ -35,22 +52,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid login credentials" }, { status: 401 });
     }
 
+    // Moderators: use current domain's tenantId so categories/articles scope to the right site
+    const jwtTenantId = user.role === "moderator" ? tenantId : user.tenantId;
+
     const token = await signAdminJwt({
       sub: user.id,
       email: user.email,
-      tenantId: user.tenantId,
+      tenantId: jwtTenantId,
       role: user.role,
     });
 
     const cookieOpts = {
       httpOnly: true,
       sameSite: "lax" as const,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.COOKIE_SECURE === "true",
       path: "/",
       maxAge: 60 * 60 * 24,
     };
 
-    const response = NextResponse.json({ ok: true });
+    const response = NextResponse.json({ ok: true, role: user.role });
     response.cookies.set(ADMIN_JWT_COOKIE, token, cookieOpts);
     response.cookies.set(ADMIN_ROLE_COOKIE, "verified", cookieOpts);
     return response;

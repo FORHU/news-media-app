@@ -12,13 +12,13 @@ export async function GET(request: NextRequest) {
     const token = request.cookies.get(ADMIN_JWT_COOKIE)?.value;
     const payload = token ? await verifyAdminJwt(token) : null;
 
-    if (!payload || payload.role !== "admin") {
+    if (!payload || !["admin", "moderator"].includes(payload.role as string)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
       where: { id: payload.sub },
-      select: { firstName: true, lastName: true, email: true },
+      select: { firstName: true, lastName: true, email: true, role: true },
     });
 
     if (!user) {
@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
       ok: true,
       email: user.email,
       name: `${user.firstName} ${user.lastName}`.trim(),
+      role: user.role,
     });
   } catch (error) {
     return NextResponse.json({ error: "Failed to retrieve session." }, { status: 500 });
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
     const token = request.cookies.get(ADMIN_JWT_COOKIE)?.value;
     const payload = token ? await verifyAdminJwt(token) : null;
 
-    if (!payload || payload.role !== "admin") {
+    if (!payload || !["admin", "moderator"].includes(payload.role as string)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
     response.cookies.set(ADMIN_ROLE_COOKIE, "verified", {
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.COOKIE_SECURE === "true",
       path: "/",
       maxAge: 60 * 60 * 24,
     });
