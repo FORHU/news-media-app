@@ -106,7 +106,7 @@ export async function exportDatabaseViaPg(
     stream.write("\nCOMMIT;\n");
   } finally {
     await new Promise<void>((resolve, reject) => {
-      stream.end((err) => (err ? reject(err) : resolve()));
+      stream.end((err: Error | null) => (err ? reject(err) : resolve()));
     });
     await client.end();
   }

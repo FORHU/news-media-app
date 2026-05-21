@@ -6,8 +6,7 @@ import { DEFAULT_OG_IMAGE, SITE_URL } from "@/config/site";
 import { headers } from "next/headers";
 import { normalizeHostToDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteDescriptionFromDomain } from "@/lib/tenant";
 
-// Root layout should be static to allow child routes to use SSG/ISR.
-// Domain-specific metadata is handled in the (sites)/[domain] layout.
+export const dynamic = 'force-dynamic';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
