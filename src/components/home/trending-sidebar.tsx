@@ -34,11 +34,50 @@ export function TrendingSidebar({ articles, domain }: TrendingSidebarProps) {
     })
     .slice(0, 10);
 
+  const isSkyBluePrime = domain.includes('skyblueprime');
+  const isVoiceJeju = domain.includes('voicejeju');
+
+  if (isSkyBluePrime) {
+    return (
+      <aside id="trending-stories" className="lg:col-span-1 scroll-mt-24">
+        <div className="sticky top-24">
+          <div className="border-t-[4px] border-sky-950 pt-3 mb-6">
+            <h2 className="text-[13px] font-black text-sky-950 uppercase tracking-widest">Trending Stories</h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            {sortedArticles.map((article, index) => (
+              <ArticleLink
+                key={article.id}
+                articleIdentifier={article.slug ?? article.id}
+                href={`/article/${article.slug ?? article.id}`}
+                className="group cursor-pointer flex gap-3 border-b border-sky-100 pb-5 last:border-0 last:pb-0"
+              >
+                <div className="flex-shrink-0 w-8 h-8 bg-sky-950 text-white flex items-center justify-center font-black text-sm">
+                  {index + 1}
+                </div>
+                <div className="flex-1 min-w-0">
+                  {normalizeCategoryName(article.category?.categoryName) && (
+                    <span className="block text-[10px] font-bold uppercase tracking-widest text-sky-500 mb-1">
+                      {normalizeCategoryName(article.category?.categoryName)}
+                    </span>
+                  )}
+                  <h3 className="text-[15px] font-bold text-sky-950 leading-tight line-clamp-2 group-hover:text-sky-600 transition-colors">
+                    {article.title}
+                  </h3>
+                </div>
+              </ArticleLink>
+            ))}
+          </div>
+        </div>
+      </aside>
+    );
+  }
+
   return (
     <aside id="trending-stories" className="lg:col-span-1 scroll-mt-24">
       <div className="sticky top-24">
         <div className="flex items-center justify-between mb-6">
-          <h2 className={`text-2xl font-bold text-gray-900 ${domain.includes('voicejeju') ? 'font-voltaire uppercase tracking-tight text-3xl border-b-2 border-black pb-2 w-full' : 'font-serif'}`}>
+          <h2 className={`text-2xl font-bold text-gray-900 ${isVoiceJeju ? 'font-voltaire uppercase tracking-tight text-3xl border-b-2 border-black pb-2 w-full' : 'font-serif'}`}>
             Trending Stories
           </h2>
         </div>
@@ -52,7 +91,7 @@ export function TrendingSidebar({ articles, domain }: TrendingSidebarProps) {
               className="group cursor-pointer flex gap-3 hover:bg-gray-50 transition-colors rounded-lg p-2 -m-2 block"
             >
               <div className="flex-shrink-0">
-                {domain.includes('voicejeju') ? (
+                {isVoiceJeju ? (
                   <span className="text-5xl font-voltaire font-normal text-gray-400 group-hover:text-black transition-colors shrink-0 leading-none">
                     {index + 1}
                   </span>
@@ -75,9 +114,9 @@ export function TrendingSidebar({ articles, domain }: TrendingSidebarProps) {
                   </div>
                 ) : null}
                 <h3
-                  className={`text-sm font-bold text-gray-900 transition-colors line-clamp-2 mb-1 ${domain.includes('voicejeju') ? 'font-voltaire uppercase tracking-tight' : 'font-serif'}`}
+                  className={`text-sm font-bold text-gray-900 transition-colors line-clamp-2 mb-1 ${isVoiceJeju ? 'font-voltaire uppercase tracking-tight' : 'font-serif'}`}
                   onMouseEnter={(e) => e.currentTarget.style.color = domainColor.hex}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#111827'} // gray-900
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#111827'}
                 >
                   {article.title}
                 </h3>

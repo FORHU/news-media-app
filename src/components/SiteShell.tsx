@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { NewsletterModal } from "@/components/newsLetterModal/NewsletterModal";
+import { AdsterraSocialBar } from "@/components/ads/AdsterraSocialBar";
 
 // Lazy load domain-specific components with SSR enabled
 const NewsIconsHeader = dynamic(() => import("./sites/newsicons/NewsIconsHeader"), { ssr: true });
@@ -77,6 +78,7 @@ export function SiteShell({ children, domain }: SiteShellProps) {
         {renderFooter()}
       </React.Suspense>
       <NewsletterModal isOpen={isNewsletterOpen} onClose={closeNewsletter} domain={domain} />
+      <AdsterraSocialBar domain={domain} />
     </div>
   );
 }

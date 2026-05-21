@@ -22,6 +22,8 @@ import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
 import { Suspense } from "react";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
+import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
+import { ADSTERRA_CONFIG } from "@/config/adsterra";
 
 interface Props {
    tenantId: string | null;
@@ -118,8 +120,31 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
       articles: articlesByCategory[cat].slice(0, 3)
    }));
 
+   const tenantConfig = ADSTERRA_CONFIG.jejutime;
+   const adKeys = tenantConfig.banners;
+   const showSkyscrapers = adKeys["160x600"] && adKeys["160x600"].length > 0;
+   const midFeedConfig = tenantConfig.midFeed;
+
    return (
-      <div className="bg-[#F8FAFC] text-[#2D3748] font-roboto selection:bg-blue-100">
+      <div className="bg-[#F8FAFC] text-[#2D3748] font-roboto selection:bg-blue-100 relative min-h-screen">
+         {/* Floating Left Gutter Skyscraper */}
+         {showSkyscrapers && (
+            <div className="hidden min-[1650px]:block absolute right-[50%] mr-[660px] top-32 bottom-32 w-[160px] z-30">
+               <div className="sticky top-40">
+                  <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+               </div>
+            </div>
+         )}
+
+         {/* Floating Right Gutter Skyscraper */}
+         {showSkyscrapers && (
+            <div className="hidden min-[1650px]:block absolute left-[50%] ml-[660px] top-32 bottom-32 w-[160px] z-30">
+               <div className="sticky top-40">
+                  <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+               </div>
+            </div>
+         )}
+
          <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-4">
             <AdBanner position="HOME_TOP" initialBanners={banners.top} />
             <div className="hidden sm:block">
@@ -299,6 +324,13 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                      </div>
                   )}
 
+                  {/* Adsterra Mid-Feed Dynamic Ad */}
+                  {midFeedConfig && (
+                     <div className="flex justify-center my-10 py-6 border-y border-slate-100 bg-slate-50/30 w-full">
+                        <AdsterraBanner bannerKey={midFeedConfig.key} width={midFeedConfig.width} height={midFeedConfig.height} className="!my-0" />
+                     </div>
+                  )}
+
                   {/* List Rows (Remaining Leftover articles that didn't fit into pairs) */}
                   {listRowArticles.length > 0 && (
                      <div className="space-y-6 border-t-2 border-slate-900 pt-6">
@@ -412,6 +444,11 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
             </section>
 
             <JejuTimeTrendingProducts products={trendingProducts} />
+
+            {/* Bottom Native Recommendations Widget */}
+            <div className="mt-12 border-t border-slate-200 pt-8">
+               <AdsterraNativeBanner domain="jejutime.com" />
+            </div>
 
          </main>
       </div>

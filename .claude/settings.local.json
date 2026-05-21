@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(findstr /i \"sanitize purify dompurify xss html-react-parser\" package.json)"
+    ]
+  }
+}

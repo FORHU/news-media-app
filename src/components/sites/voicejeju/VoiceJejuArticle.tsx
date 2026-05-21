@@ -13,6 +13,7 @@ import { normalizeCategoryName } from "@/lib/categoryDisplay";
 import { AdBanner } from "@/components/AdBanner";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
+import { ADSTERRA_CONFIG } from "@/config/adsterra";
 import type { Article } from "@/lib/types";
 import { extractYoutubeId } from "@/lib/utils";
 import TwitterStatusEmbed from "@/components/article/TwitterStatusEmbed";
@@ -77,15 +78,83 @@ export function VoiceJejuArticle({
 
   const allArticles = initialOtherArticles;
 
-  if (isError || !article) {
+  if (isLoading) {
+    return (
+      <div className="bg-white min-h-screen font-inter pb-20">
+        <div className="fixed top-0 left-0 w-full h-[3px] bg-gray-100 z-[100]" />
+        <div className="h-2 bg-white border-b border-gray-100" />
+        <div className="bg-black pt-8 pb-12 mb-8">
+          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 text-center">
+            <div className="flex justify-center mb-8">
+              <div className="h-8 w-20 bg-white/10 rounded-sm animate-pulse" />
+            </div>
+            <div className="max-w-5xl mx-auto space-y-4">
+              <div className="h-20 sm:h-28 lg:h-36 w-full bg-white/10 rounded animate-pulse" />
+              <div className="h-3 w-56 bg-white/10 rounded animate-pulse mx-auto" />
+            </div>
+          </div>
+        </div>
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12">
+            <div className="lg:col-span-3 hidden lg:block space-y-6">
+              {[100, 85, 95, 80, 90].map((w, i) => (
+                <div key={i} className="h-12 bg-gray-100 animate-pulse rounded" style={{ width: `${w}%` }} />
+              ))}
+            </div>
+            <div className="lg:col-span-9 space-y-5">
+              <div className="aspect-video w-full bg-gray-100 animate-pulse" />
+              <div className="space-y-3 max-w-4xl">
+                {[100, 92, 97, 88, 95, 78, 90, 85].map((w, i) => (
+                  <div key={i} className="h-4 bg-gray-100 animate-pulse rounded" style={{ width: `${w}%` }} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
     return (
       <div className="flex items-center justify-center py-32 px-6 bg-white min-h-[60vh]">
         <div className="text-center max-w-md">
           <p className="text-black font-black mb-2 uppercase tracking-widest">
-            Content Unavailable
+            Something Went Wrong
           </p>
           <p className="text-gray-600 mb-6">
-            We couldn’t load this article. Please try again or return to the main feed.
+            We had trouble loading this article. Please check your connection and try again.
+          </p>
+          <div className="flex items-center justify-center gap-4">
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.4em] text-white bg-black border-2 border-black px-6 py-3 hover:bg-gray-800 transition-all"
+            >
+              Try Again
+            </button>
+            <Link
+              href="/"
+              className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.4em] text-black border-2 border-black px-6 py-3 hover:bg-black hover:text-white transition-all"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to home
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!article) {
+    return (
+      <div className="flex items-center justify-center py-32 px-6 bg-white min-h-[60vh]">
+        <div className="text-center max-w-md">
+          <p className="text-black font-black mb-2 uppercase tracking-widest">
+            Article Not Found
+          </p>
+          <p className="text-gray-600 mb-6">
+            This article may have been removed or the link is incorrect.
           </p>
           <Link
             href="/"
@@ -181,6 +250,14 @@ export function VoiceJejuArticle({
   const firstHalf = paragraphs.slice(0, midpoint).join("\n\n");
   const secondHalf = paragraphs.slice(midpoint).join("\n\n");
 
+  const wordCount = article.content.trim().split(/\s+/).filter(Boolean).length;
+  const readTime = Math.max(1, Math.ceil(wordCount / 200));
+
+  const tenantConfig = ADSTERRA_CONFIG.voicejeju;
+  const adKeys = tenantConfig.banners;
+  const showSkyscrapers = adKeys["160x600"] && adKeys["160x600"].length > 0;
+  const midArticleConfig = tenantConfig.midArticle;
+
   return (
     <div className="bg-white min-h-screen font-inter selection:bg-black selection:text-white pb-20">
       {/* Reading Progress Bar */}
@@ -206,7 +283,9 @@ export function VoiceJejuArticle({
               className="sm:absolute sm:left-0 inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.5em] text-white/70 hover:text-white transition-all bg-white/5 border border-white/10 px-6 py-2.5 rounded-sm"
             >
               <ArrowLeft className="w-4 h-4" />
-              Back
+              {normalizeCategoryName(article.category?.categoryName)
+                ? `Back to ${normalizeCategoryName(article.category?.categoryName)}`
+                : "Back to feed"}
             </button>
 
             {normalizeCategoryName(article.category?.categoryName) && (
@@ -233,6 +312,35 @@ export function VoiceJejuArticle({
         </div>
       </div>
 
+      {/* Mobile Trending Strip */}
+      {trendingArticles.length > 0 && (
+        <div className="lg:hidden max-w-[1440px] mx-auto px-4 sm:px-6 mb-6">
+          <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 mb-3">Trending</p>
+          <div className="flex gap-4 overflow-x-auto pb-3 -mx-4 px-4 snap-x snap-mandatory">
+            {trendingArticles.map((a) => (
+              <Link
+                key={a.id}
+                href={`/article/${a.slug || a.id}`}
+                className="flex-shrink-0 w-36 snap-start group"
+              >
+                <div className="aspect-video relative overflow-hidden mb-2 bg-gray-100">
+                  <StoryImage
+                    src={a.imageUrl}
+                    alt={a.title}
+                    fill
+                    sizes="144px"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <p className="text-[11px] font-bold leading-tight line-clamp-2 text-gray-900 group-hover:underline">
+                  {a.title}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Adsterra Top Leaderboards */}
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 mb-2">
         <div className="hidden sm:block">
@@ -243,7 +351,25 @@ export function VoiceJejuArticle({
         </div>
       </div>
 
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 relative">
+        {/* Floating Left Gutter Skyscraper */}
+        {showSkyscrapers && (
+          <div className="hidden min-[1800px]:block absolute right-full mr-6 top-32 bottom-32 w-[160px] z-30">
+            <div className="sticky top-40">
+              <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+            </div>
+          </div>
+        )}
+
+        {/* Floating Right Gutter Skyscraper */}
+        {showSkyscrapers && (
+          <div className="hidden min-[1800px]:block absolute left-full ml-6 top-32 bottom-32 w-[160px] z-30">
+            <div className="sticky top-40">
+              <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12">
 
           {/* Left Sidebar: Trending Stories */}
@@ -289,6 +415,13 @@ export function VoiceJejuArticle({
                         {firstHalf}
                       </div>
 
+                      {/* Adsterra Mid-Article Dynamic Ad */}
+                      {midArticleConfig && (
+                        <div className="my-8 flex justify-center w-full">
+                           <AdsterraBanner bannerKey={midArticleConfig.key} width={midArticleConfig.width} height={midArticleConfig.height} className="!my-0" />
+                        </div>
+                      )}
+
                       <div className="my-8 overflow-hidden bg-gray-50 relative aspect-video border-y border-gray-100">
                         <StoryImage
                           src={article.imageUrl}
@@ -307,9 +440,24 @@ export function VoiceJejuArticle({
                       )}
                     </>
                   ) : (
-                    <div className="text-gray-900 leading-[1.8] whitespace-pre-wrap font-inter text-lg lg:text-xl">
-                      {fullContent}
-                    </div>
+                    <>
+                      <div className="text-gray-900 leading-[1.8] whitespace-pre-wrap font-inter text-lg lg:text-xl">
+                        {firstHalf}
+                      </div>
+
+                      {/* Adsterra Mid-Article Dynamic Ad */}
+                      {midArticleConfig && (
+                        <div className="my-8 flex justify-center w-full">
+                           <AdsterraBanner bannerKey={midArticleConfig.key} width={midArticleConfig.width} height={midArticleConfig.height} className="!my-0" />
+                        </div>
+                      )}
+
+                      {secondHalf && (
+                        <div className="text-gray-900 leading-[1.8] whitespace-pre-wrap font-inter text-lg lg:text-xl mt-4">
+                          {secondHalf}
+                        </div>
+                      )}
+                    </>
                   )}
                 </>
               ) : (
@@ -327,8 +475,21 @@ export function VoiceJejuArticle({
                   </div>
 
                   <div className="text-gray-900 leading-[1.8] whitespace-pre-wrap font-inter text-lg lg:text-xl max-w-4xl mb-8">
-                    {fullContent}
+                    {firstHalf}
                   </div>
+
+                  {/* Adsterra Mid-Article Dynamic Ad */}
+                  {midArticleConfig && (
+                    <div className="my-8 flex justify-center w-full">
+                       <AdsterraBanner bannerKey={midArticleConfig.key} width={midArticleConfig.width} height={midArticleConfig.height} className="!my-0" />
+                    </div>
+                  )}
+
+                  {secondHalf && (
+                    <div className="text-gray-900 leading-[1.8] whitespace-pre-wrap font-inter text-lg lg:text-xl max-w-4xl mb-8 mt-4">
+                      {secondHalf}
+                    </div>
+                  )}
                 </>
               )}
 
@@ -386,11 +547,14 @@ export function VoiceJejuArticle({
                       {rec.title}
                     </h3>
                     <p className="text-gray-400 text-sm line-clamp-3 leading-relaxed italic mb-6">
-                      {rec.content}
+                      {(() => {
+                        const first = (rec.content ?? "").split(/\n+/)[0]?.trim() ?? "";
+                        return first.length > 140 ? `${first.slice(0, 140)}…` : first;
+                      })()}
                     </p>
                     <div className="mt-auto flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-gray-600 group-hover:text-white transition-colors">
                       <Clock size={12} />
-                      <span>5 MIN READ</span>
+                      <span>{Math.max(1, Math.ceil((rec.content ?? "").trim().split(/\s+/).filter(Boolean).length / 200))} MIN READ</span>
                     </div>
                   </div>
                 </Link>
