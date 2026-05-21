@@ -65,7 +65,7 @@ function CompactArticleRow({
                alt={article.title}
                fill
                className="object-cover group-hover:scale-105 transition-transform duration-300"
-               sizes="80px"
+               sizes="160px"
             />
          </div>
          <div className="min-w-0 flex-1">
@@ -107,7 +107,7 @@ function LatestSidebarFeatured({ article }: { article: LandingArticle }) {
                alt={article.title}
                fill
                className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-               sizes="(max-width: 1280px) 30vw, 280px"
+               sizes="(max-width: 1280px) 30vw, 360px"
             />
             <div className="absolute bottom-0 inset-x-0 h-1/2 bg-gradient-to-t from-black/55 to-transparent pointer-events-none" />
             <span className="absolute bottom-2 left-2 text-[10px] font-black uppercase tracking-[0.25em] text-white drop-shadow-sm">
@@ -133,7 +133,7 @@ function LatestSidebarWire({ article }: { article: LandingArticle }) {
                alt={article.title}
                fill
                className="object-cover group-hover:scale-105 transition-transform duration-300"
-               sizes="80px"
+               sizes="160px"
             />
          </div>
          <div className="min-w-0 flex-1">
@@ -160,7 +160,7 @@ function LatestSidebarSplit({ article }: { article: LandingArticle }) {
                alt={article.title}
                fill
                className="object-cover group-hover:scale-105 transition-transform duration-300"
-               sizes="96px"
+               sizes="160px"
             />
          </div>
          <div className="min-w-0 flex-1 flex flex-col justify-center py-0.5">
@@ -192,7 +192,7 @@ function LatestSidebarReverse({ article }: { article: LandingArticle }) {
                alt={article.title}
                fill
                className="object-cover group-hover:scale-105 transition-transform duration-300"
-               sizes="80px"
+               sizes="160px"
             />
          </div>
          <div className="min-w-0 flex-1">
@@ -247,7 +247,7 @@ function InDepthCompactRow({ article }: { article: LandingArticle }) {
                alt={article.title}
                fill
                className="object-cover transition-transform duration-300 group-hover:scale-105"
-               sizes="64px"
+               sizes="128px"
             />
          </div>
          <div className="min-w-0 flex-1 pt-0.5">
@@ -316,7 +316,7 @@ function InDepthSplitBottom({ article }: { article: LandingArticle }) {
                alt={article.title}
                fill
                className="object-cover group-hover:scale-105 transition-transform duration-300"
-               sizes="260px"
+               sizes="360px"
             />
          </div>
       </Link>
@@ -377,7 +377,7 @@ function InDepthRibbon({ article }: { article: LandingArticle }) {
                alt={article.title}
                fill
                className="object-cover group-hover:scale-105 transition-transform duration-300"
-               sizes="52px"
+               sizes="120px"
             />
          </div>
          <div className="min-w-0 flex-1">
@@ -509,7 +509,7 @@ function WireCategoryDeskSection({ blocks }: { blocks: { name: string; previews:
                                           alt={a.title}
                                           fill
                                           className="object-cover transition-transform group-hover:scale-105"
-                                          sizes="(max-width: 640px) 144px, 192px"
+                                          sizes="(max-width: 640px) 288px, 384px"
                                        />
                                     </div>
                                     <div className="min-w-0 flex-1">
@@ -556,7 +556,7 @@ function WireCategoryDeskSection({ blocks }: { blocks: { name: string; previews:
                                        alt={a.title}
                                        fill
                                        className="object-cover transition-transform group-hover:scale-105"
-                                       sizes="120px"
+                                       sizes="(max-width: 768px) 30vw, 240px"
                                     />
                                  </div>
                                  <p className="line-clamp-2 text-[10px] font-medium leading-snug text-stone-900 group-hover:underline">
@@ -631,7 +631,7 @@ function WireCategoryDeskSection({ blocks }: { blocks: { name: string; previews:
                                  alt={leadA.title}
                                  fill
                                  className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-                                 sizes="(max-width: 768px) 100vw, 560px"
+                                 sizes="(max-width: 1280px) 30vw, 720px"
                               />
                               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                               <p className="absolute bottom-2 left-2 right-2 font-voltaire text-sm leading-tight text-white drop-shadow line-clamp-2">
@@ -654,7 +654,7 @@ function WireCategoryDeskSection({ blocks }: { blocks: { name: string; previews:
                                           alt={a.title}
                                           fill
                                           className="object-cover"
-                                          sizes="40px"
+                                          sizes="80px"
                                        />
                                     </div>
                                     <span className="min-w-0 flex-1 text-[11px] font-voltaire leading-snug text-gray-800 group-hover:underline line-clamp-2">
@@ -695,7 +695,7 @@ function ReportDeskCluster({
                   alt={lead.title}
                   fill
                   className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  sizes="(max-width: 768px) 100vw, 560px"
+                  sizes="(max-width: 768px) 100vw, 720px"
                />
             </div>
             <div className="min-w-0">
@@ -741,7 +741,7 @@ function ReportDeskCluster({
                                     alt={a.title}
                                     fill
                                     className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                    sizes="144px"
+                                    sizes="(max-width: 768px) 128px, 144px"
                                  />
                               </div>
                               <div className="min-w-0 flex-1 pt-0.5">
@@ -794,7 +794,7 @@ function ReportDeskCluster({
                                        alt={a.title}
                                        fill
                                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                       sizes="80px"
+                                       sizes="160px"
                                     />
                                  </div>
                               </div>
@@ -822,7 +822,7 @@ function ReportDeskGrid({ items }: { items: LandingArticle[] }) {
                         alt={a.title}
                         fill
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        sizes="(max-width: 768px) 45vw, 200px"
+                        sizes="(max-width: 768px) 45vw, 300px"
                      />
                   </div>
                   <h3 className="text-[12px] sm:text-[13px] font-voltaire leading-snug text-gray-900 group-hover:underline line-clamp-2">
@@ -883,7 +883,7 @@ function ReportDeskWide({ article }: { article: LandingArticle }) {
                   alt={article.title}
                   fill
                   className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-                  sizes="(max-width: 768px) 100vw, 640px"
+                  sizes="(max-width: 768px) 100vw, 768px"
                />
                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
                <span className="absolute bottom-2 left-2 text-[10px] font-black uppercase tracking-[0.3em] text-white drop-shadow">
@@ -1098,7 +1098,7 @@ function RemainingStoriesArchive({ articles }: { articles: LandingArticle[] }) {
                            alt={a.title}
                            fill
                            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                           sizes="(max-width: 640px) 88vw, 416px"
+                           sizes="(max-width: 640px) 88vw, 480px"
                         />
                         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent opacity-80" />
                         {a.category?.categoryName && (
@@ -1446,7 +1446,7 @@ export function VoiceJejuLanding(props: Props) {
                                        alt={article.title}
                                        fill
                                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                       sizes="(max-width: 768px) 44vw, 220px"
+                                       sizes="(max-width: 768px) 50vw, 360px"
                                     />
                                  </div>
                                  <div className="flex flex-1 flex-col px-2.5 py-2">
@@ -1503,7 +1503,7 @@ export function VoiceJejuLanding(props: Props) {
                                        alt={article.title}
                                        fill
                                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                                       sizes="144px"
+                                       sizes="280px"
                                     />
                                  </div>
                                  <div className="min-w-0 flex-1">
@@ -1598,7 +1598,7 @@ export function VoiceJejuLanding(props: Props) {
                                  alt={article.title}
                                  fill
                                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                                 sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
+                                 sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 300px"
                               />
                            </div>
                            <span className="text-[8px] font-bold text-gray-500 uppercase tracking-[0.15em] block mb-1 line-clamp-1">
@@ -1631,7 +1631,7 @@ export function VoiceJejuLanding(props: Props) {
                                  alt={article.title}
                                  fill
                                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                                 sizes="160px"
+                                 sizes="(max-width: 768px) 50vw, 240px"
                               />
                            </div>
                            <h3 className="text-[12px] sm:text-[13px] font-voltaire leading-snug group-hover:underline line-clamp-2 mb-1">

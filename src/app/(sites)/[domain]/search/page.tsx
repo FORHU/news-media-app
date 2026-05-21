@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import Link from "next/link";
 import { FilterStatusBar } from "@/components/home/filter-status-bar";
 import { LatestStoriesSection } from "@/components/home/latest-stories-section";
 import { articlesService } from "@/services/articles.service";
@@ -8,6 +9,7 @@ import { getRequestBaseUrl, buildOgImageUrl } from "@/lib/metadata";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
+import { TENANT_CATEGORIES } from "@/config/categories";
 
 export async function generateMetadata({ params }: { params: Promise<{ domain: string }> }): Promise<Metadata> {
   const { domain } = await params;
@@ -124,7 +126,13 @@ async function SearchContent({
   const showTopLeaderboard = !!desktopLeaderboardKey;
   const showMobileLeaderboard = !!(adKeys && adKeys["320x50"] && adKeys["320x50"].length > 0);
 
+  const isVoiceJeju = domain.toLowerCase().includes("voicejeju");
   const isSkyBluePrime = domain.toLowerCase().includes("skyblueprime");
+
+  const activeCategory = categoryParam ? decodeURIComponent(categoryParam) : null;
+  const heroLabel = activeCategory ?? (searchQuery ? `"${searchQuery}"` : "전체 기사");
+  const voicejejuCategories = isVoiceJeju ? (TENANT_CATEGORIES["voicejeju.com"] ?? []) : [];
+
   const sbpLabel = searchQuery
     ? `Search: "${searchQuery}"`
     : categoryParam
@@ -133,6 +141,38 @@ async function SearchContent({
 
   return (
     <>
+      {isVoiceJeju && (
+        <div className="bg-black text-white pt-8 pb-10 mb-6 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
+          <p className="text-[9px] font-black uppercase tracking-[0.6em] text-white/40 mb-4 text-center">
+            {searchQuery ? "Search Results" : "Category"}
+          </p>
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-normal font-voltaire tracking-tighter leading-[0.9] uppercase text-white text-center mb-4">
+            {heroLabel}
+          </h1>
+          <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/40 text-center">
+            {articles.length} {articles.length === 1 ? "result" : "results"}
+          </p>
+        </div>
+      )}
+
+      {isVoiceJeju && voicejejuCategories.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-6 pb-4 border-b border-gray-100">
+          {voicejejuCategories.map((cat) => (
+            <Link
+              key={cat}
+              href={`/search?category=${encodeURIComponent(cat)}`}
+              className={`px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.3em] border transition-all whitespace-nowrap ${
+                activeCategory === cat
+                  ? "bg-black text-white border-black"
+                  : "bg-white text-black border-black hover:bg-black hover:text-white"
+              }`}
+            >
+              {cat}
+            </Link>
+          ))}
+        </div>
+      )}
+
       {isSkyBluePrime && (
         <div className="border-t-[6px] border-sky-950 pt-3 mb-6">
           <h1 className="text-[11px] font-black uppercase tracking-widest text-white bg-sky-950 inline-block px-3 py-1.5 leading-none">
@@ -148,8 +188,8 @@ async function SearchContent({
         domain={domain}
       />
 
-      {/* Top Search Leaderboard Ad */}
-      {(showTopLeaderboard || showMobileLeaderboard) && (
+      {/* Top Search Leaderboard Ad (VoiceJeju renders this in layout.tsx instead) */}
+      {!isVoiceJeju && (showTopLeaderboard || showMobileLeaderboard) && (
         <div className="w-full flex justify-center py-4 border-b border-gray-100 mb-6 overflow-hidden">
           {showTopLeaderboard && desktopLeaderboardKey && (
             <div className="hidden sm:block">
@@ -186,19 +226,20 @@ function LatestStoriesSkeleton() {
   return (
     <div className="space-y-6">
       {/* Skeleton for FilterStatusBar */}
-      <div className="mb-6 h-16 bg-gray-50 border border-gray-200 rounded-lg animate-pulse" />
+      <div className="mb-6 h-10 bg-gray-100 border-b-2 border-gray-200 animate-pulse" />
 
       {/* Heading Skeleton */}
-      <div className="h-8 w-48 bg-gray-100 rounded mb-6 animate-pulse" />
+      <div className="h-6 w-48 bg-gray-100 mb-6 animate-pulse" />
 
       {/* Latest Stories Skeleton Items */}
       {Array.from({ length: 5 }).map((_, idx) => (
-        <div key={idx} className="flex gap-4 pb-6 border-b border-gray-200 animate-pulse">
-          <div className="relative w-28 sm:w-40 h-20 sm:h-28 bg-gray-100 rounded-lg flex-shrink-0" />
+        <div key={idx} className="flex gap-5 pb-6 border-b border-gray-100 animate-pulse">
+          <div className="w-40 sm:w-48 flex-shrink-0 aspect-[4/3] bg-gray-100" />
           <div className="flex-1 space-y-3">
-            <div className="h-4 w-24 bg-gray-100 rounded" />
-            <div className="h-6 w-3/4 bg-gray-100 rounded" />
-            <div className="h-4 w-full bg-gray-100 rounded" />
+            <div className="h-4 w-20 bg-gray-100" />
+            <div className="h-6 w-3/4 bg-gray-100" />
+            <div className="h-4 w-full bg-gray-100" />
+            <div className="h-3 w-32 bg-gray-100" />
           </div>
         </div>
       ))}

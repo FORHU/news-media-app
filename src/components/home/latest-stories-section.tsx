@@ -49,6 +49,36 @@ export function LatestStoriesSection({
   const router = useRouter();
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  const scrollToStories = () => {
+    const element = document.getElementById("latest-stories");
+    if (element) {
+      element.scrollIntoView({ behavior: "auto" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "auto" });
+    }
+  };
+
+  const handlePageChange = (page: number) => {
+    // Scroll BEFORE state change so the viewport snaps while page is still full height
+    scrollToStories();
+    setIsTransitioning(true);
+    setCurrentPage(page);
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 250);
+  };
+
+  const handleItemsPerPageChange = (count: number) => {
+    scrollToStories();
+    setIsTransitioning(true);
+    setItemsPerPage(count);
+    setCurrentPage(1);
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 250);
+  };
 
   const domainColor = getDomainColor(domain);
 
@@ -69,13 +99,13 @@ export function LatestStoriesSection({
             <h2 className="text-[13px] font-black text-sky-950 uppercase tracking-widest">Latest Stories</h2>
           </div>
         ) : (
-          <h2 className={`text-2xl font-bold text-gray-900 ${domain.includes('voicejeju') ? 'font-voltaire uppercase tracking-tight text-3xl border-b-2 border-black pb-2' : 'font-serif'}`}>
+          <h2 className={`text-2xl font-bold text-gray-900 ${domain.includes('voicejeju') ? 'font-voltaire uppercase tracking-tight text-3xl' : 'font-serif'}`}>
             Latest Stories
           </h2>
         )}
       </div>
 
-      {isLoading ? (
+      {isLoading || isTransitioning ? (
         <div className="space-y-3">
           {Array.from({ length: 5 }).map((_, idx) => (
             <div
@@ -95,39 +125,51 @@ export function LatestStoriesSection({
       ) : error ? (
         <div className="text-center py-16 text-red-600">{error}</div>
       ) : articles.length === 0 ? (
-        <div className="text-center py-16">
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            No articles found
-          </h3>
-          <p className="text-gray-600 mb-6">
-            Try adjusting your filters or search terms
-          </p>
-          {searchQuery && (
+        domain.includes("voicejeju") ? (
+          <div className="py-24 text-center border-y border-gray-100">
+            <p className="font-voltaire text-5xl uppercase tracking-tighter text-black mb-4">
+              Nothing Found
+            </p>
+            <p className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-400 mb-8">
+              Try adjusting your search terms or browse by category
+            </p>
             <button
               type="button"
               onClick={clearSearch}
-              className="px-6 py-2.5 text-white rounded-lg transition-colors font-medium"
-              style={{ backgroundColor: domainColor.hex }}
-              onMouseEnter={(e) => {
-                // Approximate darker version by reducing brightness or just using a simple overlay if needed, 
-                // but for now let's just stick to the main color to keep it simple and working.
-                e.currentTarget.style.opacity = '0.9';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.opacity = '1';
-              }}
+              className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.4em] text-black border-2 border-black px-6 py-3 hover:bg-black hover:text-white transition-all"
             >
-              Clear All Filters
+              Clear Filters
             </button>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              No articles found
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Try adjusting your filters or search terms
+            </p>
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={clearSearch}
+                className="px-6 py-2.5 text-white rounded-lg transition-colors font-medium"
+                style={{ backgroundColor: domainColor.hex }}
+                onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.9"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
+              >
+                Clear All Filters
+              </button>
+            )}
+          </div>
+        )
       ) : (
         <div className="space-y-3">
           {(() => {
             const isVoiceJeju = domain.includes('voicejeju');
             const isJejuQQ = domain === 'jejuqq.com';
             const isSkyBluePrime = domain.includes('skyblueprime');
-            return (searchQuery ? articles : latestStories).map((article, index) => (
+            return latestStories.map((article, index) => (
             <Fragment key={article.id}>
               {isSkyBluePrime ? (
                 <ArticleLink
@@ -162,11 +204,44 @@ export function LatestStoriesSection({
                     </span>
                   </div>
                 </ArticleLink>
+              ) : isVoiceJeju ? (
+                <ArticleLink
+                  articleIdentifier={article.slug ?? article.id}
+                  href={`/article/${article.slug ?? article.id}`}
+                  className="group cursor-pointer flex flex-row gap-5 py-5 border-b border-gray-100 border-l-2 border-l-transparent hover:border-l-black transition-colors"
+                >
+                  <div className="relative w-36 sm:w-48 flex-shrink-0 overflow-hidden bg-gray-50" style={{ aspectRatio: "4/3" }}>
+                    <StoryImage
+                      src={article.imageUrl}
+                      alt={article.title}
+                      fill
+                      sizes="(max-width: 640px) 144px, 192px"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      variant="thumbnail"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    {normalizeCategoryName(article.category?.categoryName) && (
+                      <span className="inline-block bg-black text-white text-[9px] font-black uppercase tracking-[0.4em] px-2 py-0.5 mb-2">
+                        {normalizeCategoryName(article.category?.categoryName)}
+                      </span>
+                    )}
+                    <h3 className="font-voltaire text-xl uppercase tracking-tight leading-tight mb-2 line-clamp-2 group-hover:underline transition-all">
+                      {article.title}
+                    </h3>
+                    <p className="text-sm text-gray-500 mb-3 line-clamp-2 leading-relaxed">
+                      {truncateContent(article.content)}
+                    </p>
+                    <span className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400">
+                      {formatDate(article.createdAt)} · {Math.max(1, Math.ceil((article.content ?? "").trim().split(/\s+/).filter(Boolean).length / 200))} min read
+                    </span>
+                  </div>
+                </ArticleLink>
               ) : (
                 <ArticleLink
                   articleIdentifier={article.slug ?? article.id}
                   href={`/article/${article.slug ?? article.id}`}
-                  className={`group cursor-pointer flex ${isJejuQQ || isVoiceJeju ? 'rounded-none' : 'rounded-lg'} ${isJejuQQ ? 'flex-row-reverse' : 'flex-row'} gap-4 pb-6 border-b border-gray-200 hover:bg-gray-50 transition-colors p-2 sm:p-3`}
+                  className={`group cursor-pointer flex ${isJejuQQ ? 'flex-row-reverse' : 'flex-row'} gap-4 pb-6 border-b border-gray-200 hover:bg-gray-50 transition-colors rounded-lg p-2 sm:p-3`}
                 >
                   <div className={`relative w-28 sm:w-40 h-20 sm:h-28 bg-gray-200 ${isJejuQQ ? 'rounded-none border-2 border-primary' : 'rounded-lg'} overflow-hidden flex-shrink-0`}>
                     <StoryImage
@@ -187,7 +262,7 @@ export function LatestStoriesSection({
                       ) : null}
                     </div>
                     <h3
-                      className={`text-lg font-bold text-gray-900 mb-2 transition-colors line-clamp-2 ${isVoiceJeju ? 'font-voltaire uppercase tracking-tight text-xl' : 'font-serif'}`}
+                      className="text-lg font-bold font-serif text-gray-900 mb-2 transition-colors line-clamp-2"
                       onMouseEnter={(e) => e.currentTarget.style.color = domainColor.hex}
                       onMouseLeave={(e) => e.currentTarget.style.color = '#111827'}
                     >
@@ -203,7 +278,7 @@ export function LatestStoriesSection({
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5" />
-                        5 min read
+                        {Math.max(1, Math.ceil((article.content ?? "").trim().split(/\s+/).filter(Boolean).length / 200))} min read
                       </span>
                     </div>
                   </div>
@@ -234,13 +309,13 @@ export function LatestStoriesSection({
           })()}
 
           {/* Pagination Controls */}
-          {!searchQuery && articles.length > 0 && (
+          {articles.length > 0 && (
             <ClientPagination
               currentPage={currentPage}
               totalPages={totalPages}
-              onPageChange={setCurrentPage}
+              onPageChange={handlePageChange}
               itemsPerPage={itemsPerPage}
-              onItemsPerPageChange={setItemsPerPage}
+              onItemsPerPageChange={handleItemsPerPageChange}
               totalItems={articles.length}
               startIndex={startIndex}
               endIndex={endIndex}

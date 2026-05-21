@@ -50,7 +50,14 @@ export default async function SearchLayout({
       : Promise.resolve([]),
   ]);
 
+  const isVoiceJeju = domain.toLowerCase().includes("voicejeju");
   const isSkyBluePrime = domain.toLowerCase().includes("skyblueprime");
+
+  const desktopLeaderboardKey = adKeys?.["728x90"] || adKeys?.["468x60"];
+  const desktopLeaderboardWidth = adKeys?.["728x90"] ? 728 : 468;
+  const desktopLeaderboardHeight = adKeys?.["728x90"] ? 90 : 60;
+  const showDesktopLeaderboard = !!desktopLeaderboardKey;
+  const showMobileLeaderboard = !!(adKeys?.["320x50"] && adKeys["320x50"].length > 0);
 
   return (
     <div className={isSkyBluePrime ? "bg-white min-h-screen" : "bg-white"}>
@@ -93,14 +100,30 @@ export default async function SearchLayout({
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+        {/* VoiceJeju Leaderboard — below site header, above page content */}
+        {isVoiceJeju && (showDesktopLeaderboard || showMobileLeaderboard) && (
+          <div className="w-full flex justify-center py-3 border-b border-gray-100 mb-0 overflow-hidden">
+            {showDesktopLeaderboard && desktopLeaderboardKey && (
+              <div className="hidden sm:block">
+                <AdsterraBanner bannerKey={desktopLeaderboardKey} width={desktopLeaderboardWidth} height={desktopLeaderboardHeight} className="!my-0" />
+              </div>
+            )}
+            {showMobileLeaderboard && adKeys?.["320x50"] && (
+              <div className="block sm:hidden">
+                <AdsterraBanner bannerKey={adKeys["320x50"]} width={320} height={50} className="!my-0" />
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-12">
           {/* Main Content (Latest Stories Results) */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-9">
             {children}
           </div>
 
           {/* Sidebar (Stays loaded during result navigation) */}
-          <aside className="space-y-8">
+          <aside className="lg:col-span-3 space-y-8">
             <TrendingSidebar 
               articles={trendingArticles} 
               domain={domain}
