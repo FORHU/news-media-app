@@ -16,6 +16,7 @@ interface Article {
     status: string;
     imageUrl: string | null;
     categoryId: string;
+    tenantId: string;
     category: { id: string; categoryName: string };
     createdAt: string;
     publishDate: string | null;
@@ -58,24 +59,24 @@ export default function EditArticlePage({ params }: { params: Promise<{ id: stri
     const [fieldErrors, setFieldErrors] = useState<{ title?: string; content?: string; category?: string }>({});
 
     useEffect(() => {
-        Promise.all([
-            fetch(`/api/admin/moderator/articles/${id}`, { cache: "no-store" }),
-            fetch("/api/admin/moderator/categories", { cache: "no-store" }),
-        ])
-            .then(async ([articleRes, catsRes]) => {
+        fetch(`/api/admin/moderator/articles/${id}`, { cache: "no-store" })
+            .then(async (articleRes) => {
                 if (!articleRes.ok) throw new Error("Article not found.");
-                const [data, catsData] = await Promise.all([articleRes.json(), catsRes.json()]);
+                const data = await articleRes.json();
                 setArticle(data);
                 setTitle(data.title || "");
                 setContent(data.content || "");
                 setStatus(data.status || "pending");
-                const cats: Category[] = Array.isArray(catsData) ? catsData : [];
-                setCategories(cats);
-                const matched = cats.find(
-                    (c) => c.id === data.categoryId ||
-                           c.name?.toLowerCase() === data.category?.categoryName?.toLowerCase()
+                setCategoryId(data.categoryId || "");
+
+                // Fetch categories scoped to this article's tenant so translated names
+                // resolve to their English display label but store the correct tenant category ID
+                const catsRes = await fetch(
+                    `/api/admin/moderator/categories?tenantId=${data.tenantId}`,
+                    { cache: "no-store" }
                 );
-                setCategoryId(matched?.id || data.categoryId || "");
+                const catsData = await catsRes.json();
+                setCategories(Array.isArray(catsData) ? catsData : []);
             })
             .catch((e) => setLoadError(e.message || "Failed to load article."));
     }, [id]);
@@ -214,22 +215,19 @@ export default function EditArticlePage({ params }: { params: Promise<{ id: stri
                                 <span className="text-xs font-black uppercase tracking-widest text-gray-700 dark:text-zinc-300">Status</span>
                             </div>
                             <div className="px-6 py-5">
-                                <div className="flex items-center gap-2 bg-gray-100 dark:bg-zinc-900 rounded-2xl p-1 w-fit">
-                                    {(["pending", "published"] as const).map((s) => (
-                                        <button key={s} type="button" onClick={() => setStatus(s)}
-                                            className={`flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                                                status === s
-                                                    ? s === "published" ? "bg-green-500 text-white shadow-sm"
-                                                        : "bg-white dark:bg-zinc-700 text-gray-900 dark:text-zinc-100 shadow-sm"
-                                                    : "text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-300"
-                                            }`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full ${s === "published" && status === s ? "bg-white" : s === "published" ? "bg-green-400" : "bg-amber-400"}`} />
-                                            {s}
-                                        </button>
-                                    ))}
-                                </div>
+                                {status === "published" ? (
+                                    <div className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-green-500 text-white text-xs font-black uppercase tracking-widest">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                                        Published
+                                    </div>
+                                ) : (
+                                    <div className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 text-xs font-black uppercase tracking-widest">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-zinc-500" />
+                                        Unpublished
+                                    </div>
+                                )}
                                 <p className="text-[11px] text-gray-400 dark:text-zinc-500 font-medium mt-3">
-                                    {status === "published" ? "This article is visible on the site." : "This article is not yet visible on the site."}
+                                    {status === "published" ? "This article is visible on the site." : "This article is not publicly visible."}
                                 </p>
                             </div>
                         </div>
