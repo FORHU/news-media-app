@@ -33,10 +33,15 @@ function categoryHref(categoryName: string) {
 
 export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  const activeCategory = searchParams.get("category") ?? "";
+  const isHome = pathname === "/" && !activeCategory;
+  const isCatActive = (cat: string) => activeCategory.toLowerCase() === cat.toLowerCase();
   const navRef = useRef<HTMLDivElement>(null);
   const { suggestions, isSearching, showSuggestions, hideSuggestions } = useSearchSuggestions(query);
   const [weather, setWeather] = useState({ temp: "18°C", condition: "Clear" });
@@ -145,6 +150,14 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
     year: 'numeric'
   });
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setIsSidebarOpen(false); setIsSearchOpen(false); }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
@@ -178,10 +191,12 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
         <div className="border-b border-black py-2 lg:py-3">
           <div className="max-w-[1440px] mx-auto px-4 lg:px-6 flex items-center justify-between">
             <div className="flex items-center w-1/3">
-              <button 
+              <button
                 onClick={() => setIsSidebarOpen(true)}
-                className="p-2 -ml-2 hover:bg-gray-50 rounded-full transition-colors"
-                aria-label="Open sidebar menu"
+                className="p-2 -ml-2 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-50 rounded-full transition-colors"
+                aria-label="Open navigation menu"
+                aria-expanded={isSidebarOpen}
+                aria-haspopup="dialog"
               >
                 <Menu size={24} strokeWidth={1.5} />
               </button>
@@ -194,10 +209,11 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
             </div>
 
             <div className="flex items-center justify-end gap-2 lg:gap-4 w-1/3">
-              <button 
+              <button
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className="p-2 hover:bg-gray-50 rounded-full transition-colors"
+                className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-50 rounded-full transition-colors"
                 aria-label={isSearchOpen ? "Close search" : "Open search"}
+                aria-expanded={isSearchOpen}
               >
                 <Search size={20} strokeWidth={1.5} />
               </button>
@@ -217,15 +233,23 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
         {/* Row 3: Main Navigation (Black Bar) */}
         <div className="bg-black text-white relative hidden lg:block">
           <div className="max-w-[1440px] mx-auto relative px-4 py-1.5 flex items-center justify-center">
-             <nav 
+             <nav
                ref={navRef}
                className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 w-full text-[11px] font-bold uppercase tracking-[0.15em] text-white/80"
              >
+                <Link
+                  href="/"
+                  aria-current={isHome ? "page" : undefined}
+                  className={`transition-colors py-2 ${isHome ? "text-white underline underline-offset-4" : "hover:text-white"}`}
+                >
+                  Home
+                </Link>
                 {coreCategories.map((cat) => (
-                  <Link 
-                    key={cat} 
+                  <Link
+                    key={cat}
                     href={categoryHref(cat)}
-                    className="hover:text-white transition-colors py-2"
+                    aria-current={isCatActive(cat) ? "page" : undefined}
+                    className={`transition-colors py-2 ${isCatActive(cat) ? "text-white underline underline-offset-4" : "hover:text-white"}`}
                   >
                     {cat}
                   </Link>

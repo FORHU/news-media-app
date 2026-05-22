@@ -9,8 +9,8 @@ const AdBanner = dynamic(() => import("@/components/AdBanner").then(mod => mod.A
 import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
 import { TrendingUp, Clock, ChevronRight, ChevronLeft } from "lucide-react";
-import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useHeroCarousel } from "@/hooks/useHeroCarousel";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
@@ -96,13 +96,8 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
     .slice(0, 4)
     .map(([name, items]) => ({ name, articles: items.slice(0, 4) }));
 
-  const [[page, direction], setPage] = useState([0, 0]);
-  const index = heroArticles.length > 0 ? Math.abs(page % heroArticles.length) : 0;
+  const { index, direction, paginate, goTo } = useHeroCarousel(heroArticles.length);
   const heroArticle = heroArticles[index];
-
-  const paginate = (newDirection: number) => {
-    setPage([page + newDirection, newDirection]);
-  };
 
   const variants = {
     enter: (direction: number) => ({ x: direction > 0 ? 50 : -50, opacity: 0 }),
@@ -114,6 +109,17 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
   const adKeys = tenantConfig.banners;
   const showSkyscrapers = adKeys["160x600"] && adKeys["160x600"].length > 0;
   const midFeedConfig = tenantConfig.midFeed;
+
+  if (articles.length === 0) {
+    return (
+      <div className="min-h-[60vh] bg-white flex items-center justify-center px-4">
+        <div className="text-center">
+          <p className="text-xl font-bold text-black mb-2">記事はまだありません。</p>
+          <p className="text-sm text-gray-500 mt-1">後ほど済州ジャパンの最新ニュースをご確認ください。</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white text-black font-sans relative min-h-screen">
@@ -182,7 +188,7 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                   <div className="relative aspect-video lg:aspect-[21/9] overflow-hidden mb-3 bg-gray-100 shadow-md">
                     <AnimatePresence initial={false} custom={direction} mode="wait">
                       <motion.div
-                        key={page}
+                        key={index}
                         custom={direction}
                         variants={variants}
                         initial="enter"
@@ -221,12 +227,10 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                         <button
                           key={i}
                           type="button"
-                          onClick={() => {
-                            const newDirection = i > index ? 1 : -1;
-                            setPage([i, newDirection]);
-                          }}
+                          onClick={() => goTo(i)}
                           className={`h-1.5 transition-all duration-300 ${i === index ? "w-8 bg-[#bc002d]" : "w-3 bg-white/50 hover:bg-white/80"}`}
                           aria-label={`Go to slide ${i + 1}`}
+                          aria-current={i === index ? "true" : undefined}
                         />
                       ))}
                     </div>

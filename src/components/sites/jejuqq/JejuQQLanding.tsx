@@ -4,8 +4,8 @@ import { AdBanner } from "@/components/AdBanner";
 import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
 import { ChevronRight, TrendingUp, ChevronLeft, Clock } from "lucide-react";
-import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useHeroCarousel } from "@/hooks/useHeroCarousel";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
@@ -85,13 +85,19 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
     .filter(([_, list]) => list.length > 0)
     .slice(4, 8);
 
-  const [[page, direction], setPage] = useState([0, 0]);
-  const index = heroArticles.length > 0 ? Math.abs(page % heroArticles.length) : 0;
+  const { index, direction, paginate, goTo } = useHeroCarousel(heroArticles.length);
   const mainArticle = heroArticles[index];
 
-  const paginate = (newDirection: number) => {
-    setPage([page + newDirection, newDirection]);
-  };
+  if (articles.length === 0) {
+    return (
+      <div className="min-h-[60vh] bg-[#fdf2f2] flex items-center justify-center px-4">
+        <div className="text-center">
+          <p className="text-xl font-bold font-serif text-[#222] mb-2">最新记事暂无。</p>
+          <p className="text-sm text-gray-500 mt-1">请稍后再来查看济州的最新新闻。</p>
+        </div>
+      </div>
+    );
+  }
 
   const variants = {
     enter: (direction: number) => ({ x: direction > 0 ? 50 : -50, opacity: 0 }),
@@ -142,7 +148,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
               <div className="relative w-full lg:w-3/5 aspect-[16/9] overflow-hidden rounded-none bg-gray-100 shadow-lg group/image shrink-0 border-2 border-primary">
                 <AnimatePresence initial={false} custom={direction} mode="wait">
                   <motion.div
-                    key={page}
+                    key={index}
                     custom={direction}
                     variants={variants}
                     initial="enter"
@@ -177,12 +183,10 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                     <button
                       key={i}
                       type="button"
-                      onClick={() => {
-                        const newDirection = i > index ? 1 : -1;
-                        setPage([i, newDirection]);
-                      }}
+                      onClick={() => goTo(i)}
                       className={`h-1.5 transition-all duration-300 rounded-none ${i === index ? "w-8 bg-primary" : "w-2 bg-white/60 hover:bg-white"}`}
                       aria-label={`Go to slide ${i + 1}`}
+                      aria-current={i === index ? "true" : undefined}
                     />
                   ))}
                 </div>
@@ -197,7 +201,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                     {mainArticle.title}
                   </h2>
                 </Link>
-                <p className="text-gray-600 text-base leading-relaxed mb-4 line-clamp-3 font-medium">
+                <p className="text-gray-800 text-base leading-relaxed mb-4 line-clamp-3 font-medium">
                   {mainArticle.content
                     ? mainArticle.content.replace(/<[^>]*>/g, "").slice(0, 200)
                     : ""}
@@ -303,7 +307,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                           {article.title}
                         </h4>
 
-                        <p className="text-gray-600 text-[12px] md:text-[13px] line-clamp-2 leading-relaxed font-medium opacity-80 group-hover:opacity-100 transition-opacity">
+                        <p className="text-gray-800 text-[12px] md:text-[13px] line-clamp-2 leading-relaxed font-medium opacity-80 group-hover:opacity-100 transition-opacity">
                           {article.content}
                         </p>
 
@@ -443,7 +447,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                               <h4 className="text-[13px] md:text-[14px] font-bold leading-snug line-clamp-2 group-hover:text-primary transition-colors">
                                 {article.title}
                               </h4>
-                              <p className="text-[12px] text-gray-600 leading-relaxed line-clamp-1 mt-1">
+                              <p className="text-[12px] text-gray-800 leading-relaxed line-clamp-1 mt-1">
                                 {article.content}
                               </p>
                             </div>
@@ -543,7 +547,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                                 <h5 className="font-serif font-bold leading-tight mb-1.5 group-hover:text-primary transition-colors text-base md:text-lg line-clamp-2">
                                   {items[0].title}
                                 </h5>
-                                <p className="text-[12px] text-gray-600 line-clamp-2 leading-relaxed font-medium">
+                                <p className="text-[12px] text-gray-800 line-clamp-2 leading-relaxed font-medium">
                                   {items[0].content}
                                 </p>
                               </Link>

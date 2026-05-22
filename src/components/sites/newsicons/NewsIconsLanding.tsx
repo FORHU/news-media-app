@@ -37,6 +37,17 @@ export default function NewsIconsLanding({ tenantId, articles, banners }: Props)
     .filter(a => !heroIds.has(a.id) && !trendingIds.has(a.id))
     .slice(0, 5);
 
+  if (articles.length === 0) {
+    return (
+      <div className="min-h-[60vh] bg-slate-50 flex items-center justify-center px-4">
+        <div className="text-center">
+          <p className="text-xl font-serif font-bold text-slate-800 mb-2">No stories available yet.</p>
+          <p className="text-sm text-slate-400 mt-1">Check back soon for the latest from NewsIcons.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-slate-50">
       {/* Top Ad Banner */}

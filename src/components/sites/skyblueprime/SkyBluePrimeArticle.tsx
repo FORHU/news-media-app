@@ -12,7 +12,6 @@ import { normalizeCategoryName } from "@/lib/categoryDisplay";
 import type { Article } from "@/lib/types";
 import { ArticleShare } from "@/components/article/ArticleShare";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
-import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
 
 const tenantConfig = ADSTERRA_CONFIG.skyblueprime;
@@ -274,21 +273,6 @@ export default function SkyBluePrimeArticle({
 
               {/* Article Share */}
               <ArticleShare site="skyblueprime" title={article.title} className="mt-16" />
-
-              {/* Native Banner */}
-              <div className="mt-6">
-                <AdsterraNativeBanner domain="skyblueprime.com" />
-              </div>
-
-              {/* Bottom Leaderboard */}
-              <div className="mt-8 flex justify-center border-t border-sky-100 pt-6">
-                <div className="hidden sm:block">
-                  <AdsterraBanner bannerKey={adKeys["468x60"]} width={468} height={60} className="!my-0" />
-                </div>
-                <div className="block sm:hidden">
-                  <AdsterraBanner bannerKey={adKeys["320x50"]} width={320} height={50} className="!my-0" />
-                </div>
-              </div>
             </div>
 
             {/* Sidebar */}
@@ -333,10 +317,6 @@ export default function SkyBluePrimeArticle({
                   </div>
                 </div>
 
-                {/* Second 160x300 Ad below Most Popular */}
-                <div className="flex justify-center border-t border-sky-100 pt-4">
-                  <AdsterraBanner bannerKey={adKeys["160x300"]!} width={160} height={300} className="!my-0" />
-                </div>
               </div>
             </aside>
           </div>

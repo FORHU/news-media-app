@@ -131,6 +131,17 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
       carouselRef.current?.scrollBy({ left: direction === "left" ? -220 : 220, behavior: "smooth" });
    };
 
+   if (articles.length === 0) {
+      return (
+         <div className="min-h-[60vh] bg-[#F8FAFC] flex items-center justify-center px-4">
+            <div className="text-center">
+               <p className="text-xl font-bold text-[#2D3748] mb-2">No stories available yet.</p>
+               <p className="text-sm text-slate-500 mt-1">Check back soon for the latest from JejuTime.</p>
+            </div>
+         </div>
+      );
+   }
+
    return (
       <div className="bg-[#F8FAFC] text-[#2D3748] font-roboto selection:bg-blue-100 relative min-h-screen">
          {/* Floating Left Gutter Skyscraper */}

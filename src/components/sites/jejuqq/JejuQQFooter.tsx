@@ -68,6 +68,8 @@ export default function JejuQQFooter({ onOpenNewsletter }: JejuQQFooterProps) {
              <h4 className="font-bold font-serif text-[11px] uppercase tracking-[0.2em] text-[#b91c1c] mb-8">Information</h4>
              <ul className="space-y-4 text-xs font-bold text-gray-600 uppercase tracking-tight">
                 <li><Link href="/search" className="hover:text-[#b91c1c] transition-colors">All Articles</Link></li>
+                <li><Link href="#" className="hover:text-[#b91c1c] transition-colors">About Us</Link></li>
+                <li><Link href="#" className="hover:text-[#b91c1c] transition-colors">Contact</Link></li>
                 <li><Link href="/privacy-policy" className="hover:text-[#b91c1c] transition-colors">Privacy Policy</Link></li>
                 <li><Link href="/terms" className="hover:text-[#b91c1c] transition-colors">Terms of Service</Link></li>
              </ul>

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useSearchParams, useRouter } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { Search, Mail, X, User, ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
@@ -23,12 +23,17 @@ function categoryHref(categoryName: string) {
 
 export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const { suggestions, isSearching, showSuggestions, hideSuggestions } = useSearchSuggestions(query);
+
+  const activeCategory = searchParams.get("category") ?? "";
+  const isHome = pathname === "/" && !activeCategory;
+  const isCatActive = (cat: string) => activeCategory.toLowerCase() === cat.toLowerCase();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -67,6 +72,14 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
     setQuery(searchParams.get("search") ?? "");
   }, [searchParams]);
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setIsSidebarOpen(false); setIsSearchOpen(false); }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = query.trim();
@@ -84,8 +97,10 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
             <button
               type="button"
               onClick={() => setIsSidebarOpen(true)}
-              aria-label="Open menu"
-              className="group flex items-center gap-2 hover:text-[#dc2626] transition-all duration-300"
+              aria-label="Open navigation menu"
+              aria-expanded={isSidebarOpen}
+              aria-haspopup="dialog"
+              className="group flex items-center gap-2 min-h-[44px] hover:text-[#dc2626] transition-all duration-300"
             >
               <div className="relative flex flex-col justify-between w-5 h-3.5 group-hover:gap-1 transition-all">
                 <span className="w-full h-0.5 bg-black group-hover:bg-primary transition-colors"></span>
@@ -138,7 +153,9 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
           <div className="flex items-center gap-1 sm:gap-6">
             <button
               onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className="lg:hidden text-gray-400 hover:text-[#dc2626] p-2 transition-colors"
+              aria-label="Toggle search"
+              aria-expanded={isSearchOpen}
+              className="lg:hidden text-gray-400 hover:text-[#dc2626] p-2 min-w-[44px] min-h-[44px] flex items-center justify-center transition-colors"
             >
               <Search size={22} />
             </button>
@@ -181,14 +198,23 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
         <div className="border-t border-gray-100 hidden lg:block">
           <div className="max-w-7xl mx-auto px-4 flex flex-row justify-center items-center py-4">
             <nav className="flex flex-wrap justify-center gap-x-12 gap-y-4 text-[13px] font-bold font-serif uppercase tracking-tighter text-gray-600">
+              <Link
+                href="/"
+                aria-current={isHome ? "page" : undefined}
+                className={`relative group py-2 transition-colors ${isHome ? "text-[#dc2626]" : "hover:text-black"}`}
+              >
+                Home
+                <span className={`absolute bottom-0 left-0 h-0.5 bg-[#dc2626] transition-all duration-300 ${isHome ? "w-full" : "w-0 group-hover:w-full"}`} />
+              </Link>
               {coreCategories.map((cat) => (
                 <Link
                   key={cat}
                   href={`/search?category=${encodeURIComponent(cat)}`}
-                  className="relative group py-2 hover:text-black transition-colors"
+                  aria-current={isCatActive(cat) ? "page" : undefined}
+                  className={`relative group py-2 transition-colors ${isCatActive(cat) ? "text-[#dc2626]" : "hover:text-black"}`}
                 >
                   {cat}
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#dc2626] group-hover:w-full transition-all duration-300"></span>
+                  <span className={`absolute bottom-0 left-0 h-0.5 bg-[#dc2626] transition-all duration-300 ${isCatActive(cat) ? "w-full" : "w-0 group-hover:w-full"}`} />
                 </Link>
               ))}
             </nav>

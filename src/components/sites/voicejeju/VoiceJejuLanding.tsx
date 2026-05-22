@@ -1237,6 +1237,17 @@ export function VoiceJejuLanding(props: Props) {
     const showSkyscrapers = adKeys["160x600"] && adKeys["160x600"].length > 0;
     const midFeedConfig = tenantConfig.midFeed;
 
+    if (articles.length === 0) {
+       return (
+          <div className="min-h-[60vh] bg-white flex items-center justify-center px-4 font-inter">
+             <div className="text-center">
+                <p className="text-xl font-bold text-stone-900 mb-2">아직 기사가 없습니다.</p>
+                <p className="text-sm text-stone-400 mt-1">Voice Jeju의 최신 소식을 곧 확인하세요.</p>
+             </div>
+          </div>
+       );
+    }
+
     return (
        <div
           className={cn(

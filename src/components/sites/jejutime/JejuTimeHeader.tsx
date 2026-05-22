@@ -25,11 +25,16 @@ function categoryHref(categoryName: string) {
 
 export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+
+  const activeCategory = searchParams.get("category") ?? "";
+  const isHome = pathname === "/" && !activeCategory;
+  const isCatActive = (cat: string) => activeCategory.toLowerCase() === cat.toLowerCase();
   const navRef = useRef<HTMLDivElement>(null);
   const { suggestions, isSearching, showSuggestions, hideSuggestions } = useSearchSuggestions(query);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
@@ -103,11 +108,19 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
     setQuery(q);
   }, [searchParams]);
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setIsSidebarOpen(false); setIsMobileSearchOpen(false); }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
       router.push(`/search?search=${encodeURIComponent(query.trim())}`);
-      setShowSuggestions(false);
+      hideSuggestions();
     }
   };
 
@@ -125,8 +138,10 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
             <button
               type="button"
               onClick={() => setIsSidebarOpen(true)}
-              aria-label="Open menu"
-              className="text-blue-900 hover:scale-110 transition-transform"
+              aria-label="Open navigation menu"
+              aria-expanded={isSidebarOpen}
+              aria-haspopup="dialog"
+              className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-blue-900 hover:scale-110 transition-transform"
             >
               <Menu size={22} />
             </button>
@@ -180,10 +195,10 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
           {/* Right: Actions (Desktop) / Search Icon (Mobile) */}
           <div className="flex items-center space-x-4 justify-end">
             {!isMobileSearchOpen && (
-              <button 
+              <button
                 onClick={() => setIsMobileSearchOpen(true)}
-                className="md:hidden text-blue-900 p-2"
-                aria-label="Search"
+                className="md:hidden text-blue-900 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                aria-label="Open search"
               >
                 <Search size={22} />
               </button>
@@ -224,11 +239,19 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
                ref={navRef}
                className="flex items-center space-x-8 lg:space-x-10 text-[10px] lg:text-[11px] font-baskerville font-bold uppercase tracking-[0.15em] lg:tracking-[0.2em] text-white overflow-x-auto no-scrollbar scroll-smooth whitespace-nowrap py-1 flex-1 scrollbar-hide"
              >
-                {coreCategories.map((cat) => (
-                  <Link 
-                    key={cat} 
+                <Link
+                  href="/"
+                  className={`transition-colors whitespace-nowrap ${isHome ? "text-blue-400 font-extrabold" : "hover:text-blue-400"}`}
+                  aria-current={isHome ? "page" : undefined}
+                >
+                  Home
+                </Link>
+               {coreCategories.map((cat) => (
+                  <Link
+                    key={cat}
                     href={`/search?category=${encodeURIComponent(cat)}`}
-                    className="hover:text-blue-400 transition-colors"
+                    className={`transition-colors whitespace-nowrap ${isCatActive(cat) ? "text-blue-400 font-extrabold" : "hover:text-blue-400"}`}
+                    aria-current={isCatActive(cat) ? "page" : undefined}
                   >
                     {cat}
                   </Link>

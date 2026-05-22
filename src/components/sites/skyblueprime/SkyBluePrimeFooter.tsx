@@ -57,6 +57,9 @@ export default function SkyBluePrimeFooter({ onOpenNewsletter }: SkyBluePrimeFoo
               <ul className="space-y-3 text-sm text-sky-100/70">
                 <li><Link href="/" className="hover:text-white transition-colors">Home</Link></li>
                 <li><Link href="/search" className="hover:text-white transition-colors">All Stories</Link></li>
+                <li><Link href="#" className="hover:text-white transition-colors">About</Link></li>
+                <li><Link href="#" className="hover:text-white transition-colors">Contact</Link></li>
+                <li><Link href="#" className="hover:text-white transition-colors">Advertise</Link></li>
               </ul>
             </div>
 
@@ -95,9 +98,13 @@ export default function SkyBluePrimeFooter({ onOpenNewsletter }: SkyBluePrimeFoo
             </div>
           </div>
 
-          <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-sky-300/60">
+          <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-sky-300/60">
             <p>&copy; {new Date().getFullYear()} Sky Blue Prime. All rights reserved.</p>
-            <p>skyblueprime.com</p>
+            <div className="flex items-center gap-6">
+              <Link href="#" className="hover:text-sky-300 transition-colors">Privacy Policy</Link>
+              <Link href="#" className="hover:text-sky-300 transition-colors">Terms of Service</Link>
+              <Link href="#" className="hover:text-sky-300 transition-colors">Cookie Policy</Link>
+            </div>
           </div>
         </div>
       </footer>

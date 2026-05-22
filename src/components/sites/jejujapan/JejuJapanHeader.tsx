@@ -29,6 +29,10 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
   const isSearchPage = pathname === "/search";
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+
+  const activeCategory = searchParams.get("category") ?? "";
+  const isHome = pathname === "/" && !activeCategory;
+  const isCatActive = (cat: string) => activeCategory.toLowerCase() === cat.toLowerCase();
   const { suggestions, isSearching, showSuggestions, hideSuggestions } = useSearchSuggestions(query);
 
   const { data: categories = [] } = useQuery({
@@ -64,6 +68,14 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
   useEffect(() => {
     setQuery(searchParams.get("search") ?? "");
   }, [searchParams]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setIsSidebarOpen(false); setIsMobileSearchOpen(false); }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,10 +120,10 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
             </div>
 
             <div className="flex justify-end items-center gap-2 sm:gap-4">
-              <button 
+              <button
                 type="button"
                 onClick={() => setIsMobileSearchOpen(true)}
-                className="lg:hidden p-1.5 text-white/90 hover:text-white transition-colors"
+                className="lg:hidden p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-white/90 hover:text-white transition-colors"
                 aria-label="Open search"
               >
                 <Search size={18} />
@@ -128,8 +140,10 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
             <button
               type="button"
               onClick={() => setIsSidebarOpen(true)}
-              aria-label="Open menu"
-              className="text-black hover:text-[#bc002d] transition-colors relative z-10"
+              aria-label="Open navigation menu"
+              aria-expanded={isSidebarOpen}
+              aria-haspopup="dialog"
+              className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-black hover:text-[#bc002d] transition-colors relative z-10"
             >
               <Menu size={24} />
             </button>
@@ -150,11 +164,19 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
           </div>
  
           <nav className="hidden lg:flex flex-1 justify-center items-center gap-2 xl:gap-4 text-[9px] xl:text-[10px] font-bold uppercase tracking-[0.04em] xl:tracking-[0.07em] text-slate-500 mx-2 xl:mx-6 flex-wrap">
+            <Link
+              href="/"
+              aria-current={isHome ? "page" : undefined}
+              className={`whitespace-nowrap transition-colors ${isHome ? "text-[#bc002d]" : "hover:text-[#bc002d]"}`}
+            >
+              Home
+            </Link>
             {coreCategories.map((cat) => (
               <Link
                 key={cat}
                 href={`/search?category=${encodeURIComponent(cat)}`}
-                className="hover:text-[#bc002d] transition-colors whitespace-nowrap"
+                aria-current={isCatActive(cat) ? "page" : undefined}
+                className={`whitespace-nowrap transition-colors ${isCatActive(cat) ? "text-[#bc002d]" : "hover:text-[#bc002d]"}`}
               >
                 {cat}
               </Link>
@@ -170,7 +192,8 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
                 <Link
                   key={cat}
                   href={categoryHref(cat)}
-                  className="hover:text-[#bc002d] transition-colors whitespace-nowrap"
+                  aria-current={isCatActive(cat) ? "page" : undefined}
+                  className={`whitespace-nowrap transition-colors ${isCatActive(cat) ? "text-[#bc002d]" : "hover:text-[#bc002d]"}`}
                 >
                   {cat}
                 </Link>

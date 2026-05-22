@@ -2,16 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { AdBanner } from "@/components/AdBanner";
+import { AdBanner, Banner } from "@/components/AdBanner";
 import { Twitter, Instagram, Facebook, Mail, MapPin, Phone } from "lucide-react";
-
-interface Banner {
-  id: string;
-  imageUrl: string;
-  linkUrl: string;
-  altText: string | null;
-  positions: string[];
-}
 
 interface FooterProps {
   onOpenNewsletter?: () => void;
