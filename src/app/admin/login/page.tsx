@@ -318,7 +318,7 @@ function LoginContent() {
 
       if (!verifyResponse.ok) {
         if (verifyResponse.status === 403) {
-          setFieldErrors({ email: 'Your account does not have admin access for this domain.' });
+          setFieldErrors({ email: 'Your account does not have access for this domain.' });
         } else {
           setFieldErrors({ general: 'Verification service unavailable. Please try again.' });
         }
@@ -345,9 +345,11 @@ function LoginContent() {
         return;
       }
 
+      const loginData = await loginResponse.json().catch(() => ({}));
       const redirectTo = searchParams.get('redirectTo');
+      let defaultPath = loginData.role === 'moderator' ? '/admin/moderator' : '/admin/dashboard';
       const safePath = redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//')
-        ? redirectTo : '/admin/dashboard';
+        ? redirectTo : defaultPath;
       // Use a hard redirect so middleware receives freshly committed httpOnly cookies.
       window.location.assign(safePath);
     } catch (err) {

@@ -21,7 +21,7 @@ export async function proxy(request: NextRequest) {
             response.cookies.set(TENANT_DOMAIN_COOKIE, tenantDomain, {
                 httpOnly: true,
                 sameSite: "lax",
-                secure: process.env.NODE_ENV === "production",
+                secure: process.env.COOKIE_SECURE === "true",
                 path: "/",
             });
         }
@@ -61,7 +61,9 @@ export async function proxy(request: NextRequest) {
         // Verify JWT from httpOnly cookie — jose is Edge-compatible, no DB call needed.
         const token = request.cookies.get(ADMIN_JWT_COOKIE)?.value;
         const payload = token ? await verifyAdminJwt(token) : null;
-        const isAuthenticated = Boolean(payload && payload.role === "admin");
+        const isAuthenticated = Boolean(payload && (payload.role === "admin" || payload.role === "moderator"));
+        const isModerator = Boolean(payload && payload.role === "moderator");
+        const isModeratorPage = pathname.startsWith("/admin/moderator");
 
         if (!isAuthenticated) {
             if (isAdminApi) {
@@ -72,10 +74,15 @@ export async function proxy(request: NextRequest) {
             return NextResponse.redirect(loginUrl);
         }
 
+        // Moderators can only access /admin/moderator/* routes
+        if (isModerator && !isModeratorPage && !isAdminApi) {
+            return NextResponse.redirect(new URL("/admin/moderator", request.url));
+        }
+
         response.cookies.set(ADMIN_ROLE_COOKIE, "verified", {
             httpOnly: true,
             sameSite: "lax",
-            secure: process.env.NODE_ENV === "production",
+            secure: process.env.COOKIE_SECURE === "true",
             path: "/",
             maxAge: 60 * 60 * 24,
         });
