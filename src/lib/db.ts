@@ -30,6 +30,9 @@ function resolvePoolMax(): number {
 
 const maxConnections = resolvePoolMax();
 
+const isRemoteDb = !process.env.DATABASE_URL?.includes("localhost") &&
+  !process.env.DATABASE_URL?.includes("127.0.0.1");
+
 const pool: Pool = g.pool ?? new Pool({
   connectionString: process.env.DATABASE_URL,
   max: maxConnections,
@@ -37,6 +40,7 @@ const pool: Pool = g.pool ?? new Pool({
     process.env.NEXT_PHASE === "phase-production-build" ? 30000 : 10_000,
   idleTimeoutMillis: 20_000,
   allowExitOnIdle: process.env.NODE_ENV !== "production",
+  ssl: isRemoteDb ? { rejectUnauthorized: false } : undefined,
 });
 
 // Cache in globalThis for BOTH dev (prevent hot-reload exhaustion)

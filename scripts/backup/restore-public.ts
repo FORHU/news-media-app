@@ -138,12 +138,6 @@ function buildPlainRestoreSql(params: {
   backupBody: string;
   skipTruncate: boolean;
 }): string {
-  const disable = RESTORE_TABLES.map(
-    (t) => `ALTER TABLE IF EXISTS public."${t}" DISABLE TRIGGER ALL;`
-  ).join("\n");
-  const enable = RESTORE_TABLES.map(
-    (t) => `ALTER TABLE IF EXISTS public."${t}" ENABLE TRIGGER ALL;`
-  ).join("\n");
   const tableList = RESTORE_TABLES.map((t) => `public."${t}"`).join(", ");
   const truncate = params.skipTruncate
     ? "SELECT 1; -- skip truncate (RESTORE_SKIP_TRUNCATE=1)"
@@ -154,11 +148,13 @@ BEGIN;
 
 ${truncate}
 
-${disable}
+-- Bypass FK constraint triggers for the duration of the restore
+-- (session_replication_role works on RDS without superuser)
+SET session_replication_role = replica;
 
 ${params.backupBody}
 
-${enable}
+SET session_replication_role = DEFAULT;
 
 COMMIT;
 `.trim() + "\n";
@@ -227,9 +223,11 @@ async function restoreWithPgClient(
   databaseUrl: string,
   sql: string
 ): Promise<void> {
+  const isRemote = !databaseUrl.includes("localhost") && !databaseUrl.includes("127.0.0.1");
   const client = new Client({
     connectionString: databaseUrl,
     connectionTimeoutMillis: 60_000,
+    ssl: isRemote ? { rejectUnauthorized: false } : undefined,
   });
   await client.connect();
   try {
