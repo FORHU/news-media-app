@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { Search, Bell, Menu, ChevronDown, User, Loader2, X, Mail, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Menu, ChevronDown, User, X, Mail, ChevronLeft, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useRef } from "react";
 import { articlesApi } from "@/lib/api";
 import { getCoreCategories, HOME_CATEGORY_LABEL, normalizeCategoryKey } from "@/config/categories";
-import type { Article } from "@/lib/types";
 import dynamic from "next/dynamic";
+import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
+import { SearchDropdown } from "@/components/search/SearchDropdown";
 
 const JejuTimeSidebar = dynamic(() => import("./JejuTimeSidebar"), { ssr: false });
 
@@ -29,10 +30,8 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
-  const [suggestions, setSuggestions] = useState<Article[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
+  const { suggestions, isSearching, showSuggestions, hideSuggestions } = useSearchSuggestions(query);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
 
@@ -104,30 +103,6 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
     setQuery(q);
   }, [searchParams]);
 
-  // Search Suggestions Logic
-  useEffect(() => {
-    if (!query.trim()) {
-      setSuggestions([]);
-      setShowSuggestions(false);
-      return;
-    }
-
-    const timer = setTimeout(async () => {
-      setIsSearching(true);
-      setShowSuggestions(true);
-      try {
-        const results = await articlesApi.getArticles({ limit: 5, search: query });
-        setSuggestions(results);
-      } catch (err) {
-        console.error("Suggestions error:", err);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [query]);
-
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
@@ -172,22 +147,32 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
           {/* Center: Search (Desktop) / Search Toggle (Mobile) */}
           <div className={`flex-1 flex justify-center items-center ${isMobileSearchOpen ? 'flex' : 'hidden md:flex'}`}>
             <form onSubmit={handleSearch} className="relative w-full max-w-[280px] lg:max-w-[320px]">
-              <input 
+              <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
+                onBlur={hideSuggestions}
                 placeholder="SEARCH..."
                 className="bg-slate-50 border border-slate-200 rounded-full px-8 py-2 text-[10px] w-full outline-none focus:bg-white focus:border-blue-400/50 transition-all text-slate-800 placeholder:text-slate-500 font-bold uppercase tracking-widest"
               />
               <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
               {isMobileSearchOpen && (
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setIsMobileSearchOpen(false)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 md:hidden"
                 >
                   <X size={14} className="text-slate-400" />
                 </button>
+              )}
+              {showSuggestions && (
+                <SearchDropdown
+                  query={query}
+                  suggestions={suggestions}
+                  isSearching={isSearching}
+                  theme="jejutime"
+                  onSelect={hideSuggestions}
+                />
               )}
             </form>
           </div>

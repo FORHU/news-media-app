@@ -11,6 +11,8 @@ import { getCoreCategories, HOME_CATEGORY_LABEL, normalizeCategoryKey } from "@/
 import type { Article } from "@/lib/types";
 import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
+import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
+import { SearchDropdown } from "@/components/search/SearchDropdown";
 
 const VoiceJejuSidebar = dynamic<{
   isOpen: boolean;
@@ -36,6 +38,7 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
+  const { suggestions, isSearching, showSuggestions, hideSuggestions } = useSearchSuggestions(query);
   const [weather, setWeather] = useState({ temp: "18°C", condition: "Clear" });
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
@@ -147,6 +150,7 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
     if (query.trim()) {
       router.push(`/search?search=${encodeURIComponent(query.trim())}`);
       setIsSearchOpen(false);
+      hideSuggestions();
     }
   };
 
@@ -251,25 +255,37 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
         {/* Search Overlay */}
         {isSearchOpen && (
           <div className="absolute inset-0 bg-white z-[60] flex items-center justify-center px-4 animate-in fade-in zoom-in-95 duration-200">
-            <form onSubmit={handleSearch} className="w-full max-w-2xl flex items-center gap-4 border-b-2 border-black pb-2">
-              <Search className="text-black" size={20} strokeWidth={2} />
-              <input 
-                autoFocus
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="SEARCH STORIES..."
-                className="flex-1 bg-transparent border-none outline-none text-xl lg:text-2xl font-normal font-voltaire placeholder:text-gray-300 uppercase tracking-widest"
-              />
-              <button 
-                type="button"
-                onClick={() => setIsSearchOpen(false)}
-                className="p-2 hover:bg-gray-50 rounded-full transition-colors"
-                aria-label="Close search overlay"
-              >
-                <X size={20} />
-              </button>
-            </form>
+            <div className="relative w-full max-w-2xl">
+              <form onSubmit={handleSearch} className="flex items-center gap-4 border-b-2 border-black pb-2">
+                <Search className="text-black" size={20} strokeWidth={2} />
+                <input
+                  autoFocus
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onBlur={hideSuggestions}
+                  placeholder="SEARCH STORIES..."
+                  className="flex-1 bg-transparent border-none outline-none text-xl lg:text-2xl font-normal font-voltaire placeholder:text-gray-300 uppercase tracking-widest"
+                />
+                <button
+                  type="button"
+                  onClick={() => setIsSearchOpen(false)}
+                  className="p-2 hover:bg-gray-50 rounded-full transition-colors"
+                  aria-label="Close search overlay"
+                >
+                  <X size={20} />
+                </button>
+              </form>
+              {showSuggestions && (
+                <SearchDropdown
+                  query={query}
+                  suggestions={suggestions}
+                  isSearching={isSearching}
+                  theme="voicejeju"
+                  onSelect={() => { hideSuggestions(); setIsSearchOpen(false); }}
+                />
+              )}
+            </div>
           </div>
         )}
       </header>

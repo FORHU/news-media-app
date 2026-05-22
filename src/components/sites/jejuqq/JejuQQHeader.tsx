@@ -10,6 +10,8 @@ import { articlesApi } from "@/lib/api";
 import { getCoreCategories, HOME_CATEGORY_LABEL, normalizeCategoryKey } from "@/config/categories";
 import { motion, AnimatePresence } from "framer-motion";
 import { RemoveScroll } from "react-remove-scroll";
+import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
+import { SearchDropdown } from "@/components/search/SearchDropdown";
 
 interface HeaderProps {
   onOpenNewsletter?: () => void;
@@ -26,7 +28,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
-  const userTypingRef = useRef(false);
+  const { suggestions, isSearching, showSuggestions, hideSuggestions } = useSearchSuggestions(query);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -62,23 +64,14 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
   ).map(([, name]) => name);
 
   useEffect(() => {
-    userTypingRef.current = false;
     setQuery(searchParams.get("search") ?? "");
   }, [searchParams]);
-
-  useEffect(() => {
-    if (!userTypingRef.current) return;
-    const timer = setTimeout(() => {
-      const trimmed = query.trim();
-      router.push(trimmed ? `/search?search=${encodeURIComponent(trimmed)}` : "/search");
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [query, router]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = query.trim();
     router.push(trimmed ? `/search?search=${encodeURIComponent(trimmed)}` : "/search");
+    hideSuggestions();
   };
 
   return (
@@ -123,11 +116,21 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                 <input
                   type="text"
                   value={query}
-                  onChange={(e) => { userTypingRef.current = true; setQuery(e.target.value); }}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onBlur={hideSuggestions}
                   placeholder="SEARCH FOR STORIES..."
                   className="w-full pl-11 pr-4 bg-gray-50 border-2 border-primary rounded-none h-11 text-[11px] font-bold outline-none focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
                 />
               </div>
+              {showSuggestions && (
+                <SearchDropdown
+                  query={query}
+                  suggestions={suggestions}
+                  isSearching={isSearching}
+                  theme="jejuqq"
+                  onSelect={hideSuggestions}
+                />
+              )}
             </form>
           </div>
 
@@ -160,7 +163,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
               <input
                 type="text"
                 value={query}
-                onChange={(e) => { userTypingRef.current = true; setQuery(e.target.value); }}
+                onChange={(e) => setQuery(e.target.value)}
                 placeholder="SEARCH FOR STORIES..."
                 className="w-full pl-11 pr-4 bg-gray-50 border-2 border-[#dc2626] rounded-none h-12 text-[12px] font-bold outline-none focus:bg-white focus:border-[#dc2626] transition-all"
               />

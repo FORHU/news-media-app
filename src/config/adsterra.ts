@@ -32,10 +32,10 @@ export const ADSTERRA_CONFIG: Record<string, AdsterraTenantConfig> = {
       src: "https://pl29482512.effectivecpmnetwork.com/055aa9559be0d3784216da85175a7203/invoke.js",
     },
     banners: {
-      "300x250": "055aa9559be0d3784216da85175a7203",
-      "728x90": "",
+      "300x250": "9d6eb67243a0a0a49ad01beafe38cbef",
+      "728x90": "aba00b63b5a389e5d2af90b014ec46c7",
       "468x60": "",
-      "320x50": "",
+      "320x50": "f43b5973d25d0c609c5967198688e794",
       "160x600": "47ab173deb697165d15ee8b162f04d23",
     },
     midArticle: {

@@ -10,6 +10,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { RemoveScroll } from "react-remove-scroll";
 import { useQuery } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
+import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
+import { SearchDropdown } from "@/components/search/SearchDropdown";
 
 interface HeaderProps {
   onOpenNewsletter?: () => void;
@@ -27,6 +29,7 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
   const isSearchPage = pathname === "/search";
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const { suggestions, isSearching, showSuggestions, hideSuggestions } = useSearchSuggestions(query);
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
@@ -66,6 +69,7 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
     e.preventDefault();
     if (query.trim()) {
       router.push(`/search?search=${encodeURIComponent(query.trim())}`);
+      hideSuggestions();
     }
   };
 
@@ -86,10 +90,20 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
+                  onBlur={hideSuggestions}
                   placeholder="SEARCH NEWS..."
                   className="bg-white/30 border-2 border-white/40 rounded-none px-10 py-1.5 text-[10px] w-full outline-none focus:bg-white focus:text-black transition-all text-white focus:placeholder:text-gray-400 placeholder:text-white/90 shadow-sm"
                 />
                 <Search size={12} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/90" />
+                {showSuggestions && (
+                  <SearchDropdown
+                    query={query}
+                    suggestions={suggestions}
+                    isSearching={isSearching}
+                    theme="jejujapan"
+                    onSelect={hideSuggestions}
+                  />
+                )}
               </form>
             </div>
 
@@ -173,8 +187,8 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
               exit={{ opacity: 0, y: -20 }}
               className="absolute inset-x-0 top-0 z-[60] bg-[#bc002d] p-4 shadow-2xl"
             >
-              <form 
-                onSubmit={(e) => { handleSearch(e); setIsMobileSearchOpen(false); }} 
+              <form
+                onSubmit={(e) => { handleSearch(e); setIsMobileSearchOpen(false); }}
                 className="max-w-7xl mx-auto flex items-center gap-3"
               >
                 <div className="relative flex-1">
@@ -184,12 +198,22 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
                     type="text"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
+                    onBlur={hideSuggestions}
                     placeholder="SEARCH NEWS..."
                     className="w-full bg-white/10 border-2 border-white/20 text-white placeholder:text-white/50 pl-11 pr-4 py-2.5 rounded-none outline-none focus:bg-white/20 focus:border-white/40 transition-all text-sm font-bold uppercase tracking-widest"
                   />
+                  {showSuggestions && (
+                    <SearchDropdown
+                      query={query}
+                      suggestions={suggestions}
+                      isSearching={isSearching}
+                      theme="jejujapan"
+                      onSelect={() => { hideSuggestions(); setIsMobileSearchOpen(false); }}
+                    />
+                  )}
                 </div>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setIsMobileSearchOpen(false)}
                   className="p-2 text-white/80 hover:text-white transition-colors"
                 >

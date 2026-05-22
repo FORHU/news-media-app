@@ -145,18 +145,101 @@ async function SearchContent({
   const isSkyBluePrime = domain.toLowerCase().includes("skyblueprime");
   const isJejuJapan = domain.toLowerCase().includes("jejujapan");
   const isJejuQQ = domain.toLowerCase().includes("jejuqq");
+  const isJejuTime = domain.toLowerCase().includes("jejutime");
 
   const activeCategory = categoryParam ? decodeURIComponent(categoryParam) : null;
   const heroLabel = activeCategory ?? (searchQuery ? `"${searchQuery}"` : "전체 기사");
   const voicejejuCategories = isVoiceJeju ? (TENANT_CATEGORIES["voicejeju.com"] ?? []) : [];
   const jejuJapanCategories = isJejuJapan ? (TENANT_CATEGORIES["jejujapan.com"] ?? []) : [];
   const jejuqqCategories = isJejuQQ ? (TENANT_CATEGORIES["jejuqq.com"] ?? []) : [];
+  const jejutimeCategories = isJejuTime ? (TENANT_CATEGORIES["jejutime.com"] ?? []) : [];
 
   const sbpLabel = searchQuery
     ? `Search: "${searchQuery}"`
     : categoryParam
       ? decodeURIComponent(categoryParam)
       : "All Stories";
+
+  if (isJejuTime) {
+    const jejuTimeLabel = activeCategory ?? (searchQuery ? `"${searchQuery}"` : "Latest Updates");
+
+    return (
+      <>
+        {/* Editorial header — blue left rule + baskerville */}
+        <div className="mb-6 pt-2">
+          <div className="flex items-center gap-1.5 text-[9px] font-bold tracking-widest text-slate-400 mb-4 uppercase">
+            <Link href="/" className="hover:text-blue-600 transition-colors">JEJUTIME</Link>
+            <span className="text-slate-300">›</span>
+            <span className="text-blue-600">
+              {activeCategory ?? (searchQuery ? "Search Results" : "All Stories")}
+            </span>
+          </div>
+          <div className="border-l-4 border-blue-600 pl-4">
+            <div className="flex items-start justify-between gap-4">
+              <h1 className="text-3xl sm:text-4xl font-baskerville font-bold text-blue-950 leading-tight tracking-tight">
+                {jejuTimeLabel}
+              </h1>
+              <span className="flex-shrink-0 mt-1.5 bg-blue-600 text-white text-[9px] font-bold px-2.5 py-1 uppercase tracking-widest">
+                {articles.length} stories
+              </span>
+            </div>
+            {(searchQuery || activeCategory) && (
+              <Link
+                href="/search"
+                className="inline-flex items-center gap-1.5 mt-3 text-[10px] font-bold text-blue-600 hover:text-blue-800 uppercase tracking-widest transition-colors"
+              >
+                ← All Stories
+              </Link>
+            )}
+          </div>
+        </div>
+
+        {/* Category filter — desktop only, no panning (flex-wrap), hidden on mobile */}
+        {jejutimeCategories.length > 0 && (
+          <div className="hidden sm:flex flex-wrap gap-0 mb-8 border-b border-slate-200">
+            <Link
+              href="/search"
+              className={`px-4 pb-3 pt-1 text-[11px] font-bold font-baskerville uppercase tracking-wider transition-all border-b-2 -mb-px ${
+                !activeCategory && !searchQuery
+                  ? "text-blue-600 border-blue-600"
+                  : "text-slate-500 border-transparent hover:text-blue-600 hover:border-blue-300"
+              }`}
+            >
+              All
+            </Link>
+            {jejutimeCategories.map((cat) => (
+              <Link
+                key={cat}
+                href={activeCategory === cat ? "/search" : `/search?category=${encodeURIComponent(cat)}`}
+                className={`px-4 pb-3 pt-1 text-[11px] font-bold font-baskerville uppercase tracking-wider transition-all border-b-2 -mb-px ${
+                  activeCategory === cat
+                    ? "text-blue-600 border-blue-600"
+                    : "text-slate-500 border-transparent hover:text-blue-600 hover:border-blue-300"
+                }`}
+              >
+                {cat}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        <LatestStoriesSection
+          articles={articles}
+          error=""
+          searchQuery={searchQuery || null}
+          categoryName={categoryParam ? decodeURIComponent(categoryParam) : null}
+          isLoading={false}
+          domain={domain}
+        />
+
+        {tenantConfig?.native && (
+          <div className="mt-12 pt-8 border-t border-slate-200">
+            <AdsterraNativeBanner domain={domain} transparent />
+          </div>
+        )}
+      </>
+    );
+  }
 
   if (isJejuJapan) {
     const jejuJapanHeroLabel = activeCategory ?? (searchQuery ? `「${searchQuery}」` : "全記事");

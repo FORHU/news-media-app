@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Search, Menu, User, X } from "lucide-react";
 import { getCoreCategories, HOME_CATEGORY_LABEL } from "@/config/categories";
+import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
+import { SearchDropdown } from "@/components/search/SearchDropdown";
 
 interface SkyBluePrimeHeaderProps {
   onOpenNewsletter?: () => void;
@@ -20,6 +22,7 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
   const [query, setQuery] = useState("");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const { suggestions, isSearching, showSuggestions, hideSuggestions } = useSearchSuggestions(query);
 
   const categories = getCoreCategories("skyblueprime.com");
 
@@ -33,6 +36,7 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
       router.push(`/search?search=${encodeURIComponent(query.trim())}`);
       setIsSearchOpen(false);
       setIsMenuOpen(false);
+      hideSuggestions();
     }
   };
 
@@ -118,10 +122,20 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
+                onBlur={hideSuggestions}
                 placeholder="Search stories, topics, or authors..."
                 className="w-full pl-12 pr-4 py-3 rounded-none border-b-2 border-sky-200 bg-transparent text-lg text-sky-950 placeholder:text-sky-300 focus:outline-none focus:border-sky-600 transition-colors"
                 autoFocus
               />
+              {showSuggestions && (
+                <SearchDropdown
+                  query={query}
+                  suggestions={suggestions}
+                  isSearching={isSearching}
+                  theme="skyblueprime"
+                  onSelect={() => { hideSuggestions(); setIsSearchOpen(false); }}
+                />
+              )}
             </form>
           </div>
         </div>

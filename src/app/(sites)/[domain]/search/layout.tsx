@@ -42,6 +42,7 @@ export default async function SearchLayout({
   const isVoiceJeju = domain.toLowerCase().includes("voicejeju");
   const isJejuJapan = domain.toLowerCase().includes("jejujapan");
   const isJejuQQ = domain.toLowerCase().includes("jejuqq");
+  const isJejuTime = domain.toLowerCase().includes("jejutime");
   const isSkyBluePrime = domain.toLowerCase().includes("skyblueprime");
 
   // Trending stories are "constant" for the search session, so we fetch them here
@@ -64,6 +65,55 @@ export default async function SearchLayout({
   const desktopLeaderboardHeight = adKeys?.["728x90"] ? 90 : 60;
   const showDesktopLeaderboard = !!desktopLeaderboardKey;
   const showMobileLeaderboard = !!(adKeys?.["320x50"] && adKeys["320x50"].length > 0);
+
+  if (isJejuTime) {
+    return (
+      <div className="bg-[#F8FAFC] min-h-screen">
+        <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-10">
+          {showSkyscrapers && adKeys?.["160x600"] && (
+            <div className="hidden min-[1650px]:block absolute right-full mr-6 top-32 bottom-32 w-[160px] z-30">
+              <div className="sticky top-40">
+                <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+              </div>
+            </div>
+          )}
+          {showSkyscrapers && adKeys?.["160x600"] && (
+            <div className="hidden min-[1650px]:block absolute left-full ml-6 top-32 bottom-32 w-[160px] z-30">
+              <div className="sticky top-40">
+                <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+              </div>
+            </div>
+          )}
+          {(showDesktopLeaderboard || showMobileLeaderboard) && (
+            <div className="w-full flex justify-center py-3 border-b border-slate-200 mb-6 overflow-hidden">
+              {showDesktopLeaderboard && desktopLeaderboardKey && (
+                <div className="hidden sm:block">
+                  <AdsterraBanner bannerKey={desktopLeaderboardKey} width={desktopLeaderboardWidth} height={desktopLeaderboardHeight} className="!my-0" />
+                </div>
+              )}
+              {showMobileLeaderboard && adKeys?.["320x50"] && (
+                <div className="block sm:hidden">
+                  <AdsterraBanner bannerKey={adKeys["320x50"]} width={320} height={50} className="!my-0" />
+                </div>
+              )}
+            </div>
+          )}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-12">
+            <div className="lg:col-span-9">{children}</div>
+            <aside className="lg:col-span-3 space-y-8">
+              <TrendingSidebar articles={trendingArticles} domain={domain} />
+              {showSidebarBox && adKeys?.["300x250"] && (
+                <div className="flex justify-center">
+                  <AdsterraBanner bannerKey={adKeys["300x250"]} width={300} height={250} className="!my-0" />
+                </div>
+              )}
+              <AdBanner position="HOME_SIDEBAR" initialBanners={sidebarBanners} />
+            </aside>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   if (isJejuJapan) {
     return (

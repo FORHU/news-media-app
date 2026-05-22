@@ -113,6 +113,13 @@ export function LatestStoriesSection({
               Latest Stories
             </h2>
           </div>
+        ) : domain.includes('jejutime') ? (
+          <div className="w-full flex items-center gap-4 pb-3 border-b border-slate-200">
+            <span className="w-1 h-5 bg-blue-600 flex-shrink-0" />
+            <h2 className="text-[13px] font-baskerville font-bold text-blue-950 uppercase tracking-widest">
+              {categoryName ?? (searchQuery ? "Search Results" : "Latest Updates")}
+            </h2>
+          </div>
         ) : (
           <h2 className={`text-2xl font-bold text-gray-900 ${domain.includes('voicejeju') ? 'font-voltaire uppercase tracking-tight text-3xl' : 'font-serif'}`}>
             Latest Stories
@@ -186,6 +193,22 @@ export function LatestStoriesSection({
               Clear Filters
             </button>
           </div>
+        ) : domain.includes("jejutime") ? (
+          <div className="py-24 text-center border-y border-slate-200">
+            <p className="text-3xl font-baskerville font-bold text-blue-950 mb-3">
+              No stories found
+            </p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400 mb-8">
+              Try a different search term or browse by category
+            </p>
+            <button
+              type="button"
+              onClick={clearSearch}
+              className="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.3em] text-white bg-blue-600 px-6 py-3 hover:bg-blue-800 transition-all"
+            >
+              Clear Filters
+            </button>
+          </div>
         ) : (
           <div className="text-center py-16">
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -215,9 +238,43 @@ export function LatestStoriesSection({
             const isJejuQQ = domain.includes('jejuqq');
             const isSkyBluePrime = domain.includes('skyblueprime');
             const isJejuJapan = domain.includes('jejujapan');
+            const isJejuTime = domain.includes('jejutime');
             return latestStories.map((article, index) => (
             <Fragment key={article.id}>
-              {isSkyBluePrime ? (
+              {isJejuTime ? (
+                <ArticleLink
+                  articleIdentifier={article.slug ?? article.id}
+                  href={`/article/${article.slug ?? article.id}`}
+                  className="group cursor-pointer flex flex-row gap-5 py-5 border-b border-slate-100 hover:bg-blue-50/40 transition-colors"
+                >
+                  <div className="relative w-28 sm:w-36 h-20 sm:h-24 overflow-hidden flex-shrink-0 bg-slate-100 shadow-sm shadow-blue-100">
+                    <StoryImage
+                      src={article.imageUrl}
+                      alt={article.title}
+                      fill
+                      sizes="(max-width: 640px) 112px, 144px"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      variant="thumbnail"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    {normalizeCategoryName(article.category?.categoryName) && (
+                      <span className="block text-[9px] font-bold text-blue-600 uppercase tracking-widest mb-1.5">
+                        {normalizeCategoryName(article.category?.categoryName)}
+                      </span>
+                    )}
+                    <h3 className="text-[17px] font-baskerville font-bold text-blue-950 mb-2 leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors">
+                      {article.title}
+                    </h3>
+                    <p className="text-[13px] text-slate-500 line-clamp-2 leading-relaxed font-light">
+                      {truncateContent(article.content)}
+                    </p>
+                    <span className="block mt-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                      {formatDate(article.createdAt)}
+                    </span>
+                  </div>
+                </ArticleLink>
+              ) : isSkyBluePrime ? (
                 <ArticleLink
                   articleIdentifier={article.slug ?? article.id}
                   href={`/article/${article.slug ?? article.id}`}
@@ -426,6 +483,16 @@ export function LatestStoriesSection({
                   </div>
                   <div className="block sm:hidden">
                     <AdsterraBanner bannerKey={ADSTERRA_CONFIG.jejuqq.banners["320x50"]} width={320} height={50} className="!my-0" />
+                  </div>
+                </div>
+              )}
+              {index === 2 && isJejuTime && (
+                <div className="my-6 py-4 border-y border-slate-100 flex justify-center w-full overflow-hidden bg-slate-50/30">
+                  <div className="hidden sm:block">
+                    <AdsterraBanner bannerKey={ADSTERRA_CONFIG.jejutime.banners["728x90"]} width={728} height={90} className="!my-0" />
+                  </div>
+                  <div className="block sm:hidden">
+                    <AdsterraBanner bannerKey={ADSTERRA_CONFIG.jejutime.banners["320x50"]} width={320} height={50} className="!my-0" />
                   </div>
                 </div>
               )}
