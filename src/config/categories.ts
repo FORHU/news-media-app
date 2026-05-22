@@ -1,5 +1,16 @@
 export const HOME_CATEGORY_LABEL = "Latest News";
 
+const HOME_LABELS_BY_DOMAIN: Record<string, string> = {
+  "jejuqq.com": "最新消息",
+  "jejujapan.com": "最新ニュース",
+  "voicejeju.com": "최신 뉴스",
+};
+
+export function getHomeCategoryLabel(domain: string): string {
+  const key = Object.keys(HOME_LABELS_BY_DOMAIN).find((k) => domain.includes(k));
+  return key ? HOME_LABELS_BY_DOMAIN[key] : HOME_CATEGORY_LABEL;
+}
+
 export const TENANT_CATEGORIES: Record<string, string[]> = {
   "jejutime.com": [
     "Jeju Today",

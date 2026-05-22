@@ -244,7 +244,7 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
                   className={`transition-colors whitespace-nowrap ${isHome ? "text-blue-400 font-extrabold" : "hover:text-blue-400"}`}
                   aria-current={isHome ? "page" : undefined}
                 >
-                  Home
+                  {HOME_CATEGORY_LABEL}
                 </Link>
                {coreCategories.map((cat) => (
                   <Link

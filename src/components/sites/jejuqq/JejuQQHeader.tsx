@@ -7,7 +7,7 @@ import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { Search, Mail, X, User, ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
-import { getCoreCategories, HOME_CATEGORY_LABEL, normalizeCategoryKey } from "@/config/categories";
+import { getCoreCategories, HOME_CATEGORY_LABEL, getHomeCategoryLabel, normalizeCategoryKey } from "@/config/categories";
 import { motion, AnimatePresence } from "framer-motion";
 import { RemoveScroll } from "react-remove-scroll";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
@@ -52,6 +52,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
     staleTime: 5 * 60 * 1000,
   });
 
+  const homeLabel = getHomeCategoryLabel("jejuqq.com");
   const coreCategories = getCoreCategories("jejuqq.com");
   const coreCategoryKeys = new Set(
     coreCategories.map((category) => normalizeCategoryKey(category))
@@ -203,7 +204,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                 aria-current={isHome ? "page" : undefined}
                 className={`relative group py-2 transition-colors ${isHome ? "text-[#dc2626]" : "hover:text-black"}`}
               >
-                Home
+                {homeLabel}
                 <span className={`absolute bottom-0 left-0 h-0.5 bg-[#dc2626] transition-all duration-300 ${isHome ? "w-full" : "w-0 group-hover:w-full"}`} />
               </Link>
               {coreCategories.map((cat) => (
@@ -267,11 +268,16 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                 </div>
 
                 <div className="flex-1 overflow-y-auto">
-                  {/* "Browse" section label — matches landing page section header pattern */}
-                  <div className="flex items-center gap-3 px-6 pt-5 pb-3">
-                    <span className="h-0.5 w-8 bg-[#dc2626]" />
-                    <span className="text-[10px] font-bold font-serif uppercase tracking-[0.25em] text-[#dc2626]">Browse</span>
+                  <div className="flex items-center justify-between px-6 pt-5 pb-1">
+                    <div className="flex items-center gap-3">
+                      <span className="h-0.5 w-8 bg-[#dc2626]" />
+                      <span className="text-[10px] font-bold font-serif uppercase tracking-[0.25em] text-[#dc2626]">Browse</span>
+                    </div>
+                    <span className="text-[9px] font-serif text-[#dc2626]/50 tabular-nums" suppressHydrationWarning>
+                      {new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' })}
+                    </span>
                   </div>
+                  <div className="mx-6 mb-3 h-px bg-[#dc2626]/10" />
 
                   <nav>
                     {/* Home / Latest News — filled square marker, no number */}
@@ -282,7 +288,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                     >
                       <span className="w-2 h-2 bg-[#dc2626] shrink-0" />
                       <span className="inline-block text-[14px] font-bold font-serif text-gray-900 group-hover:text-[#dc2626] group-hover:translate-x-1 transition-all duration-200">
-                        {HOME_CATEGORY_LABEL}
+                        {homeLabel}
                       </span>
                     </Link>
 
@@ -326,8 +332,11 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                   </nav>
                 </div>
 
-                {/* Footer — bg-[#fee2e2] matches JejuQQFooter */}
-                <div className="flex-shrink-0 bg-[#fee2e2] border-t border-[#dc2626]/10 p-5">
+                {/* Footer */}
+                <div className="flex-shrink-0 bg-[#fee2e2] border-t-2 border-[#dc2626]/20 p-5">
+                  <p className="text-center text-[9px] text-[#dc2626]/50 font-bold font-serif uppercase tracking-[0.25em] mb-3" suppressHydrationWarning>
+                    {new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long' })} 刊
+                  </p>
                   <button
                     type="button"
                     onClick={() => { setIsSidebarOpen(false); onOpenNewsletter?.(); }}

@@ -121,7 +121,7 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
             href="/"
             className={`whitespace-nowrap shrink-0 transition-colors ${isHome ? "text-sky-600 underline underline-offset-4" : "text-sky-950 hover:text-sky-600"}`}
           >
-            Home
+            {HOME_CATEGORY_LABEL}
           </Link>
           {categories.map((cat) => (
             <Link
