@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Pencil, Trash2, ChevronLeft, ChevronRight, Plus, FileText, AlertCircle, ChevronDown } from "lucide-react";
@@ -20,6 +20,11 @@ interface Article {
     user: { firstName: string; lastName: string };
 }
 
+interface ArticleGroup {
+    primary: Article;
+    siblings: Article[];
+}
+
 const DOMAIN_ORDER = ["jejutime.com", "voicejeju.com", "jejuqq.com", "jejujapan.com"];
 
 const DOMAIN_INFO: Record<string, { lang: string; color: string }> = {
@@ -34,7 +39,7 @@ function formatDate(dateStr: string) {
 }
 
 export default function ModeratorArticlesPage() {
-    const [articles, setArticles] = useState<Article[]>([]);
+    const [groups, setGroups] = useState<ArticleGroup[]>([]);
     const [total, setTotal] = useState(0);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -49,38 +54,20 @@ export default function ModeratorArticlesPage() {
     const fetchArticles = useCallback(async () => {
         setLoading(true);
         try {
-            const params = new URLSearchParams({ page: String(page) });
-            const res = await fetch(`/api/admin/moderator/articles?${params}`, { cache: "no-store" });
+            const res = await fetch(`/api/admin/moderator/articles?page=${page}`, { cache: "no-store" });
             if (!res.ok) throw new Error();
             const data = await res.json();
-            setArticles(data.articles ?? []);
+            setGroups(data.groups ?? []);
             setTotal(data.total ?? 0);
             setTotalPages(data.totalPages ?? 1);
         } catch {
-            setArticles([]);
+            setGroups([]);
         } finally {
             setLoading(false);
         }
     }, [page]);
 
     useEffect(() => { fetchArticles(); }, [fetchArticles]);
-
-    // Group articles by publishDate (all 4 in a batch share the same timestamp)
-    const groups = useMemo(() => {
-        const map = new Map<string, Article[]>();
-        for (const article of articles) {
-            const key = article.publishDate ?? article.createdAt;
-            if (!map.has(key)) map.set(key, []);
-            map.get(key)!.push(article);
-        }
-        return Array.from(map.values()).map((group) =>
-            [...group].sort(
-                (a, b) =>
-                    DOMAIN_ORDER.indexOf(a.tenant?.domain ?? "") -
-                    DOMAIN_ORDER.indexOf(b.tenant?.domain ?? "")
-            )
-        );
-    }, [articles]);
 
     async function handleRepublish(groupKey: string, allIds: string[]) {
         setPublishingKey(groupKey);
@@ -177,21 +164,25 @@ export default function ModeratorArticlesPage() {
                 </motion.div>
             ) : (
                 <div className="space-y-3">
-                    {groups.map((group) => {
-                        const primary = group.find((a) => a.tenant?.domain === "jejutime.com") ?? group[0];
-                        const translations = group.filter((a) => a.id !== primary.id);
-                        const groupKey = primary.publishDate ?? primary.createdAt;
+                    {groups.map(({ primary, siblings }) => {
+                        const groupKey = primary.id;
                         const isExpanded = expandedKey === groupKey;
-                        const info = DOMAIN_INFO[primary.tenant?.domain ?? ""] ?? { lang: "EN", color: "bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400" };
+                        const allIds = [primary.id, ...siblings.map((s) => s.id)];
+                        const info = DOMAIN_INFO["jejutime.com"];
+                        const sortedSiblings = [...siblings].sort(
+                            (a, b) =>
+                                DOMAIN_ORDER.indexOf(a.tenant?.domain ?? "") -
+                                DOMAIN_ORDER.indexOf(b.tenant?.domain ?? "")
+                        );
 
                         return (
                             <motion.div key={groupKey} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
                                 className="bg-white dark:bg-zinc-800 rounded-3xl border border-gray-100 dark:border-zinc-700 shadow-sm overflow-hidden">
 
-                                {/* Primary row */}
+                                {/* Primary row — English (jejutime.com) */}
                                 <div
                                     className="flex items-center gap-4 px-5 py-4 cursor-pointer hover:bg-gray-50/70 dark:hover:bg-zinc-700/40 transition-colors"
-                                    onClick={() => setExpandedKey(isExpanded ? null : groupKey)}>
+                                    onClick={() => siblings.length > 0 && setExpandedKey(isExpanded ? null : groupKey)}>
 
                                     {/* Thumbnail */}
                                     <div className="shrink-0 w-12 h-12 rounded-xl overflow-hidden bg-gray-100 dark:bg-zinc-700">
@@ -220,9 +211,9 @@ export default function ModeratorArticlesPage() {
                                             <span className="text-[10px] text-gray-400 dark:text-zinc-500 font-medium">
                                                 {primary.publishDate ? formatDate(primary.publishDate) : formatDate(primary.createdAt)}
                                             </span>
-                                            {translations.length > 0 && (
+                                            {siblings.length > 0 && (
                                                 <span className="text-[10px] text-gray-400 dark:text-zinc-500 font-medium">
-                                                    +{translations.length} translations
+                                                    +{siblings.length} translation{siblings.length !== 1 ? "s" : ""}
                                                 </span>
                                             )}
                                         </div>
@@ -246,14 +237,14 @@ export default function ModeratorArticlesPage() {
                                             <>
                                                 {primary.status === "published" ? (
                                                     <button
-                                                        onClick={() => handleUnpublish(groupKey, group.map((a) => a.id))}
+                                                        onClick={() => handleUnpublish(groupKey, allIds)}
                                                         disabled={unpublishingKey === groupKey}
                                                         className="h-8 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-40 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 hover:bg-amber-100 dark:hover:bg-amber-500/20">
                                                         {unpublishingKey === groupKey ? "…" : "Unpublish"}
                                                     </button>
                                                 ) : (
                                                     <button
-                                                        onClick={() => handleRepublish(groupKey, group.map((a) => a.id))}
+                                                        onClick={() => handleRepublish(groupKey, allIds)}
                                                         disabled={publishingKey === groupKey}
                                                         className="h-8 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-40 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-500/10 hover:bg-green-100 dark:hover:bg-green-500/20">
                                                         {publishingKey === groupKey ? "…" : "Publish"}
@@ -272,42 +263,38 @@ export default function ModeratorArticlesPage() {
                                     </div>
 
                                     {/* Expand chevron */}
-                                    {translations.length > 0 && (
+                                    {siblings.length > 0 && (
                                         <ChevronDown className={`w-4 h-4 text-gray-400 dark:text-zinc-500 shrink-0 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
                                     )}
                                 </div>
 
-                                {/* Translation rows (dropdown) */}
+                                {/* Sibling rows (dropdown) — voicejeju, jejuqq, jejujapan */}
                                 <AnimatePresence initial={false}>
-                                    {isExpanded && translations.length > 0 && (
+                                    {isExpanded && sortedSiblings.length > 0 && (
                                         <motion.div
-                                            key="translations"
+                                            key="siblings"
                                             initial={{ height: 0, opacity: 0 }}
                                             animate={{ height: "auto", opacity: 1 }}
                                             exit={{ height: 0, opacity: 0 }}
                                             transition={{ duration: 0.2, ease: "easeInOut" }}
                                             className="overflow-hidden">
-                                            {translations.map((article, idx) => {
+                                            {sortedSiblings.map((article, idx) => {
                                                 const tInfo = DOMAIN_INFO[article.tenant?.domain ?? ""] ?? { lang: "??", color: "bg-gray-100 text-gray-500" };
                                                 return (
                                                     <div key={article.id}
-                                                        className={`flex items-center gap-3 pl-5 pr-5 py-3 bg-gray-50/50 dark:bg-zinc-900/30 ${idx < translations.length - 1 ? "border-b border-gray-100 dark:border-zinc-700/50" : ""}`}>
+                                                        className={`flex items-center gap-3 pl-5 pr-5 py-3 bg-gray-50/50 dark:bg-zinc-900/30 ${idx < sortedSiblings.length - 1 ? "border-b border-gray-100 dark:border-zinc-700/50" : ""}`}>
 
-                                                        {/* Spacer aligns with thumbnail width + gap */}
                                                         <div className="shrink-0 w-12" />
 
-                                                        {/* Lang badge */}
                                                         <span className={`shrink-0 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${tInfo.color}`}>
                                                             {tInfo.lang}
                                                         </span>
 
-                                                        {/* Domain + title */}
                                                         <div className="flex-1 min-w-0">
                                                             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-zinc-500 mb-0.5">{article.tenant?.domain}</p>
                                                             <p className="text-sm font-medium text-gray-700 dark:text-zinc-300 truncate">{article.title}</p>
                                                         </div>
 
-                                                        {/* Actions */}
                                                         <div className="shrink-0 flex items-center gap-1">
                                                             {confirmDeleteId === article.id ? (
                                                                 <div className="flex items-center gap-1.5">
@@ -335,7 +322,6 @@ export default function ModeratorArticlesPage() {
                                                             )}
                                                         </div>
 
-                                                        {/* Spacer matches chevron width on primary row */}
                                                         <div className="w-4 shrink-0" />
                                                     </div>
                                                 );

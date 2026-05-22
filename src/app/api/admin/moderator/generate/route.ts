@@ -146,6 +146,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Shared publishDate so all 4 articles group together in the articles list
+    const publishDate = new Date();
+
     // Process all 4 domains sequentially so the AI service isn't overwhelmed
     const results = [];
     for (const { domain, language, flag } of SITE_CONFIG) {
@@ -176,7 +179,6 @@ export async function POST(req: NextRequest) {
       const translated = await translate(baseUrl, title, content, language);
 
       // 4. Save article as pending — always attributed to the logged-in moderator
-      const publishDate = new Date();
       const slug = await generateUniqueArticleSlug(prisma, translated.title, publishDate);
 
       const article = await prisma.contentArticle.create({
