@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/db";
+import { verifyAdminJwt, ADMIN_JWT_COOKIE } from "@/lib/auth";
 import { uploadToS3 } from "@/lib/s3";
 import { generateUniqueArticleSlug } from "@/lib/slug";
 import { TENANT_CATEGORIES } from "@/config/categories";
@@ -119,6 +120,13 @@ ${content}`;
 
 export async function POST(req: NextRequest) {
   try {
+    const token = req.cookies.get(ADMIN_JWT_COOKIE)?.value;
+    const payload = token ? await verifyAdminJwt(token) : null;
+    if (!payload || payload.role !== "moderator") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const moderatorUserId = payload.sub;
+
     const { title, content, categoryName, s3ImageUrl } = await req.json();
 
     if (!title?.trim() || !content?.trim() || !categoryName?.trim()) {
@@ -148,9 +156,11 @@ export async function POST(req: NextRequest) {
       });
       if (!tenant) throw new Error(`Tenant not found for domain: ${domain}`);
 
-      // 2. Resolve category for this domain
+      // 2. Resolve category for this domain using index-based mapping from jejutime.com
       const localCategoryName = getCategoryNameForDomain(categoryName, domain);
       if (!localCategoryName) throw new Error(`Category "${categoryName}" not mapped for ${domain}`);
+
+      console.log(`[moderator/generate] 🗂 Category mapping | domain: ${domain} | EN: "${categoryName}" → local: "${localCategoryName}"`);
 
       const category = await prisma.category.findFirst({
         where: {
@@ -159,26 +169,20 @@ export async function POST(req: NextRequest) {
         },
         select: { id: true },
       });
-      if (!category) throw new Error(`Category not found in DB for ${domain}: ${localCategoryName}`);
+      if (!category) throw new Error(`Category not found in DB for ${domain}: "${localCategoryName}"`);
 
       // 3. Translate — pause between calls to avoid AI service rate limits
       if (language !== "English") await sleep(1500);
       const translated = await translate(baseUrl, title, content, language);
 
-      // 4. Find a user for this tenant — prefer moderator, fall back to any user
-      const user =
-        (await prisma.user.findFirst({ where: { tenantId: tenant.id, role: "moderator" }, select: { id: true } })) ??
-        (await prisma.user.findFirst({ where: { tenantId: tenant.id }, select: { id: true } }));
-      if (!user) throw new Error(`No user found for tenant: ${domain}`);
-
-      // 5. Save article as pending
+      // 4. Save article as pending — always attributed to the logged-in moderator
       const publishDate = new Date();
       const slug = await generateUniqueArticleSlug(prisma, translated.title, publishDate);
 
       const article = await prisma.contentArticle.create({
         data: {
           tenantId: tenant.id,
-          usersId: user.id,
+          usersId: moderatorUserId,
           categoryId: category.id,
           title: translated.title,
           slug,
@@ -189,6 +193,10 @@ export async function POST(req: NextRequest) {
           sourceType: "MANUAL",
         },
       });
+
+      console.log(
+        `[moderator/generate] ✅ Stored in content_articles | id: ${article.id} | domain: ${domain} | language: ${language} | usersId: ${moderatorUserId} | title: "${article.title}" | status: pending`
+      );
 
       results.push({
         domain,

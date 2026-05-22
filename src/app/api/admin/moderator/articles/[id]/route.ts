@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { resolveTenantIdFromRequest } from "@/lib/tenant";
+import { verifyAdminJwt, ADMIN_JWT_COOKIE } from "@/lib/auth";
 import { uploadToS3 } from "@/lib/s3";
 import { generateUniqueArticleSlug } from "@/lib/slug";
 import { randomUUID } from "crypto";
@@ -27,9 +27,9 @@ async function uploadBase64(dataUrl: string): Promise<string> {
   return uploadToS3(buf, `moderator-edit-${Date.now()}-${randomUUID()}.${ext}`, mime);
 }
 
-async function findArticle(id: string, tenantId: string) {
+async function findArticle(id: string, userId: string) {
   return prisma.contentArticle.findFirst({
-    where: { id, tenantId, sourceType: "MANUAL", user: { role: "moderator" } },
+    where: { id, usersId: userId, sourceType: "MANUAL" },
   });
 }
 
@@ -51,11 +51,13 @@ export async function GET(
 ) {
   const { id } = await props.params;
   try {
-    const tenantId = await resolveTenantIdFromRequest(req);
-    if (!tenantId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const token = req.cookies.get(ADMIN_JWT_COOKIE)?.value;
+    const payload = token ? await verifyAdminJwt(token) : null;
+    if (!payload || payload.role !== "moderator") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = payload.sub;
 
     const article = await prisma.contentArticle.findFirst({
-      where: { id, tenantId, sourceType: "MANUAL", user: { role: "moderator" } },
+      where: { id, usersId: userId, sourceType: "MANUAL" },
       include: { category: { select: { id: true, categoryName: true } } },
     });
     if (!article) return NextResponse.json({ error: "Article not found" }, { status: 404 });
@@ -74,17 +76,19 @@ export async function PATCH(
 ) {
   const { id } = await props.params;
   try {
-    const tenantId = await resolveTenantIdFromRequest(req);
-    if (!tenantId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const token = req.cookies.get(ADMIN_JWT_COOKIE)?.value;
+    const payload = token ? await verifyAdminJwt(token) : null;
+    if (!payload || payload.role !== "moderator") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = payload.sub;
 
-    const existing = await findArticle(id, tenantId);
+    const existing = await findArticle(id, userId);
     if (!existing) return NextResponse.json({ error: "Article not found" }, { status: 404 });
 
     const body = await req.json();
     const { title, content, categoryId, imageUrl, status } = body;
 
     if (categoryId) {
-      const cat = await prisma.category.findFirst({ where: { id: categoryId, tenantId } });
+      const cat = await prisma.category.findFirst({ where: { id: categoryId, tenantId: existing.tenantId } });
       if (!cat) return NextResponse.json({ error: "Category not found" }, { status: 400 });
     }
 
@@ -124,7 +128,7 @@ export async function PATCH(
       include: { category: { select: { id: true, categoryName: true } } },
     });
 
-    await triggerRevalidation(tenantId, id, updated.slug);
+    await triggerRevalidation(existing.tenantId, id, updated.slug);
 
     return NextResponse.json(updated);
   } catch (error: any) {
@@ -140,10 +144,12 @@ export async function DELETE(
 ) {
   const { id } = await props.params;
   try {
-    const tenantId = await resolveTenantIdFromRequest(req);
-    if (!tenantId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const token = req.cookies.get(ADMIN_JWT_COOKIE)?.value;
+    const payload = token ? await verifyAdminJwt(token) : null;
+    if (!payload || payload.role !== "moderator") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = payload.sub;
 
-    const existing = await findArticle(id, tenantId);
+    const existing = await findArticle(id, userId);
     if (!existing) return NextResponse.json({ error: "Article not found" }, { status: 404 });
 
     await prisma.$transaction(async (tx) => {
@@ -160,7 +166,7 @@ export async function DELETE(
       await tx.contentArticle.delete({ where: { id } });
     });
 
-    await triggerRevalidation(tenantId, id, existing.slug);
+    await triggerRevalidation(existing.tenantId, id, existing.slug);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

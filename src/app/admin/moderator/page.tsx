@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { X, Loader2, CheckCircle2, ArrowRight, RotateCcw, Globe, Upload } from "lucide-react";
+import { X, Loader2, CheckCircle2, ArrowRight, RotateCcw, Globe, Upload, ChevronDown, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 type PageState = "form" | "generating" | "preview" | "published";
@@ -49,6 +49,8 @@ export default function ModeratorPage() {
     const [selectedCategory, setSelectedCategory] = useState("");
     const [categoryName, setCategoryName] = useState("");
     const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+    const [catOpen, setCatOpen] = useState(false);
+    const catRef = useRef<HTMLDivElement>(null);
     const [fieldErrors, setFieldErrors] = useState<{ title?: string; topic?: string; category?: string }>({});
 
     useEffect(() => {
@@ -57,6 +59,16 @@ export default function ModeratorPage() {
             .then((data) => setCategories(Array.isArray(data) ? data : []))
             .catch(() => {});
     }, []);
+
+    useEffect(() => {
+        function onClickOutside(e: MouseEvent) {
+            if (catRef.current && !catRef.current.contains(e.target as Node)) {
+                setCatOpen(false);
+            }
+        }
+        if (catOpen) document.addEventListener("mousedown", onClickOutside);
+        return () => document.removeEventListener("mousedown", onClickOutside);
+    }, [catOpen]);
 
     function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
         if (e.target.files?.[0]) setImageFile(e.target.files[0]);
@@ -101,12 +113,15 @@ export default function ModeratorPage() {
         setIsPublishing(true);
         setPublishError(null);
         try {
-            const results = await Promise.all(
-                siteArticles.map((a) =>
-                    fetch(`/api/admin/generatedArticles/${a.id}/publish`, { method: "POST" })
-                )
-            );
-            if (results.find((r) => !r.ok)) throw new Error("One or more articles failed to publish.");
+            const res = await fetch("/api/admin/moderator/publish", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ articleIds: siteArticles.map((a) => a.id) }),
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.error || "Publish failed.");
+            }
             setPageState("published");
         } catch (err: any) {
             setPublishError(err.message || "Publish failed. Please try again.");

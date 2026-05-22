@@ -52,8 +52,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid login credentials" }, { status: 401 });
     }
 
-    // Moderators: use current domain's tenantId so categories/articles scope to the right site
-    const jwtTenantId = user.role === "moderator" ? tenantId : user.tenantId;
+    const jwtTenantId = user.tenantId;
 
     const token = await signAdminJwt({
       sub: user.id,

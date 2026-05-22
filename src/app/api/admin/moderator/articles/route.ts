@@ -1,24 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { resolveTenantIdFromRequest } from "@/lib/tenant";
+import { verifyAdminJwt, ADMIN_JWT_COOKIE } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
-    const tenantId = await resolveTenantIdFromRequest(request);
-    if (!tenantId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const token = request.cookies.get(ADMIN_JWT_COOKIE)?.value;
+    const payload = token ? await verifyAdminJwt(token) : null;
+    if (!payload || payload.role !== "moderator") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userId = payload.sub;
 
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status") || undefined;
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
     const limit = 10;
     const skip = (page - 1) * limit;
 
-    const base = { tenantId, sourceType: "MANUAL" as const, user: { role: "moderator" } };
-    const where = { ...base, ...(status ? { status } : {}) };
+    const where = { usersId: userId, sourceType: "MANUAL" as const };
 
-    const [articles, total, pendingCount, publishedCount] = await Promise.all([
+    const [articles, total] = await Promise.all([
       prisma.contentArticle.findMany({
         where,
         select: {
@@ -29,6 +32,8 @@ export async function GET(request: NextRequest) {
           imageUrl: true,
           publishDate: true,
           createdAt: true,
+          tenantId: true,
+          tenant: { select: { domain: true } },
           category: { select: { id: true, categoryName: true } },
           user: { select: { firstName: true, lastName: true } },
         },
@@ -37,8 +42,6 @@ export async function GET(request: NextRequest) {
         take: limit,
       }),
       prisma.contentArticle.count({ where }),
-      prisma.contentArticle.count({ where: { ...base, status: "pending" } }),
-      prisma.contentArticle.count({ where: { ...base, status: "published" } }),
     ]);
 
     return NextResponse.json({
@@ -46,7 +49,6 @@ export async function GET(request: NextRequest) {
       total,
       page,
       totalPages: Math.ceil(total / limit),
-      counts: { pending: pendingCount, published: publishedCount },
     });
   } catch (error) {
     console.error("[moderator/articles GET] Error:", error);
