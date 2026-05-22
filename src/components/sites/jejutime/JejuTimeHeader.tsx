@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { Search, Bell, Menu, ChevronDown, User, Loader2, X, Mail, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Menu, ChevronDown, User, X, Mail, ChevronLeft, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useRef } from "react";
 import { articlesApi } from "@/lib/api";
 import { getCoreCategories, HOME_CATEGORY_LABEL, normalizeCategoryKey } from "@/config/categories";
-import type { Article } from "@/lib/types";
 import dynamic from "next/dynamic";
+import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
+import { SearchDropdown } from "@/components/search/SearchDropdown";
 
 const JejuTimeSidebar = dynamic(() => import("./JejuTimeSidebar"), { ssr: false });
 
@@ -24,15 +25,18 @@ function categoryHref(categoryName: string) {
 
 export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
-  const [suggestions, setSuggestions] = useState<Article[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const activeCategory = searchParams.get("category") ?? "";
+  const isHome = pathname === "/" && !activeCategory;
+  const isCatActive = (cat: string) => activeCategory.toLowerCase() === cat.toLowerCase();
   const navRef = useRef<HTMLDivElement>(null);
+  const { suggestions, isSearching, showSuggestions, hideSuggestions } = useSearchSuggestions(query);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
 
@@ -104,35 +108,19 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
     setQuery(q);
   }, [searchParams]);
 
-  // Search Suggestions Logic
   useEffect(() => {
-    if (!query.trim()) {
-      setSuggestions([]);
-      setShowSuggestions(false);
-      return;
-    }
-
-    const timer = setTimeout(async () => {
-      setIsSearching(true);
-      setShowSuggestions(true);
-      try {
-        const results = await articlesApi.getArticles({ limit: 5, search: query });
-        setSuggestions(results);
-      } catch (err) {
-        console.error("Suggestions error:", err);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [query]);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setIsSidebarOpen(false); setIsMobileSearchOpen(false); }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
       router.push(`/search?search=${encodeURIComponent(query.trim())}`);
-      setShowSuggestions(false);
+      hideSuggestions();
     }
   };
 
@@ -150,8 +138,10 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
             <button
               type="button"
               onClick={() => setIsSidebarOpen(true)}
-              aria-label="Open menu"
-              className="text-blue-900 hover:scale-110 transition-transform"
+              aria-label="Open navigation menu"
+              aria-expanded={isSidebarOpen}
+              aria-haspopup="dialog"
+              className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-blue-900 hover:scale-110 transition-transform"
             >
               <Menu size={22} />
             </button>
@@ -172,22 +162,32 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
           {/* Center: Search (Desktop) / Search Toggle (Mobile) */}
           <div className={`flex-1 flex justify-center items-center ${isMobileSearchOpen ? 'flex' : 'hidden md:flex'}`}>
             <form onSubmit={handleSearch} className="relative w-full max-w-[280px] lg:max-w-[320px]">
-              <input 
+              <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
+                onBlur={hideSuggestions}
                 placeholder="SEARCH..."
                 className="bg-slate-50 border border-slate-200 rounded-full px-8 py-2 text-[10px] w-full outline-none focus:bg-white focus:border-blue-400/50 transition-all text-slate-800 placeholder:text-slate-500 font-bold uppercase tracking-widest"
               />
               <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
               {isMobileSearchOpen && (
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setIsMobileSearchOpen(false)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 md:hidden"
                 >
                   <X size={14} className="text-slate-400" />
                 </button>
+              )}
+              {showSuggestions && (
+                <SearchDropdown
+                  query={query}
+                  suggestions={suggestions}
+                  isSearching={isSearching}
+                  theme="jejutime"
+                  onSelect={hideSuggestions}
+                />
               )}
             </form>
           </div>
@@ -195,10 +195,10 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
           {/* Right: Actions (Desktop) / Search Icon (Mobile) */}
           <div className="flex items-center space-x-4 justify-end">
             {!isMobileSearchOpen && (
-              <button 
+              <button
                 onClick={() => setIsMobileSearchOpen(true)}
-                className="md:hidden text-blue-900 p-2"
-                aria-label="Search"
+                className="md:hidden text-blue-900 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                aria-label="Open search"
               >
                 <Search size={22} />
               </button>
@@ -239,11 +239,19 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
                ref={navRef}
                className="flex items-center space-x-8 lg:space-x-10 text-[10px] lg:text-[11px] font-baskerville font-bold uppercase tracking-[0.15em] lg:tracking-[0.2em] text-white overflow-x-auto no-scrollbar scroll-smooth whitespace-nowrap py-1 flex-1 scrollbar-hide"
              >
-                {coreCategories.map((cat) => (
-                  <Link 
-                    key={cat} 
+                <Link
+                  href="/"
+                  className={`transition-colors whitespace-nowrap ${isHome ? "text-blue-400 font-extrabold" : "hover:text-blue-400"}`}
+                  aria-current={isHome ? "page" : undefined}
+                >
+                  {HOME_CATEGORY_LABEL}
+                </Link>
+               {coreCategories.map((cat) => (
+                  <Link
+                    key={cat}
                     href={`/search?category=${encodeURIComponent(cat)}`}
-                    className="hover:text-blue-400 transition-colors"
+                    className={`transition-colors whitespace-nowrap ${isCatActive(cat) ? "text-blue-400 font-extrabold" : "hover:text-blue-400"}`}
+                    aria-current={isCatActive(cat) ? "page" : undefined}
                   >
                     {cat}
                   </Link>

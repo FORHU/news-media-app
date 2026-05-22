@@ -36,6 +36,8 @@ export function TrendingSidebar({ articles, domain }: TrendingSidebarProps) {
 
   const isSkyBluePrime = domain.includes('skyblueprime');
   const isVoiceJeju = domain.includes('voicejeju');
+  const isJejuJapan = domain.includes('jejujapan');
+  const isJejuQQ = domain.includes('jejuqq');
 
   if (isSkyBluePrime) {
     return (
@@ -70,6 +72,80 @@ export function TrendingSidebar({ articles, domain }: TrendingSidebarProps) {
           </div>
         </div>
       </aside>
+    );
+  }
+
+  if (isJejuQQ) {
+    return (
+      <div id="trending-stories" className="bg-gray-50 border-2 border-[#dc2626] p-4">
+        <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+          <h2 className="text-[14px] font-serif font-bold uppercase tracking-tight flex items-center gap-2">
+            Trending
+            <span className="w-2 h-2 bg-[#dc2626]" />
+          </h2>
+        </div>
+        <div className="space-y-4">
+          {sortedArticles.map((article, index) => (
+            <ArticleLink
+              key={article.id}
+              articleIdentifier={article.slug ?? article.id}
+              href={`/article/${article.slug ?? article.id}`}
+              className="group cursor-pointer flex gap-3 items-start"
+            >
+              <span className="text-[18px] font-serif font-bold text-[#dc2626]/50 group-hover:text-[#dc2626] transition-colors tabular-nums shrink-0 leading-none pt-0.5">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <div className="flex-1 min-w-0">
+                {normalizeCategoryName(article.category?.categoryName) && (
+                  <span className="block text-[9px] font-bold font-serif uppercase tracking-[0.2em] text-[#dc2626] mb-0.5">
+                    {normalizeCategoryName(article.category?.categoryName)}
+                  </span>
+                )}
+                <h3 className="text-[13px] font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-[#dc2626] transition-colors">
+                  {article.title}
+                </h3>
+              </div>
+            </ArticleLink>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (isJejuJapan) {
+    return (
+      <div id="trending-stories">
+        <div className="bg-[#bc002d] px-4 py-2.5">
+          <h2 className="text-[10px] font-black uppercase tracking-widest text-white">トレンド記事</h2>
+        </div>
+        <div className="flex flex-col divide-y divide-gray-100">
+          {sortedArticles.map((article, index) => (
+            <ArticleLink
+              key={article.id}
+              articleIdentifier={article.slug ?? article.id}
+              href={`/article/${article.slug ?? article.id}`}
+              className="group cursor-pointer flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex-shrink-0 w-6 h-6 bg-[#bc002d] text-white flex items-center justify-center font-black text-[10px] mt-0.5">
+                {index + 1}
+              </div>
+              <div className="flex-1 min-w-0">
+                {normalizeCategoryName(article.category?.categoryName) && (
+                  <span className="block text-[9px] font-bold uppercase tracking-widest text-[#bc002d] mb-0.5">
+                    {normalizeCategoryName(article.category?.categoryName)}
+                  </span>
+                )}
+                <h3 className="text-[12px] font-bold text-gray-900 leading-tight line-clamp-2 group-hover:text-[#bc002d] transition-colors">
+                  {article.title}
+                </h3>
+                <span className="text-[10px] text-gray-400 mt-1 block">
+                  {formatDate(article.createdAt)}
+                </span>
+              </div>
+            </ArticleLink>
+          ))}
+        </div>
+      </div>
     );
   }
 

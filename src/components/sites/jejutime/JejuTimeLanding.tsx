@@ -20,7 +20,7 @@ const JejuTimeTrendingProducts = dynamic(() => import("./JejuTimeTrendingProduct
 });
 import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
-import { Suspense } from "react";
+import { Suspense, useRef } from "react";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
@@ -38,6 +38,7 @@ interface Props {
 export default function JejuTimeLanding({ tenantId, articles, banners }: Props) {
    // ── Deduplication Logic ──
    const sortedArticles = [...articles].sort((a, b) => {
+      if (!!b.isHeadline !== !!a.isHeadline) return b.isHeadline ? 1 : -1;
       if ((b.trendingScore || 0) !== (a.trendingScore || 0)) {
          return (b.trendingScore || 0) - (a.trendingScore || 0);
       }
@@ -78,7 +79,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
 
    // 7. Latest stories takes everything else
    const allLatestArticles = sortedArticles.filter(
-      a => !heroIds.has(a.id) && !sidebarPicksIds.has(a.id) && !featuredIds.has(a.id) && !sidebarExtraIds.has(a.id) && !carouselIds.has(a.id)
+      a => !heroIds.has(a.id) && !trendingIds.has(a.id) && !sidebarPicksIds.has(a.id) && !featuredIds.has(a.id) && !sidebarExtraIds.has(a.id) && !carouselIds.has(a.id)
    );
 
 
@@ -125,6 +126,22 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
    const showSkyscrapers = adKeys["160x600"] && adKeys["160x600"].length > 0;
    const midFeedConfig = tenantConfig.midFeed;
 
+   const carouselRef = useRef<HTMLDivElement>(null);
+   const scrollCarousel = (direction: "left" | "right") => {
+      carouselRef.current?.scrollBy({ left: direction === "left" ? -220 : 220, behavior: "smooth" });
+   };
+
+   if (articles.length === 0) {
+      return (
+         <div className="min-h-[60vh] bg-[#F8FAFC] flex items-center justify-center px-4">
+            <div className="text-center">
+               <p className="text-xl font-bold text-[#2D3748] mb-2">No stories available yet.</p>
+               <p className="text-sm text-slate-500 mt-1">Check back soon for the latest from JejuTime.</p>
+            </div>
+         </div>
+      );
+   }
+
    return (
       <div className="bg-[#F8FAFC] text-[#2D3748] font-roboto selection:bg-blue-100 relative min-h-screen">
          {/* Floating Left Gutter Skyscraper */}
@@ -147,12 +164,16 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
 
          <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-4">
             <AdBanner position="HOME_TOP" initialBanners={banners.top} />
-            <div className="hidden sm:block">
-               <AdsterraBanner bannerKey="aba00b63b5a389e5d2af90b014ec46c7" width={728} height={90} />
-            </div>
-            <div className="block sm:hidden">
-               <AdsterraBanner bannerKey="f43b5973d25d0c609c5967198688e794" width={320} height={50} />
-            </div>
+            {adKeys["728x90"] && (
+               <div className="hidden sm:block">
+                  <AdsterraBanner bannerKey={adKeys["728x90"]} width={728} height={90} />
+               </div>
+            )}
+            {adKeys["320x50"] && (
+               <div className="block sm:hidden">
+                  <AdsterraBanner bannerKey={adKeys["320x50"]} width={320} height={50} />
+               </div>
+            )}
          </div>
 
          <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
@@ -184,7 +205,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                                  {mainArticle.title}
                               </h2>
                               <p className="text-white/80 line-clamp-2 text-sm sm:text-lg font-light leading-relaxed">
-                                 {mainArticle.content}
+                                 {mainArticle.content ? mainArticle.content.replace(/<[^>]*>/g, "").slice(0, 200) : ""}
                               </p>
                            </div>
                         </Link>
@@ -243,7 +264,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                               </div>
                               <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest block mb-3">{article.category?.categoryName || "Latest"}</span>
                               <h4 className="text-xl font-bold mb-3 leading-tight group-hover:text-blue-600 transition-colors line-clamp-2">{article.title}</h4>
-                              <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed font-light">{article.content}</p>
+                              <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed font-light">{article.content ? article.content.replace(/<[^>]*>/g, "") : ""}</p>
                            </Link>
                         </article>
                      ))}
@@ -255,28 +276,31 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                         <div className="flex items-center justify-between mb-6">
                            <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight font-sans">IN FOCUS</h3>
                            <div className="flex gap-2">
-                              <button className="w-8 h-8 flex items-center justify-center border border-slate-200 text-blue-600 hover:bg-blue-50 transition-colors">
+                              <button type="button" onClick={() => scrollCarousel("left")} className="w-8 h-8 flex items-center justify-center border border-slate-200 text-blue-600 hover:bg-blue-50 transition-colors">
                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
                               </button>
-                              <button className="w-8 h-8 flex items-center justify-center border border-slate-200 text-blue-600 hover:bg-blue-50 transition-colors">
+                              <button type="button" onClick={() => scrollCarousel("right")} className="w-8 h-8 flex items-center justify-center border border-slate-200 text-blue-600 hover:bg-blue-50 transition-colors">
                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
                               </button>
                            </div>
                         </div>
-                        <div className="flex gap-[2px] overflow-x-auto snap-x snap-mandatory pb-4 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full">
-                           {carouselArticles.map((article, i) => (
+                        <div ref={carouselRef} className="flex gap-[2px] overflow-x-auto snap-x snap-mandatory pb-4 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full">
+                           {carouselArticles.map((article) => (
                               <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group block relative w-[180px] sm:w-[210px] shrink-0 snap-start">
                                  <div className="relative aspect-[2/3] overflow-hidden bg-slate-900">
                                     <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100" sizes="200px" />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none" />
-
                                  </div>
                                  <div className="absolute bottom-0 left-0 w-full p-4">
                                     <h4 className="text-[15px] font-bold leading-snug text-white mb-2 group-hover:text-blue-300 transition-colors line-clamp-4">{article.title}</h4>
-                                    <div className="flex items-center gap-1.5 text-white/90 text-[13px] font-bold tracking-wider">
-                                       <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-                                       <span>0{(i % 3) + 1}:{(i * 13) % 40 + 10}</span>
-                                    </div>
+                                    {article.youtubeUrl ? (
+                                       <div className="flex items-center gap-1.5 text-white/90 text-[13px] font-bold tracking-wider">
+                                          <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                                          <span>Watch</span>
+                                       </div>
+                                    ) : (
+                                       <span className="text-[10px] font-bold text-blue-300 uppercase tracking-widest">{article.category?.categoryName || "Story"}</span>
+                                    )}
                                  </div>
                               </Link>
                            ))}
@@ -298,7 +322,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                                                 <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 768px) 100vw, 400px" />
                                              </div>
                                              <h4 className="text-xl sm:text-[22px] font-bold leading-tight group-hover:text-blue-600 transition-colors mb-2 text-black tracking-tight">{article.title}</h4>
-                                             <p className="text-gray-800 text-sm sm:text-[15px] line-clamp-3 leading-relaxed font-serif">{article.content}</p>
+                                             <p className="text-gray-800 text-sm sm:text-[15px] line-clamp-3 leading-relaxed font-serif">{article.content ? article.content.replace(/<[^>]*>/g, "") : ""}</p>
                                           </Link>
                                        );
                                     }
@@ -347,7 +371,7 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
                                        <span>5 min read</span>
                                     </div>
                                     <h4 className="text-lg font-bold mb-2 leading-tight group-hover:text-blue-600 transition-colors line-clamp-2">{article.title}</h4>
-                                    <p className="text-slate-600 text-xs line-clamp-2 leading-relaxed font-light">{article.content}</p>
+                                    <p className="text-slate-600 text-xs line-clamp-2 leading-relaxed font-light">{article.content ? article.content.replace(/<[^>]*>/g, "") : ""}</p>
                                  </div>
                               </Link>
                            </article>

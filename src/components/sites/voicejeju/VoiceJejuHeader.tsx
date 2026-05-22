@@ -7,10 +7,12 @@ import { Search, Menu, User, X, ChevronDown, ChevronLeft, ChevronRight, Globe, S
 import { useQuery } from "@tanstack/react-query";
 import { useRef } from "react";
 import { articlesApi } from "@/lib/api";
-import { getCoreCategories, HOME_CATEGORY_LABEL, normalizeCategoryKey } from "@/config/categories";
+import { getCoreCategories, HOME_CATEGORY_LABEL, getHomeCategoryLabel, normalizeCategoryKey } from "@/config/categories";
 import type { Article } from "@/lib/types";
 import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
+import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
+import { SearchDropdown } from "@/components/search/SearchDropdown";
 
 const VoiceJejuSidebar = dynamic<{
   isOpen: boolean;
@@ -31,11 +33,17 @@ function categoryHref(categoryName: string) {
 
 export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  const activeCategory = searchParams.get("category") ?? "";
+  const isHome = pathname === "/" && !activeCategory;
+  const isCatActive = (cat: string) => activeCategory.toLowerCase() === cat.toLowerCase();
   const navRef = useRef<HTMLDivElement>(null);
+  const { suggestions, isSearching, showSuggestions, hideSuggestions } = useSearchSuggestions(query);
   const [weather, setWeather] = useState({ temp: "18°C", condition: "Clear" });
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
@@ -127,8 +135,10 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
     }, new Map<string, string>())
   ).map(([, name]) => name);
 
+  const homeLabel = getHomeCategoryLabel("voicejeju.com");
+
   const categoryLinks = [
-    { name: HOME_CATEGORY_LABEL, link: "/" },
+    { name: homeLabel, link: "/" },
     ...coreCategories.map((categoryName) => ({
       name: categoryName,
       link: categoryHref(categoryName),
@@ -142,11 +152,20 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
     year: 'numeric'
   });
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setIsSidebarOpen(false); setIsSearchOpen(false); }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
       router.push(`/search?search=${encodeURIComponent(query.trim())}`);
       setIsSearchOpen(false);
+      hideSuggestions();
     }
   };
 
@@ -174,10 +193,12 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
         <div className="border-b border-black py-2 lg:py-3">
           <div className="max-w-[1440px] mx-auto px-4 lg:px-6 flex items-center justify-between">
             <div className="flex items-center w-1/3">
-              <button 
+              <button
                 onClick={() => setIsSidebarOpen(true)}
-                className="p-2 -ml-2 hover:bg-gray-50 rounded-full transition-colors"
-                aria-label="Open sidebar menu"
+                className="p-2 -ml-2 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-50 rounded-full transition-colors"
+                aria-label="Open navigation menu"
+                aria-expanded={isSidebarOpen}
+                aria-haspopup="dialog"
               >
                 <Menu size={24} strokeWidth={1.5} />
               </button>
@@ -189,23 +210,60 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
               </Link>
             </div>
 
-            <div className="flex items-center justify-end gap-2 lg:gap-4 w-1/3">
-              <button 
-                onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className="p-2 hover:bg-gray-50 rounded-full transition-colors"
-                aria-label={isSearchOpen ? "Close search" : "Open search"}
-              >
-                <Search size={20} strokeWidth={1.5} />
-              </button>
-              <Link href="/admin/dashboard" className="p-2 hover:bg-gray-50 rounded-full transition-colors" aria-label="Admin Dashboard">
-                <User size={20} strokeWidth={1.5} />
-              </Link>
-              <button 
-                onClick={onOpenNewsletter}
-                className="hidden sm:block px-5 py-2 border border-black text-[10px] font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all rounded-sm"
-              >
-                Subscribe
-              </button>
+            <div className={`flex items-center justify-end gap-2 lg:gap-4 transition-all duration-200 ${isSearchOpen ? 'flex-1' : 'w-1/3'}`}>
+              {isSearchOpen ? (
+                <div className="relative w-full">
+                  <form onSubmit={handleSearch} className="flex items-center gap-3 border-b-2 border-black pb-1">
+                    <Search size={16} strokeWidth={1.5} className="text-gray-400 flex-shrink-0" />
+                    <input
+                      autoFocus
+                      type="text"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      onBlur={hideSuggestions}
+                      placeholder="Search stories..."
+                      className="flex-1 bg-transparent border-none outline-none text-base font-normal min-w-0"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => { setIsSearchOpen(false); setQuery(""); hideSuggestions(); }}
+                      className="p-1 hover:bg-gray-50 rounded-full transition-colors flex-shrink-0"
+                      aria-label="Close search"
+                    >
+                      <X size={16} />
+                    </button>
+                  </form>
+                  {showSuggestions && (
+                    <SearchDropdown
+                      query={query}
+                      suggestions={suggestions}
+                      isSearching={isSearching}
+                      theme="voicejeju"
+                      onSelect={() => { hideSuggestions(); setIsSearchOpen(false); }}
+                    />
+                  )}
+                </div>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setIsSearchOpen(true)}
+                    className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-50 rounded-full transition-colors"
+                    aria-label="Open search"
+                    aria-expanded={false}
+                  >
+                    <Search size={20} strokeWidth={1.5} />
+                  </button>
+                  <Link href="/admin/dashboard" className="p-2 hover:bg-gray-50 rounded-full transition-colors" aria-label="Admin Dashboard">
+                    <User size={20} strokeWidth={1.5} />
+                  </Link>
+                  <button
+                    onClick={onOpenNewsletter}
+                    className="hidden sm:block px-5 py-2 border border-black text-[10px] font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all rounded-sm"
+                  >
+                    Subscribe
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -213,15 +271,23 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
         {/* Row 3: Main Navigation (Black Bar) */}
         <div className="bg-black text-white relative hidden lg:block">
           <div className="max-w-[1440px] mx-auto relative px-4 py-1.5 flex items-center justify-center">
-             <nav 
+             <nav
                ref={navRef}
                className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 w-full text-[11px] font-bold uppercase tracking-[0.15em] text-white/80"
              >
+                <Link
+                  href="/"
+                  aria-current={isHome ? "page" : undefined}
+                  className={`transition-colors py-2 ${isHome ? "text-white underline underline-offset-4" : "hover:text-white"}`}
+                >
+                  {homeLabel}
+                </Link>
                 {coreCategories.map((cat) => (
-                  <Link 
-                    key={cat} 
+                  <Link
+                    key={cat}
                     href={categoryHref(cat)}
-                    className="hover:text-white transition-colors py-2"
+                    aria-current={isCatActive(cat) ? "page" : undefined}
+                    className={`transition-colors py-2 ${isCatActive(cat) ? "text-white underline underline-offset-4" : "hover:text-white"}`}
                   >
                     {cat}
                   </Link>
@@ -248,30 +314,6 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
           </div>
         </div>
 
-        {/* Search Overlay */}
-        {isSearchOpen && (
-          <div className="absolute inset-0 bg-white z-[60] flex items-center justify-center px-4 animate-in fade-in zoom-in-95 duration-200">
-            <form onSubmit={handleSearch} className="w-full max-w-2xl flex items-center gap-4 border-b-2 border-black pb-2">
-              <Search className="text-black" size={20} strokeWidth={2} />
-              <input 
-                autoFocus
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="SEARCH STORIES..."
-                className="flex-1 bg-transparent border-none outline-none text-xl lg:text-2xl font-normal font-voltaire placeholder:text-gray-300 uppercase tracking-widest"
-              />
-              <button 
-                type="button"
-                onClick={() => setIsSearchOpen(false)}
-                className="p-2 hover:bg-gray-50 rounded-full transition-colors"
-                aria-label="Close search overlay"
-              >
-                <X size={20} />
-              </button>
-            </form>
-          </div>
-        )}
       </header>
 
       <VoiceJejuSidebar 

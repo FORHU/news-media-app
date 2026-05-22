@@ -162,7 +162,7 @@ export default function JejuTimeArticle({
     isCommentaryLayoutArticle
   );
 
-  const paragraphs = layoutContent.split(/\n+/).map((p) => p.trim()).filter(Boolean);
+  const paragraphs = layoutContent.replace(/<[^>]*>/g, "").split(/\n+/).map((p) => p.trim()).filter(Boolean);
   const fullContent = paragraphs.join("\n\n");
   const midpoint = Math.ceil(paragraphs.length / 2);
   const firstHalf = paragraphs.slice(0, midpoint).join("\n\n");
@@ -218,12 +218,16 @@ export default function JejuTimeArticle({
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
-        <div className="hidden sm:block">
-           <AdsterraBanner bannerKey="aba00b63b5a389e5d2af90b014ec46c7" width={728} height={90} />
-        </div>
-        <div className="block sm:hidden">
-           <AdsterraBanner bannerKey="f43b5973d25d0c609c5967198688e794" width={320} height={50} />
-        </div>
+        {adKeys["728x90"] && (
+          <div className="hidden sm:block">
+            <AdsterraBanner bannerKey={adKeys["728x90"]} width={728} height={90} />
+          </div>
+        )}
+        {adKeys["320x50"] && (
+          <div className="block sm:hidden">
+            <AdsterraBanner bannerKey={adKeys["320x50"]} width={320} height={50} />
+          </div>
+        )}
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
@@ -331,7 +335,7 @@ export default function JejuTimeArticle({
                   className="mt-12"
                 />
 
-                <AdsterraNativeBanner />
+                <AdsterraNativeBanner domain="jejutime.com" />
 
                 {referenceLine && (
                   <div className="mt-16 pt-10 border-t border-blue-50 bg-blue-50/30 p-8 rounded-2xl border-dashed">
@@ -353,9 +357,11 @@ export default function JejuTimeArticle({
               position="ARTICLE_SIDEBAR" 
               className="!bg-white !shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] !p-4 !border-slate-100 !rounded-none !min-h-[250px]" 
             />
-            <div className="bg-white p-4 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-100 flex justify-center">
-                <AdsterraBanner bannerKey="9d6eb67243a0a0a49ad01beafe38cbef" width={300} height={250} />
-            </div>
+            {adKeys["300x250"] && (
+              <div className="bg-white p-4 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-100 flex justify-center">
+                <AdsterraBanner bannerKey={adKeys["300x250"]} width={300} height={250} />
+              </div>
+            )}
             </div>
         </div>
 

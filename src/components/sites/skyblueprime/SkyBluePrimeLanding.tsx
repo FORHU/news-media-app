@@ -135,10 +135,6 @@ export default function SkyBluePrimeLanding({ articles, banners }: Props) {
               ))}
             </div>
 
-            {/* 160x300 Half-Page Ad below picks */}
-            <div className="mt-8 flex justify-center border-t border-sky-100 pt-6">
-              <AdsterraBanner bannerKey={adKeys["160x300"]!} width={160} height={300} className="!my-0" />
-            </div>
           </aside>
 
           {/* Center: Hero Article */}
@@ -224,7 +220,7 @@ export default function SkyBluePrimeLanding({ articles, banners }: Props) {
         </div>
 
         {/* ── Category Blocks ──────────────────────────────── */}
-        {groupedCategories.map((group, groupIndex) => {
+        {groupedCategories.map((group) => {
           const heroArticle = group.items[0];
           const otherArticles = group.items.slice(1, 5);
           if (!heroArticle) return null;
@@ -298,16 +294,6 @@ export default function SkyBluePrimeLanding({ articles, banners }: Props) {
                 )}
               </section>
 
-              {/* Inter-category Ads — alternate leaderboard / medium rect */}
-              {groupIndex % 2 === 0 ? (
-                <div className="mt-10">
-                  <LeaderboardAd />
-                </div>
-              ) : (
-                <div className="mt-10 py-6 border-y border-sky-100 bg-sky-50/30">
-                  <MediumRectAd />
-                </div>
-              )}
             </div>
           );
         })}
