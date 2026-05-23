@@ -23,7 +23,6 @@ import {
   stripOriginalPostBlock,
 } from "@/lib/tweetArticleDisplay";
 import { ArticleShare } from "@/components/article/ArticleShare";
-import { cn } from "@/lib/utils";
 
 export function VoiceJejuArticle({
   articleId,
@@ -245,13 +244,9 @@ export function VoiceJejuArticle({
     .map((p) => p.trim())
     .filter(Boolean);
 
-  const fullContent = paragraphs.join("\n\n");
   const midpoint = Math.ceil(paragraphs.length / 2);
   const firstHalf = paragraphs.slice(0, midpoint).join("\n\n");
   const secondHalf = paragraphs.slice(midpoint).join("\n\n");
-
-  const wordCount = article.content.trim().split(/\s+/).filter(Boolean).length;
-  const readTime = Math.max(1, Math.ceil(wordCount / 200));
 
   const tenantConfig = ADSTERRA_CONFIG.voicejeju;
   const adKeys = tenantConfig.banners;
@@ -296,7 +291,7 @@ export function VoiceJejuArticle({
           </div>
 
           <div className="max-w-5xl mx-auto">
-            <h1 className="text-4xl sm:text-6xl lg:text-8xl font-normal text-white mb-8 font-voltaire tracking-tighter leading-[0.9] uppercase">
+            <h1 className="text-4xl sm:text-6xl lg:text-8xl font-normal text-white mb-8 font-voltaire tracking-tighter leading-snug lg:leading-[0.9] uppercase">
               {article.title}
             </h1>
             <div className="flex items-center justify-center gap-8">
