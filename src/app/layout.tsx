@@ -154,7 +154,8 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Popunder script removed to prevent 'click anywhere opens new tab' behavior */}
+        {/* Block ad network popunders/popups while preserving legitimate window.open usage */}
+        <script dangerouslySetInnerHTML={{ __html: `(function(){var _o=window.open.bind(window);window.open=function(u,n,s){if(typeof u==='string'&&u.indexOf('facebook.com')!==-1){return _o(u,n,s);}return null;};})();` }} />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${roboto.variable} ${notoSerifJP.variable} ${ebGaramond.variable} ${libreBaskerville.variable} ${spaceMono.variable} ${plusJakartaSans.variable} ${arima.variable} ${mulish.variable} ${voltaire.variable} ${inter.variable} ${montserrat.variable} ${lora.variable} antialiased`}
