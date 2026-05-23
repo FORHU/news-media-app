@@ -210,7 +210,8 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
               </Link>
             </div>
 
-            <div className={`flex items-center justify-end gap-2 lg:gap-4 transition-all duration-200 ${isSearchOpen ? 'flex-1' : 'w-1/3'}`}>
+            {/* Desktop: inline search expand */}
+            <div className={`hidden lg:flex items-center justify-end gap-4 transition-all duration-200 ${isSearchOpen ? 'flex-1' : 'w-1/3'}`}>
               {isSearchOpen ? (
                 <div className="relative w-full">
                   <form onSubmit={handleSearch} className="flex items-center gap-3 border-b-2 border-black pb-1">
@@ -265,8 +266,63 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
                 </>
               )}
             </div>
+
+            {/* Mobile: icon buttons only */}
+            <div className="flex lg:hidden items-center justify-end gap-2 w-1/3">
+              {isSearchOpen ? (
+                <button
+                  type="button"
+                  onClick={() => { setIsSearchOpen(false); setQuery(""); hideSuggestions(); }}
+                  className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-50 rounded-full transition-colors"
+                  aria-label="Close search"
+                >
+                  <X size={20} strokeWidth={1.5} />
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setIsSearchOpen(true)}
+                    className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-50 rounded-full transition-colors"
+                    aria-label="Open search"
+                    aria-expanded={false}
+                  >
+                    <Search size={20} strokeWidth={1.5} />
+                  </button>
+                  <Link href="/admin/dashboard" className="p-2 hover:bg-gray-50 rounded-full transition-colors" aria-label="Admin Dashboard">
+                    <User size={20} strokeWidth={1.5} />
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
         </div>
+
+        {/* Mobile Search Panel — slides in below logo bar */}
+        {isSearchOpen && (
+          <div className="lg:hidden border-t border-gray-200 bg-white relative">
+            <form onSubmit={handleSearch} className="flex items-center gap-3 px-4 py-3">
+              <Search size={16} strokeWidth={1.5} className="text-gray-400 flex-shrink-0" />
+              <input
+                autoFocus
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onBlur={hideSuggestions}
+                placeholder="Search stories..."
+                className="flex-1 bg-transparent border-none outline-none text-base font-normal min-w-0"
+              />
+            </form>
+            {showSuggestions && (
+              <SearchDropdown
+                query={query}
+                suggestions={suggestions}
+                isSearching={isSearching}
+                theme="voicejeju"
+                onSelect={() => { hideSuggestions(); setIsSearchOpen(false); }}
+              />
+            )}
+          </div>
+        )}
 
         {/* Row 3: Main Navigation (Black Bar) */}
         <div className="bg-black text-white relative hidden lg:block">
