@@ -151,7 +151,6 @@ export default function JejuJapanArticle({
   );
 
   const paragraphs = layoutContent.split(/\n+/).map((p) => p.trim()).filter(Boolean);
-  const fullContent = paragraphs.join("\n\n");
   const midpoint = Math.ceil(paragraphs.length / 2);
   const firstHalf = paragraphs.slice(0, midpoint).join("\n\n");
   const secondHalf = paragraphs.slice(midpoint).join("\n\n");
@@ -192,11 +191,11 @@ export default function JejuJapanArticle({
       </div>
 
       <div className="relative flex flex-col items-center justify-center gap-4 mb-8 border-b border-gray-100 pb-6 w-full min-h-[90px]">
-        <button 
-          onClick={() => window.history.length > 1 ? router.back() : router.push("/")} 
-          className="lg:absolute lg:left-0 lg:top-1/2 lg:-translate-y-1/2 inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#bc002d] transition-colors group shrink-0 self-start lg:self-auto mb-4 lg:mb-0"
+        <button
+          onClick={() => window.history.length > 1 ? router.back() : router.push("/")}
+          className="lg:absolute lg:left-0 lg:top-1/2 lg:-translate-y-1/2 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.4em] text-gray-600 hover:text-[#bc002d] border border-gray-200 hover:border-[#bc002d]/40 px-4 py-2 transition-all group shrink-0 self-start lg:self-auto mb-4 lg:mb-0"
         >
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back
+          <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" /> Back
         </button>
 
         {/* Adsterra Top Leaderboard Banner */}
@@ -336,7 +335,7 @@ export default function JejuJapanArticle({
                      <div className="flex gap-4">
                         <span className="text-3xl font-noto font-black text-white/10 group-hover:text-[#bc002d] transition-colors shrink-0">0{i + 1}</span>
                         <div className="min-w-0">
-                           <span className="text-[9px] text-gray-500 uppercase tracking-[0.2em] block mb-1">{article.category?.categoryName}</span>
+                           <span className="text-[9px] text-white/50 uppercase tracking-[0.2em] block mb-1">{article.category?.categoryName}</span>
                            <h3 className="text-sm font-bold leading-snug group-hover:text-white/80 line-clamp-2 transition-colors">{article.title}</h3>
                         </div>
                      </div>
@@ -374,7 +373,7 @@ export default function JejuJapanArticle({
                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
                        <span className="absolute bottom-3 left-3 text-4xl font-noto font-black text-white/10 group-hover:text-[#bc002d] transition-colors">0{i + 1}</span>
                     </div>
-                    <span className="text-[10px] text-[#bc002d] font-black uppercase mb-2 block tracking-[0.3em]">{article.category?.categoryName}</span>
+                    <span className="text-[10px] text-red-400 font-black uppercase mb-2 block tracking-[0.3em]">{article.category?.categoryName}</span>
                     <h3 className="text-base md:text-lg font-bold leading-tight group-hover:text-[#bc002d] transition-colors line-clamp-2">{article.title}</h3>
                  </Link>
               ))}
