@@ -269,25 +269,19 @@ export function VoiceJejuArticle({
       {/* Immersive Header Wrapper */}
       <div className="bg-black text-white pt-8 pb-12 mb-8 relative overflow-hidden">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 relative text-center">
-          <div className="flex flex-col sm:flex-row items-center justify-center relative mb-8 gap-6 sm:gap-0 min-h-[40px]">
+          <div className="flex items-center justify-start mb-8">
             <button
               type="button"
               onClick={() =>
                 window.history.length > 1 ? router.back() : router.push("/")
               }
-              className="sm:absolute sm:left-0 inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.5em] text-white/70 hover:text-white transition-all bg-white/5 border border-white/10 px-6 py-2.5 rounded-sm"
+              className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.5em] text-white/70 hover:text-white transition-all bg-white/5 border border-white/10 px-6 py-2.5 rounded-sm"
             >
               <ArrowLeft className="w-4 h-4" />
               {normalizeCategoryName(article.category?.categoryName)
                 ? `Back to ${normalizeCategoryName(article.category?.categoryName)}`
                 : "Back to feed"}
             </button>
-
-            {normalizeCategoryName(article.category?.categoryName) && (
-              <span className="inline-block px-5 py-1.5 bg-white/10 text-white rounded-none text-[10px] font-black uppercase tracking-[0.4em] border border-white/10">
-                {normalizeCategoryName(article.category?.categoryName)}
-              </span>
-            )}
           </div>
 
           <div className="max-w-5xl mx-auto">
