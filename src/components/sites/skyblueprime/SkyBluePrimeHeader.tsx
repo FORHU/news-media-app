@@ -93,7 +93,7 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
             </button>
 
             <Link
-              href="/admin/login"
+              href="/admin/dashboard"
               className="p-1 text-sky-950 hover:text-sky-600 transition-colors hidden sm:block"
               aria-label="Admin Portal"
             >
@@ -223,7 +223,7 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
               </button>
             )}
             <Link
-              href="/admin/login"
+              href="/admin/dashboard"
               onClick={() => setIsMenuOpen(false)}
               className="block text-sm font-bold uppercase tracking-widest text-sky-400 hover:text-white transition-colors sm:hidden"
             >
