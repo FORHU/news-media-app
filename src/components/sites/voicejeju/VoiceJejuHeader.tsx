@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { Search, Menu, User, X, ChevronDown, ChevronLeft, ChevronRight, Globe, Sun, Cloud, CloudRain, CloudSnow, CloudLightning, Wind } from "lucide-react";
+import ContactEmailButton from "@/components/ContactEmailButton";
 import { useQuery } from "@tanstack/react-query";
 import { useRef } from "react";
 import { articlesApi } from "@/lib/api";
@@ -253,6 +254,11 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
                   >
                     <Search size={20} strokeWidth={1.5} />
                   </button>
+                  <ContactEmailButton
+                    buttonClassName="p-2 hover:bg-gray-50 rounded-full transition-colors"
+                    iconSize={20}
+                    strokeWidth={1.5}
+                  />
                   <Link href="/admin/dashboard" className="p-2 hover:bg-gray-50 rounded-full transition-colors" aria-label="Admin Dashboard">
                     <User size={20} strokeWidth={1.5} />
                   </Link>

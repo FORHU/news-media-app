@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search, Menu, Mail, User, Loader2 } from "lucide-react";
+import ContactEmailButton from "@/components/ContactEmailButton";
 import { SideBar } from "./SideBar";
 import { articlesApi } from "@/lib/api";
 import type { Article } from "@/lib/types";
@@ -182,6 +183,10 @@ function HeaderContent({ onOpenNewsletter }: HeaderProps) {
               <Mail className="w-4 h-4" />
               <span className="hidden sm:inline">NEWSLETTER</span>
             </button>
+            <ContactEmailButton
+              buttonClassName="p-2 text-gray-600 hover:text-[#ff4500] transition-colors shrink-0"
+              iconClassName="w-6 h-6"
+            />
             <Link
               href="/admin/dashboard"
               className="p-2 text-gray-600 hover:text-[#ff4500] transition-colors shrink-0"

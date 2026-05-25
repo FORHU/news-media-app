@@ -1,6 +1,7 @@
 "use client";
 
 import { X, Mail, User, ChevronDown } from "lucide-react";
+import ContactEmailButton from "@/components/ContactEmailButton";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { RemoveScroll } from "react-remove-scroll";
@@ -106,6 +107,13 @@ export function VoiceJejuSidebar({
                   Subscribe
                 </button>
 
+                <ContactEmailButton
+                  buttonClassName="w-full flex items-center justify-center gap-3 py-3 bg-transparent text-zinc-400 text-xs font-inter font-bold border border-zinc-700 uppercase tracking-widest hover:bg-white/5 hover:text-zinc-200 transition-all mb-3 rounded-none"
+                  iconClassName="w-4 h-4"
+                  iconSize={16}
+                  showLabel
+                  labelText="Contact Us"
+                />
                 <Link
                   href="/admin/dashboard"
                   onClick={onClose}

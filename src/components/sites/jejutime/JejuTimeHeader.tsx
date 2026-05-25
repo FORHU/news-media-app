@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { Search, Menu, ChevronDown, User, X, Mail, ChevronLeft, ChevronRight } from "lucide-react";
+import ContactEmailButton from "@/components/ContactEmailButton";
 import { useQuery } from "@tanstack/react-query";
 import { useRef } from "react";
 import { articlesApi } from "@/lib/api";
@@ -212,6 +213,10 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
                 SUBSCRIBE
               </button>
               
+              <ContactEmailButton
+                buttonClassName="text-slate-600 hover:text-blue-600 transition-colors"
+                iconSize={18}
+              />
               <Link href="/admin/dashboard" className="text-slate-600 hover:text-blue-600 transition-colors" title="Admin">
                 <User size={18} />
               </Link>
