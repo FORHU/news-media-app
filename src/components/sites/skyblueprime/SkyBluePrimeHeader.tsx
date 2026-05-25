@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { Search, Menu, User, X } from "lucide-react";
+import ContactEmailButton from "@/components/ContactEmailButton";
 import { getCoreCategories, HOME_CATEGORY_LABEL } from "@/config/categories";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { SearchDropdown } from "@/components/search/SearchDropdown";
@@ -92,6 +93,11 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
               <Search size={20} />
             </button>
 
+            <ContactEmailButton
+              wrapperClassName="hidden sm:block"
+              buttonClassName="p-1 text-sky-950 hover:text-sky-600 transition-colors"
+              iconSize={20}
+            />
             <Link
               href="/admin/dashboard"
               className="p-1 text-sky-950 hover:text-sky-600 transition-colors hidden sm:block"
@@ -222,6 +228,13 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
                 Newsletters
               </button>
             )}
+            <ContactEmailButton
+              wrapperClassName="sm:hidden"
+              buttonClassName="block text-sm font-bold uppercase tracking-widest text-sky-400 hover:text-white transition-colors"
+              showIcon={false}
+              showLabel
+              labelText="Contact Us"
+            />
             <Link
               href="/admin/dashboard"
               onClick={() => setIsMenuOpen(false)}

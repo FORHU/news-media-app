@@ -1,6 +1,7 @@
 "use client";
 
 import { X, Mail, User, ChevronDown } from "lucide-react";
+import ContactEmailButton from "@/components/ContactEmailButton";
 import Link from "next/link";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
@@ -123,6 +124,13 @@ export default function JejuTimeSidebar({
                   Subscribe
                 </button>
 
+                <ContactEmailButton
+                  buttonClassName="w-full flex items-center justify-center gap-3 py-3 bg-white text-slate-600 text-xs font-bold border border-blue-100 uppercase tracking-widest hover:bg-blue-50 hover:border-blue-200 transition-all mb-3"
+                  iconClassName="w-4 h-4"
+                  iconSize={16}
+                  showLabel
+                  labelText="Contact Us"
+                />
                 <Link
                   href="/admin/dashboard"
                   onClick={onClose}

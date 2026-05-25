@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { Search, Mail, X, User, ChevronDown } from "lucide-react";
+import ContactEmailButton from "@/components/ContactEmailButton";
 import { useQuery } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
 import { getCoreCategories, HOME_CATEGORY_LABEL, getHomeCategoryLabel, normalizeCategoryKey } from "@/config/categories";
@@ -167,6 +168,11 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
               <Mail size={14} strokeWidth={3} />
               <span className="hidden sm:block">Newsletter</span>
             </button>
+            <ContactEmailButton
+              buttonClassName="text-[#dc2626] hover:text-black transition-colors flex items-center justify-center"
+              iconSize={22}
+              strokeWidth={2}
+            />
             <Link href="/admin/dashboard" className="text-[#dc2626] hover:text-black transition-colors flex items-center justify-center" title="Admin" aria-label="Admin dashboard">
               <User size={22} strokeWidth={2} />
             </Link>

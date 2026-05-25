@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Search, Menu, Globe, User, X, ChevronDown, Mail } from "lucide-react";
+import ContactEmailButton from "@/components/ContactEmailButton";
 import { getCoreCategories, HOME_CATEGORY_LABEL, getHomeCategoryLabel, normalizeCategoryKey } from "@/config/categories";
 import { motion, AnimatePresence } from "framer-motion";
 import { RemoveScroll } from "react-remove-scroll";
@@ -130,6 +131,10 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
               >
                 <Search size={18} />
               </button>
+              <ContactEmailButton
+                buttonClassName="hover:text-white/80 transition-colors"
+                iconSize={18}
+              />
               <Link href="/admin/dashboard" className="hover:text-white/80 transition-colors" title="Admin" aria-label="Admin dashboard">
                 <User size={18} />
               </Link>
