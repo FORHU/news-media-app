@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import bcrypt from 'bcryptjs';
 import { resolveTenantIdFromRequest } from '@/lib/tenant';
 
@@ -21,9 +20,7 @@ export async function GET(request: NextRequest) {
         role: true,
         createdAt: true,
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: { createdAt: 'desc' },
     });
 
     return NextResponse.json(users);
@@ -50,48 +47,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Tenant not found' }, { status: 400 });
     }
 
-    // Check if email already exists in Prisma for this tenant to avoid messy partial creations
-    const existingUser = await prisma.user.findFirst({ 
-      where: { 
-        email: { equals: email, mode: 'insensitive' },
-        tenantId
-      } 
+    const existingUser = await prisma.user.findFirst({
+      where: { email: { equals: email, mode: 'insensitive' }, tenantId },
     });
     if (existingUser) {
       return NextResponse.json({ error: 'Email already exists' }, { status: 400 });
     }
 
-    // 1. Create user in Supabase Auth (Service Role avoids confirmation email)
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: { 
-        firstName, 
-        lastName,
-        full_name: `${firstName} ${lastName}`,
-        name: `${firstName} ${lastName}`
-      }
-    });
-
-    if (authError) {
-      console.error('[POST /api/admin/accounts] Supabase error:', authError);
-      return NextResponse.json({ error: authError.message }, { status: 400 });
-    }
-
-    // 2. Hash password for Prisma storage
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 3. Create user in Prisma
     const newUser = await prisma.user.create({
-      data: {
-        tenantId,
-        firstName,
-        lastName,
-        email,
-        password: hashedPassword,
-        role: 'admin', // Default to admin for this tab
-      },
+      data: { tenantId, firstName, lastName, email, password: hashedPassword, role: 'admin' },
       select: {
         id: true,
         firstName: true,
@@ -99,7 +65,7 @@ export async function POST(request: NextRequest) {
         email: true,
         role: true,
         createdAt: true,
-      }
+      },
     });
 
     return NextResponse.json(newUser, { status: 201 });
@@ -124,38 +90,12 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Tenant not found' }, { status: 400 });
     }
 
-    // 1. Find user in Prisma to get the email, scoped to tenant
-    const user = await prisma.user.findFirst({
-      where: { id, tenantId }
-    });
-
+    const user = await prisma.user.findFirst({ where: { id, tenantId } });
     if (!user) {
-      return NextResponse.json({ error: 'User not found in database' }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // 2. Find user in Supabase by matching email
-    const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers();
-    if (listError) {
-      throw new Error(`Supabase listUsers error: ${listError.message}`);
-    }
-
-    const supabaseUser = users.find(u => u.email?.toLowerCase() === user.email.toLowerCase());
-    
-    // 3. Delete from Supabase if found
-    if (supabaseUser) {
-      const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(supabaseUser.id);
-      if (deleteError) {
-         throw new Error(`Supabase deleteUser error: ${deleteError.message}`);
-      }
-    }
-
-    // 4. Delete from Prisma
-    await prisma.user.delete({ 
-      where: { 
-        id,
-        // tenantId // delete where doesn't support non-unique fields unless it's a compound unique
-      } 
-    });
+    await prisma.user.delete({ where: { id } });
 
     return NextResponse.json({ message: 'User deleted successfully' });
   } catch (error: any) {
@@ -167,7 +107,7 @@ export async function DELETE(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const { id, firstName, lastName, password } = await request.json();
-    
+
     if (!id) {
       return NextResponse.json({ error: 'Missing user ID' }, { status: 400 });
     }
@@ -177,25 +117,21 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Tenant not found' }, { status: 400 });
     }
 
-    const user = await prisma.user.findFirst({ 
-      where: { id, tenantId } 
-    });
+    const user = await prisma.user.findFirst({ where: { id, tenantId } });
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (firstName) updateData.firstName = firstName;
     if (lastName) updateData.lastName = lastName;
-    
     if (password) {
-       if (password.length < 8) {
-          return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 });
-       }
-       updateData.password = await bcrypt.hash(password, 10);
+      if (password.length < 8) {
+        return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 });
+      }
+      updateData.password = await bcrypt.hash(password, 10);
     }
 
-    // Update in Prisma
     const updatedUser = await prisma.user.update({
       where: { id },
       data: updateData,
@@ -206,38 +142,8 @@ export async function PATCH(request: NextRequest) {
         email: true,
         role: true,
         createdAt: true,
-      }
+      },
     });
-
-    // Update in Supabase
-    const { data: { users } } = await supabaseAdmin.auth.admin.listUsers();
-    const supabaseUser = users.find(u => u.email?.toLowerCase() === user.email.toLowerCase());
-    
-    if (supabaseUser) {
-      const authUpdateData: any = {};
-      if (password) authUpdateData.password = password;
-      if (firstName || lastName) {
-        const newFirst = firstName || supabaseUser.user_metadata?.firstName;
-        const newLast = lastName || supabaseUser.user_metadata?.lastName;
-        authUpdateData.user_metadata = {
-          ...supabaseUser.user_metadata,
-          firstName: newFirst,
-          lastName: newLast,
-          full_name: `${newFirst} ${newLast}`,
-          name: `${newFirst} ${newLast}`
-        };
-      }
-      
-      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-        supabaseUser.id,
-        authUpdateData
-      );
-
-      if (updateError) {
-         console.error('[PATCH /api/admin/accounts] Supabase update error:', updateError);
-         // Continuing despite Supabase error to return Prisma success, but ideally shouldn't fail
-      }
-    }
 
     return NextResponse.json(updatedUser);
   } catch (error: any) {

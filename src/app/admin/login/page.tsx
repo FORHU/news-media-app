@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, ChevronRight, ArrowLeft } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient';
 import { adminLoginSchema } from '@/lib/validation/login';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getSiteIconFromDomain } from '@/lib/tenant-utils';
@@ -319,59 +318,38 @@ function LoginContent() {
 
       if (!verifyResponse.ok) {
         if (verifyResponse.status === 403) {
-          setFieldErrors({ email: 'Your account does not have admin access for this domain.' });
+          setFieldErrors({ email: 'Your account does not have access for this domain.' });
         } else {
           setFieldErrors({ general: 'Verification service unavailable. Please try again.' });
         }
         return;
       }
 
-      const { data: { session }, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-      
-      if (signInError) {
-        const msg = signInError.message?.toLowerCase() ?? '';
-        if (msg.includes('rate') || msg.includes('too many')) {
-          setFieldErrors({ general: 'Too many login attempts. Please wait a moment.' });
-        } else if (msg.includes('email not confirmed')) {
-          setFieldErrors({ general: 'Email not confirmed. Please contact your admin.' });
-        } else if (msg.includes('invalid login credentials')) {
-          setFieldErrors({ password: 'The password you entered is incorrect.' });
-        } else {
-          setFieldErrors({ general: signInError.message });
-        }
-        return;
-      }
-
-      if (!session) {
-        setFieldErrors({ general: 'Failed to establish session. Please try again.' });
-        return;
-      }
-
-      // Small delay for cookie settling, but we pass token for robustness
-      await new Promise(r => setTimeout(r, 100));
-
-      const roleCheck = await fetch('/api/admin/auth/session', { 
+      const loginResponse = await fetch('/api/admin/auth/login', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessToken: session.access_token })
+        body: JSON.stringify({ email, password }),
       });
 
-      if (!roleCheck.ok) {
-        await supabase.auth.signOut();
-        const errorData = await roleCheck.json().catch(() => ({}));
-        
-        if (roleCheck.status === 403) {
-           setFieldErrors({ general: 'Access denied. Your account is not authorized for this domain.' });
+      if (!loginResponse.ok) {
+        const errorData = await loginResponse.json().catch(() => ({}));
+        const msg = (errorData.error ?? '').toLowerCase();
+        if (msg.includes('invalid login credentials')) {
+          setFieldErrors({ password: 'The password you entered is incorrect.' });
+        } else if (loginResponse.status === 403) {
+          setFieldErrors({ general: 'Access denied. Your account is not authorized for this domain.' });
         } else {
-           setFieldErrors({ general: errorData.error || 'Access denied. Your account is not an admin.' });
+          setFieldErrors({ general: errorData.error || 'Login failed. Please try again.' });
         }
         return;
       }
 
+      const loginData = await loginResponse.json().catch(() => ({}));
       const redirectTo = searchParams.get('redirectTo');
+      let defaultPath = loginData.role === 'moderator' ? '/admin/moderator' : '/admin/dashboard';
       const safePath = redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//')
-        ? redirectTo : '/admin/dashboard';
+        ? redirectTo : defaultPath;
       // Use a hard redirect so middleware receives freshly committed httpOnly cookies.
       window.location.assign(safePath);
     } catch (err) {

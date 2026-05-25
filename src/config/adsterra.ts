@@ -10,6 +10,7 @@ export interface AdsterraTenantConfig {
     "468x60": string;
     "320x50": string;
     "160x600": string;
+    "160x300"?: string;
   };
   midArticle?: {
     key: string;
@@ -25,16 +26,16 @@ export interface AdsterraTenantConfig {
 
 export const ADSTERRA_CONFIG: Record<string, AdsterraTenantConfig> = {
   jejutime: {
-    socialBar: "https://pl29482513.effectivecpmnetwork.com/ff/4c/94/ff4c94f2be70d5f135bec2e03d391610.js",
+    socialBar: "", // no pop ups
     native: {
       containerId: "container-055aa9559be0d3784216da85175a7203",
       src: "https://pl29482512.effectivecpmnetwork.com/055aa9559be0d3784216da85175a7203/invoke.js",
     },
     banners: {
-      "300x250": "055aa9559be0d3784216da85175a7203",
-      "728x90": "",
+      "300x250": "9d6eb67243a0a0a49ad01beafe38cbef",
+      "728x90": "aba00b63b5a389e5d2af90b014ec46c7",
       "468x60": "",
-      "320x50": "",
+      "320x50": "f43b5973d25d0c609c5967198688e794",
       "160x600": "47ab173deb697165d15ee8b162f04d23",
     },
     midArticle: {
@@ -49,16 +50,16 @@ export const ADSTERRA_CONFIG: Record<string, AdsterraTenantConfig> = {
     },
   },
   voicejeju: {
-    socialBar: "https://pl29489865.effectivecpmnetwork.com/04/9c/d4/049cd43b6d49b530ad7b97ab5f60155c.js",
+    socialBar: "", // no pop ups
     native: {
       containerId: "container-9c5ecdec78c05c286aa87cb118bfee5b",
       src: "https://pl29489864.effectivecpmnetwork.com/9c5ecdec78c05c286aa87cb118bfee5b/invoke.js",
     },
     banners: {
-      "300x250": "9c5ecdec78c05c286aa87cb118bfee5b",
-      "728x90": "",
+      "300x250": "1fc758c95674c51a8dc1e7bdff580f7e",
+      "728x90": "c242943e75df6497a5929d27852b1159",
       "468x60": "",
-      "320x50": "",
+      "320x50": "d68b3e9b0c05a075a85176317f822b6d",
       "160x600": "b283cf02940081bd261a4fb0c9e177cf",
     },
     midArticle: {
@@ -73,7 +74,7 @@ export const ADSTERRA_CONFIG: Record<string, AdsterraTenantConfig> = {
     },
   },
   jejujapan: {
-    socialBar: "https://pl29490730.effectivecpmnetwork.com/cc/97/c5/cc97c581e8b030bb16b4a17aa655753.js",
+    socialBar: "", // no pop ups
     native: {
       containerId: "container-27355cfc0fde55009d791fc6d3c64eab",
       src: "https://pl29490729.effectivecpmnetwork.com/27355cfc0fde55009d791fc6d3c64eab/invoke.js",
@@ -120,15 +121,41 @@ export const ADSTERRA_CONFIG: Record<string, AdsterraTenantConfig> = {
       height: 250,
     },
   },
+  skyblueprime: {
+    socialBar: "", // no pop ups
+    native: {
+      containerId: "container-16691c726849d64dc9b1001004730ef1",
+      src: "https://pl29500719.effectivecpmnetwork.com/16691c726849d64dc9b1001004730ef1/invoke.js",
+    },
+    banners: {
+      "300x250": "33b465dee4c8998d42422ca3a14329a6",
+      "728x90": "",
+      "468x60": "66ab6e2809dc938b175474b4535c6de9",
+      "320x50": "f428a99acf351f72e9189c9141d176c8",
+      "160x600": "",
+      "160x300": "04e3f3a3edb146141b6e13a58245ef80",
+    },
+    midArticle: {
+      key: "33b465dee4c8998d42422ca3a14329a6",
+      width: 300,
+      height: 250,
+    },
+    midFeed: {
+      key: "33b465dee4c8998d42422ca3a14329a6",
+      width: 300,
+      height: 250,
+    },
+  },
 };
 
 /**
  * Resolves the tenant key based on domain or hostname
  */
-export function getAdsterraTenant(domain: string): "jejujapan" | "voicejeju" | "jejutime" | "jejuqq" {
+export function getAdsterraTenant(domain: string): "jejujapan" | "voicejeju" | "jejutime" | "jejuqq" | "skyblueprime" {
   const normalized = domain.toLowerCase();
   if (normalized.includes("jejujapan")) return "jejujapan";
   if (normalized.includes("voicejeju")) return "voicejeju";
   if (normalized.includes("jejuqq")) return "jejuqq";
+  if (normalized.includes("skyblueprime")) return "skyblueprime";
   return "jejutime";
 }

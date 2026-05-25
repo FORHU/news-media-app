@@ -17,7 +17,7 @@ type ContentArticleSupabase = {
   content: string;
   image_url: string | null;
   youtube_url: string | null;
-  source_type: "ARTICLE" | "TWEET" | "VIDEO" | "UPLOAD" | "MANUAL" | null;
+  source_type: "ARTICLE" | "TWEET" | "VIDEO" | "UPLOAD" | "MANUAL" | "EXTERNAL" | null;
   publish_date: string | null;
   created_at: string;
   status: string;
@@ -74,6 +74,9 @@ export const generatedArticlesRepository = {
     if (tenantId) {
       and.push({ tenantId });
     }
+
+    // External articles are managed separately via the External Submissions tab
+    and.push({ NOT: { sourceType: "EXTERNAL" } });
 
     if (q?.trim()) {
       and.push({

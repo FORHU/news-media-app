@@ -109,25 +109,16 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
     },
   });
 
-  const uploadBannerToSupabase = async (file: File): Promise<string> => {
-    const { supabase } = await import("@/lib/supabaseClient");
-    const ext = file.name.split(".").pop() ?? "jpg";
-    const path = `banners/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    
-    // Using the 'articles' bucket which is confirmed to exist
-    const { error: uploadError } = await supabase.storage
-      .from("articles")
-      .upload(path, file, {
-        cacheControl: "3600",
-        upsert: false,
-      });
-
-    if (uploadError) throw new Error(uploadError.message);
-
-    const { data: { publicUrl } } = supabase.storage
-      .from("articles")
-      .getPublicUrl(path);
-
+  const uploadBannerToS3 = async (file: File): Promise<string> => {
+    const res = await fetch("/api/admin/upload-image-presigned", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ filename: file.name, contentType: file.type }),
+    });
+    if (!res.ok) throw new Error("Failed to get upload URL");
+    const { presignedUrl, publicUrl } = await res.json();
+    const uploadRes = await fetch(presignedUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+    if (!uploadRes.ok) throw new Error("Failed to upload image");
     return publicUrl;
   };
 
@@ -193,7 +184,7 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
 
     try {
       if (banner_type === "IMAGE" && selectedFile) {
-        finalImageUrl = await uploadBannerToSupabase(selectedFile);
+        finalImageUrl = await uploadBannerToS3(selectedFile);
         setImageUrl(finalImageUrl);
       }
 

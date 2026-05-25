@@ -34,11 +34,8 @@ export function VoiceJejuFooter({ onOpenNewsletter, footerBanners }: FooterProps
           <Link href="/" className="mb-8">
             <span className="text-7xl lg:text-9xl font-normal text-white font-voltaire tracking-tight uppercase">VoiceJeju</span>
           </Link>
-          <div className="flex items-center gap-8 text-[11px] font-bold uppercase tracking-[0.2em] text-gray-400">
+          <div className="flex justify-between items-center w-full text-[11px] font-bold uppercase tracking-[0.2em] text-gray-400">
              <span>{today}</span>
-             <span className="w-1.5 h-1.5 bg-gray-700 rounded-full" />
-             <span>Premium Journalism</span>
-             <span className="w-1.5 h-1.5 bg-gray-700 rounded-full" />
              <div className="flex items-center gap-2">
                 <Sun size={12} />
                 <span>Jeju City</span>

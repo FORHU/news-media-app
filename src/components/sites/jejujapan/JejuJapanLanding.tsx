@@ -9,8 +9,8 @@ const AdBanner = dynamic(() => import("@/components/AdBanner").then(mod => mod.A
 import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
 import { TrendingUp, Clock, ChevronRight, ChevronLeft } from "lucide-react";
-import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useHeroCarousel } from "@/hooks/useHeroCarousel";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
@@ -96,13 +96,8 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
     .slice(0, 4)
     .map(([name, items]) => ({ name, articles: items.slice(0, 4) }));
 
-  const [[page, direction], setPage] = useState([0, 0]);
-  const index = heroArticles.length > 0 ? Math.abs(page % heroArticles.length) : 0;
+  const { index, direction, paginate, goTo } = useHeroCarousel(heroArticles.length);
   const heroArticle = heroArticles[index];
-
-  const paginate = (newDirection: number) => {
-    setPage([page + newDirection, newDirection]);
-  };
 
   const variants = {
     enter: (direction: number) => ({ x: direction > 0 ? 50 : -50, opacity: 0 }),
@@ -114,6 +109,17 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
   const adKeys = tenantConfig.banners;
   const showSkyscrapers = adKeys["160x600"] && adKeys["160x600"].length > 0;
   const midFeedConfig = tenantConfig.midFeed;
+
+  if (articles.length === 0) {
+    return (
+      <div className="min-h-[60vh] bg-white flex items-center justify-center px-4">
+        <div className="text-center">
+          <p className="text-xl font-bold text-black mb-2">記事はまだありません。</p>
+          <p className="text-sm text-gray-500 mt-1">後ほど済州ジャパンの最新ニュースをご確認ください。</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white text-black font-sans relative min-h-screen">
@@ -182,7 +188,7 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                   <div className="relative aspect-video lg:aspect-[21/9] overflow-hidden mb-3 bg-gray-100 shadow-md">
                     <AnimatePresence initial={false} custom={direction} mode="wait">
                       <motion.div
-                        key={page}
+                        key={index}
                         custom={direction}
                         variants={variants}
                         initial="enter"
@@ -221,12 +227,10 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                         <button
                           key={i}
                           type="button"
-                          onClick={() => {
-                            const newDirection = i > index ? 1 : -1;
-                            setPage([i, newDirection]);
-                          }}
+                          onClick={() => goTo(i)}
                           className={`h-1.5 transition-all duration-300 ${i === index ? "w-8 bg-[#bc002d]" : "w-3 bg-white/50 hover:bg-white/80"}`}
                           aria-label={`Go to slide ${i + 1}`}
+                          aria-current={i === index ? "true" : undefined}
                         />
                       ))}
                     </div>
@@ -322,12 +326,12 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                        {trendingArticles.map((article, i) => (
                           <Link key={article.id} href={`/article/${article.slug || article.id}`} className="block group">
                              <div className="flex gap-4">
-                                <span className="text-3xl font-noto font-black text-white/30 group-hover:text-[#bc002d] transition-colors shrink-0">
+                                <span className="text-3xl font-noto font-black text-white/50 group-hover:text-[#bc002d] transition-colors shrink-0">
                                    {String(i + 1).padStart(2, '0')}
                                 </span>
                                 <div className="min-w-0">
-                                   <span className="text-[9px] text-gray-500 uppercase tracking-[0.2em] block mb-1">{article.category?.categoryName}</span>
-                                   <h4 className="text-sm font-bold leading-snug group-hover:text-white/80 line-clamp-2 transition-colors">{article.title}</h4>
+                                   <span className="text-[9px] text-gray-400 uppercase tracking-[0.2em] block mb-1">{article.category?.categoryName}</span>
+                                   <h4 className="text-sm font-bold leading-snug group-hover:text-[#bc002d] line-clamp-2 transition-colors">{article.title}</h4>
                                 </div>
                              </div>
                           </Link>
@@ -406,9 +410,9 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                         <div className="relative aspect-[16/10] overflow-hidden mb-4 bg-white/5">
                            <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300" />
                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                           <span className="absolute bottom-3 left-3 text-4xl font-noto font-black text-white/30 group-hover:text-[#bc002d] transition-colors">0{i + 1}</span>
+                           <span className="absolute bottom-3 left-3 text-4xl font-noto font-black text-white/50 group-hover:text-[#bc002d] transition-colors">0{i + 1}</span>
                         </div>
-                        <span className="text-[10px] text-[#bc002d] font-black uppercase mb-2 block tracking-[0.3em]">{article.category?.categoryName}</span>
+                        <span className="text-[10px] text-red-400 font-black uppercase mb-2 block tracking-[0.3em]">{article.category?.categoryName}</span>
                         <h4 className="text-base md:text-lg font-bold leading-tight group-hover:text-[#bc002d] transition-colors line-clamp-2">{article.title}</h4>
                      </Link>
                   ))}

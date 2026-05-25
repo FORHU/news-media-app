@@ -11,7 +11,6 @@ import {
 import { div as MotionDiv } from 'framer-motion/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { articlesApi } from '@/lib/api';
-import { supabase } from '@/lib/supabaseClient';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Pagination from '@/components/admin/pagination';
 import { CrawlJob, CrawlJobsResponse } from '@/lib/types';
@@ -167,48 +166,6 @@ export default function CrawlJobsTable() {
         },
     });
 
-    React.useEffect(() => {
-        let debounce: ReturnType<typeof setTimeout> | null = null;
-
-        const refetchFromRealtime = () => {
-            if (debounce) clearTimeout(debounce);
-            debounce = setTimeout(() => {
-                debounce = null;
-                // Invalidate and refetch all matching queries
-                queryClient.invalidateQueries({
-                    queryKey: ['crawlJobs'],
-                    exact: false,
-                });
-            }, 200); // Shortened debounce for better responsiveness
-        };
-
-        const channel = supabase
-            .channel('realtime:crawl_jobs')
-            .on(
-                'postgres_changes',
-                { event: '*', schema: 'public', table: 'crawl_jobs' },
-                (payload) => {
-                    refetchFromRealtime();
-                    if (payload.eventType === 'DELETE') {
-                        const deletedId = payload.old?.id as string | undefined;
-                        if (deletedId) {
-                            setExpandedIds((prev) => {
-                                if (!prev.has(deletedId)) return prev;
-                                const next = new Set(prev);
-                                next.delete(deletedId);
-                                return next;
-                            });
-                        }
-                    }
-                }
-            )
-            .subscribe();
-
-        return () => {
-            if (debounce) clearTimeout(debounce);
-            supabase.removeChannel(channel);
-        };
-    }, [queryClient]);
 
     const jobs = data?.jobs || [];
     const pagination = data?.pagination || { totalPages: 0 };

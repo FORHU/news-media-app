@@ -21,7 +21,7 @@ export function StoryImage(props: StoryImageProps) {
   const { src, alt, fill, width, height, className, priority, sizes, variant = "featured", hideTitle } = props;
   const [imgSrc, setImgSrc] = useState<string | null>(src || null);
   const [error, setError] = useState(false);
-  const isBlockedS3Origin = (imgSrc ?? "").includes("chumme-dev.s3.amazonaws.com");
+  const isBlockedS3Origin = false;
 
   useEffect(() => {
     setImgSrc(src || null);

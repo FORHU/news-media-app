@@ -15,7 +15,6 @@ import {
     Search,
     Newspaper,
     Loader2,
-    Send,
     EyeOff,
     Trash2,
     Layout
@@ -24,7 +23,6 @@ import { motion, AnimatePresence, Variants } from 'framer-motion';
 import Pagination from '@/components/admin/pagination';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { articlesApi } from '@/lib/api';
-import { supabase } from '@/lib/supabaseClient';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { Article } from '@/lib/types';
@@ -34,8 +32,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar as ShadCalendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import CreateArticleModal from '@/components/admin/generatedContent/CreateArticleModal/createArticleModal';
-import ReadGeneratedArticle from '@/components/admin/generatedContent/readGeneratedArticle';
-import PublishArticleModal from '@/components/admin/generatedContent/PublishArticleModal';
+import ArticleEditorModal from '@/components/admin/generatedContent/ArticleEditorModal';
 
 import { StoryImage } from '@/components/StoryImage';
 import ConfirmationModal from '@/components/admin/shared/ConfirmationModal';
@@ -81,8 +78,7 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
     const isPublished = article.status === 'published';
     const publishDate = article.publishDate || article.createdAt;
 
-    const [isReadModalOpen, setIsReadModalOpen] = React.useState(false);
-    const [isPublishModalOpen, setIsPublishModalOpen] = React.useState(false);
+    const [isEditorModalOpen, setIsEditorModalOpen] = React.useState(false);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = React.useState(false);
     const [isUnpublishing, setIsUnpublishing] = React.useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
@@ -106,7 +102,6 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
         setIsUnpublishing(true);
         try {
             await articlesApi.unpublishArticle(article.id);
-            // Realtime should handle it, but we invalidate for immediate feedback
             queryClient.invalidateQueries({ queryKey: ['generatedArticles'] });
             setIsConfirmModalOpen(false);
         } catch (error) {
@@ -200,7 +195,7 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                 <div className="space-y-2">
                     <button
                         type="button"
-                        onClick={() => setIsReadModalOpen(true)}
+                        onClick={() => setIsEditorModalOpen(true)}
                         className="text-left group/title focus:outline-none"
                     >
                         <h3 className="text-lg md:text-xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors line-clamp-1 leading-tight">
@@ -314,11 +309,15 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                 </div>
                 <button
                     type="button"
-                    onClick={() => setIsReadModalOpen(true)}
-                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-gray-50 text-gray-700 hover:bg-gray-100 transition-all group/view"
+                    onClick={() => setIsEditorModalOpen(true)}
+                    className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all group/review ${
+                        isPublished
+                            ? 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                            : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-orange-500/30 hover:shadow-orange-500/50'
+                    }`}
                 >
-                    <Newspaper className="w-4 h-4 text-gray-400 group-hover/view:text-gray-900 transition-colors" />
-                    View
+                    <Newspaper className={`w-4 h-4 transition-colors ${isPublished ? 'text-gray-400 group-hover/review:text-gray-900' : ''}`} />
+                    {isPublished ? 'Edit' : 'Review'}
                 </button>
 
                 {isPublished ? (
@@ -335,16 +334,7 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                         )}
                         Unpublish
                     </button>
-                ) : (
-                    <button
-                        type="button"
-                        onClick={() => setIsPublishModalOpen(true)}
-                        className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-orange-500/30 hover:shadow-orange-500/50 transition-all group/btn"
-                    >
-                        <Send className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                        Publish
-                    </button>
-                )}
+                ) : null}
 
                 <button
                     type="button"
@@ -360,16 +350,10 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                     Delete
                 </button>
 
-                <ReadGeneratedArticle
+                <ArticleEditorModal
                     article={article}
-                    open={isReadModalOpen}
-                    onOpenChange={setIsReadModalOpen}
-                />
-
-                <PublishArticleModal
-                    article={article}
-                    open={isPublishModalOpen}
-                    onOpenChange={setIsPublishModalOpen}
+                    open={isEditorModalOpen}
+                    onOpenChange={setIsEditorModalOpen}
                 />
 
                 <ConfirmationModal
@@ -438,6 +422,7 @@ export default function GeneratedArticlesList({ searchParams }: {
             status: status || undefined
         }),
         placeholderData: (prev: GeneratedArticlesResponse | undefined) => prev,
+        refetchInterval: 3000,
     });
     const { data: categories } = useQuery({
         queryKey: ['categories'],
@@ -503,70 +488,6 @@ export default function GeneratedArticlesList({ searchParams }: {
         setQueryParams({ status: statusDraft || null });
     }, [statusDraft, status, setQueryParams]);
 
-    React.useEffect(() => {
-        // Debug: confirms the realtime effect is mounted for this page.
-        // eslint-disable-next-line no-console
-        console.log('[Realtime] generatedArticlesCard effect mount');
-
-        // If Supabase emits multiple events for the same change burst, throttle
-        // so we don't spam the API.
-        let lastRefetchAt = 0;
-        const throttleMs = 500;
-
-        const refetchFromRealtime = (payload?: any) => {
-            const now = Date.now();
-            if (now - lastRefetchAt < throttleMs) return;
-            lastRefetchAt = now;
-
-            // eslint-disable-next-line no-console
-            console.log('[Realtime] generated_articles change:', {
-                eventType: payload?.eventType,
-                table: payload?.table,
-                id: payload?.new?.id ?? payload?.old?.id,
-            });
-
-            const isGeneratedArticlesQuery = (q: { queryKey?: unknown }) => {
-                return Array.isArray(q.queryKey) && q.queryKey[0] === 'generatedArticles';
-            };
-
-            queryClient.invalidateQueries({
-                predicate: isGeneratedArticlesQuery,
-            });
-
-            void queryClient.refetchQueries({
-                predicate: isGeneratedArticlesQuery,
-                type: 'active',
-            });
-        };
-
-        const channel = supabase
-            .channel('realtime:generated_articles')
-            .on(
-                'postgres_changes',
-                { event: '*', schema: 'public', table: 'raw_articles' },
-                refetchFromRealtime
-            )
-            .on(
-                'postgres_changes',
-                { event: '*', schema: 'public', table: 'content_articles' },
-                refetchFromRealtime
-            )
-            .subscribe((status: string, err?: Error | null) => {
-                // eslint-disable-next-line no-console
-                console.log('[Realtime] generated_articles channel status:', status, err ?? null);
-                if (status === 'SUBSCRIBED') {
-                    void queryClient.refetchQueries({
-                        predicate: (q: any) =>
-                            Array.isArray(q.queryKey) && q.queryKey[0] === 'generatedArticles',
-                        type: 'active',
-                    });
-                }
-            });
-
-        return () => {
-            supabase.removeChannel(channel);
-        };
-    }, [queryClient]);
 
     const containerVariants: Variants = {
         hidden: { opacity: 0 },

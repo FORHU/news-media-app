@@ -29,7 +29,7 @@ function truncateContent(text: string, limit: number = 12000): string {
 // AI persona/instruction
 function getAiSystemInstruction(sourceUrl?: string, requestedLanguage?: string) {
   const creditInstruction = sourceUrl
-    ? `\n9. SOURCE CREDITING: You MUST end the article with exactly one line: "Reference: ${sourceUrl}". This line must be inside the <content> tag and separated from the last paragraph by exactly two newlines (an empty line between them).`
+    ? `SOURCE CREDITING: You MUST end the article with exactly one line: "Reference: ${sourceUrl}". This line must be inside the <content> tag and separated from the last paragraph by exactly two newlines (an empty line between them).`
     : "";
 
   const languageInstruction = requestedLanguage 
@@ -54,16 +54,18 @@ function getAiSystemInstruction(sourceUrl?: string, requestedLanguage?: string) 
   <content>The article paragraphs...</content>
 
 [WRITING CONSTRAINTS]:
-1. THE OBSERVER: You are a reporter on the ground. The "Source Article" provided below contains your first-hand observations of the scene.
-2. NO META-COMMENTARY: NEVER mention that you are analyzing an article, looking at a photo, or were provided with an analysis. Write as if you are witnessing the event yourself.
-3. NO CONCLUDING SUMMARIES: Never start a paragraph with "In summary", "In conclusion", "Overall", or "Ultimately".
-4. NO TRANSITIONAL CLICHÉS: Avoid "It is important to note", "In today's fast-paced world", or "Furthermore" at the start of sentences.
-5. NO INTRO PHRASES: Do not include "Here is the article" or any meta-commentary.
-6. JOURNALISTIC TONE: Focus on facts and implications. Do NOT use flowery language or AI-typical filler words.
-7. NO MARKDOWN: Do not use bold, italics, or lists.
-8. HEADLINE: The headline must be punchy and news-worthy.
-9. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use exactly two newlines (an empty line) between each paragraph for consistent spacing.
-10. LANGUAGE: ${languageInstruction}${creditInstruction ? `\n11. ` + creditInstruction.trim() : ""}
+1. FACTUAL GROUNDING: You may ONLY state facts, names, dates, numbers, quotes, book titles, anniversaries, and claims that appear in the [SOURCE ARTICLE] (or are direct paraphrases of them). Do NOT invent specifics to sound authoritative. If the source does not mention something, omit it—do not guess or fill gaps with plausible-sounding details.
+2. NO FABRICATION: Do not invent interviews, studies, statistics, future dates, or publication schedules unless they are explicitly in the source.
+3. THE REWRITER: The [SOURCE ARTICLE] is your sole factual basis. Write a clear news-style rewrite in your own words, but do not treat it as a prompt to imagine new scenes or "report from the field" beyond what the source actually says.
+4. NO META-COMMENTARY: NEVER mention that you are analyzing an article, looking at a photo, or were provided with an analysis.
+5. NO CONCLUDING SUMMARIES: Never start a paragraph with "In summary", "In conclusion", "Overall", or "Ultimately".
+6. NO TRANSITIONAL CLICHÉS: Avoid "It is important to note", "In today's fast-paced world", or "Furthermore" at the start of sentences.
+7. NO INTRO PHRASES: Do not include "Here is the article" or any meta-commentary.
+8. JOURNALISTIC TONE: Focus on facts and implications that the source supports. Do NOT use flowery language or AI-typical filler words.
+9. NO MARKDOWN: Do not use bold, italics, or lists.
+10. HEADLINE: The headline must be punchy and must reflect the source—no clickbait claims absent from the source.
+11. PARAGRAPH STRUCTURE: Divide the content into 3-5 distinct paragraphs. Use exactly two newlines (an empty line) between each paragraph for consistent spacing.
+12. LANGUAGE: ${languageInstruction}${creditInstruction ? `\n13. ${creditInstruction}` : ""}
 `;
 }
 
@@ -196,10 +198,10 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${r
         throw new Error(errorMsg);
       }
 
-      const { response } = await chatRes.json();
-      if (!response) throw new Error("AI service returned empty response");
+      const rawJson = await chatRes.json();
+      const response = rawJson.response ?? rawJson.text ?? rawJson.content ?? rawJson.result ?? rawJson.output ?? null;
+      if (!response) throw new Error(`AI service returned empty response. Keys: ${Object.keys(rawJson).join(", ")}`);
 
-      // Extract parts using the helper
       const extracted = extractArticleData(response, rawArticle.title);
       title = extracted.title;
       content = extracted.content;
@@ -227,7 +229,7 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${r
           articleTitle: title,
           userPrompt: customPrompt || "",
           sourceImageUrl: rawArticle.imageUrl,
-          storyExcerpt: truncateContent(rawArticle.content || "", 1200),
+          storyContext: truncateContent(content || "", 900),
         });
         resolvedImageUrl = pipeline.imageUrl;
         featuredImageLog = pipeline.log;

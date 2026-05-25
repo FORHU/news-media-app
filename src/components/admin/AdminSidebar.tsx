@@ -12,11 +12,11 @@ import {
     ChevronDown,
     X,
     Users,
-    Image as ImageIcon
+    Image as ImageIcon,
+    Globe2
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
 
 interface AdminSidebarProps {
     sidebarOpen: boolean;
@@ -35,21 +35,16 @@ export default function AdminSidebar({
 
     useEffect(() => {
         const loadUser = async () => {
-            const { data } = await supabase.auth.getUser();
-            if (data.user) {
-                const email = data.user.email ?? '';
-                const name = data.user.user_metadata?.full_name
-                    ?? data.user.user_metadata?.name
-                    ?? email.split('@')[0]
-                    ?? 'Admin User';
-                setUser({ name, email });
+            const res = await fetch('/api/admin/auth/session');
+            if (res.ok) {
+                const data = await res.json();
+                setUser({ name: data.name || data.email?.split('@')[0] || 'Admin User', email: data.email ?? '' });
             }
         };
         void loadUser();
     }, []);
 
     const handleLogout = async () => {
-        await supabase.auth.signOut();
         await fetch('/api/admin/auth/logout', { method: 'POST' });
         router.replace('/admin/login');
     };
@@ -57,6 +52,7 @@ export default function AdminSidebar({
     const menuItems = [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/admin/dashboard' },
         { id: 'generated', label: 'Generated Articles', icon: FileText, href: '/admin/dashboard/generated' },
+        { id: 'external', label: 'External Submissions', icon: Globe2, href: '/admin/dashboard/external' },
         {
             id: 'crawl',
             label: 'Content Sourcing',

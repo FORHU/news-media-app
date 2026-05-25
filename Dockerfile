@@ -11,7 +11,6 @@ COPY prisma ./prisma/
 COPY prisma.config.ts ./
 
 # Provide a dummy DATABASE_URL for the prisma generate step during npm ci
-# This avoids the "Cannot resolve environment variable" error without needing the real URL yet
 ARG DATABASE_URL
 ENV DATABASE_URL=${DATABASE_URL:-postgresql://dummy:dummy@localhost:5432/dummy}
 

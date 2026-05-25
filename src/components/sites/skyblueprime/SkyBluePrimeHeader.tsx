@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { Search, Menu, User, X } from "lucide-react";
+import ContactEmailButton from "@/components/ContactEmailButton";
 import { getCoreCategories, HOME_CATEGORY_LABEL } from "@/config/categories";
+import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
+import { SearchDropdown } from "@/components/search/SearchDropdown";
 
 interface SkyBluePrimeHeaderProps {
   onOpenNewsletter?: () => void;
@@ -16,16 +19,31 @@ function categoryHref(categoryName: string) {
 
 export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHeaderProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const { suggestions, isSearching, showSuggestions, hideSuggestions } = useSearchSuggestions(query);
 
   const categories = getCoreCategories("skyblueprime.com");
+  const activeCategory = searchParams.get("category") ?? "";
+  const isHome = pathname === "/" && !activeCategory;
+
+  const isCatActive = (cat: string) =>
+    activeCategory.toLowerCase() === cat.toLowerCase();
 
   useEffect(() => {
     setQuery(searchParams.get("search") ?? "");
   }, [searchParams]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setIsMenuOpen(false); setIsSearchOpen(false); }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +51,7 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
       router.push(`/search?search=${encodeURIComponent(query.trim())}`);
       setIsSearchOpen(false);
       setIsMenuOpen(false);
+      hideSuggestions();
     }
   };
 
@@ -46,8 +65,10 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
             <button
               type="button"
               onClick={() => setIsMenuOpen((o) => !o)}
-              className="p-1 text-sky-950 hover:text-sky-700 transition-colors"
-              aria-label="Menu"
+              className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-sky-950 hover:text-sky-700 transition-colors"
+              aria-label="Toggle navigation menu"
+              aria-expanded={isMenuOpen}
+              aria-controls="skyblueprime-drawer"
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -65,14 +86,20 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
             <button
               type="button"
               onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className="p-1 text-sky-950 hover:text-sky-600 transition-colors"
-              aria-label="Search"
+              className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-sky-950 hover:text-sky-600 transition-colors"
+              aria-label="Toggle search"
+              aria-expanded={isSearchOpen}
             >
               <Search size={20} />
             </button>
 
+            <ContactEmailButton
+              wrapperClassName="hidden sm:block"
+              buttonClassName="p-1 text-sky-950 hover:text-sky-600 transition-colors"
+              iconSize={20}
+            />
             <Link
-              href="/admin/login"
+              href="/admin/dashboard"
               className="p-1 text-sky-950 hover:text-sky-600 transition-colors hidden sm:block"
               aria-label="Admin Portal"
             >
@@ -96,11 +123,18 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
       {/* Sub-Header Categories Bar */}
       <div className="bg-sky-50/50 border-b border-sky-100 hidden lg:block overflow-x-auto scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <div className="max-w-[1600px] mx-auto px-6 py-3 flex items-center justify-start xl:justify-center gap-6 xl:gap-8 text-[11px] font-extrabold uppercase tracking-widest">
+          <Link
+            href="/"
+            className={`whitespace-nowrap shrink-0 transition-colors ${isHome ? "text-sky-600 underline underline-offset-4" : "text-sky-950 hover:text-sky-600"}`}
+          >
+            {HOME_CATEGORY_LABEL}
+          </Link>
           {categories.map((cat) => (
             <Link
               key={cat}
               href={categoryHref(cat)}
-              className="text-sky-950 hover:text-sky-600 transition-colors whitespace-nowrap shrink-0"
+              className={`whitespace-nowrap shrink-0 transition-colors ${isCatActive(cat) ? "text-sky-600 underline underline-offset-4" : "text-sky-950 hover:text-sky-600"}`}
+              aria-current={isCatActive(cat) ? "page" : undefined}
             >
               {cat}
             </Link>
@@ -118,10 +152,20 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
+                onBlur={hideSuggestions}
                 placeholder="Search stories, topics, or authors..."
                 className="w-full pl-12 pr-4 py-3 rounded-none border-b-2 border-sky-200 bg-transparent text-lg text-sky-950 placeholder:text-sky-300 focus:outline-none focus:border-sky-600 transition-colors"
                 autoFocus
               />
+              {showSuggestions && (
+                <SearchDropdown
+                  query={query}
+                  suggestions={suggestions}
+                  isSearching={isSearching}
+                  theme="skyblueprime"
+                  onSelect={() => { hideSuggestions(); setIsSearchOpen(false); }}
+                />
+              )}
             </form>
           </div>
         </div>
@@ -135,6 +179,10 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
         onClick={() => setIsMenuOpen(false)}
       />
       <div
+        id="skyblueprime-drawer"
+        role="dialog"
+        aria-label="Navigation menu"
+        aria-modal="true"
         className={`fixed top-0 left-0 h-full w-80 max-w-[80vw] bg-sky-950 text-white z-[70] shadow-2xl transform transition-transform duration-300 ${
           isMenuOpen ? "translate-x-0" : "-translate-x-full"
         } overflow-y-auto`}
@@ -152,7 +200,7 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
           </button>
         </div>
         <div className="px-6 py-8 space-y-6">
-          <Link href="/" onClick={() => setIsMenuOpen(false)} className="block text-sm font-bold uppercase tracking-widest hover:text-sky-400 transition-colors">
+          <Link href="/" onClick={() => setIsMenuOpen(false)} className={`block text-sm font-bold uppercase tracking-widest transition-colors ${isHome ? "text-sky-400" : "hover:text-sky-400"}`}>
             {HOME_CATEGORY_LABEL}
           </Link>
           {categories.map((cat) => (
@@ -160,7 +208,8 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
               key={cat}
               href={categoryHref(cat)}
               onClick={() => setIsMenuOpen(false)}
-              className="block text-sm font-bold uppercase tracking-widest hover:text-sky-400 transition-colors"
+              aria-current={isCatActive(cat) ? "page" : undefined}
+              className={`block text-sm font-bold uppercase tracking-widest transition-colors ${isCatActive(cat) ? "text-sky-400" : "hover:text-sky-400"}`}
             >
               {cat}
             </Link>
@@ -179,8 +228,15 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
                 Newsletters
               </button>
             )}
+            <ContactEmailButton
+              wrapperClassName="sm:hidden"
+              buttonClassName="block text-sm font-bold uppercase tracking-widest text-sky-400 hover:text-white transition-colors"
+              showIcon={false}
+              showLabel
+              labelText="Contact Us"
+            />
             <Link
-              href="/admin/login"
+              href="/admin/dashboard"
               onClick={() => setIsMenuOpen(false)}
               className="block text-sm font-bold uppercase tracking-widest text-sky-400 hover:text-white transition-colors sm:hidden"
             >

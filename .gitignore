@@ -55,3 +55,9 @@ next-env.d.ts
 
 #Claude
 CLAUDE.md
+
+# Claude Code skills
+.agents/
+skills-lock.json
+# Supabase / local backups (may contain production data)
+/backups/

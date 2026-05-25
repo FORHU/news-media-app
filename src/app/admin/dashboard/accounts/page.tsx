@@ -38,8 +38,11 @@ export default function AccountsPage() {
 
     React.useEffect(() => {
         const getMe = async () => {
-            const { data: { user } } = await (await import('@/lib/supabaseClient')).supabase.auth.getUser();
-            if (user) setCurrentUserEmail(user.email ?? null);
+            const res = await fetch('/api/admin/auth/session');
+            if (res.ok) {
+                const data = await res.json();
+                setCurrentUserEmail(data.email ?? null);
+            }
         };
         getMe();
     }, []);

@@ -1,35 +1,18 @@
 import { NextResponse } from "next/server";
+import { ADMIN_JWT_COOKIE, ADMIN_ROLE_COOKIE } from "@/lib/auth";
 
-const ADMIN_ROLE_COOKIE = "admin_verified";
-
-/**
- * POST /api/admin/auth/logout
- *
- * Clears the admin_verified cookie. The Supabase session cookies (sb-*) are
- * cleared on the client side by supabase.auth.signOut() in AdminSidebar,
- * which uses the SSR browser client and handles its own cookie cleanup.
- */
 export async function POST() {
+    const cookieClearOpts = {
+        httpOnly: true,
+        sameSite: "lax" as const,
+        secure: process.env.COOKIE_SECURE === "true",
+        path: "/",
+        maxAge: 0,
+    };
+
     const response = NextResponse.json({ ok: true });
-
-    // Clear the admin role gate cookie
-    response.cookies.set(ADMIN_ROLE_COOKIE, "", {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        path: "/",
-        maxAge: 0,
-    });
-
-    // Also clear the legacy admin-authenticated cookie in case it still exists
-    // from sessions created before this migration.
-    response.cookies.set("admin-authenticated", "", {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        path: "/",
-        maxAge: 0,
-    });
-
+    response.cookies.set(ADMIN_JWT_COOKIE, "", cookieClearOpts);
+    response.cookies.set(ADMIN_ROLE_COOKIE, "", cookieClearOpts);
+    response.cookies.set("admin-authenticated", "", cookieClearOpts);
     return response;
 }

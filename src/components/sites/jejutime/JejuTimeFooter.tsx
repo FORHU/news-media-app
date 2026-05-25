@@ -2,16 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { AdBanner } from "@/components/AdBanner";
+import { AdBanner, Banner } from "@/components/AdBanner";
 import { Twitter, Instagram, Facebook, Mail, MapPin, Phone } from "lucide-react";
-
-interface Banner {
-  id: string;
-  imageUrl: string;
-  linkUrl: string;
-  altText: string | null;
-  positions: string[];
-}
 
 interface FooterProps {
   onOpenNewsletter?: () => void;
@@ -22,7 +14,7 @@ export default function JejuTimeFooter({ onOpenNewsletter, footerBanners }: Foot
   return (
     <>
       <div className="max-w-7xl mx-auto px-6 w-full mt-0 mb-0">
-        <AdBanner position="GLOBAL_FOOTER" />
+        <AdBanner position="GLOBAL_FOOTER" initialBanners={footerBanners} />
       </div>
       <footer className="bg-black border-t border-slate-800 pt-20 pb-12">
       <div className="max-w-7xl mx-auto px-6">
@@ -84,11 +76,11 @@ export default function JejuTimeFooter({ onOpenNewsletter, footerBanners }: Foot
         </div>
 
         <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center text-[10px] font-bold uppercase tracking-widest text-slate-400 space-y-4 md:space-y-0">
-          <p>© 2026 JejuTime. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} JejuTime. All rights reserved.</p>
           <div className="flex space-x-8">
-            <Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link>
-            <Link href="#" className="hover:text-white transition-colors">Terms of Service</Link>
-            <Link href="#" className="hover:text-white transition-colors">Cookie Settings</Link>
+            <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+            <Link href="/search" className="hover:text-white transition-colors">All Articles</Link>
           </div>
         </div>
       </div>
