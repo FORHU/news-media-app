@@ -102,7 +102,6 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
         setIsUnpublishing(true);
         try {
             await articlesApi.unpublishArticle(article.id);
-            // Realtime should handle it, but we invalidate for immediate feedback
             queryClient.invalidateQueries({ queryKey: ['generatedArticles'] });
             setIsConfirmModalOpen(false);
         } catch (error) {
