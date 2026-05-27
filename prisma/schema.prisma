@@ -340,6 +340,7 @@ model ExternalArticleSubmission {
   contentArticleId  String         @unique @map("content_article_id")
   sourcePlatform    String         @map("source_platform")
   externalArticleId String         @map("external_article_id")
+  submittedLanguage String?        @map("submitted_language")
   callbackUrl       String?        @map("callback_url")
   callbackStatus    String?        @map("callback_status")
   callbackSentAt    DateTime?      @map("callback_sent_at")

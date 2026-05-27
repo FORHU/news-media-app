@@ -1,24 +1,28 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { PenLine, LayoutList, LogOut, Sun, Moon, Newspaper } from "lucide-react";
+import { Globe2, LogOut, Sun, Moon, Newspaper } from "lucide-react";
 
-const NAV = [
-    { label: "Create Article", href: "/admin/moderator", icon: PenLine },
-    { label: "Articles", href: "/admin/moderator/articles", icon: LayoutList },
+const STATUS_TABS = [
+    { label: "Pending",   value: "pending" },
+    { label: "Draft",     value: "draft" },
+    { label: "Published", value: "published" },
+    { label: "Rejected",  value: "rejected" },
 ];
 
 export default function ModeratorLayout({ children }: { children: React.ReactNode }) {
-    const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const activeTab = searchParams.get("tab") ?? "pending";
+
     const [name, setName] = useState("");
-    const [dark, setDark] = useState(false);
+    const [dark, setDark] = useState(true);
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
         const saved = localStorage.getItem("moderator-dark");
-        if (saved === "true") setDark(true);
+        setDark(saved !== "false");
         setMounted(true);
 
         fetch("/api/admin/auth/session")
@@ -42,7 +46,6 @@ export default function ModeratorLayout({ children }: { children: React.ReactNod
 
     return (
         <div className={dark ? "dark" : ""}>
-            {/* Full-viewport, no-scroll shell */}
             <div className="h-screen overflow-hidden flex flex-col md:flex-row bg-gray-50 dark:bg-zinc-950 transition-colors duration-200">
 
                 {/* ── Desktop sidebar ──────────────────────────────────────── */}
@@ -69,27 +72,27 @@ export default function ModeratorLayout({ children }: { children: React.ReactNod
                         )}
                     </div>
 
-                    {/* Nav — flex-1 so it fills remaining space */}
+                    {/* Status filter tabs */}
                     <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-zinc-600 px-2 pb-2">Navigation</p>
-                        {NAV.map(({ label, href, icon: Icon }) => {
-                            const isActive = href === "/admin/moderator"
-                                ? pathname === "/admin/moderator"
-                                : pathname.startsWith(href);
+                        <div className="flex items-center gap-2 px-2 pb-3">
+                            <Globe2 className="w-3 h-3 text-orange-500" />
+                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-zinc-600">External Submissions</p>
+                        </div>
+                        {STATUS_TABS.map(({ label, value }) => {
+                            const isActive = activeTab === value;
                             return (
-                                <Link key={href} href={href}
+                                <Link
+                                    key={value}
+                                    href={`/admin/moderator?tab=${value}`}
                                     className={`group flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all ${
                                         isActive
                                             ? "bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400"
                                             : "text-gray-500 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-zinc-100"
-                                    }`}>
-                                    <span className={`flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${
-                                        isActive
-                                            ? "bg-orange-100 dark:bg-orange-500/20"
-                                            : "bg-gray-100 dark:bg-zinc-800 group-hover:bg-gray-200 dark:group-hover:bg-zinc-700"
-                                    }`}>
-                                        <Icon className={`w-4 h-4 ${isActive ? "text-orange-500 dark:text-orange-400" : "text-gray-400 dark:text-zinc-500"}`} />
-                                    </span>
+                                    }`}
+                                >
+                                    <span className={`flex items-center justify-center w-2 h-2 rounded-full shrink-0 transition-colors ${
+                                        isActive ? "bg-orange-500 dark:bg-orange-400" : "bg-gray-200 dark:bg-zinc-700 group-hover:bg-gray-300 dark:group-hover:bg-zinc-600"
+                                    }`} />
                                     <span className="tracking-wide">{label}</span>
                                     {isActive && <span className="ml-auto w-2 h-2 rounded-full bg-orange-500 dark:bg-orange-400" />}
                                 </Link>
@@ -116,7 +119,7 @@ export default function ModeratorLayout({ children }: { children: React.ReactNod
                     </div>
                 </aside>
 
-                {/* ── Mobile: top bar + nav tabs ───────────────────────────── */}
+                {/* ── Mobile: top bar + status tabs ────────────────────────── */}
                 <div className="md:hidden flex flex-col shrink-0 bg-white dark:bg-zinc-900 border-b border-gray-100 dark:border-zinc-800">
                     <div className="flex items-center justify-between px-4 py-3">
                         <div className="flex items-center gap-2">
@@ -134,24 +137,27 @@ export default function ModeratorLayout({ children }: { children: React.ReactNod
                             </button>
                         </div>
                     </div>
-                    <div className="flex border-t border-gray-100 dark:border-zinc-800">
-                        {NAV.map(({ label, href, icon: Icon }) => {
-                            const isActive = href === "/admin/moderator"
-                                ? pathname === "/admin/moderator"
-                                : pathname.startsWith(href);
+                    <div className="flex overflow-x-auto border-t border-gray-100 dark:border-zinc-800 px-2 gap-1 py-1.5 no-scrollbar">
+                        {STATUS_TABS.map(({ label, value }) => {
+                            const isActive = activeTab === value;
                             return (
-                                <Link key={href} href={href}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-[11px] font-black uppercase tracking-widest transition-colors border-b-2 ${
-                                        isActive ? "text-orange-500 border-orange-500" : "text-gray-400 dark:text-zinc-500 border-transparent"
-                                    }`}>
-                                    <Icon className="w-3.5 h-3.5" />{label}
+                                <Link
+                                    key={value}
+                                    href={`/admin/moderator?tab=${value}`}
+                                    className={`shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-colors ${
+                                        isActive
+                                            ? "bg-orange-500 text-white"
+                                            : "text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800"
+                                    }`}
+                                >
+                                    {label}
                                 </Link>
                             );
                         })}
                     </div>
                 </div>
 
-                {/* ── Main content — only this area scrolls ────────────────── */}
+                {/* ── Main content ─────────────────────────────────────────── */}
                 <main className="flex-1 min-h-0 overflow-y-auto">
                     <div className="w-full min-h-full px-6 md:px-10 py-8 flex flex-col">
                         {children}
