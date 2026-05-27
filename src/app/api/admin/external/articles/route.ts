@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   try {
     const token = req.cookies.get(ADMIN_JWT_COOKIE)?.value;
     const payload = token ? await verifyAdminJwt(token) : null;
-    if (!payload || payload.role !== "admin") {
+    if (!payload || (payload.role !== "admin" && payload.role !== "moderator")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { verifyAdminJwt, ADMIN_JWT_COOKIE } from "@/lib/auth";
-import { sendWebhookCallback } from "@/lib/webhook";
 import { revalidatePath } from "next/cache";
 import { generateUniqueArticleSlug } from "@/lib/slug";
 import { TENANT_CATEGORIES, CATEGORY_TRANSLATIONS } from "@/config/categories";
@@ -119,7 +118,7 @@ export async function POST(req: NextRequest) {
   try {
     const token = req.cookies.get(ADMIN_JWT_COOKIE)?.value;
     const payload = token ? await verifyAdminJwt(token) : null;
-    if (!payload || payload.role !== "admin") {
+    if (!payload || (payload.role !== "admin" && payload.role !== "moderator")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -153,8 +152,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No pending external articles found." }, { status: 404 });
     }
 
-    const publishDate = new Date();
-    let totalApproved = 0;
+    // Shared batch timestamp — used to group all 4 drafts together in the UI
+    const draftDate = new Date();
+    let totalDrafted = 0;
 
     for (const source of sourceArticles) {
       const sourceDomain = source.tenant?.domain ?? "";
@@ -166,12 +166,9 @@ export async function POST(req: NextRequest) {
         `[external/approve] ▶ "${source.title}" | src: ${sourceDomain} (${sourceLanguage}) | category: "${sourceCategoryName}" → EN: "${englishCategory}"`
       );
 
-      // Process ALL 4 sites — including the source site so content is always
-      // in the correct language regardless of what language was submitted
       for (const site of JEJU_SITES) {
         const isSourceSite = site.domain === sourceDomain;
 
-        // Resolve tenant
         const tenant = isSourceSite
           ? { id: source.tenant!.id }
           : await prisma.tenant.findUnique({
@@ -184,7 +181,6 @@ export async function POST(req: NextRequest) {
           continue;
         }
 
-        // Resolve category for this site
         let targetCategoryId: string | null = null;
         if (englishCategory) {
           const localName = categoryForDomain(englishCategory, site.domain);
@@ -206,10 +202,8 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // For the source site we already have the category from the original article
         if (!targetCategoryId && !isSourceSite) continue;
 
-        // Rate-limit AI calls
         await sleep(1500);
 
         const translated = await translate(
@@ -221,20 +215,18 @@ export async function POST(req: NextRequest) {
         );
 
         if (isSourceSite) {
-          // Update the original article with the correctly-languaged content and publish it
           await prisma.contentArticle.update({
             where: { id: source.id },
             data: {
               title: translated.title,
               content: translated.content,
-              status: "published",
-              publishDate,
+              status: "draft",
+              publishDate: draftDate,
             },
           });
-          totalApproved++;
-          console.log(`[external/approve] ✅ Published original | domain: ${site.domain} | lang: ${site.language}`);
+          totalDrafted++;
+          console.log(`[external/approve] 📝 Drafted original | domain: ${site.domain} | lang: ${site.language}`);
         } else {
-          // Ensure a bot user exists for this tenant
           const botEmail = `external-bot@${tenant.id}.internal`;
           const botUser = await prisma.user.upsert({
             where: { tenantId_email: { tenantId: tenant.id, email: botEmail } },
@@ -250,7 +242,7 @@ export async function POST(req: NextRequest) {
             select: { id: true },
           });
 
-          const slug = await generateUniqueArticleSlug(prisma, translated.title, publishDate);
+          const slug = await generateUniqueArticleSlug(prisma, translated.title, draftDate);
 
           await prisma.contentArticle.create({
             data: {
@@ -262,50 +254,24 @@ export async function POST(req: NextRequest) {
               imageUrl: source.imageUrl ?? null,
               slug,
               sourceType: "EXTERNAL",
-              status: "published",
-              publishDate,
+              status: "draft",
+              publishDate: draftDate,
             },
           });
 
           console.log(
-            `[external/approve] ✅ Published | domain: ${site.domain} | lang: ${site.language} | title: "${translated.title}"`
+            `[external/approve] 📝 Drafted | domain: ${site.domain} | lang: ${site.language} | title: "${translated.title}"`
           );
         }
       }
 
-      // Revalidate all 4 site paths
+      // Revalidate paths so draft articles are visible in admin
       for (const site of JEJU_SITES) {
         try { revalidatePath(`/${site.domain}`, "page"); } catch { /* non-fatal */ }
       }
-      if (source.slug && sourceDomain) {
-        try { revalidatePath(`/${sourceDomain}/article/${source.slug}`, "page"); } catch { /* non-fatal */ }
-      }
-
-      // Send approval callback to wasba.net
-      const sub = source.externalSubmission;
-      if (sub?.callbackUrl) {
-        const articleUrl =
-          source.slug && sourceDomain
-            ? `https://${sourceDomain}/article/${source.slug}`
-            : undefined;
-        const result = await sendWebhookCallback(sub.callbackUrl, {
-          externalArticleId: sub.externalArticleId,
-          status: "approved",
-          articleUrl,
-        });
-        prisma.externalArticleSubmission
-          .update({
-            where: { id: sub.id },
-            data: {
-              callbackStatus: result.success ? "sent" : "failed",
-              callbackSentAt: new Date(),
-            },
-          })
-          .catch(() => {});
-      }
     }
 
-    return NextResponse.json({ success: true, approved: totalApproved });
+    return NextResponse.json({ success: true, drafted: totalDrafted });
   } catch (error) {
     console.error("[admin/external/approve]", error);
     return NextResponse.json({ error: "Failed to approve articles" }, { status: 500 });

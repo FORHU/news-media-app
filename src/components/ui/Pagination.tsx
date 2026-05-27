@@ -23,7 +23,7 @@ export default function Pagination({
 
   return (
     <div className="flex items-center justify-between pt-1">
-      <p className="text-xs text-gray-400 font-medium">
+      <p className="text-xs text-gray-400 dark:text-zinc-500 font-medium">
         {total} {itemLabel}{total !== 1 ? "s" : ""}
       </p>
 
@@ -52,7 +52,7 @@ export default function Pagination({
             p === "..." ? (
               <span
                 key={`ellipsis-${i}`}
-                className="w-8 h-8 flex items-center justify-center text-xs text-gray-400 font-bold select-none"
+                className="w-8 h-8 flex items-center justify-center text-xs text-gray-400 dark:text-zinc-600 font-bold select-none"
               >
                 …
               </span>
@@ -63,7 +63,7 @@ export default function Pagination({
                 className={`w-8 h-8 rounded-xl text-xs font-black transition-all ${
                   p === page
                     ? "bg-orange-500 text-white shadow-sm shadow-orange-200"
-                    : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                    : "text-gray-500 dark:text-zinc-400 hover:text-gray-800 dark:hover:text-zinc-100 hover:bg-gray-100 dark:hover:bg-zinc-700"
                 }`}
               >
                 {p}
@@ -110,7 +110,7 @@ function NavButton({
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className="w-8 h-8 flex items-center justify-center rounded-xl text-gray-500 hover:text-gray-800 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none transition-all"
+      className="w-8 h-8 flex items-center justify-center rounded-xl text-gray-500 dark:text-zinc-400 hover:text-gray-800 dark:hover:text-zinc-100 hover:bg-gray-100 dark:hover:bg-zinc-700 disabled:opacity-30 disabled:pointer-events-none transition-all"
     >
       {children}
     </button>

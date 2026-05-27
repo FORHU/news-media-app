@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   try {
     const token = req.cookies.get(ADMIN_JWT_COOKIE)?.value;
     const payload = token ? await verifyAdminJwt(token) : null;
-    if (!payload || payload.role !== "admin") {
+    if (!payload || (payload.role !== "admin" && payload.role !== "moderator")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -36,12 +36,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Article not found or not unpublishable." }, { status: 404 });
     }
 
-    // Only batch-unpublish when this is the original submission (has externalSubmission)
+    // Shared draft timestamp so all articles fall into the same 10-second grouping bucket
+    const draftDate = new Date();
+
+    // Primary article (has externalSubmission) — reset the whole batch to draft
     if (primary.externalSubmission && primary.publishDate) {
       const windowStart = new Date(primary.publishDate.getTime() - BATCH_WINDOW_MS);
       const windowEnd   = new Date(primary.publishDate.getTime() + BATCH_WINDOW_MS);
 
-      // Find all auto-generated translations in the same publish batch
       const translations = await prisma.contentArticle.findMany({
         where: {
           id: { not: primaryId },
@@ -53,38 +55,29 @@ export async function POST(req: NextRequest) {
         select: { id: true },
       });
 
-      const translationIds = translations.map((t) => t.id);
+      const allIds = [primaryId, ...translations.map((t) => t.id)];
 
-      // Delete translations — they were auto-generated and have no original submission
-      if (translationIds.length > 0) {
-        await prisma.contentArticle.deleteMany({
-          where: { id: { in: translationIds } },
-        });
-        console.log(
-          `[external/unpublish] Deleted ${translationIds.length} translation(s) for primary: ${primaryId}`
-        );
-      }
-
-      // Reset original Korean article to pending
-      await prisma.contentArticle.update({
-        where: { id: primaryId },
-        data: { status: "pending", publishDate: null },
+      await prisma.contentArticle.updateMany({
+        where: { id: { in: allIds } },
+        data: { status: "draft", publishDate: draftDate },
       });
 
-      console.log(`[external/unpublish] Reset primary to pending | id: ${primaryId}`);
+      console.log(
+        `[external/unpublish] Reset ${allIds.length} article(s) to draft | primary: ${primaryId} | translations: ${translations.length}`
+      );
 
-      return NextResponse.json({
-        success: true,
-        unpublished: 1,
-        deletedTranslations: translationIds.length,
-      });
+      return NextResponse.json({ success: true, unpublished: allIds.length });
     }
 
-    // Single article unpublish (translation sub-row or no batch context)
-    await prisma.contentArticle.delete({ where: { id: primaryId } });
-    console.log(`[external/unpublish] Deleted single translation | id: ${primaryId}`);
+    // Single translation sub-row — reset to draft
+    await prisma.contentArticle.update({
+      where: { id: primaryId },
+      data: { status: "draft", publishDate: draftDate },
+    });
 
-    return NextResponse.json({ success: true, unpublished: 1, deletedTranslations: 0 });
+    console.log(`[external/unpublish] Reset single article to draft | id: ${primaryId}`);
+
+    return NextResponse.json({ success: true, unpublished: 1 });
   } catch (error) {
     console.error("[admin/external/unpublish]", error);
     return NextResponse.json({ error: "Failed to unpublish articles" }, { status: 500 });
