@@ -150,7 +150,7 @@ export default async function Page({
       </Suspense>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-        <AdBanner position="HOME_TOP" initialBanners={topBanners} />
+        <AdBanner position="HOME_TOP" initialBanners={banners.top} />
       </div>
 
       {articles.length > 0 && (
@@ -170,7 +170,7 @@ export default async function Page({
           />
           <div className="space-y-8">
             <TrendingSidebar articles={articles.slice(0, 5)} domain={domain} />
-            <AdBanner position="HOME_SIDEBAR" initialBanners={sidebarBanners} />
+            <AdBanner position="HOME_SIDEBAR" initialBanners={banners.sidebar} />
           </div>
         </div>
 
