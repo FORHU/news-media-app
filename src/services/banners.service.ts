@@ -13,6 +13,21 @@ export class BannersServiceError extends Error {
 }
 
 export const bannersService = {
+  getAllBannersForTenant: cache(async (tenantId: string) => {
+    const all = await bannersRepository.findAllForTenant(tenantId);
+    const byPosition = (pos: string) => all.filter((b) => b.positions?.includes(pos));
+    return {
+      top:        byPosition("HOME_TOP"),
+      sidebar:    byPosition("HOME_SIDEBAR"),
+      footer:     byPosition("GLOBAL_FOOTER"),
+      sideLTop:   byPosition("SIDEBAR_L_TOP"),
+      sideLMid:   byPosition("SIDEBAR_L_MID"),
+      sideRMid:   byPosition("SIDEBAR_R_MID"),
+      sideRBtm:   byPosition("SIDEBAR_R_BTM"),
+      contentMid: byPosition("CONTENT_MID"),
+    };
+  }),
+
   getBanners: cache(async (params: {
     position?: string | null;
     isActive?: boolean | null;

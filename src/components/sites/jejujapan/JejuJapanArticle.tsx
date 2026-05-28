@@ -27,6 +27,7 @@ import {
   stripOriginalPostBlock,
 } from "@/lib/tweetArticleDisplay";
 import { ArticleShare } from "@/components/article/ArticleShare";
+import { ArticleContentRenderer } from "@/components/article/ArticleContentRenderer";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
@@ -282,28 +283,25 @@ export default function JejuJapanArticle({
                     <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" sizes="(max-width: 1024px) 100vw, 850px" />
                   </div>
                 )}
-                <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto first-letter:text-6xl first-letter:font-black first-letter:text-[#bc002d] first-letter:float-left first-letter:mr-3 break-words">
-                  {firstHalf}
-                </div>
-
-                {/* Adsterra Mid-Article Dynamic Ad */}
-                {midArticleConfig && (
-                  <div className="my-8 flex justify-center w-full">
-                     <AdsterraBanner bannerKey={midArticleConfig.key} width={midArticleConfig.width} height={midArticleConfig.height} className="!my-0" />
-                  </div>
-                )}
-
-                {secondHalf && (
-                  <div className="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto mt-4 break-words">
-                    {secondHalf}
-                  </div>
-                )}
+                <ArticleContentRenderer
+                  paragraphs={paragraphs}
+                  galleryImages={(article.imageUrls ?? []).slice(1)}
+                  title={article.title}
+                  imageWrapperClassName="relative aspect-video bg-gray-100 overflow-hidden"
+                  firstTextClassName="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto first-letter:text-6xl first-letter:font-black first-letter:text-[#bc002d] first-letter:float-left first-letter:mr-3 break-words"
+                  textClassName="text-gray-800 text-lg leading-loose whitespace-pre-wrap font-noto mt-8 break-words"
+                  adSlot={midArticleConfig && (
+                    <div className="my-8 flex justify-center w-full">
+                      <AdsterraBanner bannerKey={midArticleConfig.key} width={midArticleConfig.width} height={midArticleConfig.height} className="!my-0" />
+                    </div>
+                  )}
+                />
               </>
             )}
 
-            <ArticleShare 
-              site="jejujapan" 
-              title={article.title} 
+            <ArticleShare
+              site="jejujapan"
+              title={article.title}
               className="mt-12"
             />
 

@@ -11,6 +11,7 @@ import { articlesApi } from "@/lib/api";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
 import type { Article } from "@/lib/types";
 import { ArticleShare } from "@/components/article/ArticleShare";
+import { ArticleImageGallery } from "@/components/article/ArticleImageGallery";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
 
@@ -249,6 +250,12 @@ export default function SkyBluePrimeArticle({
               <div
                 className="prose prose-sky max-w-none text-lg lg:text-[21px] leading-[1.8] text-sky-950 font-serif article-body"
                 dangerouslySetInnerHTML={{ __html: firstHtmlWithLede }}
+              />
+
+              <ArticleImageGallery
+                images={article.imageUrls ?? []}
+                title={article.title}
+                imageWrapperClassName="relative aspect-[4/3] bg-sky-100 overflow-hidden"
               />
 
               {/* Mid-article Banner */}

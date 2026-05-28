@@ -105,75 +105,16 @@ export default async function Page({
   const { domain } = await params;
   const tenantId = await resolveTenantIdFromDomain(domain);
 
-  const articles = tenantId
-    ? await articlesService.getArticles(
-      { limit: 100, status: "published" },
-      tenantId
-    )
-    : [];
+  const emptyBanners = { top: [], sidebar: [], footer: [], sideLTop: [], sideLMid: [], sideRMid: [], sideRBtm: [], contentMid: [] };
 
-  const [
-    topBanners,
-    sidebarBanners,
-    footerBanners,
-    sideLTopBanners,
-    sideLMidBanners,
-    sideRMidBanners,
-    sideRBtmBanners,
-    contentMidBanners,
-  ] = await Promise.all([
+  const [articles, banners] = await Promise.all([
     tenantId
-      ? bannersService
-        .getBanners({ position: "HOME_TOP", isActive: true, tenantId })
-        .catch(() => [])
+      ? articlesService.getArticles({ limit: 50, status: "published" }, tenantId)
       : Promise.resolve([]),
     tenantId
-      ? bannersService
-        .getBanners({ position: "HOME_SIDEBAR", isActive: true, tenantId })
-        .catch(() => [])
-      : Promise.resolve([]),
-    tenantId
-      ? bannersService
-        .getBanners({ position: "GLOBAL_FOOTER", isActive: true, tenantId })
-        .catch(() => [])
-      : Promise.resolve([]),
-    tenantId
-      ? bannersService
-        .getBanners({ position: "SIDEBAR_L_TOP", isActive: true, tenantId })
-        .catch(() => [])
-      : Promise.resolve([]),
-    tenantId
-      ? bannersService
-        .getBanners({ position: "SIDEBAR_L_MID", isActive: true, tenantId })
-        .catch(() => [])
-      : Promise.resolve([]),
-    tenantId
-      ? bannersService
-        .getBanners({ position: "SIDEBAR_R_MID", isActive: true, tenantId })
-        .catch(() => [])
-      : Promise.resolve([]),
-    tenantId
-      ? bannersService
-        .getBanners({ position: "SIDEBAR_R_BTM", isActive: true, tenantId })
-        .catch(() => [])
-      : Promise.resolve([]),
-    tenantId
-      ? bannersService
-        .getBanners({ position: "CONTENT_MID", isActive: true, tenantId })
-        .catch(() => [])
-      : Promise.resolve([]),
+      ? bannersService.getAllBannersForTenant(tenantId).catch(() => emptyBanners)
+      : Promise.resolve(emptyBanners),
   ]);
-
-  const banners = {
-    top: topBanners,
-    sidebar: sidebarBanners,
-    footer: footerBanners,
-    sideLTop: sideLTopBanners,
-    sideLMid: sideLMidBanners,
-    sideRMid: sideRMidBanners,
-    sideRBtm: sideRBtmBanners,
-    contentMid: contentMidBanners,
-  };
 
   // --- Design Routing ---
   if (domain === "newsicons.com") {

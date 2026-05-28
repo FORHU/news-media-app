@@ -5,6 +5,7 @@ export type ApiKeyPayload = {
   tenantId: string;
   sourceName: string;
   keyId: string;
+  autoPublish: boolean;
 };
 
 export async function verifyApiKey(rawKey: string): Promise<ApiKeyPayload | null> {
@@ -16,8 +17,13 @@ export async function verifyApiKey(rawKey: string): Promise<ApiKeyPayload | null
       isActive: true,
       OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
     },
-    select: { id: true, tenantId: true, sourceName: true },
+    select: { id: true, tenantId: true, sourceName: true, autoPublish: true },
   });
   if (!record) return null;
-  return { tenantId: record.tenantId, sourceName: record.sourceName, keyId: record.id };
+  return {
+    tenantId: record.tenantId,
+    sourceName: record.sourceName,
+    keyId: record.id,
+    autoPublish: record.autoPublish,
+  };
 }

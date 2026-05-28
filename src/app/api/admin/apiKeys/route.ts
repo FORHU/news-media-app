@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
 
     const keys = await prisma.apiKey.findMany({
       where: { tenantId: payload.tenantId },
-      select: { id: true, sourceName: true, isActive: true, expiresAt: true, createdAt: true },
+      select: { id: true, sourceName: true, isActive: true, autoPublish: true, expiresAt: true, createdAt: true },
       orderBy: { createdAt: "desc" },
     });
 
@@ -83,5 +83,38 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error("[admin/apiKeys GET]", error);
     return NextResponse.json({ error: "Failed to fetch API keys" }, { status: 500 });
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const token = req.cookies.get(ADMIN_JWT_COOKIE)?.value;
+    const payload = token ? await verifyAdminJwt(token) : null;
+    if (!payload || payload.role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id, autoPublish } = await req.json();
+    if (!id || typeof autoPublish !== "boolean") {
+      return NextResponse.json({ error: "id and autoPublish (boolean) are required" }, { status: 400 });
+    }
+
+    const existing = await prisma.apiKey.findFirst({
+      where: { id, tenantId: payload.tenantId },
+    });
+    if (!existing) {
+      return NextResponse.json({ error: "API key not found" }, { status: 404 });
+    }
+
+    const updated = await prisma.apiKey.update({
+      where: { id },
+      data: { autoPublish },
+      select: { id: true, sourceName: true, isActive: true, autoPublish: true, expiresAt: true, createdAt: true },
+    });
+
+    return NextResponse.json(updated);
+  } catch (error) {
+    console.error("[admin/apiKeys PATCH]", error);
+    return NextResponse.json({ error: "Failed to update API key" }, { status: 500 });
   }
 }

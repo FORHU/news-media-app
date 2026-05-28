@@ -42,6 +42,7 @@ export async function GET(req: NextRequest) {
               id: true,
               sourcePlatform: true,
               externalArticleId: true,
+              submittedLanguage: true,
               callbackUrl: true,
               callbackStatus: true,
               callbackSentAt: true,

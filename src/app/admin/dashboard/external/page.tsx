@@ -75,8 +75,9 @@ function StatusBadge({ status }: { status: string }) {
 function groupArticles(articles: ExternalArticle[]): ArticleGroup[] {
   const groups = new Map<string, ExternalArticle[]>();
   for (const article of articles) {
-    const date = article.publishDate ? new Date(article.publishDate) : new Date(article.createdAt);
-    const key = Math.floor(date.getTime() / 10000).toString();
+    // Group by externalArticleId so all 4 language versions stay together.
+    // Fall back to the article's own id if it has no submission record.
+    const key = article.externalSubmission?.externalArticleId ?? article.id;
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key)!.push(article);
   }
