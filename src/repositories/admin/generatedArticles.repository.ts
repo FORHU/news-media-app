@@ -217,17 +217,22 @@ export const generatedArticlesRepository = {
   },
 
   async updateStatus(id: string, status: string, tenantId?: string): Promise<void> {
+    const data: Record<string, unknown> = { status };
+    if (status === "published") {
+      data.publishDate = new Date();
+    }
+
     if (tenantId) {
       await prisma.contentArticle.updateMany({
         where: { id, tenantId },
-        data: { status },
+        data,
       });
       return;
     }
 
     await prisma.contentArticle.update({
       where: { id },
-      data: { status },
+      data,
     });
   },
 };

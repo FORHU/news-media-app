@@ -23,6 +23,7 @@ import SkyBluePrimeLanding from "@/components/sites/skyblueprime/SkyBluePrimeLan
 export const revalidate = 300;
 
 export async function generateStaticParams() {
+  if (process.env.NODE_ENV === "development") return [];
   try {
     const tenants = await prisma.tenant.findMany({
       where: { isActive: true },

@@ -5,6 +5,7 @@ import { generateUniqueArticleSlug } from "@/lib/slug";
 import { z } from "zod";
 import { getTenantDomainFromRequest, resolveTenantIdFromRequest } from "@/lib/tenant";
 import { uploadToS3 } from "@/lib/s3";
+import { sseBroadcaster } from "@/lib/sse";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -361,6 +362,7 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${l
         },
       });
 
+      sseBroadcaster.broadcast("articles:updated");
       return NextResponse.json(contentArticle);
     } catch (error: any) {
       clearTimeout(timeout);

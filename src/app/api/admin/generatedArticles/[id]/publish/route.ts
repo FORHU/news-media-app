@@ -5,6 +5,7 @@ import { generatedArticlesService } from "@/services/admin/generatedArticles.ser
 import { z } from "zod";
 import { resolveTenantIdFromRequest } from "@/lib/tenant";
 import { revalidatePath } from "next/cache";
+import { sseBroadcaster } from "@/lib/sse";
 
 async function revalidateArticle(tenantId: string, articleId: string, slug?: string | null) {
   try {
@@ -78,6 +79,7 @@ export async function POST(
     
     // Trigger on-demand revalidation
     await revalidateArticle(tenantId, id, article?.slug);
+    sseBroadcaster.broadcast("articles:updated");
 
     return NextResponse.json({ success: true, message: "Article published successfully" });
   } catch (error) {
@@ -191,6 +193,7 @@ export async function PATCH(
 
     // Trigger on-demand revalidation
     await revalidateArticle(tenantId, id, updated.slug);
+    sseBroadcaster.broadcast("articles:updated");
 
     return NextResponse.json(updated);
   } catch (error: any) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { resolveTenantIdFromRequest } from "@/lib/tenant";
 import { crawledArticlesService } from "@/services/admin/crawledArticles.service";
+import { sseBroadcaster } from "@/lib/sse";
 
 export async function DELETE(
   req: NextRequest,
@@ -14,7 +15,7 @@ export async function DELETE(
 
     const { id } = await params;
     await crawledArticlesService.deleteRawArticle(id, tenantId);
-
+    sseBroadcaster.broadcast("rawArticles:updated");
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting crawled article:", error);

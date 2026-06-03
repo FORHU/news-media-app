@@ -38,6 +38,7 @@ import { StoryImage } from '@/components/StoryImage';
 import ConfirmationModal from '@/components/admin/shared/ConfirmationModal';
 import { getCategoryLabel } from '@/config/categories';
 import { normalizeCategoryName } from '@/lib/categoryDisplay';
+import { useArticleStream } from '@/hooks/useArticleStream';
 
 // Mock response type for now, as it might be added to types.ts later
 interface GeneratedArticlesResponse {
@@ -411,7 +412,9 @@ export default function GeneratedArticlesList({ searchParams }: {
     const currentPage = parseInt(urlSearchParams.get('page') || searchParams.page || '1');
     const limit = 10;
 
-    // Use the new API for fetching generated articles
+    // Real-time updates via SSE — invalidates cache whenever an article is created/published
+    useArticleStream();
+
     const { data, isLoading, isError } = useQuery<GeneratedArticlesResponse>({
         queryKey: ['generatedArticles', { searchQuery, currentPage, category, date, status }],
         queryFn: () => articlesApi.getGeneratedArticles({
@@ -422,7 +425,6 @@ export default function GeneratedArticlesList({ searchParams }: {
             status: status || undefined
         }),
         placeholderData: (prev: GeneratedArticlesResponse | undefined) => prev,
-        refetchInterval: 3000,
     });
     const { data: categories } = useQuery({
         queryKey: ['categories'],

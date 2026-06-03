@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { uploadToS3 } from "@/lib/s3";
 import { generateUniqueArticleSlug } from "@/lib/slug";
 import { resolveTenantIdFromRequest } from "@/lib/tenant";
+import { sseBroadcaster } from "@/lib/sse";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -240,6 +241,7 @@ CRITICAL: Fulfill the USER REQUEST using the STRUCTURE defined in SYSTEM INSTRUC
         },
       });
 
+      sseBroadcaster.broadcast("articles:updated");
       return NextResponse.json(contentArticle);
     } catch (error: any) {
       clearTimeout(timeout);

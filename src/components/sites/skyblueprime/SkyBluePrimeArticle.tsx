@@ -166,7 +166,18 @@ export default function SkyBluePrimeArticle({
     );
   }
 
-  const rawHtml = article.content || "";
+  // If content is plain text (no HTML tags), wrap each paragraph in <p> tags
+  // so the browser renders paragraph breaks correctly.
+  function normalizeContent(text: string): string {
+    if (!text) return "";
+    if (/<[a-z][\s\S]*>/i.test(text)) return text;
+    return text
+      .split(/\n\n+/)
+      .map((para) => `<p>${para.replace(/\n/g, "<br>")}</p>`)
+      .join("");
+  }
+
+  const rawHtml = normalizeContent(article.content || "");
   const [firstHtml, secondHtml] = splitHtmlAtMidpoint(rawHtml);
   const firstHtmlWithLede = injectLedeStyle(firstHtml);
 
@@ -248,7 +259,7 @@ export default function SkyBluePrimeArticle({
             <div className="lg:col-span-8 lg:pr-8">
               {/* First half — dropcap bold injected on first 4 words */}
               <div
-                className="prose prose-sky max-w-none text-lg lg:text-[21px] leading-[1.8] text-sky-950 font-serif article-body"
+                className="prose prose-sky max-w-none text-lg lg:text-[21px] leading-[1.8] text-sky-950 font-serif article-body [&_p]:mb-6"
                 dangerouslySetInnerHTML={{ __html: firstHtmlWithLede }}
               />
 
@@ -273,7 +284,7 @@ export default function SkyBluePrimeArticle({
               {/* Second half */}
               {secondHtml && (
                 <div
-                  className="prose prose-sky max-w-none text-lg lg:text-[21px] leading-[1.8] text-sky-950 font-serif article-body"
+                  className="prose prose-sky max-w-none text-lg lg:text-[21px] leading-[1.8] text-sky-950 font-serif article-body [&_p]:mb-6"
                   dangerouslySetInnerHTML={{ __html: secondHtml }}
                 />
               )}

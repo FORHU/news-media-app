@@ -5,6 +5,12 @@ import dynamic from "next/dynamic";
 import { StoryImage } from "@/components/StoryImage";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
+import { getCoreCategories, normalizeCategoryKey } from "@/config/categories";
+
+const SKYBLUEPRIME_CATEGORIES = getCoreCategories("skyblueprime.com");
+const CANONICAL_CATEGORY_MAP = new Map(
+  SKYBLUEPRIME_CATEGORIES.map((c) => [normalizeCategoryKey(c), c.trim()])
+);
 
 const AdBanner = dynamic(() => import("@/components/AdBanner").then((m) => m.AdBanner), {
   ssr: true,
@@ -23,6 +29,7 @@ interface ArticleRow {
   imageUrl?: string | null;
   createdAt: string | Date;
   trendingScore?: number | null;
+  isHeadline?: boolean | null;
   category?: { categoryName?: string | null } | null;
 }
 
@@ -69,6 +76,9 @@ function MediumRectAd({ className = "" }: { className?: string }) {
 
 export default function SkyBluePrimeLanding({ articles, banners }: Props) {
   const sorted = [...articles].sort((a, b) => {
+    const aHeadline = a.isHeadline ? 1 : 0;
+    const bHeadline = b.isHeadline ? 1 : 0;
+    if (bHeadline !== aHeadline) return bHeadline - aHeadline;
     if ((b.trendingScore ?? 0) !== (a.trendingScore ?? 0)) {
       return (b.trendingScore ?? 0) - (a.trendingScore ?? 0);
     }
@@ -76,12 +86,17 @@ export default function SkyBluePrimeLanding({ articles, banners }: Props) {
   });
 
   const hero = sorted[0];
-  const picks = sorted.slice(1, 4);
-  const trending = sorted.slice(0, 5);
+  const picks = [...articles]
+    .filter((a) => a.id !== hero?.id)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 5);
+  const trending = sorted.slice(1, 5);
+  const centerArticles = sorted.filter((a) => a.id !== hero?.id).slice(0, 5);
 
   const groupedCategoriesMap = new Map<string, ArticleRow[]>();
   for (const a of sorted) {
-    const cat = a.category?.categoryName || "Uncategorized";
+    const rawCat = a.category?.categoryName || "Uncategorized";
+    const cat = CANONICAL_CATEGORY_MAP.get(normalizeCategoryKey(rawCat)) ?? rawCat;
     if (!groupedCategoriesMap.has(cat)) groupedCategoriesMap.set(cat, []);
     groupedCategoriesMap.get(cat)!.push(a);
   }
@@ -134,7 +149,6 @@ export default function SkyBluePrimeLanding({ articles, banners }: Props) {
                 </Link>
               ))}
             </div>
-
           </aside>
 
           {/* Center: Hero Article */}
@@ -169,7 +183,7 @@ export default function SkyBluePrimeLanding({ articles, banners }: Props) {
                 </div>
 
                 {/* Leaderboard below hero image */}
-                <div className="w-full flex justify-center border-t border-sky-100 pt-4">
+                <div className="w-full flex justify-center border-t border-sky-100 pt-4 mb-6">
                   <div className="hidden sm:block">
                     <AdsterraBanner bannerKey={adKeys["468x60"]} width={468} height={60} className="!my-0" />
                   </div>
@@ -177,6 +191,40 @@ export default function SkyBluePrimeLanding({ articles, banners }: Props) {
                     <AdsterraBanner bannerKey={adKeys["320x50"]} width={320} height={50} className="!my-0" />
                   </div>
                 </div>
+
+                {/* Below-headline article rows */}
+                {centerArticles.length > 0 && (
+                  <div className="w-full text-left flex flex-col divide-y divide-sky-100 border-t border-sky-100">
+                    {centerArticles.map((article) => (
+                      <Link
+                        key={article.id}
+                        href={articleHref(article)}
+                        className="group flex gap-5 items-center py-5 hover:bg-sky-50/40 transition-colors"
+                      >
+                        <div className="relative w-[160px] h-[110px] shrink-0 bg-sky-100 overflow-hidden">
+                          <StoryImage
+                            src={article.imageUrl}
+                            alt={article.title}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            sizes="160px"
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1.5 min-w-0 justify-center">
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-sky-500">
+                            {article.category?.categoryName ?? "News"}
+                          </span>
+                          <h3 className="text-[17px] font-bold text-sky-950 leading-snug group-hover:text-sky-600 transition-colors line-clamp-2">
+                            {article.title}
+                          </h3>
+                          <p className="text-[13px] text-sky-700/80 leading-snug line-clamp-2">
+                            {excerpt(article.content, 100)}
+                          </p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </article>
             ) : (
               <div className="border-t-4 border-sky-950 pt-16 text-center">
@@ -193,18 +241,27 @@ export default function SkyBluePrimeLanding({ articles, banners }: Props) {
                 Trending
               </h2>
             </div>
-            <ol className="space-y-0">
-              {trending.map((article, i) => (
-                <li key={article.id} className="border-b border-sky-100 pb-5 mb-5 last:border-0 last:mb-0 last:pb-0">
-                  <Link href={articleHref(article)} className="group flex gap-3 items-start">
-                    <span className="text-[11px] font-black text-sky-300 w-5 shrink-0 pt-0.5">{i + 1}</span>
-                    <h3 className="text-[15px] font-bold text-sky-950 leading-tight group-hover:text-sky-600 transition-colors">
-                      {article.title}
-                    </h3>
-                  </Link>
-                </li>
+            <div className="space-y-6">
+              {trending.map((article) => (
+                <Link key={article.id} href={articleHref(article)} className="group block border-b border-sky-100 pb-6 last:border-0">
+                  <div className="relative aspect-[3/2] w-full mb-3 bg-sky-100 overflow-hidden">
+                    <StoryImage
+                      src={article.imageUrl}
+                      alt={article.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      sizes="(max-width: 1024px) 100vw, 25vw"
+                    />
+                  </div>
+                  <span className="block text-[10px] font-bold uppercase tracking-widest text-sky-500 mb-1">
+                    {article.category?.categoryName ?? "News"}
+                  </span>
+                  <h3 className="text-[16px] font-bold text-sky-950 leading-tight group-hover:text-sky-600 transition-colors">
+                    {article.title}
+                  </h3>
+                </Link>
               ))}
-            </ol>
+            </div>
 
             {/* 300x250 Ad below trending */}
             <div className="mt-8 flex justify-center border-t border-sky-100 pt-6">
