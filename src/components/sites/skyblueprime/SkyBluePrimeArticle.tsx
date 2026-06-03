@@ -146,6 +146,20 @@ export default function SkyBluePrimeArticle({
       })
       .toUpperCase();
 
+  // If content has no block-level HTML tags, treat it as plain text and wrap
+  // each double-newline-separated paragraph in <p> tags.
+  function normalizeContent(html: string): string {
+    if (!html) return "";
+    const hasBlockTags = /<(p|div|h[1-6]|ul|ol|blockquote|section|article)\b/i.test(html);
+    if (hasBlockTags) return html;
+    return html
+      .split(/\n{2,}/)
+      .map((para) => para.trim())
+      .filter(Boolean)
+      .map((para) => `<p>${para.replace(/\n/g, "<br />")}</p>`)
+      .join("");
+  }
+
   // Split HTML at the nearest </p> boundary after the midpoint so the mid-article
   // ad always falls between complete paragraphs, preserving all formatting.
   function splitHtmlAtMidpoint(html: string): [string, string] {
@@ -166,16 +180,6 @@ export default function SkyBluePrimeArticle({
     );
   }
 
-  // If content is plain text (no HTML tags), wrap each paragraph in <p> tags
-  // so the browser renders paragraph breaks correctly.
-  function normalizeContent(text: string): string {
-    if (!text) return "";
-    if (/<[a-z][\s\S]*>/i.test(text)) return text;
-    return text
-      .split(/\n\n+/)
-      .map((para) => `<p>${para.replace(/\n/g, "<br>")}</p>`)
-      .join("");
-  }
 
   const rawHtml = normalizeContent(article.content || "");
   const [firstHtml, secondHtml] = splitHtmlAtMidpoint(rawHtml);
