@@ -151,7 +151,8 @@ export default async function Page({
   }
 
   if (domain === "skyblueprime.com") {
-    return <SkyBluePrimeLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
+    const sbpMediastack = await fetchMediaStackNews({ categories: "technology", languages: "en", limit: 50 });
+    return <SkyBluePrimeLanding tenantId={tenantId} articles={articles} banners={banners as any} mediastackArticles={sbpMediastack} />;
   }
 
   // Default design (current layout)

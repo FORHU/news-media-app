@@ -415,7 +415,7 @@ export default function GeneratedArticlesList({ searchParams }: {
     // Real-time updates via SSE — invalidates cache whenever an article is created/published
     useArticleStream();
 
-    const { data, isLoading, isError } = useQuery<GeneratedArticlesResponse>({
+    const { data, isLoading, isFetching, isError } = useQuery<GeneratedArticlesResponse>({
         queryKey: ['generatedArticles', { searchQuery, currentPage, category, date, status }],
         queryFn: () => articlesApi.getGeneratedArticles({
             page: currentPage,
@@ -517,9 +517,17 @@ export default function GeneratedArticlesList({ searchParams }: {
         <div className="space-y-8 min-h-screen pb-20">
             {/* Header Section */}
             <div className="flex flex-col gap-2">
-                <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
-                    Generated <span className="text-orange-600">Content</span>
-                </h1>
+                <div className="flex items-center gap-3">
+                    <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
+                        Generated <span className="text-orange-600">Content</span>
+                    </h1>
+                    {isFetching && !isLoading && (
+                        <span className="flex items-center gap-1.5 text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            Updating…
+                        </span>
+                    )}
+                </div>
                 <p className="text-gray-500 font-medium text-lg">
                     Review, edit, and publish AI-generated articles to your platform.
                 </p>
