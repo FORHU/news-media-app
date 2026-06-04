@@ -234,6 +234,8 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
               showIcon={false}
               showLabel
               labelText="Contact Us"
+              inline
+              theme="skyblueprime"
             />
             <Link
               href="/admin/dashboard"

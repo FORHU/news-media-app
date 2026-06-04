@@ -4,13 +4,11 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { Search, Menu, Globe, User, X, ChevronDown, Mail } from "lucide-react";
+import { Search, Menu, Globe, User, X, Mail } from "lucide-react";
 import ContactEmailButton from "@/components/ContactEmailButton";
-import { getCoreCategories, HOME_CATEGORY_LABEL, getHomeCategoryLabel, normalizeCategoryKey } from "@/config/categories";
+import { getCoreCategories, getHomeCategoryLabel } from "@/config/categories";
 import { motion, AnimatePresence } from "framer-motion";
 import { RemoveScroll } from "react-remove-scroll";
-import { useQuery } from "@tanstack/react-query";
-import { articlesApi } from "@/lib/api";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { SearchDropdown } from "@/components/search/SearchDropdown";
 
@@ -36,28 +34,7 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
   const isCatActive = (cat: string) => activeCategory.toLowerCase() === cat.toLowerCase();
   const { suggestions, isSearching, showSuggestions, hideSuggestions } = useSearchSuggestions(query);
 
-  const { data: categories = [] } = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => articlesApi.getCategories(),
-    staleTime: 5 * 60 * 1000,
-  });
-
   const coreCategories = getCoreCategories("jejujapan.com");
-  const coreCategoryKeys = new Set(
-    coreCategories.map((category) => normalizeCategoryKey(category))
-  );
-  const overflowCategories = Array.from(
-    categories.reduce((acc, cat) => {
-      const name = cat.name.trim();
-      const key = normalizeCategoryKey(name);
-      if (!name || !key) return acc;
-      if (key === normalizeCategoryKey(HOME_CATEGORY_LABEL)) return acc;
-      if (coreCategoryKeys.has(key)) return acc;
-      if (!acc.has(key)) acc.set(key, name);
-      return acc;
-    }, new Map<string, string>())
-  ).map(([, name]) => name);
-
   const homeLabel = getHomeCategoryLabel("jejujapan.com");
 
   const categoryLinks = [
@@ -283,12 +260,12 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
                   >
                     <X className="w-5 h-5" />
                   </button>
-                  <div className="relative h-8 w-28">
+                  <div className="relative h-10 w-40">
                     <Image
                       src="/Logo/JEJUJAPANLOGO.png"
                       alt="JejuJapan Logo"
                       fill
-                      className="object-contain object-center brightness-0 invert"
+                      className="object-contain object-center brightness-0 invert scale-110"
                     />
                   </div>
                   <div className="w-8" />
@@ -315,26 +292,6 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
                         </span>
                       </Link>
                     ))}
-                    {overflowCategories.length > 0 && (
-                      <details className="group/details">
-                        <summary className="flex items-center justify-between px-5 py-3.5 text-[14px] font-bold text-zinc-400 hover:text-white border-b border-white/5 transition-colors cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-                          <span>More</span>
-                          <ChevronDown className="w-4 h-4 text-zinc-700 group-hover/details:text-zinc-300 group-open/details:rotate-180 transition-transform" />
-                        </summary>
-                        <div className="bg-black/30">
-                          {overflowCategories.map((name) => (
-                            <Link
-                              key={name}
-                              href={categoryHref(name)}
-                              onClick={() => setIsSidebarOpen(false)}
-                              className="block px-8 py-2.5 text-sm text-zinc-600 hover:text-zinc-200 border-b border-white/5 transition-colors"
-                            >
-                              {name}
-                            </Link>
-                          ))}
-                        </div>
-                      </details>
-                    )}
                   </nav>
                 </div>
 

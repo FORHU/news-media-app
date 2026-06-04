@@ -4,12 +4,10 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { Search, Menu, ChevronDown, User, X, Mail, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Menu, User, X, Mail, ChevronLeft, ChevronRight } from "lucide-react";
 import ContactEmailButton from "@/components/ContactEmailButton";
-import { useQuery } from "@tanstack/react-query";
 import { useRef } from "react";
-import { articlesApi } from "@/lib/api";
-import { getCoreCategories, HOME_CATEGORY_LABEL, normalizeCategoryKey } from "@/config/categories";
+import { getCoreCategories, HOME_CATEGORY_LABEL } from "@/config/categories";
 import dynamic from "next/dynamic";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { SearchDropdown } from "@/components/search/SearchDropdown";
@@ -59,18 +57,11 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
     }
   };
 
-  const { data: categories = [] } = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => articlesApi.getCategories(),
-    staleTime: 5 * 60 * 1000,
-  });
-
   useEffect(() => {
     const nav = navRef.current;
     if (nav) {
       nav.addEventListener('scroll', checkScroll);
       window.addEventListener('resize', checkScroll);
-      // Initial check after categories load
       const timer = setTimeout(checkScroll, 100);
       return () => {
         nav.removeEventListener('scroll', checkScroll);
@@ -78,23 +69,9 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
         clearTimeout(timer);
       };
     }
-  }, [categories]);
+  }, []);
 
   const coreCategories = getCoreCategories("jejutime.com");
-  const coreCategoryKeys = new Set(
-    coreCategories.map((category) => normalizeCategoryKey(category))
-  );
-  const overflowCategories = Array.from(
-    categories.reduce((acc, cat) => {
-      const name = cat.name.trim();
-      const key = normalizeCategoryKey(name);
-      if (!name || !key) return acc;
-      if (key === normalizeCategoryKey(HOME_CATEGORY_LABEL)) return acc;
-      if (coreCategoryKeys.has(key)) return acc;
-      if (!acc.has(key)) acc.set(key, name);
-      return acc;
-    }, new Map<string, string>())
-  ).map(([, name]) => name);
 
   const categoryLinks = [
     { name: HOME_CATEGORY_LABEL, link: "/" },
@@ -261,24 +238,6 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
                     {cat}
                   </Link>
                 ))}
-                {overflowCategories.length > 0 && (
-                  <div className="relative group cursor-pointer flex items-center gap-1 hover:text-blue-400 py-2 hidden lg:flex">
-                     MORE <ChevronDown size={14} />
-                     <div className="absolute top-full right-0 pt-2 hidden group-hover:block z-50">
-                        <div className="bg-slate-900 shadow-2xl border border-white/10 p-6 rounded-2xl grid grid-cols-2 gap-x-8 gap-y-4 min-w-[350px]">
-                           {overflowCategories.map((cat) => (
-                             <Link 
-                                key={cat} 
-                                href={categoryHref(cat)} 
-                                className="text-white hover:text-blue-400 lowercase tracking-normal text-sm font-light transition-colors"
-                             >
-                                {cat}
-                             </Link>
-                           ))}
-                        </div>
-                     </div>
-                  </div>
-                )}
              </nav>
 
              {/* Right Arrow */}
@@ -303,7 +262,6 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
         onClose={() => setIsSidebarOpen(false)}
         onOpenNewsletter={onOpenNewsletter}
         categoryLinks={categoryLinks}
-        overflowCategories={overflowCategories}
         categoryHref={categoryHref}
       />
     </>

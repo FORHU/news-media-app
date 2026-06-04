@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Mail, User, ChevronDown } from "lucide-react";
+import { X, Mail, User } from "lucide-react";
 import ContactEmailButton from "@/components/ContactEmailButton";
 import Link from "next/link";
 import Image from "next/image";
@@ -12,7 +12,6 @@ interface SidebarProps {
   onClose: () => void;
   onOpenNewsletter?: () => void;
   categoryLinks: { name: string; link: string }[];
-  overflowCategories: string[];
   categoryHref: (name: string) => string;
 }
 
@@ -21,7 +20,6 @@ export default function JejuTimeSidebar({
   onClose,
   onOpenNewsletter,
   categoryLinks,
-  overflowCategories,
   categoryHref,
 }: SidebarProps) {
   return (
@@ -87,26 +85,6 @@ export default function JejuTimeSidebar({
                       </span>
                     </Link>
                   ))}
-                  {overflowCategories.length > 0 && (
-                    <details className="group/details">
-                      <summary className="flex items-center justify-between px-7 py-3 text-[15px] font-mono font-bold text-slate-800 hover:text-blue-600 border-b border-slate-100 transition-colors cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-                        <span>More</span>
-                        <ChevronDown className="w-4 h-4 text-slate-400 group-hover/details:text-blue-600 group-open/details:rotate-180 transition-transform" />
-                      </summary>
-                      <div className="bg-blue-50/40">
-                        {overflowCategories.map((name) => (
-                          <Link
-                            key={name}
-                            href={categoryHref(name)}
-                            onClick={onClose}
-                            className="block px-10 py-2.5 text-sm text-slate-600 hover:text-blue-600 border-b border-slate-100 transition-colors"
-                          >
-                            {name}
-                          </Link>
-                        ))}
-                      </div>
-                    </details>
-                  )}
                 </nav>
               </div>
 
@@ -130,6 +108,8 @@ export default function JejuTimeSidebar({
                   iconSize={16}
                   showLabel
                   labelText="Contact Us"
+                  inline
+                  theme="jejutime"
                 />
                 <Link
                   href="/admin/dashboard"
