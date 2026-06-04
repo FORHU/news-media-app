@@ -11,6 +11,8 @@ import { articlesService } from "@/services/articles.service";
 import { bannersService } from "@/services/banners.service";
 import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain, getSiteDescriptionFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
+import { fetchRssFeed } from "@/lib/rss";
+import { fetchMediaStackNews } from "@/lib/mediastack";
 
 // Domain-specific designs
 import NewsIconsLanding from "@/components/sites/newsicons/NewsIconsLanding";
@@ -119,7 +121,17 @@ export default async function Page({
 
   // --- Design Routing ---
   if (domain === "newsicons.com") {
-    return <NewsIconsLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
+    const rssArticles = await fetchRssFeed(
+      "https://arstechnica.com/feed/",
+      "Ars Technica",
+      12
+    );
+    const mediastackArticles = await fetchMediaStackNews({
+      categories: "technology",
+      languages: "en",
+      limit: 30,
+    });
+    return <NewsIconsLanding tenantId={tenantId} articles={articles} banners={banners as any} rssArticles={rssArticles} mediastackArticles={mediastackArticles} />;
   }
 
   if (domain === "jejutime.com") {
