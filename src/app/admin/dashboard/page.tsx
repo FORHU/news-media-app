@@ -24,8 +24,7 @@ export default function DashboardPage() {
         // With global staleTime=5min, it will not refetch on remount if still fresh.
         refetchOnWindowFocus: false,
         refetchOnMount: false,
-        // Dashboard wants periodic updates while you’re on the page.
-        refetchInterval: 10_000,
+        refetchInterval: process.env.NODE_ENV !== "production" ? 30_000 : false,
     });
     
     // Set domain-specific title and favicon

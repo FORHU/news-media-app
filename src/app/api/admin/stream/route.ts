@@ -5,33 +5,43 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const encoder = new TextEncoder();
 
+  // Shared cleanup refs accessible by both start() and cancel()
+  let heartbeat: ReturnType<typeof setInterval>;
+  let remove: (() => void) | null = null;
+
   const stream = new ReadableStream({
     start(controller) {
       const client = {
         send(event: string, data: unknown) {
-          controller.enqueue(
-            encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
-          );
+          try {
+            controller.enqueue(
+              encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
+            );
+          } catch {
+            // controller already closed — cancel() will clean up
+          }
         },
       };
 
-      const remove = sseBroadcaster.addClient(client);
+      remove = sseBroadcaster.addClient(client);
 
-      // Keep connection alive every 25s
-      const heartbeat = setInterval(() => {
+      // Heartbeat every 15s to prevent proxy/load-balancer timeouts
+      heartbeat = setInterval(() => {
         try {
           controller.enqueue(encoder.encode(`: heartbeat\n\n`));
         } catch {
           clearInterval(heartbeat);
-          remove();
+          remove?.();
+          remove = null;
         }
-      }, 25_000);
+      }, 15_000);
+    },
 
-      // Cleanup when client disconnects
-      return () => {
-        clearInterval(heartbeat);
-        remove();
-      };
+    // cancel() is the correct Web Streams API hook — runs when the browser disconnects
+    cancel() {
+      clearInterval(heartbeat);
+      remove?.();
+      remove = null;
     },
   });
 

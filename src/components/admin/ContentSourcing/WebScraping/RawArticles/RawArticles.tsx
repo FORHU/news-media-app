@@ -327,6 +327,7 @@ export default function RawArticles({ searchParams }: {
         }),
         placeholderData: (prev) => prev,
         staleTime: 0,
+        refetchInterval: process.env.NODE_ENV !== "production" ? 30_000 : false,
     });
 
     const articles = data?.articles || [];

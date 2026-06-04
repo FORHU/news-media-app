@@ -425,6 +425,7 @@ export default function GeneratedArticlesList({ searchParams }: {
             status: status || undefined
         }),
         placeholderData: (prev: GeneratedArticlesResponse | undefined) => prev,
+        refetchInterval: process.env.NODE_ENV !== "production" ? 30_000 : false,
     });
     const { data: categories } = useQuery({
         queryKey: ['categories'],

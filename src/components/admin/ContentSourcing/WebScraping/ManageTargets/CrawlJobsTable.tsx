@@ -144,6 +144,7 @@ export default function CrawlJobsTable() {
         }),
         staleTime: 0,
         placeholderData: (prev) => prev,
+        refetchInterval: process.env.NODE_ENV !== "production" ? 15_000 : false,
     });
 
     const stopMutation = useMutation({
