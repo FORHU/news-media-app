@@ -118,6 +118,30 @@ function readTime(text: string | null | undefined): number {
   return Math.max(1, Math.round(words / 200));
 }
 
+function fromMediaStack(a: MediaStackArticle): DisplayItem {
+  return {
+    id: a.id,
+    title: a.title,
+    category: a.category || "Technologie",
+    imageUrl: a.image,
+    href: a.url,
+    external: true,
+    date: new Date(a.publishedAt),
+    excerpt: a.description ?? "",
+    source: a.source,
+  };
+}
+
+function interleave(rss: DisplayItem[], ms: DisplayItem[]): DisplayItem[] {
+  const out: DisplayItem[] = [];
+  const len = Math.max(rss.length, ms.length);
+  for (let i = 0; i < len; i++) {
+    if (i < rss.length) out.push(rss[i]);
+    if (i < ms.length) out.push(ms[i]);
+  }
+  return out;
+}
+
 export default function LavagueTechLanding({ articles, banners, rssArticles = [], mediastackArticles = [] }: Props) {
   const config = ADSTERRA_CONFIG["lavaguetech"];
   const ms = rssArticles;
