@@ -171,17 +171,43 @@ export const ADSTERRA_CONFIG: Record<string, AdsterraTenantConfig> = {
       height: 250,
     },
   },
+  lavaguetech: {
+    socialBar: "", // no pop ups
+    native: {
+      containerId: "container-398d6339f61784cfe4f8cc8a17e43de4",
+      src: "https://pl29657489.effectivecpmnetwork.com/398d6339f61784cfe4f8cc8a17e43de4/invoke.js",
+    },
+    banners: {
+      "300x250": "0f5d8e0a761677efc2fad90689aec418",
+      "728x90": "f44e47d0bf2a544eab96a65ba93616c8",
+      "468x60": "615d4c292020f1ed98e5d7177ea0d623",
+      "320x50": "98f09d1cf2d083b14dfe37d26654000d",
+      "160x600": "f63cf63618dbcf56722bfe599c1389b2",
+      "160x300": "559be2cd879b81846a24781fae5314d3",
+    },
+    midArticle: {
+      key: "0f5d8e0a761677efc2fad90689aec418",
+      width: 300,
+      height: 250,
+    },
+    midFeed: {
+      key: "0f5d8e0a761677efc2fad90689aec418",
+      width: 300,
+      height: 250,
+    },
+  },
 };
 
 /**
  * Resolves the tenant key based on domain or hostname
  */
-export function getAdsterraTenant(domain: string): "jejujapan" | "voicejeju" | "jejutime" | "jejuqq" | "skyblueprime" | "newsicons" {
+export function getAdsterraTenant(domain: string): "jejujapan" | "voicejeju" | "jejutime" | "jejuqq" | "skyblueprime" | "newsicons" | "lavaguetech" {
   const normalized = domain.toLowerCase();
   if (normalized.includes("jejujapan")) return "jejujapan";
   if (normalized.includes("voicejeju")) return "voicejeju";
   if (normalized.includes("jejuqq")) return "jejuqq";
   if (normalized.includes("skyblueprime")) return "skyblueprime";
   if (normalized.includes("newsicons")) return "newsicons";
+  if (normalized.includes("lavaguetech")) return "lavaguetech";
   return "jejutime";
 }

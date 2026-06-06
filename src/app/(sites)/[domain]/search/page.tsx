@@ -129,7 +129,9 @@ async function SearchContent({
           ? "jejuqq"
           : domain.toLowerCase().includes("skyblueprime")
             ? "skyblueprime"
-            : "default";
+            : domain.toLowerCase().includes("lavaguetech")
+              ? "lavaguetech"
+              : "default";
 
   const tenantConfig = ADSTERRA_CONFIG[tenantKey];
   const adKeys = tenantConfig?.banners;

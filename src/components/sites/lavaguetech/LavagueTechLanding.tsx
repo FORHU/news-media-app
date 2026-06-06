@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { AdBanner } from "@/components/AdBanner";
+import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
+import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
+import { ADSTERRA_CONFIG } from "@/config/adsterra";
 import { StoryImage } from "@/components/StoryImage";
 import type { RssArticle } from "@/lib/rss";
 import type { MediaStackArticle } from "@/lib/mediastack";
@@ -140,6 +143,10 @@ function interleave(rss: DisplayItem[], ms: DisplayItem[]): DisplayItem[] {
 }
 
 export default function LavagueTechLanding({ articles, banners, rssArticles = [], mediastackArticles = [] }: Props) {
+  const config = ADSTERRA_CONFIG["lavaguetech"];
+  const ms = rssArticles;
+
+export default function LavagueTechLanding({ articles, banners, rssArticles = [], mediastackArticles = [] }: Props) {
   const sorted = [...articles].sort((a, b) => {
     const ha = a.isHeadline ? 1 : 0, hb = b.isHeadline ? 1 : 0;
     if (hb !== ha) return hb - ha;
@@ -186,9 +193,27 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
   return (
     <div className="bg-white min-h-screen">
 
+      {/* Gutter skyscrapers — only shown on very wide screens */}
+      <div className="fixed left-2 top-40 hidden 2xl:block z-40">
+        <AdsterraBanner bannerKey={config.banners["160x600"]} width={160} height={600} />
+      </div>
+      <div className="fixed right-2 top-40 hidden 2xl:block z-40">
+        <AdsterraBanner bannerKey={config.banners["160x600"]} width={160} height={600} />
+      </div>
+
       {/* Top ad */}
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <AdBanner position="HOME_TOP" initialBanners={banners.top as never[]} />
+      </div>
+
+      {/* Top leaderboard */}
+      <div className="w-full flex justify-center py-3 overflow-hidden">
+        <div className="hidden sm:block">
+          <AdsterraBanner bannerKey={config.banners["728x90"]} width={728} height={90} className="!my-0" />
+        </div>
+        <div className="block sm:hidden">
+          <AdsterraBanner bannerKey={config.banners["320x50"]} width={320} height={50} className="!my-0" />
+        </div>
       </div>
 
       {/* ── HERO ──────────────────────────────────────────────── */}
@@ -338,6 +363,16 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
           </div>
         </div>
       )}
+
+      {/* Mid-feed leaderboard */}
+      <div className="w-full flex justify-center py-4 border-t border-b border-gray-100 overflow-hidden">
+        <div className="hidden sm:block">
+          <AdsterraBanner bannerKey={config.banners["728x90"]} width={728} height={90} className="!my-0" />
+        </div>
+        <div className="block sm:hidden">
+          <AdsterraBanner bannerKey={config.banners["320x50"]} width={320} height={50} className="!my-0" />
+        </div>
+      </div>
 
       {/* ── TENDANCES DE LA SEMAINE ───────────────────────────── */}
       {weeklyCards.length > 0 && (
@@ -528,6 +563,11 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
           </div>
         </div>
       )}
+
+      {/* Native sponsored recommendations */}
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 border-t border-gray-100">
+        <AdsterraNativeBanner domain="lavaguetech.com" transparent />
+      </div>
 
       {/* Footer ad */}
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
