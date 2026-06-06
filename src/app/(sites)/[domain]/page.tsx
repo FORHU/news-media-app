@@ -152,7 +152,7 @@ export default async function Page({
   }
 
   if (domain === "skyblueprime.com") {
-    const sbpMediastack = await fetchMediaStackNews({ categories: "technology", languages: "en", limit: 50 });
+    const sbpMediastack = await fetchMediaStackNews({ categories: "technology", languages: "en", limit: 100 });
     return <SkyBluePrimeLanding tenantId={tenantId} articles={articles} banners={banners as any} mediastackArticles={sbpMediastack} />;
   }
 

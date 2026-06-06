@@ -59,6 +59,18 @@ function isMs(a: ArticleRow | MediaStackArticle): a is MediaStackArticle {
   return "url" in a && "source" in a && !("slug" in a);
 }
 
+function cleanImage(url: string | null | undefined): string | null {
+  if (!url) return null;
+  if (
+    url.includes("googleusercontent.com") ||
+    url.includes("gstatic.com") ||
+    url.includes("news.google.com") ||
+    url.includes("google.com/s2/favicons")
+  )
+    return null;
+  return url;
+}
+
 function LeaderboardAd() {
   return (
     <div className="flex justify-center py-5 border-y border-sky-100 bg-sky-50/40">
@@ -97,8 +109,18 @@ export default function SkyBluePrimeLanding({ articles, banners, mediastackArtic
   const dbTrending = sorted.slice(6, 10);
   const dbCenter = sorted.slice(10, 15);
 
-  // mediastack[30+] reserved as fallback; [0–29] used by lower tech sections
-  const msFallback = mediastackArticles.slice(30);
+  // Filter to articles that have a real (non-placeholder) image
+  const msWithImage = mediastackArticles.filter((a) => cleanImage(a.image) !== null);
+
+  // Sections: Tech Buzz [0-3], In the Tech World [4-9], Tech Digest [10-29]
+  // Cap digest at index 30 so [30+] stays available as sidebar fallback
+  const msDigestPool = msWithImage.slice(10, 30);
+  const msDigestMid = Math.ceil(msDigestPool.length / 2);
+  const msDigestLeft = msDigestPool.slice(0, msDigestMid);
+  const msDigestRight = msDigestPool.slice(msDigestMid);
+
+  // [30+] reserved as fallback for picks / trending / centerArticles
+  const msFallback = msWithImage.slice(30);
   let fbCursor = 0;
 
   const picks: (ArticleRow | MediaStackArticle)[] = [...dbPicks];
@@ -387,8 +409,8 @@ export default function SkyBluePrimeLanding({ articles, banners, mediastackArtic
           );
         })}
 
-        {/* ── Tech Buzz — 4-card grid (mediastack 0–3) ─────── */}
-        {mediastackArticles.length > 0 && (
+        {/* ── Tech Buzz — 4-card grid (msWithImage 0–3) ─────── */}
+        {msWithImage.length > 0 && (
           <section className="mt-12">
             <div className="border-t-[6px] border-sky-500 pt-3 mb-8">
               <h2 className="text-[11px] font-black uppercase tracking-widest text-white bg-sky-500 inline-block px-3 py-1.5 leading-none">
@@ -396,7 +418,7 @@ export default function SkyBluePrimeLanding({ articles, banners, mediastackArtic
               </h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {mediastackArticles.slice(0, 4).map((item) => (
+              {msWithImage.slice(0, 4).map((item) => (
                 <a
                   key={item.id}
                   href={item.url}
@@ -432,8 +454,8 @@ export default function SkyBluePrimeLanding({ articles, banners, mediastackArtic
           </section>
         )}
 
-        {/* ── In the Tech World — 3-col list (mediastack 4–9) ── */}
-        {mediastackArticles.length > 4 && (
+        {/* ── In the Tech World — 3-col list (msWithImage 4–9) ── */}
+        {msWithImage.length > 4 && (
           <section className="mt-12">
             <div className="border-t-[6px] border-sky-950 pt-3 mb-8">
               <h2 className="text-[11px] font-black uppercase tracking-widest text-white bg-sky-950 inline-block px-3 py-1.5 leading-none">
@@ -441,7 +463,7 @@ export default function SkyBluePrimeLanding({ articles, banners, mediastackArtic
               </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {mediastackArticles.slice(4, 10).map((item) => (
+              {msWithImage.slice(4, 10).map((item) => (
                 <a
                   key={item.id}
                   href={item.url}
@@ -474,8 +496,8 @@ export default function SkyBluePrimeLanding({ articles, banners, mediastackArtic
           </section>
         )}
 
-        {/* ── Tech Digest — 2-col dense list (mediastack 10–29) ── */}
-        {mediastackArticles.length > 10 && (
+        {/* ── Tech Digest — 2-col dense list (msWithImage 10–29) ── */}
+        {msWithImage.length > 10 && (
           <section className="mt-12">
             <div className="border-t-[6px] border-sky-500 pt-3 mb-8">
               <h2 className="text-[11px] font-black uppercase tracking-widest text-white bg-sky-500 inline-block px-3 py-1.5 leading-none">
@@ -484,7 +506,7 @@ export default function SkyBluePrimeLanding({ articles, banners, mediastackArtic
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 bg-white border border-sky-100 shadow-sm divide-y lg:divide-y-0 lg:divide-x divide-sky-100">
               <div className="flex flex-col divide-y divide-sky-100">
-                {mediastackArticles.slice(10, 20).map((item) => (
+                {msDigestLeft.map((item) => (
                   <a
                     key={item.id}
                     href={item.url}
@@ -517,7 +539,7 @@ export default function SkyBluePrimeLanding({ articles, banners, mediastackArtic
                 ))}
               </div>
               <div className="flex flex-col divide-y divide-sky-100">
-                {mediastackArticles.slice(20, 30).map((item) => (
+                {msDigestRight.map((item) => (
                   <a
                     key={item.id}
                     href={item.url}
