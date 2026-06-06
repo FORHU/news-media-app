@@ -6,7 +6,6 @@ import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { getCoreCategories, normalizeCategoryKey } from "@/config/categories";
-import type { RssArticle } from "@/lib/rss";
 import type { MediaStackArticle } from "@/lib/mediastack";
 
 const TrendingProductsSection = dynamic(() => import("@/components/home/trending-products-section").then(m => m.TrendingProductsSection), { ssr: true });
@@ -32,7 +31,6 @@ interface Props {
     sidebar: any[];
     footer: any[];
   };
-  rssArticles?: RssArticle[];
   mediastackArticles?: MediaStackArticle[];
 }
 
@@ -52,7 +50,7 @@ const CANONICAL_MAP = new Map(
 );
 
 
-export default function NewsIconsLanding({ articles, banners, rssArticles = [], mediastackArticles = [] }: Props) {
+export default function NewsIconsLanding({ articles, banners, mediastackArticles = [] }: Props) {
   const sorted = [...articles].sort((a, b) => {
     const aH = a.isHeadline ? 1 : 0;
     const bH = b.isHeadline ? 1 : 0;

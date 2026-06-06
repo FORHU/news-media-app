@@ -122,17 +122,12 @@ export default async function Page({
 
   // --- Design Routing ---
   if (domain === "newsicons.com") {
-    const rssArticles = await fetchRssFeed(
-      "https://arstechnica.com/feed/",
-      "Ars Technica",
-      12
-    );
     const mediastackArticles = await fetchMediaStackNews({
       categories: "technology",
       languages: "en",
       limit: 30,
     });
-    return <NewsIconsLanding tenantId={tenantId} articles={articles} banners={banners as any} rssArticles={rssArticles} mediastackArticles={mediastackArticles} />;
+    return <NewsIconsLanding tenantId={tenantId} articles={articles} banners={banners as any} mediastackArticles={mediastackArticles} />;
   }
 
   if (domain === "jejutime.com") {
