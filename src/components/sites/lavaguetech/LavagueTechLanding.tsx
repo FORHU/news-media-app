@@ -144,9 +144,6 @@ function interleave(rss: DisplayItem[], ms: DisplayItem[]): DisplayItem[] {
 
 export default function LavagueTechLanding({ articles, banners, rssArticles = [], mediastackArticles = [] }: Props) {
   const config = ADSTERRA_CONFIG["lavaguetech"];
-  const ms = rssArticles;
-
-export default function LavagueTechLanding({ articles, banners, rssArticles = [], mediastackArticles = [] }: Props) {
   const sorted = [...articles].sort((a, b) => {
     const ha = a.isHeadline ? 1 : 0, hb = b.isHeadline ? 1 : 0;
     if (hb !== ha) return hb - ha;
