@@ -125,7 +125,7 @@ export default async function Page({
     const mediastackArticles = await fetchMediaStackNews({
       categories: "technology",
       languages: "en",
-      limit: 30,
+      limit: 100,
     });
     return <NewsIconsLanding tenantId={tenantId} articles={articles} banners={banners as any} mediastackArticles={mediastackArticles} />;
   }
