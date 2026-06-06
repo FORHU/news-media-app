@@ -23,6 +23,9 @@ const TwitterStatusEmbed = dynamic(
 
 import { StoryImage } from "@/components/StoryImage";
 import { AdBanner } from "@/components/AdBanner";
+import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
+import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
+import { ADSTERRA_CONFIG } from "@/config/adsterra";
 import { articlesApi } from "@/lib/api";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
 import type { Article } from "@/lib/types";
@@ -156,8 +159,19 @@ export default function LavagueTechArticle({
   const firstHalf = paragraphs.slice(0, midpoint).join("\n\n");
   const secondHalf = paragraphs.slice(midpoint).join("\n\n");
 
+  const config = ADSTERRA_CONFIG["lavaguetech"];
+  const midKey = config.midArticle?.key ?? config.banners["300x250"];
+
   return (
     <main className="min-h-screen bg-white text-gray-900 pb-24 selection:bg-blue-100">
+
+      {/* Gutter skyscrapers — only shown on very wide screens */}
+      <div className="fixed left-2 top-40 hidden 2xl:block z-40">
+        <AdsterraBanner bannerKey={config.banners["160x600"]} width={160} height={600} />
+      </div>
+      <div className="fixed right-2 top-40 hidden 2xl:block z-40">
+        <AdsterraBanner bannerKey={config.banners["160x600"]} width={160} height={600} />
+      </div>
 
       {/* Reading Progress Bar */}
       <div className="fixed top-0 left-0 w-full h-[2px] bg-gray-100 z-[100]">
@@ -203,6 +217,16 @@ export default function LavagueTechArticle({
         </div>
       </div>
 
+      {/* Top article leaderboard */}
+      <div className="w-full flex justify-center py-4 border-b border-gray-100 overflow-hidden">
+        <div className="hidden sm:block">
+          <AdsterraBanner bannerKey={config.banners["728x90"]} width={728} height={90} className="!my-0" />
+        </div>
+        <div className="block sm:hidden">
+          <AdsterraBanner bannerKey={config.banners["320x50"]} width={320} height={50} className="!my-0" />
+        </div>
+      </div>
+
       {/* ── Body ────────────────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
@@ -231,7 +255,7 @@ export default function LavagueTechArticle({
                     <>
                       <div className="text-gray-700 text-[17px] leading-[1.85] whitespace-pre-wrap mb-8 break-words">{firstHalf}</div>
                       <div className="my-10 flex justify-center border-y border-gray-200 py-5 bg-gray-50">
-                        <AdBanner position="HOME_SIDEBAR" />
+                        <AdsterraBanner bannerKey={midKey} width={300} height={250} className="!my-0" />
                       </div>
                       <div className="my-10 relative aspect-[16/9] bg-gray-100 overflow-hidden border border-gray-200">
                         <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" variant="hero" sizes="(max-width: 640px) 400px, (max-width: 1024px) 100vw, 850px" />
@@ -242,7 +266,7 @@ export default function LavagueTechArticle({
                     <>
                       <div className="text-gray-700 text-[17px] leading-[1.85] whitespace-pre-wrap break-words">{firstHalf}</div>
                       <div className="my-10 flex justify-center border-y border-gray-200 py-5 bg-gray-50">
-                        <AdBanner position="HOME_SIDEBAR" />
+                        <AdsterraBanner bannerKey={midKey} width={300} height={250} className="!my-0" />
                       </div>
                       {secondHalf && <div className="text-gray-700 text-[17px] leading-[1.85] whitespace-pre-wrap break-words mt-6">{secondHalf}</div>}
                     </>
@@ -263,7 +287,7 @@ export default function LavagueTechArticle({
                     textClassName="text-gray-700 text-[17px] leading-[1.85] whitespace-pre-wrap break-words mt-7"
                     adSlot={
                       <div className="my-10 flex justify-center border-y border-gray-200 py-5 bg-gray-50">
-                        <AdBanner position="HOME_SIDEBAR" />
+                        <AdsterraBanner bannerKey={midKey} width={300} height={250} className="!my-0" />
                       </div>
                     }
                   />
@@ -294,6 +318,9 @@ export default function LavagueTechArticle({
               position="ARTICLE_SIDEBAR"
               className="!bg-white !border-gray-200 !p-4 !min-h-[250px]"
             />
+            <div className="flex justify-center">
+              <AdsterraBanner bannerKey={config.banners["300x250"]} width={300} height={250} className="!my-0" />
+            </div>
           </aside>
         </div>
 
@@ -309,6 +336,11 @@ export default function LavagueTechArticle({
             <FeaturedArticlesSection articles={recommendedArticles} domain={domain} />
           </section>
         )}
+
+        {/* Native sponsored recommendations */}
+        <div className="mt-12 pt-8 border-t border-gray-100">
+          <AdsterraNativeBanner domain="lavaguetech.com" transparent />
+        </div>
       </div>
     </main>
   );
