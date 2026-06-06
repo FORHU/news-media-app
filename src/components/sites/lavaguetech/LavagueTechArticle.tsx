@@ -8,10 +8,6 @@ import { ArrowLeft } from "lucide-react";
 
 import dynamic from "next/dynamic";
 
-const TrendingSidebar = dynamic(
-  () => import("@/components/home/trending-sidebar").then((m) => m.TrendingSidebar),
-  { ssr: true, loading: () => <div className="h-[400px] animate-pulse bg-gray-100 border border-gray-200" /> }
-);
 const FeaturedArticlesSection = dynamic(
   () => import("@/components/home/featured-articles-section").then((m) => m.FeaturedArticlesSection),
   { ssr: true, loading: () => <div className="h-80 animate-pulse bg-gray-100" /> }
@@ -122,9 +118,9 @@ export default function LavagueTechArticle({
 
   const createdAt =
     article.createdAt instanceof Date ? article.createdAt : new Date(article.createdAt as string);
-  const formattedDate = createdAt.toLocaleDateString("en-US", {
-    month: "long",
+  const formattedDate = createdAt.toLocaleDateString("fr-FR", {
     day: "numeric",
+    month: "long",
     year: "numeric",
   });
 
@@ -163,14 +159,22 @@ export default function LavagueTechArticle({
   const midKey = config.midArticle?.key ?? config.banners["300x250"];
 
   return (
-    <main className="min-h-screen bg-white text-gray-900 pb-24 selection:bg-blue-100">
+    <main className="min-h-screen bg-white text-gray-900 pb-24 selection:bg-blue-100 relative">
 
-      {/* Gutter skyscrapers — only shown on very wide screens */}
-      <div className="fixed left-2 top-40 hidden 2xl:block z-40">
-        <AdsterraBanner bannerKey={config.banners["160x600"]} width={160} height={600} />
-      </div>
-      <div className="fixed right-2 top-40 hidden 2xl:block z-40">
-        <AdsterraBanner bannerKey={config.banners["160x600"]} width={160} height={600} />
+      {/* Gutter skyscrapers — bounded to article content, won't overlap footer */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="relative h-full max-w-7xl mx-auto">
+          <div className="hidden min-[1650px]:block absolute right-full mr-6 top-32 bottom-0 w-[160px] z-30 pointer-events-auto">
+            <div className="sticky top-40">
+              <AdsterraBanner bannerKey={config.banners["160x600"]} width={160} height={600} className="!my-0" />
+            </div>
+          </div>
+          <div className="hidden min-[1650px]:block absolute left-full ml-6 top-32 bottom-0 w-[160px] z-30 pointer-events-auto">
+            <div className="sticky top-40">
+              <AdsterraBanner bannerKey={config.banners["160x600"]} width={160} height={600} className="!my-0" />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Reading Progress Bar */}
@@ -310,10 +314,44 @@ export default function LavagueTechArticle({
           </div>
 
           {/* Sidebar */}
-          <aside className="lg:col-span-4 lg:sticky lg:top-24 self-start space-y-6">
-            <div className="bg-white border border-gray-200 shadow-sm p-5">
-              <TrendingSidebar articles={trendingArticles} domain={domain} />
-            </div>
+          <aside className="lg:col-span-4 lg:sticky lg:top-24 self-start space-y-5">
+
+            {/* Tendances — custom numbered list matching search page style */}
+            {trendingArticles.length > 0 && (
+              <div className="border border-gray-200 overflow-hidden">
+                <div className="bg-blue-700 px-4 py-3 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-white">Tendances</h3>
+                </div>
+                <div className="bg-white divide-y divide-gray-100">
+                  {trendingArticles.map((art, i) => (
+                    <Link
+                      key={art.id}
+                      href={`/article/${art.slug || art.id}`}
+                      className="group flex items-start gap-3 px-4 py-3.5 hover:bg-blue-50/50 transition-colors"
+                    >
+                      <span className="font-mono text-[18px] font-black leading-none mt-0.5 w-6 flex-shrink-0 text-right text-blue-100 group-hover:text-blue-300 transition-colors tabular-nums">
+                        {i + 1}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        {art.category?.categoryName && (
+                          <span className="text-[8px] font-black uppercase tracking-[0.25em] text-red-500 block mb-1">
+                            {art.category.categoryName}
+                          </span>
+                        )}
+                        <h4 className="text-[12px] font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-blue-700 transition-colors">
+                          {art.title}
+                        </h4>
+                        <span className="text-[9px] text-gray-400 mt-1 block font-mono">
+                          {new Date(art.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <AdBanner
               position="ARTICLE_SIDEBAR"
               className="!bg-white !border-gray-200 !p-4 !min-h-[250px]"
@@ -324,14 +362,15 @@ export default function LavagueTechArticle({
           </aside>
         </div>
 
-        {/* ── Recommended ─────────────────────────────── */}
+        {/* ── Plus d'articles ──────────────────────────── */}
         {recommendedArticles.length > 0 && (
-          <section className="mt-20">
-            <div className="flex items-center gap-3 mb-8 pb-4 border-b border-gray-200">
-              <span className="w-1 h-6 bg-blue-700 inline-block rounded-full" />
-              <h2 className="text-[11px] font-black text-gray-900 uppercase tracking-[0.25em]">
-                More Stories
+          <section className="mt-20 border-t-2 border-blue-700 pt-8">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-1 h-5 bg-red-600 flex-shrink-0" />
+              <h2 className="text-[11px] font-black text-gray-900 uppercase tracking-[0.3em]">
+                Plus d&apos;articles
               </h2>
+              <div className="flex-1 h-px bg-gray-200" />
             </div>
             <FeaturedArticlesSection articles={recommendedArticles} domain={domain} />
           </section>

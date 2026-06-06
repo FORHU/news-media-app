@@ -199,14 +199,14 @@ export default function LavagueTechHeader({ onOpenNewsletter }: HeaderProps) {
               ref={navRef}
               className="flex items-center gap-7 text-[10px] font-bold uppercase tracking-widest text-gray-500 overflow-x-auto no-scrollbar scroll-smooth whitespace-nowrap flex-1 py-1"
             >
-              <Link href="/" className={`transition-colors whitespace-nowrap ${isHome ? "text-blue-700" : "hover:text-blue-600"}`}>
+              <Link href="/" className={`transition-colors whitespace-nowrap border-b-2 pb-0.5 ${isHome ? "text-blue-700 border-blue-700" : "border-transparent hover:text-blue-600 hover:border-blue-300"}`}>
                 Latest News
               </Link>
               {coreCategories.map((cat) => (
                 <Link
                   key={cat}
                   href={categoryHref(cat)}
-                  className={`transition-colors whitespace-nowrap ${isCatActive(cat) ? "text-blue-700" : "hover:text-blue-600"}`}
+                  className={`transition-colors whitespace-nowrap border-b-2 pb-0.5 ${isCatActive(cat) ? "text-blue-700 border-blue-700" : "border-transparent hover:text-blue-600 hover:border-blue-300"}`}
                 >
                   {cat}
                 </Link>
@@ -231,6 +231,8 @@ export default function LavagueTechHeader({ onOpenNewsletter }: HeaderProps) {
         categoryLinks={categoryLinks}
         overflowCategories={overflowCategories}
         categoryHref={categoryHref}
+        activeCategory={activeCategory}
+        isHome={isHome}
       />
     </>
   );
