@@ -20,6 +20,8 @@ const VoiceJejuHeader = dynamic<{ onOpenNewsletter?: () => void }>(() => import(
 const VoiceJejuFooter = dynamic<{ onOpenNewsletter?: () => void; footerBanners?: any[] }>(() => import("@/components/sites/voicejeju/VoiceJejuFooter").then(m => m.VoiceJejuFooter), { ssr: true });
 const SkyBluePrimeHeader = dynamic(() => import("./sites/skyblueprime/SkyBluePrimeHeader"), { ssr: true });
 const SkyBluePrimeFooter = dynamic(() => import("./sites/skyblueprime/SkyBluePrimeFooter"), { ssr: true });
+const LavagueTechHeader = dynamic(() => import("./sites/lavaguetech/LavagueTechHeader"), { ssr: true });
+const LavagueTechFooter = dynamic(() => import("./sites/lavaguetech/LavagueTechFooter"), { ssr: true });
 
 // Fallbacks
 const DefaultHeader = dynamic(() => import("./Header").then(m => m.Header), { ssr: true });
@@ -43,6 +45,7 @@ export function SiteShell({ children, domain }: SiteShellProps) {
     if (d.includes("jejujapan")) return "jejujapan";
     if (d.includes("newsicons")) return "newsicons";
     if (d.includes("skyblueprime")) return "skyblueprime";
+    if (d.includes("lavaguetech")) return "lavaguetech";
     return "default";
   }, [domain]);
 
@@ -54,6 +57,7 @@ export function SiteShell({ children, domain }: SiteShellProps) {
       case "jejujapan": return <JejuJapanHeader onOpenNewsletter={openNewsletter} />;
       case "newsicons": return <NewsIconsHeader onOpenNewsletter={openNewsletter} />;
       case "skyblueprime": return <SkyBluePrimeHeader onOpenNewsletter={openNewsletter} />;
+      case "lavaguetech": return <LavagueTechHeader onOpenNewsletter={openNewsletter} />;
       default: return <DefaultHeader onOpenNewsletter={openNewsletter} />;
     }
   };
@@ -66,6 +70,7 @@ export function SiteShell({ children, domain }: SiteShellProps) {
       case "jejujapan": return <JejuJapanFooter onOpenNewsletter={openNewsletter} />;
       case "newsicons": return <NewsIconsFooter onOpenNewsletter={openNewsletter} />;
       case "skyblueprime": return <SkyBluePrimeFooter onOpenNewsletter={openNewsletter} />;
+      case "lavaguetech": return <LavagueTechFooter onOpenNewsletter={openNewsletter} />;
       default: return <DefaultFooter onOpenNewsletter={openNewsletter} />;
     }
   };

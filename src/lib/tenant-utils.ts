@@ -9,6 +9,7 @@
 export function getSiteNameFromDomain(domain: string | null): string {
   if (!domain) return "NewsIcons";
   const d = domain.toLowerCase();
+  if (d.includes('lavaguetech')) return "LavagueTech";
   if (d.includes('voicejeju')) return "VoiceJeju";
   if (d.includes('jejujapan')) return "JejuJapan";
   if (d.includes('jejuqq')) return "JejuQQ";
@@ -20,6 +21,7 @@ export function getSiteNameFromDomain(domain: string | null): string {
 export function getSiteIconFromDomain(domain: string | null): string {
   if (!domain) return "/icons/newsicons.ico";
   const d = domain.toLowerCase();
+  if (d.includes('lavaguetech')) return "/icons/lavaguetech.ico";
   if (d.includes('voicejeju')) return "/icons/voicejeju.ico";
   if (d.includes('jejujapan')) return "/icons/jejujapan.ico";
   if (d.includes('jejuqq')) return "/icons/jejuqq.ico";
@@ -31,6 +33,7 @@ export function getSiteIconFromDomain(domain: string | null): string {
 export function getSiteLogoFromDomain(domain: string | null): string {
   if (!domain) return "NEWSICONSLOGO.png";
   const d = domain.toLowerCase();
+  if (d.includes('lavaguetech')) return "LAVAGUETECH.png";
   if (d.includes('voicejeju')) return "VOICEJEJULOGO.png";
   if (d.includes('jejujapan')) return "JEJUJAPANLOGO.png";
   if (d.includes('jejuqq')) return "JEJUQQLOGO.png";
@@ -42,6 +45,7 @@ export function getSiteLogoFromDomain(domain: string | null): string {
 export function getSiteDescriptionFromDomain(domain: string | null): string {
   if (!domain) return "Media & Content Hub for curated news, blogs, and insights.";
   const d = domain.toLowerCase();
+  if (d.includes('lavaguetech')) return "The next wave of technology news — sharp insights, bold perspectives.";
   if (d.includes('voicejeju')) return "Your voice for Jeju news, culture, and community insights.";
   if (d.includes('jejujapan')) return "The latest news and insights about Jeju from a Japanese perspective.";
   if (d.includes('jejuqq')) return "Connecting the Jeju community with real-time news and updates.";

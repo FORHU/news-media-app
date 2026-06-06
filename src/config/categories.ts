@@ -48,6 +48,18 @@ export const TENANT_CATEGORIES: Record<string, string[]> = {
     "ビザ・入国情報",
     "ローカルビジネス・生活",
   ],
+  "lavaguetech.com": [
+    "Artificial Intelligence",
+    "Software Development",
+    "Consumer Tech",
+    "Cybersecurity",
+    "Startups",
+    "Big Tech",
+    "Tech Policy",
+    "Emerging Tech",
+    "Digital Culture",
+    "Enterprise & Cloud Infrastructure",
+  ],
   "newsicons.com": [
     "Artificial Intelligence",
     "Software Development",
