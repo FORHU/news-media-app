@@ -21,6 +21,7 @@ import JejuQQLanding from "@/components/sites/jejuqq/JejuQQLanding";
 import JejuJapanLanding from "@/components/sites/jejujapan/JejuJapanLanding";
 import { VoiceJejuLanding } from "@/components/sites/voicejeju/VoiceJejuLanding";
 import SkyBluePrimeLanding from "@/components/sites/skyblueprime/SkyBluePrimeLanding";
+import LavagueTechLanding from "@/components/sites/lavaguetech/LavagueTechLanding";
 
 export const revalidate = 300;
 
@@ -153,6 +154,31 @@ export default async function Page({
   if (domain === "skyblueprime.com") {
     const sbpMediastack = await fetchMediaStackNews({ categories: "technology", languages: "en", limit: 50 });
     return <SkyBluePrimeLanding tenantId={tenantId} articles={articles} banners={banners as any} mediastackArticles={sbpMediastack} />;
+  }
+
+  if (domain === "lavaguetech.com") {
+    const [ltRssFeeds, ltMediastack] = await Promise.all([
+      Promise.all([
+        fetchRssFeed("https://www.frandroid.com/feed", "Frandroid", 12),
+        fetchRssFeed("https://www.01net.com/feed/", "01net", 12),
+        fetchRssFeed("https://www.numerama.com/feed/", "Numerama", 12),
+        fetchRssFeed("https://www.phonandroid.com/feed", "PhonAndroid", 12),
+        fetchRssFeed("https://www.clubic.com/feed/", "Clubic", 10),
+      ]),
+      fetchMediaStackNews({ categories: "technology", limit: 50 }),
+    ]);
+    const ltRssArticles = ltRssFeeds
+      .flat()
+      .sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
+    return (
+      <LavagueTechLanding
+        tenantId={tenantId}
+        articles={articles}
+        banners={banners as any}
+        rssArticles={ltRssArticles}
+        mediastackArticles={ltMediastack}
+      />
+    );
   }
 
   // Default design (current layout)

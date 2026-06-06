@@ -33,7 +33,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
 import { Article } from "@/lib/types";
 import { format } from "date-fns";
-import { StoryImage } from "@/components/StoryImage";
 import CategorySelectWithOther from "@/components/admin/shared/CategorySelectWithOther";
 import { extractYoutubeId } from "@/lib/utils";
 import TwitterStatusEmbed from "@/components/article/TwitterStatusEmbed";
@@ -88,6 +87,8 @@ export default function ArticleEditorModal({
     const [imageFile, setImageFile] = React.useState<File | null>(null);
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [savedImageUrl, setSavedImageUrl] = React.useState<string | null>(null);
+    const [imageMode, setImageMode] = React.useState<"upload" | "url">("upload");
+    const [imageUrlInput, setImageUrlInput] = React.useState("");
     const [isUploadingImage, setIsUploadingImage] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
@@ -108,6 +109,8 @@ export default function ArticleEditorModal({
         setSavedImageUrl(a.imageUrl ?? a.rawArticle?.imageUrl ?? null);
         setImageFile(null);
         setImagePreview(null);
+        setImageMode("upload");
+        setImageUrlInput("");
         if (fileInputRef.current) fileInputRef.current.value = "";
     }, []);
 
@@ -142,7 +145,10 @@ export default function ArticleEditorModal({
     const tweetId = displayArticle?.rawTweet?.tweetId;
     const showTweetSidebar = isTweet && Boolean(tweetId);
     const youtubeId = extractYoutubeId(youtubeUrl);
-    const currentImage = imagePreview ?? savedImageUrl;
+    const currentImage =
+        imageMode === "url" && imageUrlInput.trim()
+            ? imageUrlInput.trim()
+            : imagePreview ?? savedImageUrl;
 
     const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
     const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -178,6 +184,7 @@ export default function ArticleEditorModal({
     const clearImage = () => {
         setImageFile(null);
         setImagePreview(null);
+        setImageUrlInput("");
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
@@ -200,7 +207,9 @@ export default function ArticleEditorModal({
             setSuccessMsg(null);
 
             let finalImageUrl = savedImageUrl;
-            if (imageFile) {
+            if (imageMode === "url" && imageUrlInput.trim()) {
+                finalImageUrl = imageUrlInput.trim();
+            } else if (imageFile) {
                 setIsUploadingImage(true);
                 try {
                     finalImageUrl = await uploadImageToS3(imageFile);
@@ -504,15 +513,14 @@ export default function ArticleEditorModal({
                                         icon={<ImageIcon className="w-4 h-4" />}
                                         label="Featured image"
                                     />
+                                    {/* Preview */}
                                     <div className="relative w-full min-h-[12rem] rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 mb-3">
                                         {currentImage ? (
-                                            <StoryImage
+                                            // Use plain <img> so arbitrary external URLs work without Next.js domain config
+                                            <img
                                                 src={currentImage}
                                                 alt={title}
-                                                width={1536}
-                                                height={1024}
-                                                className="w-full h-auto max-h-80 object-contain mx-auto"
-                                                sizes="800px"
+                                                className="w-full max-h-80 object-contain mx-auto"
                                             />
                                         ) : (
                                             <div className="flex flex-col items-center justify-center h-48 text-gray-400 gap-2">
@@ -526,39 +534,98 @@ export default function ArticleEditorModal({
                                             <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-orange-500 text-white text-[10px] font-black uppercase">
                                                 New upload
                                             </div>
+                                        ) : imageMode === "url" && imageUrlInput.trim() ? (
+                                            <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-blue-600 text-white text-[10px] font-black uppercase">
+                                                URL preview
+                                            </div>
+                                        ) : null}
+                                        {/* Remove existing image */}
+                                        {savedImageUrl && !imageFile && !(imageMode === "url" && imageUrlInput.trim()) ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => { setSavedImageUrl(null); clearImage(); }}
+                                                className="absolute top-3 right-3 w-7 h-7 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center transition-colors"
+                                                title="Remove image"
+                                            >
+                                                <X className="w-3.5 h-3.5" />
+                                            </button>
                                         ) : null}
                                     </div>
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <input
-                                            ref={fileInputRef}
-                                            type="file"
-                                            accept=".jpg,.jpeg,.png,.webp"
-                                            className="hidden"
-                                            onChange={handleImageChange}
-                                        />
-                                        <Button
+
+                                    {/* Mode toggle */}
+                                    <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-xl mb-3 w-fit">
+                                        <button
                                             type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => fileInputRef.current?.click()}
-                                            className="rounded-xl font-bold"
+                                            onClick={() => { setImageMode("upload"); setImageUrlInput(""); }}
+                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${imageMode === "upload" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
                                         >
-                                            <Upload className="w-4 h-4 mr-2" />
-                                            Upload image
-                                        </Button>
-                                        {imageFile ? (
+                                            <Upload className="w-3 h-3" />
+                                            Upload file
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setImageMode("url"); clearImage(); }}
+                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${imageMode === "url" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
+                                        >
+                                            <Globe className="w-3 h-3" />
+                                            Paste URL
+                                        </button>
+                                    </div>
+
+                                    {imageMode === "upload" ? (
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <input
+                                                ref={fileInputRef}
+                                                type="file"
+                                                accept=".jpg,.jpeg,.png,.webp"
+                                                className="hidden"
+                                                onChange={handleImageChange}
+                                            />
                                             <Button
                                                 type="button"
-                                                variant="ghost"
+                                                variant="outline"
                                                 size="sm"
-                                                onClick={clearImage}
-                                                className="text-red-600 rounded-xl font-bold"
+                                                onClick={() => fileInputRef.current?.click()}
+                                                className="rounded-xl font-bold"
                                             >
-                                                <Trash2 className="w-4 h-4 mr-1" />
-                                                Remove
+                                                <Upload className="w-4 h-4 mr-2" />
+                                                {currentImage ? "Replace image" : "Upload image"}
                                             </Button>
-                                        ) : null}
-                                    </div>
+                                            {imageFile ? (
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={clearImage}
+                                                    className="text-red-600 rounded-xl font-bold"
+                                                >
+                                                    <Trash2 className="w-4 h-4 mr-1" />
+                                                    Cancel
+                                                </Button>
+                                            ) : null}
+                                        </div>
+                                    ) : (
+                                        <div className="flex gap-2">
+                                            <Input
+                                                value={imageUrlInput}
+                                                onChange={(e) => setImageUrlInput(e.target.value)}
+                                                placeholder="https://example.com/image.jpg"
+                                                className="h-11 rounded-xl flex-1"
+                                            />
+                                            {imageUrlInput ? (
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => setImageUrlInput("")}
+                                                    className="px-3 text-gray-400 hover:text-red-600 rounded-xl"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </Button>
+                                            ) : null}
+                                        </div>
+                                    )}
+
                                     {fieldErrors.imageUrl ? (
                                         <p className="mt-2 text-xs text-red-500 font-semibold">
                                             {fieldErrors.imageUrl}

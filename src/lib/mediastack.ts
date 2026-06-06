@@ -26,24 +26,36 @@ interface MediaStackResponse {
   error?: { code: string; message: string };
 }
 
-// Fetch the og:image from an article page, with a 3s timeout.
-// Cached for 24h so repeated page loads don't re-fetch.
+/** Returns true when the image URL is a known generic aggregator thumbnail
+ *  (e.g. the Google News logo) rather than the real article image. */
+function isGenericPlaceholder(url: string): boolean {
+  return (
+    url.includes("googleusercontent.com") ||
+    url.includes("gstatic.com") ||
+    url.includes("news.google.com") ||
+    url.includes("google.com/s2/favicons")
+  );
+}
+
+// Use Microlink API to extract the real og:image from any article URL.
+// Microlink handles JS-rendered pages and Google News redirects properly.
+// Free tier: no API key needed. Cached 24h per URL to stay within limits.
 async function fetchOgImage(articleUrl: string): Promise<string | null> {
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 3000);
-    const res = await fetch(articleUrl, {
+    const timer = setTimeout(() => controller.abort(), 8000);
+    const endpoint = `https://api.microlink.io/?url=${encodeURIComponent(articleUrl)}&screenshot=false&prerender=false`;
+    const res = await fetch(endpoint, {
       signal: controller.signal,
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; NewsBot/1.0)" },
-      next: { revalidate: 86400 }, // cache 24h
+      next: { revalidate: 86400 }, // cache per-URL for 24h
+      headers: { "x-api-key": "" },
     });
     clearTimeout(timer);
     if (!res.ok) return null;
-    const html = await res.text();
-    const match =
-      html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
-      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
-    return match?.[1] ?? null;
+    const json = await res.json();
+    const img: string | undefined = json?.data?.image?.url;
+    if (img && img.startsWith("http") && !isGenericPlaceholder(img)) return img;
+    return null;
   } catch {
     return null;
   }
@@ -53,6 +65,7 @@ export async function fetchMediaStackNews(params: {
   categories?: string;
   languages?: string;
   countries?: string;
+  sources?: string;
   limit?: number;
   keywords?: string;
 }): Promise<MediaStackArticle[]> {
@@ -69,6 +82,7 @@ export async function fetchMediaStackNews(params: {
     sort: "published_desc",
     ...(params.categories && { categories: params.categories }),
     ...(params.countries && { countries: params.countries }),
+    ...(params.sources && { sources: params.sources }),
     ...(params.keywords && { keywords: params.keywords }),
   });
 
@@ -76,9 +90,8 @@ export async function fetchMediaStackNews(params: {
   const url = `http://api.mediastack.com/v1/news?${query.toString()}`;
 
   try {
-    // Free tier: 500 requests/month. Weekly revalidation = ~4 requests/month.
     const res = await fetch(url, {
-      next: { revalidate: 604800 }, // 1 week
+      cache: "no-store", // always fresh in dev; switch to next:{revalidate:3600} for prod
     });
 
     if (!res.ok) {
@@ -107,12 +120,26 @@ export async function fetchMediaStackNews(params: {
       publishedAt: item.published_at,
     }));
 
-    // Enrich articles missing images by fetching og:image in parallel
+    // Detect branded placeholder images: if the same image URL appears on 2+
+    // articles it is a site-wide default card (e.g. The Verge "TV", TechCrunch
+    // "T"), not a real article image. Null those out before enrichment so
+    // fetchOgImage runs on them and fetches the actual og:image.
+    const imageFreq = new Map<string, number>();
+    for (const a of raw) {
+      if (a.image && !isGenericPlaceholder(a.image))
+        imageFreq.set(a.image, (imageFreq.get(a.image) ?? 0) + 1);
+    }
+    const deduped = raw.map((a) => ({
+      ...a,
+      image: a.image && (imageFreq.get(a.image) ?? 0) > 1 ? null : a.image,
+    }));
+
+    // Enrich articles that still have no image or a known generic placeholder.
     const enriched = await Promise.all(
-      raw.map(async (article) => {
-        if (article.image) return article;
+      deduped.map(async (article) => {
+        if (article.image && !isGenericPlaceholder(article.image)) return article;
         const ogImage = await fetchOgImage(article.url);
-        return { ...article, image: ogImage };
+        return { ...article, image: ogImage ?? null };
       })
     );
 
