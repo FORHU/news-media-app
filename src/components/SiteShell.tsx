@@ -4,6 +4,8 @@ import React, { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { NewsletterModal } from "@/components/newsLetterModal/NewsletterModal";
 import { AdsterraSocialBar } from "@/components/ads/AdsterraSocialBar";
+import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
+import { ADSTERRA_CONFIG } from "@/config/adsterra";
 
 // Lazy load domain-specific components with SSR enabled
 const NewsIconsHeader = dynamic(() => import("./sites/newsicons/NewsIconsHeader"), { ssr: true });
@@ -78,6 +80,16 @@ export function SiteShell({ children, domain }: SiteShellProps) {
       <React.Suspense fallback={<div className="h-14 md:h-16 bg-white border-b border-gray-100" />}>
         {renderHeader()}
       </React.Suspense>
+      {site === "newsicons" && (
+        <div className="w-full flex justify-center py-3 border-b border-slate-200 overflow-hidden bg-white">
+          <div className="hidden sm:block">
+            <AdsterraBanner bannerKey={ADSTERRA_CONFIG.newsicons.banners["728x90"]} width={728} height={90} className="!my-0" />
+          </div>
+          <div className="block sm:hidden">
+            <AdsterraBanner bannerKey={ADSTERRA_CONFIG.newsicons.banners["320x50"]} width={320} height={50} className="!my-0" />
+          </div>
+        </div>
+      )}
       <main className="flex-1">{children}</main>
       <React.Suspense fallback={<div className="h-48 bg-gray-50" />}>
         {renderFooter()}

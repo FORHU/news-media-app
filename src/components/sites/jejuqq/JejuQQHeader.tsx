@@ -4,11 +4,9 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { Search, Mail, X, User, ChevronDown } from "lucide-react";
+import { Search, Mail, X, User } from "lucide-react";
 import ContactEmailButton from "@/components/ContactEmailButton";
-import { useQuery } from "@tanstack/react-query";
-import { articlesApi } from "@/lib/api";
-import { getCoreCategories, HOME_CATEGORY_LABEL, getHomeCategoryLabel, normalizeCategoryKey } from "@/config/categories";
+import { getCoreCategories, getHomeCategoryLabel } from "@/config/categories";
 import { motion, AnimatePresence } from "framer-motion";
 import { RemoveScroll } from "react-remove-scroll";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
@@ -47,28 +45,8 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const { data: categories = [] } = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => articlesApi.getCategories(),
-    staleTime: 5 * 60 * 1000,
-  });
-
   const homeLabel = getHomeCategoryLabel("jejuqq.com");
   const coreCategories = getCoreCategories("jejuqq.com");
-  const coreCategoryKeys = new Set(
-    coreCategories.map((category) => normalizeCategoryKey(category))
-  );
-  const overflowCategories = Array.from(
-    categories.reduce((acc, cat) => {
-      const name = cat.name.trim();
-      const key = normalizeCategoryKey(name);
-      if (!name || !key) return acc;
-      if (key === normalizeCategoryKey(HOME_CATEGORY_LABEL)) return acc;
-      if (coreCategoryKeys.has(key)) return acc;
-      if (!acc.has(key)) acc.set(key, name);
-      return acc;
-    }, new Map<string, string>())
-  ).map(([, name]) => name);
 
   useEffect(() => {
     setQuery(searchParams.get("search") ?? "");
@@ -315,26 +293,6 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                       </Link>
                     ))}
 
-                    {overflowCategories.length > 0 && (
-                      <details className="group">
-                        <summary className="flex items-center justify-between px-6 py-3 text-[14px] font-bold font-serif text-gray-900 hover:text-[#dc2626] border-b border-[#dc2626]/10 transition-colors cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-                          <span>More</span>
-                          <ChevronDown className="w-4 h-4 text-[#dc2626]/50 group-hover:text-[#dc2626] group-open:rotate-180 transition-transform" />
-                        </summary>
-                        <div className="bg-[#fdf2f2]/80">
-                          {overflowCategories.map((name) => (
-                            <Link
-                              key={name}
-                              href={categoryHref(name)}
-                              onClick={() => setIsSidebarOpen(false)}
-                              className="block px-10 py-2.5 text-sm font-serif text-gray-600 hover:text-[#dc2626] border-b border-[#dc2626]/10 transition-all duration-200"
-                            >
-                              {name}
-                            </Link>
-                          ))}
-                        </div>
-                      </details>
-                    )}
                   </nav>
                 </div>
 

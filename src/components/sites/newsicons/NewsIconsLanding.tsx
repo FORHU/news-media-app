@@ -1,4 +1,7 @@
 import { AdBanner } from "@/components/AdBanner";
+import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
+import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
+import { ADSTERRA_CONFIG } from "@/config/adsterra";
 import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -87,7 +90,19 @@ export default function NewsIconsLanding({ articles, banners, rssArticles = [], 
   }
 
   return (
-    <div className="bg-slate-50">
+    <div className="bg-slate-50 relative">
+      {/* Left gutter skyscraper */}
+      <div className="hidden min-[1650px]:block absolute right-[50%] mr-[660px] top-32 bottom-32 w-[160px] z-30">
+        <div className="sticky top-40">
+          <AdsterraBanner bannerKey={ADSTERRA_CONFIG.newsicons.banners["160x600"]} width={160} height={600} />
+        </div>
+      </div>
+      {/* Right gutter skyscraper */}
+      <div className="hidden min-[1650px]:block absolute left-[50%] ml-[660px] top-32 bottom-32 w-[160px] z-30">
+        <div className="sticky top-40">
+          <AdsterraBanner bannerKey={ADSTERRA_CONFIG.newsicons.banners["160x600"]} width={160} height={600} />
+        </div>
+      </div>
 
       {/* Top Ad */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
@@ -113,7 +128,7 @@ export default function NewsIconsLanding({ articles, banners, rssArticles = [], 
                 <span className="text-[11px] font-bold uppercase tracking-widest text-orange-500 mb-3">
                   {sorted[0].category?.categoryName ?? "News"}
                 </span>
-                <h1 className="text-3xl lg:text-4xl font-serif font-black text-slate-900 leading-tight group-hover:text-blue-600 transition-colors mb-4">
+                <h1 className="text-3xl lg:text-4xl font-serif font-black text-slate-900 leading-tight group-hover:text-orange-500 transition-colors mb-4">
                   {sorted[0].title}
                 </h1>
                 <p className="text-[15px] text-slate-600 leading-relaxed line-clamp-4">
@@ -154,9 +169,9 @@ export default function NewsIconsLanding({ articles, banners, rssArticles = [], 
                       <Link
                         key={a.id}
                         href={articleHref(a)}
-                        className="group flex gap-5 items-start py-6 first:pt-0"
+                        className="group flex flex-col sm:flex-row gap-4 sm:gap-5 items-start py-6 first:pt-0"
                       >
-                        <div className="relative w-[300px] h-[200px] shrink-0 bg-slate-100 overflow-hidden">
+                        <div className="relative w-full sm:w-[300px] h-[200px] shrink-0 bg-slate-100 overflow-hidden">
                           <StoryImage
                             src={a.imageUrl}
                             alt={a.title}
@@ -169,7 +184,7 @@ export default function NewsIconsLanding({ articles, banners, rssArticles = [], 
                           <span className="text-[10px] font-bold uppercase tracking-widest text-orange-500">
                             {a.category?.categoryName ?? "News"}
                           </span>
-                          <h3 className="text-[20px] font-serif font-bold text-slate-900 leading-snug group-hover:text-blue-600 transition-colors line-clamp-3">
+                          <h3 className="text-[20px] font-serif font-bold text-slate-900 leading-snug group-hover:text-orange-500 transition-colors line-clamp-3">
                             {a.title}
                           </h3>
                           <p className="text-[13px] text-slate-500 leading-relaxed line-clamp-3">
@@ -200,7 +215,7 @@ export default function NewsIconsLanding({ articles, banners, rssArticles = [], 
                             <span className="text-[10px] font-bold uppercase tracking-widest text-orange-500">
                               {a.category?.categoryName ?? "News"}
                             </span>
-                            <h4 className="text-[15px] font-serif font-bold text-slate-900 leading-snug group-hover:text-blue-600 transition-colors line-clamp-3">
+                            <h4 className="text-[15px] font-serif font-bold text-slate-900 leading-snug group-hover:text-orange-500 transition-colors line-clamp-3">
                               {a.title}
                             </h4>
                             <span className="text-[11px] text-slate-400 font-medium">
@@ -220,9 +235,9 @@ export default function NewsIconsLanding({ articles, banners, rssArticles = [], 
                     <Link
                       key={lastItem.id}
                       href={articleHref(lastItem)}
-                      className="group flex gap-0 items-stretch py-6 border-t border-slate-200"
+                      className="group flex flex-col sm:flex-row gap-0 items-stretch py-6 border-t border-slate-200"
                     >
-                      <div className="relative w-1/2 min-h-[180px] shrink-0 bg-slate-100 overflow-hidden">
+                      <div className="relative w-full sm:w-1/2 min-h-[180px] shrink-0 bg-slate-100 overflow-hidden">
                         <StoryImage
                           src={lastItem.imageUrl}
                           alt={lastItem.title}
@@ -231,11 +246,11 @@ export default function NewsIconsLanding({ articles, banners, rssArticles = [], 
                           sizes="50vw"
                         />
                       </div>
-                      <div className="flex flex-col justify-center gap-2 flex-1 min-w-0 pl-6">
+                      <div className="flex flex-col justify-center gap-2 flex-1 min-w-0 pt-4 sm:pt-0 sm:pl-6">
                         <span className="text-[10px] font-bold uppercase tracking-widest text-orange-500">
                           {lastItem.category?.categoryName ?? "News"}
                         </span>
-                        <h3 className="text-[22px] font-serif font-bold text-slate-900 leading-snug group-hover:text-blue-600 transition-colors line-clamp-3">
+                        <h3 className="text-[22px] font-serif font-bold text-slate-900 leading-snug group-hover:text-orange-500 transition-colors line-clamp-3">
                           {lastItem.title}
                         </h3>
                         <p className="text-[13px] text-slate-500 leading-relaxed line-clamp-3">
@@ -287,7 +302,7 @@ export default function NewsIconsLanding({ articles, banners, rssArticles = [], 
                           {new Date(item.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                         </span>
                       </div>
-                      <h4 className="text-[13px] font-serif font-bold text-slate-900 leading-snug group-hover:text-blue-600 transition-colors line-clamp-2">
+                      <h4 className="text-[13px] font-serif font-bold text-slate-900 leading-snug group-hover:text-orange-500 transition-colors line-clamp-2">
                         {item.title}
                       </h4>
                     </div>
@@ -297,6 +312,16 @@ export default function NewsIconsLanding({ articles, banners, rssArticles = [], 
             </aside>
           )}
 
+        </div>
+
+        {/* Mid-feed banner */}
+        <div className="flex justify-center py-4 border-y border-slate-100 bg-slate-50/30 w-full">
+          <div className="hidden sm:block">
+            <AdsterraBanner bannerKey={ADSTERRA_CONFIG.newsicons.banners["728x90"]} width={728} height={90} className="!my-0" />
+          </div>
+          <div className="block sm:hidden">
+            <AdsterraBanner bannerKey={ADSTERRA_CONFIG.newsicons.banners["320x50"]} width={320} height={50} className="!my-0" />
+          </div>
         </div>
 
         {/* Trending Now — API articles 10–13 */}
@@ -327,7 +352,7 @@ export default function NewsIconsLanding({ articles, banners, rssArticles = [], 
                   </div>
                   <div className="p-4">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-orange-500 block mb-1">{item.source}</span>
-                    <h3 className="text-[15px] font-serif font-bold text-slate-900 leading-snug group-hover:text-blue-600 transition-colors line-clamp-3">
+                    <h3 className="text-[15px] font-serif font-bold text-slate-900 leading-snug group-hover:text-orange-500 transition-colors line-clamp-3">
                       {item.title}
                     </h3>
                     {item.description && (
@@ -368,7 +393,7 @@ export default function NewsIconsLanding({ articles, banners, rssArticles = [], 
                   </div>
                   <div className="min-w-0">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-orange-500 block mb-1">{item.source}</span>
-                    <h4 className="text-[14px] font-serif font-bold text-slate-900 leading-snug group-hover:text-blue-600 transition-colors line-clamp-3">
+                    <h4 className="text-[14px] font-serif font-bold text-slate-900 leading-snug group-hover:text-orange-500 transition-colors line-clamp-3">
                       {item.title}
                     </h4>
                     {item.description && (
@@ -414,7 +439,7 @@ export default function NewsIconsLanding({ articles, banners, rssArticles = [], 
                         {new Date(item.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                       </span>
                     </div>
-                    <h4 className="text-[14px] font-serif font-bold text-slate-900 leading-snug group-hover:text-blue-600 transition-colors line-clamp-2">
+                    <h4 className="text-[14px] font-serif font-bold text-slate-900 leading-snug group-hover:text-orange-500 transition-colors line-clamp-2">
                       {item.title}
                     </h4>
                   </div>
@@ -456,7 +481,7 @@ export default function NewsIconsLanding({ articles, banners, rssArticles = [], 
                     <span className="text-[10px] font-bold uppercase tracking-widest text-orange-500 block mb-2">
                       {lead.category?.categoryName ?? group.name}
                     </span>
-                    <h3 className="text-xl font-serif font-bold text-slate-900 leading-snug group-hover:text-blue-600 transition-colors mb-3">
+                    <h3 className="text-xl font-serif font-bold text-slate-900 leading-snug group-hover:text-orange-500 transition-colors mb-3">
                       {lead.title}
                     </h3>
                     <p className="text-sm text-slate-600 leading-relaxed line-clamp-3">
@@ -483,7 +508,7 @@ export default function NewsIconsLanding({ articles, banners, rssArticles = [], 
                           <span className="text-[10px] font-bold uppercase tracking-widest text-orange-500">
                             {article.category?.categoryName ?? group.name}
                           </span>
-                          <h4 className="text-[15px] font-serif font-bold text-slate-900 leading-snug group-hover:text-blue-600 transition-colors line-clamp-2">
+                          <h4 className="text-[15px] font-serif font-bold text-slate-900 leading-snug group-hover:text-orange-500 transition-colors line-clamp-2">
                             {article.title}
                           </h4>
                           <p className="text-[12px] text-slate-500 line-clamp-2 leading-relaxed">
@@ -504,6 +529,10 @@ export default function NewsIconsLanding({ articles, banners, rssArticles = [], 
           articles={articles.filter((a: any) => a.status === "blog").slice(0, 4) as any}
         />
 
+        {/* Native banner */}
+        <div className="mt-12 border-t border-slate-200 pt-8">
+          <AdsterraNativeBanner domain="newsicons.com" />
+        </div>
 
       </main>
     </div>
