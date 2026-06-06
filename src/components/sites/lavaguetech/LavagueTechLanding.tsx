@@ -146,6 +146,7 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
   const config = ADSTERRA_CONFIG["lavaguetech"];
   const ms = rssArticles;
 
+export default function LavagueTechLanding({ articles, banners, rssArticles = [], mediastackArticles = [] }: Props) {
   const sorted = [...articles].sort((a, b) => {
     const ha = a.isHeadline ? 1 : 0, hb = b.isHeadline ? 1 : 0;
     if (hb !== ha) return hb - ha;
@@ -155,56 +156,38 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
 
   const hasInternal = sorted.length > 0;
 
-  // Hero: admin headline → top admin article → first RSS
+  // Hero: admin headline → top admin article → first merged item
   const headlineAdmin = sorted.find((a) => a.isHeadline) ?? (hasInternal ? sorted[0] : null);
-  const hero: DisplayItem | null = headlineAdmin
-    ? fromInternal(headlineAdmin)
-    : ms[0] ? fromRss(ms[0]) : null;
   const heroIsInternal = headlineAdmin !== null;
 
-  // RSS feed pool (skip hero article if it's from RSS).
-  // Filter to only articles with a real image so every card slot shows a photo.
-  const rssFeedRaw = heroIsInternal ? ms : ms.slice(1);
-  const rssFeed = rssFeedRaw.filter((a) => cleanImage(a.imageUrl) !== null);
+  // Merge RSS (French) and MediaStack (English) into one interleaved pool
+  const merged = interleave(rssArticles.map(fromRss), mediastackArticles.map(fromMediaStack));
 
-  // Right sidebar — 4 recent RSS articles (all have images after filter)
-  const sidebarItems = rssFeed.slice(0, 4);
+  const hero: DisplayItem | null = headlineAdmin
+    ? fromInternal(headlineAdmin)
+    : merged[0] ?? null;
 
-  // "Tendances de la semaine" — 3 RSS cards
-  const weeklyCards = rssFeed.slice(4, 7);
+  // Unified pool with real images only, skipping hero if it came from the merged pool
+  const pool = (heroIsInternal ? merged : merged.slice(1))
+    .filter((a) => cleanImage(a.imageUrl) !== null);
 
-  // "Plus d'articles" grid — 4 RSS cards
-  const moreGrid = rssFeed.slice(7, 11);
+  // Slice each section from the same mixed pool
+  const sidebarItems = pool.slice(0, 4);
+  const weeklyCards  = pool.slice(4, 7);
+  const moreGrid     = pool.slice(7, 11);
+  const mainGrid     = pool.slice(11, 19);
+  const mustRead     = pool.slice(19, 25);
+  const darkBand     = pool.slice(25, 28);
+  const poolTail     = pool.slice(28);
 
-  // MediaStack pool — only articles with a real image
-  const msWithImage = mediastackArticles.filter((a) => cleanImage(a.image) !== null);
-  const msGrid     = msWithImage.slice(0, 8);
-  const msMustRead = msWithImage.slice(8, 14);
-  const msDark     = msWithImage.slice(14, 17);
-  // Reserve the tail of the MS pool (after the three main sections) for filling gaps
-  const msFallback = msWithImage.slice(17);
-
-  // "Recommandé par nos éditeurs" — admin articles first; fill remaining slots
-  // with MediaStack articles so the section always shows 4 cards.
+  // "Recommandé par nos éditeurs" — admin articles first; fill remaining slots from pool
   const adminRecommended: DisplayItem[] = hasInternal
     ? sorted
         .filter((a) => !headlineAdmin || a.id !== headlineAdmin.id)
         .slice(0, 4)
         .map(fromInternal)
     : [];
-  const recommendedSlots = 4;
-  const msFillerCount = Math.max(0, recommendedSlots - adminRecommended.length);
-  const msFiller: DisplayItem[] = msFallback.slice(0, msFillerCount).map((a) => ({
-    id: a.id,
-    title: a.title,
-    category: a.category || "Technologie",
-    imageUrl: a.image,
-    href: a.url,
-    external: true,
-    date: new Date(a.publishedAt),
-    excerpt: a.description ?? "",
-    source: a.source,
-  }));
+  const msFiller = poolTail.slice(0, Math.max(0, 4 - adminRecommended.length));
   const recommendedItems: DisplayItem[] = [...adminRecommended, ...msFiller];
 
   return (
@@ -301,9 +284,9 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
               {sidebarItems.map((item) => (
                 <a
                   key={item.id}
-                  href={item.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href={item.href}
+                  target={item.external ? "_blank" : undefined}
+                  rel={item.external ? "noopener noreferrer" : undefined}
                   className="group flex gap-4 py-4 first:pt-0 last:pb-0 hover:bg-gray-50 -mx-2 px-2 transition-colors"
                 >
                   <div className="w-[88px] h-[66px] shrink-0 bg-gray-100 overflow-hidden flex-shrink-0">
@@ -311,13 +294,13 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={cleanImage(item.imageUrl)!} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (
-                      <ImageFallback seed={item.source} label={item.source} />
+                      <ImageFallback seed={item.source ?? item.category} label={item.source ?? item.category} />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-[9px] text-gray-400">
-                        {new Date(item.pubDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                        {item.date.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
                       </span>
                       <span className="text-gray-200">·</span>
                       <span className="text-[9px] font-bold text-red-600">{readTime(item.excerpt)} min de lecture</span>
@@ -404,9 +387,9 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
             {weeklyCards.map((item) => (
               <a
                 key={item.id}
-                href={item.link}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={item.href}
+                target={item.external ? "_blank" : undefined}
+                rel={item.external ? "noopener noreferrer" : undefined}
                 className="group"
               >
                 <div className="aspect-[4/3] bg-gray-100 overflow-hidden mb-4">
@@ -414,12 +397,12 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={cleanImage(item.imageUrl)!} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
-                    <ImageFallback seed={item.source} label={item.source} />
+                    <ImageFallback seed={item.source ?? item.category} label={item.source ?? item.category} />
                   )}
                 </div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[9px] text-gray-400">
-                    {new Date(item.pubDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                    {item.date.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
                   </span>
                   <span className="text-gray-300">·</span>
                   <span className="text-[9px] font-bold text-red-600">{readTime(item.excerpt)} min de lecture</span>
@@ -446,16 +429,16 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
             {moreGrid.map((item) => (
-              <a key={item.id} href={item.link} target="_blank" rel="noopener noreferrer" className="group">
+              <a key={item.id} href={item.href} target={item.external ? "_blank" : undefined} rel={item.external ? "noopener noreferrer" : undefined} className="group">
                 <div className="aspect-[4/3] bg-gray-100 overflow-hidden mb-3">
                   {cleanImage(item.imageUrl) ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={cleanImage(item.imageUrl)!} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
-                    <ImageFallback seed={item.source} label={item.source} />
+                    <ImageFallback seed={item.source ?? item.category} label={item.source ?? item.category} />
                   )}
                 </div>
-                <span className="text-[9px] font-black uppercase tracking-widest text-red-600 block mb-1">{item.source}</span>
+                <span className="text-[9px] font-black uppercase tracking-widest text-red-600 block mb-1">{item.source ?? item.category}</span>
                 <h3 className="text-[12px] font-bold text-gray-800 leading-snug group-hover:text-blue-700 transition-colors line-clamp-2">
                   {item.title}
                 </h3>
@@ -470,8 +453,8 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
         <AdBanner position="HOME_SIDEBAR" initialBanners={banners.sidebar as never[]} />
       </div>
 
-      {/* ── TENDANCES DU MOMENT (MediaStack, gray bg) ─────────── */}
-      {msGrid.length > 0 && (
+      {/* ── TENDANCES DU MOMENT (mixed, gray bg) ─────────── */}
+      {mainGrid.length > 0 && (
         <div className="bg-gray-50 py-12">
           <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-8">
@@ -479,24 +462,24 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
               <p className="text-gray-400 text-[13px] mt-1">Les actualités tech à ne pas manquer</p>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-              {msGrid.map((item) => (
-                <a key={item.id} href={item.url} target="_blank" rel="noopener noreferrer"
+              {mainGrid.map((item) => (
+                <a key={item.id} href={item.href} target={item.external ? "_blank" : undefined} rel={item.external ? "noopener noreferrer" : undefined}
                   className="group bg-white p-3 shadow-sm hover:shadow-md transition-shadow"
                 >
                   <div className="aspect-[4/3] bg-gray-100 overflow-hidden mb-3">
-                    {cleanImage(item.image) ? (
+                    {cleanImage(item.imageUrl) ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={cleanImage(item.image)!} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <img src={cleanImage(item.imageUrl)!} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (
-                      <ImageFallback seed={item.source} label={item.source} />
+                      <ImageFallback seed={item.source ?? item.category} label={item.source ?? item.category} />
                     )}
                   </div>
-                  <span className="text-[9px] font-black uppercase tracking-widest text-blue-700 block mb-1">{item.source}</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest text-blue-700 block mb-1">{item.source ?? item.category}</span>
                   <h3 className="text-[12px] font-bold text-gray-900 leading-snug group-hover:text-blue-700 transition-colors line-clamp-2">
                     {item.title}
                   </h3>
                   <span className="text-[10px] text-gray-400 mt-1.5 block">
-                    {new Date(item.publishedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                    {item.date.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
                   </span>
                 </a>
               ))}
@@ -505,8 +488,8 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
         </div>
       )}
 
-      {/* ── À NE PAS MANQUER (MediaStack, 2-col list) ────────── */}
-      {msMustRead.length > 0 && (
+      {/* ── À NE PAS MANQUER (mixed, 2-col list) ────────── */}
+      {mustRead.length > 0 && (
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center gap-3 mb-7">
             <div className="w-1 h-5 bg-blue-700 flex-shrink-0" />
@@ -514,29 +497,29 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
             <div className="flex-1 h-px bg-gray-200" />
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {msMustRead.map((item) => (
-              <a key={item.id} href={item.url} target="_blank" rel="noopener noreferrer" className="group flex gap-4">
+            {mustRead.map((item) => (
+              <a key={item.id} href={item.href} target={item.external ? "_blank" : undefined} rel={item.external ? "noopener noreferrer" : undefined} className="group flex gap-4">
                 <div className="w-[120px] h-[80px] shrink-0 bg-gray-100 overflow-hidden">
-                  {cleanImage(item.image) ? (
+                  {cleanImage(item.imageUrl) ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={cleanImage(item.image)!} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <img src={cleanImage(item.imageUrl)!} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
-                    <ImageFallback seed={item.source} label={item.source} />
+                    <ImageFallback seed={item.source ?? item.category} label={item.source ?? item.category} />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-red-600">{item.source}</span>
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-red-600">{item.source ?? item.category}</span>
                     <span className="text-gray-300 text-[9px]">·</span>
                     <span className="text-[9px] text-gray-400">
-                      {new Date(item.publishedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                      {item.date.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
                     </span>
                   </div>
                   <h3 className="text-[13px] font-bold text-gray-900 leading-snug group-hover:text-blue-700 transition-colors line-clamp-2">
                     {item.title}
                   </h3>
-                  {item.description && (
-                    <p className="text-[11px] text-gray-400 line-clamp-1 mt-0.5">{item.description}</p>
+                  {item.excerpt && (
+                    <p className="text-[11px] text-gray-400 line-clamp-1 mt-0.5">{item.excerpt}</p>
                   )}
                 </div>
               </a>
@@ -545,8 +528,8 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
         </div>
       )}
 
-      {/* ── MONDE & TECH (dark band) ──────────────────────────── */}
-      {msDark.length > 0 && (
+      {/* ── MONDE & TECH (dark band, mixed) ──────────────────────────── */}
+      {darkBand.length > 0 && (
         <div className="bg-blue-950 py-12">
           <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-3 mb-8">
@@ -555,24 +538,24 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
               <div className="flex-1 h-px bg-white/10" />
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {msDark.map((item) => (
-                <a key={item.id} href={item.url} target="_blank" rel="noopener noreferrer" className="group">
+              {darkBand.map((item) => (
+                <a key={item.id} href={item.href} target={item.external ? "_blank" : undefined} rel={item.external ? "noopener noreferrer" : undefined} className="group">
                   <div className="relative aspect-[16/9] bg-blue-900 overflow-hidden mb-4">
-                    {cleanImage(item.image) ? (
+                    {cleanImage(item.imageUrl) ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={cleanImage(item.image)!} alt={item.title} className="w-full h-full object-cover opacity-75 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" />
+                      <img src={cleanImage(item.imageUrl)!} alt={item.title} className="w-full h-full object-cover opacity-75 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" />
                     ) : (
-                      <ImageFallback seed={item.source} label={item.source} />
+                      <ImageFallback seed={item.source ?? item.category} label={item.source ?? item.category} />
                     )}
                     <div className="absolute top-3 left-3 bg-red-600 text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1">
-                      {item.source}
+                      {item.source ?? item.category}
                     </div>
                   </div>
                   <h3 className="text-[14px] font-bold text-white leading-snug group-hover:text-blue-300 transition-colors line-clamp-3 mb-1">
                     {item.title}
                   </h3>
-                  {item.description && (
-                    <p className="text-[11px] text-blue-200/60 line-clamp-2">{item.description}</p>
+                  {item.excerpt && (
+                    <p className="text-[11px] text-blue-200/60 line-clamp-2">{item.excerpt}</p>
                   )}
                 </a>
               ))}

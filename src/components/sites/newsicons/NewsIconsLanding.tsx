@@ -6,7 +6,6 @@ import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { getCoreCategories, normalizeCategoryKey } from "@/config/categories";
-import type { RssArticle } from "@/lib/rss";
 import type { MediaStackArticle } from "@/lib/mediastack";
 
 const TrendingProductsSection = dynamic(() => import("@/components/home/trending-products-section").then(m => m.TrendingProductsSection), { ssr: true });
@@ -32,7 +31,6 @@ interface Props {
     sidebar: any[];
     footer: any[];
   };
-  rssArticles?: RssArticle[];
   mediastackArticles?: MediaStackArticle[];
 }
 
@@ -46,14 +44,24 @@ function excerpt(text: string | null | undefined, max = 120) {
   return plain.length > max ? `${plain.slice(0, max)}…` : plain;
 }
 
+function hasValidImage(url: string | null | undefined): boolean {
+  if (!url) return false;
+  if (url.includes("googleusercontent.com") || url.includes("gstatic.com") || url.includes("news.google.com")) return false;
+  return true;
+}
+
 const NEWSICONS_CATEGORIES = getCoreCategories("newsicons.com");
 const CANONICAL_MAP = new Map(
   NEWSICONS_CATEGORIES.map((c) => [normalizeCategoryKey(c), c.trim()])
 );
 
 
-export default function NewsIconsLanding({ articles, banners, rssArticles = [], mediastackArticles = [] }: Props) {
-  const sorted = [...articles].sort((a, b) => {
+export default function NewsIconsLanding({ articles, banners, mediastackArticles = [] }: Props) {
+  // Only use articles and MediaStack items that have a real image
+  const articlesWithImages = articles.filter((a) => hasValidImage(a.imageUrl));
+  const msWithImages = mediastackArticles.filter((a) => hasValidImage(a.image));
+
+  const sorted = [...articlesWithImages].sort((a, b) => {
     const aH = a.isHeadline ? 1 : 0;
     const bH = b.isHeadline ? 1 : 0;
     if (bH !== aH) return bH - aH;
@@ -270,14 +278,14 @@ export default function NewsIconsLanding({ articles, banners, rssArticles = [], 
           </div>
 
           {/* News Wire — right sidebar */}
-          {mediastackArticles.length > 0 && (
+          {msWithImages.length > 0 && (
             <aside className="lg:col-span-4 flex flex-col h-full">
               <div className="flex items-center gap-3 mb-5 border-b-2 border-orange-500 pb-3">
                 <h2 className="text-xl font-serif font-black text-slate-900 uppercase tracking-wide">News Wire</h2>
                 <div className="flex-1 h-px bg-slate-200" />
               </div>
               <div className="flex flex-col divide-y divide-slate-200 bg-white border border-slate-200 shadow-sm flex-1 overflow-y-auto">
-                {mediastackArticles.slice(0, 10).map((item) => (
+                {msWithImages.slice(0, 10).map((item) => (
                   <a
                     key={item.id}
                     href={item.url}
@@ -325,14 +333,14 @@ export default function NewsIconsLanding({ articles, banners, rssArticles = [], 
         </div>
 
         {/* Trending Now — API articles 10–13 */}
-        {mediastackArticles.length > 10 && (
+        {msWithImages.length > 10 && (
           <section>
             <div className="flex items-center gap-3 mb-6 border-b-2 border-slate-900 pb-3">
               <h2 className="text-xl font-serif font-black text-slate-900 uppercase tracking-wide">Trending Now</h2>
               <div className="flex-1 h-px bg-slate-200" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {mediastackArticles.slice(10, 14).map((item) => (
+              {msWithImages.slice(10, 14).map((item) => (
                 <a
                   key={item.id}
                   href={item.url}
@@ -366,14 +374,14 @@ export default function NewsIconsLanding({ articles, banners, rssArticles = [], 
         )}
 
         {/* In the Headlines — API articles 14–19 */}
-        {mediastackArticles.length > 14 && (
+        {msWithImages.length > 14 && (
           <section>
             <div className="flex items-center gap-3 mb-6 border-b-2 border-slate-900 pb-3">
               <h2 className="text-xl font-serif font-black text-slate-900 uppercase tracking-wide">In the Headlines</h2>
               <div className="flex-1 h-px bg-slate-200" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {mediastackArticles.slice(14, 20).map((item) => (
+              {msWithImages.slice(14, 20).map((item) => (
                 <a
                   key={item.id}
                   href={item.url}
@@ -407,14 +415,14 @@ export default function NewsIconsLanding({ articles, banners, rssArticles = [], 
         )}
 
         {/* From the Wire — API articles 20–29 */}
-        {mediastackArticles.length > 20 && (
+        {msWithImages.length > 20 && (
           <section>
             <div className="flex items-center gap-3 mb-6 border-b-2 border-orange-500 pb-3">
               <h2 className="text-xl font-serif font-black text-slate-900 uppercase tracking-wide">From the Wire</h2>
               <div className="flex-1 h-px bg-slate-200" />
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 bg-white border border-slate-200 shadow-sm divide-y divide-slate-200">
-              {mediastackArticles.slice(20, 30).map((item) => (
+              {msWithImages.slice(20, 30).map((item) => (
                 <a
                   key={item.id}
                   href={item.url}
