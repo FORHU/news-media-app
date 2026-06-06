@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { Twitter, Github, Linkedin, Mail, Rss } from "lucide-react";
 import { AdBanner, Banner } from "@/components/AdBanner";
 import { getCoreCategories } from "@/config/categories";
 
@@ -10,7 +9,7 @@ interface FooterProps {
   footerBanners?: Banner[];
 }
 
-const categories = getCoreCategories("lavaguetech.com").slice(0, 6);
+const categories = getCoreCategories("lavaguetech.com");
 
 export default function LavagueTechFooter({ onOpenNewsletter, footerBanners }: FooterProps) {
   return (
@@ -26,22 +25,15 @@ export default function LavagueTechFooter({ onOpenNewsletter, footerBanners }: F
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 mb-16">
 
             {/* Brand + tagline */}
-            <div className="lg:col-span-4">
+            <div className="lg:col-span-3">
               <div className="mb-5">
                 <span className="text-white font-black text-2xl tracking-tight">
                   <span className="text-red-400">L</span>avague<span className="text-blue-300">T</span>ech
                 </span>
               </div>
-              <p className="text-blue-200/60 text-sm leading-relaxed max-w-xs mb-6">
+              <p className="text-blue-200/60 text-sm leading-relaxed max-w-xs">
                 The next wave of technology news — sharp insights, bold perspectives, and stories that matter.
               </p>
-              <div className="flex items-center gap-4 text-blue-300/50">
-                <Twitter size={17} className="hover:text-white cursor-pointer transition-colors" />
-                <Github size={17} className="hover:text-white cursor-pointer transition-colors" />
-                <Linkedin size={17} className="hover:text-white cursor-pointer transition-colors" />
-                <Mail size={17} className="hover:text-white cursor-pointer transition-colors" />
-                <Rss size={17} className="hover:text-white cursor-pointer transition-colors" />
-              </div>
             </div>
 
             {/* Explore */}
@@ -56,7 +48,7 @@ export default function LavagueTechFooter({ onOpenNewsletter, footerBanners }: F
             </div>
 
             {/* Categories */}
-            <div className="lg:col-span-3">
+            <div className="lg:col-span-2">
               <h4 className="text-[10px] font-bold uppercase tracking-[0.25em] text-white mb-6">Topics</h4>
               <ul className="space-y-3 text-sm text-blue-200/60">
                 {categories.map((cat) => (
@@ -81,16 +73,17 @@ export default function LavagueTechFooter({ onOpenNewsletter, footerBanners }: F
             </div>
 
             {/* Newsletter */}
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-3">
               <h4 className="text-[10px] font-bold uppercase tracking-[0.25em] text-white mb-6">Newsletter</h4>
-              <p className="text-blue-200/60 text-xs leading-relaxed mb-4">
+              <p className="text-blue-200/60 text-xs leading-relaxed mb-5 max-w-[200px]">
                 Get the latest tech stories delivered to your inbox.
               </p>
               <button
                 onClick={onOpenNewsletter}
-                className="bg-red-600 hover:bg-red-500 text-white px-4 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors w-full"
+                className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-500 active:bg-red-700 text-white px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-colors group"
               >
                 Subscribe
+                <span className="group-hover:translate-x-0.5 transition-transform duration-150">→</span>
               </button>
             </div>
           </div>

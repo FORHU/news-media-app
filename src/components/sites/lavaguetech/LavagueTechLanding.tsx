@@ -190,13 +190,22 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
   return (
     <div className="bg-white min-h-screen">
 
-      {/* Gutter skyscrapers — only shown on very wide screens */}
-      <div className="fixed left-2 top-40 hidden 2xl:block z-40">
-        <AdsterraBanner bannerKey={config.banners["160x600"]} width={160} height={600} />
-      </div>
-      <div className="fixed right-2 top-40 hidden 2xl:block z-40">
-        <AdsterraBanner bannerKey={config.banners["160x600"]} width={160} height={600} />
-      </div>
+      {/* White-section wrapper — gutter ads are bounded here and stop before gray/dark bands */}
+      <div className="relative">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="relative h-full max-w-[1200px] mx-auto">
+            <div className="hidden min-[1650px]:block absolute right-full mr-6 top-0 bottom-0 w-[160px] z-30 pointer-events-auto">
+              <div className="sticky top-40">
+                <AdsterraBanner bannerKey={config.banners["160x600"]} width={160} height={600} className="!my-0" />
+              </div>
+            </div>
+            <div className="hidden min-[1650px]:block absolute left-full ml-6 top-0 bottom-0 w-[160px] z-30 pointer-events-auto">
+              <div className="sticky top-40">
+                <AdsterraBanner bannerKey={config.banners["160x600"]} width={160} height={600} className="!my-0" />
+              </div>
+            </div>
+          </div>
+        </div>
 
       {/* Top ad */}
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pt-4">
@@ -449,6 +458,8 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pb-10">
         <AdBanner position="HOME_SIDEBAR" initialBanners={banners.sidebar as never[]} />
       </div>
+
+      </div>{/* end white-section wrapper — gutter ads stop here */}
 
       {/* ── TENDANCES DU MOMENT (mixed, gray bg) ─────────── */}
       {mainGrid.length > 0 && (

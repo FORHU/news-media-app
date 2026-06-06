@@ -94,6 +94,20 @@ const getDomainTheme = (domain: string): ThemeClasses => {
       gradient: "from-sky-950/5",
     };
   }
+  if (domain.includes("lavaguetech")) {
+    return {
+      bg: "bg-blue-700",
+      text: "text-blue-700",
+      border: "border-blue-700",
+      borderFocus: "focus:border-blue-700",
+      hoverBg: "hover:bg-blue-800",
+      hoverText: "hover:text-blue-700",
+      bgLight: "bg-blue-50",
+      bgLight10: "bg-blue-700/10",
+      font: "font-sans",
+      gradient: "from-blue-700/5",
+    };
+  }
   // Default / NewsIcons
   return {
     bg: "bg-[#ff4500]",

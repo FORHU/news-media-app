@@ -32,6 +32,8 @@ export default async function SearchLayout({
     ? "skyblueprime"
     : domain.toLowerCase().includes("newsicons")
     ? "newsicons"
+    : domain.toLowerCase().includes("lavaguetech")
+    ? "lavaguetech"
     : "default";
 
   const tenantConfig = ADSTERRA_CONFIG[tenantKey];
@@ -48,10 +50,11 @@ export default async function SearchLayout({
   const isJejuTime = domain.toLowerCase().includes("jejutime");
   const isSkyBluePrime = domain.toLowerCase().includes("skyblueprime");
   const isNewsIcons = domain.toLowerCase().includes("newsicons");
+  const isLavagueTech = domain.toLowerCase().includes("lavaguetech");
 
   // Trending stories are "constant" for the search session, so we fetch them here
-  // (We skip fetching in layout if VoiceJeju, JejuJapan, or JejuQQ, since those render their sidebar inside page.tsx)
-  const [trendingArticles, sidebarBanners] = (isVoiceJeju || isJejuJapan || isJejuQQ)
+  // (We skip fetching in layout if the page handles its own sidebar)
+  const [trendingArticles, sidebarBanners] = (isVoiceJeju || isJejuJapan || isJejuQQ || isLavagueTech)
     ? [[], []]
     : await Promise.all([
         tenantId
@@ -147,6 +150,30 @@ export default async function SearchLayout({
     return (
       <div className="bg-[#fdf2f2] min-h-screen">
         <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-10">
+          {showSkyscrapers && adKeys?.["160x600"] && (
+            <div className="hidden min-[1650px]:block absolute right-full mr-6 top-32 bottom-32 w-[160px] z-30">
+              <div className="sticky top-40">
+                <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+              </div>
+            </div>
+          )}
+          {showSkyscrapers && adKeys?.["160x600"] && (
+            <div className="hidden min-[1650px]:block absolute left-full ml-6 top-32 bottom-32 w-[160px] z-30">
+              <div className="sticky top-40">
+                <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+              </div>
+            </div>
+          )}
+          {children}
+        </main>
+      </div>
+    );
+  }
+
+  if (isLavagueTech) {
+    return (
+      <div className="bg-white">
+        <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
           {showSkyscrapers && adKeys?.["160x600"] && (
             <div className="hidden min-[1650px]:block absolute right-full mr-6 top-32 bottom-32 w-[160px] z-30">
               <div className="sticky top-40">
