@@ -28,7 +28,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { FacebookShareButton } from "./FacebookShareButton";
 
-type SiteTheme = "jejutime" | "jejuqq" | "jejujapan" | "newsicons" | "voicejeju" | "skyblueprime";
+type SiteTheme = "jejutime" | "jejuqq" | "jejujapan" | "newsicons" | "voicejeju" | "skyblueprime" | "lavaguetech";
 
 function normalizeShareUrl(input: string) {
   try {
