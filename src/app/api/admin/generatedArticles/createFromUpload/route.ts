@@ -18,11 +18,9 @@ const RequestSchema = z.object({
   extractedText: z.string().optional().default(""),
   s3ImageUrl: z.string().optional().or(z.literal("")).default(""),
   materialImages: z.array(z.string()).optional().default([]),
-  materialDocuments: z.array(z.string()).optional().default([]),
 });
 
 const DATA_URL_IMAGE_REGEX = /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/;
-const DATA_URL_REGEX = /^data:([a-zA-Z0-9.+-]+\/[a-zA-Z0-9.+-]+);base64,(.+)$/;
 
 function detectImageExtension(mimeType: string): string {
   if (mimeType.includes("jpeg") || mimeType.includes("jpg")) return "jpg";
@@ -30,11 +28,6 @@ function detectImageExtension(mimeType: string): string {
   if (mimeType.includes("webp")) return "webp";
   if (mimeType.includes("gif")) return "gif";
   return "jpg"; // Default to jpg to avoid Next.js .bin optimization errors
-}
-
-function detectFileExtension(mimeType: string): string {
-  if (mimeType.includes("pdf")) return "pdf";
-  return detectImageExtension(mimeType);
 }
 
 async function uploadBase64ImageToS3(dataUrl: string, tenantId: string): Promise<string> {
@@ -47,19 +40,6 @@ async function uploadBase64ImageToS3(dataUrl: string, tenantId: string): Promise
   const filename = `manual-uploads-${tenantId}-${Date.now()}-${randomUUID()}.${extension}`;
 
   return uploadToS3(fileBuffer, filename, mimeType);
-}
-
-async function uploadBase64FileToS3(dataUrl: string, tenantId: string): Promise<{ url: string; filename: string }> {
-  const match = dataUrl.match(DATA_URL_REGEX);
-  if (!match) throw new Error("Invalid base64 file format.");
-
-  const mimeType = match[1];
-  const fileBuffer = Buffer.from(match[2], "base64");
-  const extension = detectFileExtension(mimeType);
-  const filename = `manual-uploads-${tenantId}-${Date.now()}-${randomUUID()}.${extension}`;
-  const url = await uploadToS3(fileBuffer, filename, mimeType);
-
-  return { url, filename };
 }
 
 function truncateContent(text: string, limit: number = 12000): string {
@@ -211,13 +191,13 @@ export async function POST(req: NextRequest) {
                 const base64Payload = match[2];
                 const fileBuffer = Buffer.from(base64Payload, "base64");
                 const extension = detectImageExtension(mimeType);
-                const analysisFilename = `material-${Date.now()}.${extension}`;
-                
-                const s3Url = await uploadToS3(fileBuffer, analysisFilename, mimeType);
+
+                const s3Url = await uploadToS3(fileBuffer, `material.${extension}`, mimeType);
                 let s3Key = s3Url;
                 try {
                     s3Key = new URL(s3Url).pathname.slice(1);
                 } catch (e) {}
+                const analysisFilename = s3Key.split("/").pop() || `material.${extension}`;
 
                 console.log(`[createFromUpload] Analyzing uploaded image via S3: ${s3Url}`);
 
@@ -254,55 +234,6 @@ export async function POST(req: NextRequest) {
         }
     } else {
         console.log(`[createFromUpload] No material images found to analyze.`);
-    }
-
-    // Analyze material documents (e.g. PDFs)
-    if (parsed.data.materialDocuments && parsed.data.materialDocuments.length > 0) {
-        console.log(`[createFromUpload] Found ${parsed.data.materialDocuments.length} material documents. Starting analysis...`);
-        const analyzedDocTexts = [];
-        for (const base64Doc of parsed.data.materialDocuments) {
-            try {
-                const { url: s3Url, filename } = await uploadBase64FileToS3(base64Doc, tenantId);
-                let s3Key = s3Url;
-                try {
-                    s3Key = new URL(s3Url).pathname.slice(1);
-                } catch (e) {}
-
-                console.log(`[createFromUpload] Analyzing uploaded document via S3: ${s3Url}`);
-
-                const analyzeRes = await fetch(`${baseUrl}/api/legal/analyze-document`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        s3_key: s3Key,
-                        filename: filename,
-                        session_id: session_id
-                    }),
-                });
-
-                if (analyzeRes.ok) {
-                    const analysisResult = await analyzeRes.json();
-                    const text = typeof analysisResult === 'string' ? analysisResult : JSON.stringify(analysisResult);
-                    console.log(`[createFromUpload] Document analysis successful for ${filename} (length: ${text.length})`);
-                    analyzedDocTexts.push(`[Document Analysis for ${filename}]:\n${text}`);
-                } else {
-                    const errorResponse = await analyzeRes.text();
-                    console.error(`[createFromUpload] Document analysis failed for ${filename}. Status: ${analyzeRes.status}, Error: ${errorResponse}`);
-                }
-            } catch (err) {
-                console.error("[createFromUpload] Exception during material document analysis:", err);
-            }
-        }
-        if (analyzedDocTexts.length > 0) {
-            console.log(`[createFromUpload] Successfully analyzed ${analyzedDocTexts.length} documents.`);
-            finalExtractedText = finalExtractedText
-                ? finalExtractedText + "\n\n" + analyzedDocTexts.join("\n\n")
-                : analyzedDocTexts.join("\n\n");
-        } else {
-            console.log(`[createFromUpload] No document analysis results to append.`);
-        }
-    } else {
-        console.log(`[createFromUpload] No material documents found to analyze.`);
     }
 
     // 1) Store raw_source_uploads first (schema-aligned)
