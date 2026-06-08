@@ -472,35 +472,44 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
 
       </div>{/* end white-section wrapper — gutter ads stop here */}
 
-      {/* ── TENDANCES DU MOMENT (mixed, gray bg) ─────────── */}
+      {/* ── TENDANCES DU MOMENT (ranked editorial list, gray bg) ─────────── */}
       {mainGrid.length > 0 && (
         <div className="bg-gray-50 py-12">
           <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-8">
+            <div className="flex items-end justify-between gap-4 mb-8 border-b-2 border-gray-900 pb-4">
               <h2 className="font-playfair text-[24px] font-bold text-gray-900">Tendances du moment</h2>
-              <p className="text-gray-500 text-[13px] mt-1">Les actualités tech à ne pas manquer</p>
+              <p className="text-gray-500 text-[12px] hidden sm:block">Les actualités tech à ne pas manquer</p>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-              {mainGrid.map((item) => (
-                <a key={item.id} href={item.href} target={item.external ? "_blank" : undefined} rel={item.external ? "noopener noreferrer" : undefined}
-                  className="group bg-white p-3 shadow-sm hover:shadow-md transition-shadow"
-                >
-                  <div className="aspect-[4/3] bg-gray-100 overflow-hidden mb-3">
-                    {cleanImage(item.imageUrl) ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={cleanImage(item.imageUrl)!} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    ) : (
-                      <ImageFallback seed={item.source ?? item.category} label={item.source ?? item.category} />
-                    )}
-                  </div>
-                  <span className="text-[9px] font-black uppercase tracking-widest text-teal-700 block mb-1">{item.source ?? item.category}</span>
-                  <h3 className="text-[12px] font-bold text-gray-900 leading-snug group-hover:text-teal-700 transition-colors line-clamp-2">
-                    {item.title}
-                  </h3>
-                  <span className="text-[10px] text-gray-500 mt-1.5 block">
-                    {item.date.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
-                  </span>
-                </a>
+            <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-12">
+              {[mainGrid.slice(0, Math.ceil(mainGrid.length / 2)), mainGrid.slice(Math.ceil(mainGrid.length / 2))].map((column, colIdx) => (
+                <div key={colIdx} className={`divide-y divide-gray-200 ${colIdx === 1 ? "lg:border-l lg:border-gray-200 lg:pl-12" : ""}`}>
+                  {column.map((item, i) => {
+                    const rank = colIdx * Math.ceil(mainGrid.length / 2) + i + 1;
+                    return (
+                      <a key={item.id} href={item.href} target={item.external ? "_blank" : undefined} rel={item.external ? "noopener noreferrer" : undefined}
+                        className="group flex items-center gap-4 py-4 first:pt-0 last:pb-0"
+                      >
+                        <span className="font-mono text-[26px] font-black text-gray-500 group-hover:text-teal-600 transition-colors w-11 flex-shrink-0 text-right tabular-nums">
+                          {String(rank).padStart(2, "0")}
+                        </span>
+                        <div className="w-[76px] h-[56px] shrink-0 bg-gray-100 overflow-hidden">
+                          {cleanImage(item.imageUrl) ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={cleanImage(item.imageUrl)!} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          ) : (
+                            <ImageFallback seed={item.source ?? item.category} label={item.source ?? item.category} />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-[9px] font-black uppercase tracking-widest text-teal-700 block mb-0.5">{item.source ?? item.category}</span>
+                          <h3 className="text-[13px] font-bold text-gray-900 leading-snug group-hover:text-teal-700 transition-colors line-clamp-2">
+                            {item.title}
+                          </h3>
+                        </div>
+                      </a>
+                    );
+                  })}
+                </div>
               ))}
             </div>
           </div>
