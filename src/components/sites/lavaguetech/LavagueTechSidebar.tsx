@@ -9,13 +9,11 @@ interface SidebarProps {
   onClose: () => void;
   onOpenNewsletter?: () => void;
   categoryLinks: { name: string; link: string }[];
-  overflowCategories: string[];
-  categoryHref: (cat: string) => string;
   activeCategory?: string;
   isHome?: boolean;
 }
 
-export default function LavagueTechSidebar({ isOpen, onClose, onOpenNewsletter, categoryLinks, overflowCategories, categoryHref, activeCategory, isHome }: SidebarProps) {
+export default function LavagueTechSidebar({ isOpen, onClose, onOpenNewsletter, categoryLinks, activeCategory, isHome }: SidebarProps) {
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
@@ -55,43 +53,16 @@ export default function LavagueTechSidebar({ isOpen, onClose, onOpenNewsletter, 
                 key={name}
                 href={link}
                 onClick={onClose}
-                className={`flex items-center justify-between px-4 py-3 text-[11px] font-bold uppercase tracking-widest transition-colors group border-l-2 ${
-                  isActive
+                className={`flex items-center justify-between px-4 py-3 text-[11px] font-bold uppercase tracking-widest transition-colors group border-l-2 ${isActive
                     ? "text-blue-700 bg-blue-50 border-blue-700"
                     : "text-gray-600 hover:text-blue-700 hover:bg-blue-50 border-transparent"
-                }`}
+                  }`}
               >
                 {name}
                 <ChevronRight size={14} className={`transition-colors ${isActive ? "text-blue-500" : "text-gray-300 group-hover:text-blue-600"}`} />
               </Link>
             );
           })}
-
-          {overflowCategories.length > 0 && (
-            <>
-              <div className="pt-4 pb-2 px-4">
-                <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-gray-400">More Topics</span>
-              </div>
-              {overflowCategories.map((cat) => {
-                const isActive = activeCategory?.toLowerCase() === cat.toLowerCase();
-                return (
-                  <Link
-                    key={cat}
-                    href={categoryHref(cat)}
-                    onClick={onClose}
-                    className={`flex items-center justify-between px-4 py-3 text-[11px] font-bold uppercase tracking-widest transition-colors group border-l-2 ${
-                      isActive
-                        ? "text-blue-700 bg-blue-50 border-blue-700"
-                        : "text-gray-500 hover:text-blue-700 hover:bg-blue-50 border-transparent"
-                    }`}
-                  >
-                    {cat}
-                    <ChevronRight size={14} className={`transition-colors ${isActive ? "text-blue-500" : "text-gray-300 group-hover:text-blue-600"}`} />
-                  </Link>
-                );
-              })}
-            </>
-          )}
         </nav>
 
         {/* Footer actions */}

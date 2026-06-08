@@ -47,17 +47,6 @@ export default function LavagueTechHeader({ onOpenNewsletter }: HeaderProps) {
   });
 
   const coreCategoryKeys = new Set(coreCategories.map(normalizeCategoryKey));
-  const overflowCategories = Array.from(
-    categories.reduce((acc, cat) => {
-      const name = cat.name.trim();
-      const key = normalizeCategoryKey(name);
-      if (!name || !key) return acc;
-      if (key === normalizeCategoryKey(HOME_CATEGORY_LABEL)) return acc;
-      if (coreCategoryKeys.has(key)) return acc;
-      if (!acc.has(key)) acc.set(key, name);
-      return acc;
-    }, new Map<string, string>())
-  ).map(([, name]) => name);
 
   const categoryLinks = [
     { name: HOME_CATEGORY_LABEL, link: "/" },
@@ -184,7 +173,7 @@ export default function LavagueTechHeader({ onOpenNewsletter }: HeaderProps) {
         </div>
 
         {/* ── Category nav bar ─────────────────────────── */}
-        <div className="bg-gray-50 border-t border-gray-200 relative overflow-hidden">
+        <div className="hidden md:block bg-gray-50 border-t border-gray-200 relative overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 h-11 flex items-center relative">
 
             {/* Left arrow */}
@@ -229,8 +218,6 @@ export default function LavagueTechHeader({ onOpenNewsletter }: HeaderProps) {
         onClose={() => setIsSidebarOpen(false)}
         onOpenNewsletter={onOpenNewsletter}
         categoryLinks={categoryLinks}
-        overflowCategories={overflowCategories}
-        categoryHref={categoryHref}
         activeCategory={activeCategory}
         isHome={isHome}
       />

@@ -61,17 +61,6 @@ export default function LavagueTechFooter({ onOpenNewsletter, footerBanners }: F
               </ul>
             </div>
 
-            {/* Company */}
-            <div className="lg:col-span-2">
-              <h4 className="text-[10px] font-bold uppercase tracking-[0.25em] text-white mb-6">Company</h4>
-              <ul className="space-y-3 text-sm text-blue-200/60">
-                <li><Link href="#" className="hover:text-white transition-colors">About</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Contact</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Advertise</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Careers</Link></li>
-              </ul>
-            </div>
-
             {/* Newsletter */}
             <div className="lg:col-span-3">
               <h4 className="text-[10px] font-bold uppercase tracking-[0.25em] text-white mb-6">Newsletter</h4>
