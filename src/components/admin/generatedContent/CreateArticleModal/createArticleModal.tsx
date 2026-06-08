@@ -190,19 +190,21 @@ export default function CreateArticleModal({
 
         const textFiles = files.filter(f => f.name.endsWith('.txt'));
         const imageMaterialFiles = files.filter(f => f.type.startsWith('image/'));
+        const pdfMaterialFiles = files.filter(f => f.type === 'application/pdf');
 
         setIsProcessingFiles(true);
         try {
             const texts = await Promise.all(textFiles.map(readFileAsText));
             const allTexts = texts.join("\n\n---\n\n");
-            
+
             if (allTexts) {
-                combinedFileContent = combinedFileContent 
-                    ? `${combinedFileContent}\n\n[FILE ATTACHMENTS]\n${allTexts}` 
+                combinedFileContent = combinedFileContent
+                    ? `${combinedFileContent}\n\n[FILE ATTACHMENTS]\n${allTexts}`
                     : allTexts;
             }
 
             const materialImages = await Promise.all(imageMaterialFiles.map(readFileAsBase64));
+            const materialDocuments = await Promise.all(pdfMaterialFiles.map(readFileAsBase64));
 
             if (imageFile) {
                 uploadedImageUrl = await readFileAsBase64(imageFile);
@@ -216,6 +218,7 @@ export default function CreateArticleModal({
                 language,
                 prompt: buildLanguageDirective(language),
                 materialImages,
+                materialDocuments,
             });
 
             queryClient.invalidateQueries({ queryKey: ['generatedArticles'] });
