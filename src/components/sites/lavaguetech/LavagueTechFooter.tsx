@@ -18,7 +18,7 @@ export default function LavagueTechFooter({ onOpenNewsletter, footerBanners }: F
         <AdBanner position="GLOBAL_FOOTER" initialBanners={footerBanners} />
       </div>
 
-      <footer className="bg-blue-950 border-t border-blue-900 pt-16 pb-8">
+      <footer className="bg-teal-950 border-t border-teal-900 pt-16 pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
 
           {/* Top grid */}
@@ -27,11 +27,11 @@ export default function LavagueTechFooter({ onOpenNewsletter, footerBanners }: F
             {/* Brand + tagline */}
             <div className="lg:col-span-3">
               <div className="mb-5">
-                <span className="text-white font-black text-2xl tracking-tight">
-                  <span className="text-red-400">L</span>avague<span className="text-blue-300">T</span>ech
+                <span className="font-playfair text-white font-black text-2xl tracking-tight">
+                  <span className="text-red-400">L</span>avague<span className="text-teal-300">T</span>ech
                 </span>
               </div>
-              <p className="text-blue-200/60 text-sm leading-relaxed max-w-xs">
+              <p className="text-teal-200/75 text-sm leading-relaxed max-w-xs">
                 The next wave of technology news — sharp insights, bold perspectives, and stories that matter.
               </p>
             </div>
@@ -39,7 +39,7 @@ export default function LavagueTechFooter({ onOpenNewsletter, footerBanners }: F
             {/* Explore */}
             <div className="lg:col-span-2">
               <h4 className="text-[10px] font-bold uppercase tracking-[0.25em] text-white mb-6">Explore</h4>
-              <ul className="space-y-3 text-sm text-blue-200/60">
+              <ul className="space-y-3 text-sm text-teal-200/75">
                 <li><Link href="/" className="hover:text-white transition-colors">Home</Link></li>
                 <li><Link href="/search" className="hover:text-white transition-colors">Search</Link></li>
                 <li><Link href="/#latest" className="hover:text-white transition-colors">Latest News</Link></li>
@@ -50,7 +50,7 @@ export default function LavagueTechFooter({ onOpenNewsletter, footerBanners }: F
             {/* Categories */}
             <div className="lg:col-span-2">
               <h4 className="text-[10px] font-bold uppercase tracking-[0.25em] text-white mb-6">Topics</h4>
-              <ul className="space-y-3 text-sm text-blue-200/60">
+              <ul className="space-y-3 text-sm text-teal-200/75">
                 {categories.map((cat) => (
                   <li key={cat}>
                     <Link href={`/search?category=${encodeURIComponent(cat)}`} className="hover:text-white transition-colors">
@@ -61,21 +61,10 @@ export default function LavagueTechFooter({ onOpenNewsletter, footerBanners }: F
               </ul>
             </div>
 
-            {/* Company */}
-            <div className="lg:col-span-2">
-              <h4 className="text-[10px] font-bold uppercase tracking-[0.25em] text-white mb-6">Company</h4>
-              <ul className="space-y-3 text-sm text-blue-200/60">
-                <li><Link href="#" className="hover:text-white transition-colors">About</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Contact</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Advertise</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Careers</Link></li>
-              </ul>
-            </div>
-
             {/* Newsletter */}
             <div className="lg:col-span-3">
               <h4 className="text-[10px] font-bold uppercase tracking-[0.25em] text-white mb-6">Newsletter</h4>
-              <p className="text-blue-200/60 text-xs leading-relaxed mb-5 max-w-[200px]">
+              <p className="text-teal-200/75 text-xs leading-relaxed mb-5 max-w-[200px]">
                 Get the latest tech stories delivered to your inbox.
               </p>
               <button
@@ -89,11 +78,11 @@ export default function LavagueTechFooter({ onOpenNewsletter, footerBanners }: F
           </div>
 
           {/* Divider */}
-          <div className="border-t border-blue-900 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-[11px] text-blue-300/50 font-medium">
+          <div className="border-t border-teal-900 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-[11px] text-teal-300/50 font-medium">
               © {new Date().getFullYear()} LavagueTech. All rights reserved.
             </p>
-            <div className="flex items-center gap-6 text-[11px] text-blue-300/50">
+            <div className="flex items-center gap-6 text-[11px] text-teal-300/50">
               <Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link>
               <Link href="#" className="hover:text-white transition-colors">Terms of Service</Link>
               <Link href="/admin/dashboard" className="hover:text-white transition-colors">Admin</Link>

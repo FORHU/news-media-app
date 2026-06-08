@@ -73,11 +73,42 @@ export default function LavagueTechArticle({
     }
   }, [articleId]);
 
-  const { data: article, isError } = useQuery({
+  const { data: article, isLoading, isError } = useQuery({
     queryKey: ["article", articleId],
     queryFn: () => articlesApi.getArticle(articleId),
     enabled: Boolean(articleId),
   });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white pb-24">
+        <div className="bg-teal-700 pt-10 pb-14 mb-10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-4xl mx-auto text-center space-y-4">
+              <div className="h-6 w-32 bg-white/10 rounded-sm animate-pulse mx-auto" />
+              <div className="h-10 sm:h-12 w-full bg-white/10 rounded animate-pulse" />
+              <div className="h-3 w-48 bg-white/10 rounded animate-pulse mx-auto" />
+            </div>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            <div className="lg:col-span-8 space-y-5">
+              <div className="aspect-[16/9] w-full bg-gray-100 animate-pulse" />
+              {[100, 95, 90, 88, 92, 80].map((w, i) => (
+                <div key={i} className="h-4 bg-gray-100 animate-pulse rounded" style={{ width: `${w}%` }} />
+              ))}
+            </div>
+            <div className="lg:col-span-4 space-y-3">
+              {[100, 90, 95, 85, 92].map((w, i) => (
+                <div key={i} className="h-14 bg-gray-100 animate-pulse rounded" style={{ width: `${w}%` }} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isError || !article) {
     return (
@@ -86,7 +117,7 @@ export default function LavagueTechArticle({
           <p className="text-gray-900 font-bold mb-5">We couldn't load this article.</p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm text-blue-700 hover:text-blue-600 transition-colors bg-blue-50 px-4 py-2"
+            className="inline-flex items-center gap-2 text-sm text-teal-700 hover:text-teal-600 transition-colors bg-teal-50 px-4 py-2"
           >
             <ArrowLeft className="w-4 h-4" /> Back to home
           </Link>
@@ -159,7 +190,7 @@ export default function LavagueTechArticle({
   const midKey = config.midArticle?.key ?? config.banners["300x250"];
 
   return (
-    <main className="min-h-screen bg-white text-gray-900 pb-24 selection:bg-blue-100 relative">
+    <main className="min-h-screen bg-white text-gray-900 pb-24 selection:bg-teal-100 relative">
 
       {/* Gutter skyscrapers — bounded to article content, won't overlap footer */}
       <div className="pointer-events-none absolute inset-0">
@@ -180,14 +211,14 @@ export default function LavagueTechArticle({
       {/* Reading Progress Bar */}
       <div className="fixed top-0 left-0 w-full h-[2px] bg-gray-100 z-[100]">
         <div
-          className="h-full bg-blue-600 transition-all duration-150 ease-out"
+          className="h-full bg-teal-600 transition-all duration-150 ease-out"
           style={{ width: `${scrollProgress}%` }}
         />
       </div>
 
       {/* ── Article Header ────────────────────────────── */}
-      <div className="bg-blue-700 border-b border-blue-800 pt-10 pb-14 mb-10 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/40 via-transparent to-transparent pointer-events-none" />
+      <div className="bg-teal-700 border-b border-teal-800 pt-10 pb-14 mb-10 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-teal-900/40 via-transparent to-transparent pointer-events-none" />
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
@@ -207,12 +238,12 @@ export default function LavagueTechArticle({
           </div>
 
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-white mb-7 leading-tight tracking-tight">
+            <h1 className="font-playfair text-3xl md:text-4xl lg:text-5xl font-black text-white mb-7 leading-tight tracking-tight">
               {article.title}
             </h1>
             <div className="flex items-center justify-center gap-5">
               <span className="h-px w-10 bg-gradient-to-r from-transparent to-white/20" />
-              <p suppressHydrationWarning className="text-blue-100/80 font-bold tracking-[0.25em] uppercase text-[10px]">
+              <p suppressHydrationWarning className="text-teal-100/80 font-bold tracking-[0.25em] uppercase text-[10px]">
                 {formattedDate}
               </p>
               <span className="h-px w-10 bg-gradient-to-l from-transparent to-white/20" />
@@ -301,8 +332,8 @@ export default function LavagueTechArticle({
               <ArticleShare site="lavaguetech" title={article.title} className="mt-10" />
 
               {referenceLine && (
-                <div className="mt-14 pt-8 border-t border-gray-200 bg-blue-50 p-7 border border-blue-100">
-                  <p className="text-[10px] text-blue-700 font-black uppercase tracking-[0.3em] mb-3">
+                <div className="mt-14 pt-8 border-t border-gray-200 bg-teal-50 p-7 border border-teal-100">
+                  <p className="text-[10px] text-teal-700 font-black uppercase tracking-[0.3em] mb-3">
                     Verification Source
                   </p>
                   <p className="text-gray-500 italic text-base leading-relaxed break-all">
@@ -319,7 +350,7 @@ export default function LavagueTechArticle({
             {/* Tendances — custom numbered list matching search page style */}
             {trendingArticles.length > 0 && (
               <div className="border border-gray-200 overflow-hidden">
-                <div className="bg-blue-700 px-4 py-3 flex items-center gap-2">
+                <div className="bg-teal-700 px-4 py-3 flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />
                   <h3 className="text-[10px] font-black uppercase tracking-widest text-white">Tendances</h3>
                 </div>
@@ -328,9 +359,9 @@ export default function LavagueTechArticle({
                     <Link
                       key={art.id}
                       href={`/article/${art.slug || art.id}`}
-                      className="group flex items-start gap-3 px-4 py-3.5 hover:bg-blue-50/50 transition-colors"
+                      className="group flex items-start gap-3 px-4 py-3.5 hover:bg-teal-50/50 transition-colors"
                     >
-                      <span className="font-mono text-[18px] font-black leading-none mt-0.5 w-6 flex-shrink-0 text-right text-blue-100 group-hover:text-blue-300 transition-colors tabular-nums">
+                      <span className="font-mono text-[18px] font-black leading-none mt-0.5 w-6 flex-shrink-0 text-right text-teal-100 group-hover:text-teal-300 transition-colors tabular-nums">
                         {i + 1}
                       </span>
                       <div className="flex-1 min-w-0">
@@ -339,10 +370,10 @@ export default function LavagueTechArticle({
                             {art.category.categoryName}
                           </span>
                         )}
-                        <h4 className="text-[12px] font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-blue-700 transition-colors">
+                        <h4 className="text-[12px] font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-teal-700 transition-colors">
                           {art.title}
                         </h4>
-                        <span className="text-[9px] text-gray-400 mt-1 block font-mono">
+                        <span className="text-[9px] text-gray-500 mt-1 block font-mono">
                           {new Date(art.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
                         </span>
                       </div>
@@ -364,7 +395,7 @@ export default function LavagueTechArticle({
 
         {/* ── Plus d'articles ──────────────────────────── */}
         {recommendedArticles.length > 0 && (
-          <section className="mt-20 border-t-2 border-blue-700 pt-8">
+          <section className="mt-20 border-t-2 border-teal-700 pt-8">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-1 h-5 bg-red-600 flex-shrink-0" />
               <h2 className="text-[11px] font-black text-gray-900 uppercase tracking-[0.3em]">
