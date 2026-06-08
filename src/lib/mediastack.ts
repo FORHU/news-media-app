@@ -91,7 +91,7 @@ export async function fetchMediaStackNews(params: {
 
   try {
     const res = await fetch(url, {
-      cache: "no-store", // always fresh in dev; switch to next:{revalidate:3600} for prod
+      next: { revalidate: 2592000 }, // cache for 30 days — one API request per month per site
     });
 
     if (!res.ok) {
