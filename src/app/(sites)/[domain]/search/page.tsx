@@ -652,24 +652,24 @@ async function SearchContent({
         {/* Breadcrumb + page header */}
         <div className="mb-6 pt-2">
           <div className="flex items-center gap-1.5 text-[9px] font-bold tracking-widest text-slate-400 mb-4 uppercase font-mono">
-            <Link href="/" className="hover:text-blue-600 transition-colors">LAVAGUETECH</Link>
+            <Link href="/" className="hover:text-teal-600 transition-colors">LAVAGUETECH</Link>
             <span className="text-slate-300">/</span>
-            <span className="text-blue-600">
+            <span className="text-teal-600">
               {activeCategory ?? (searchQuery ? "Search Results" : "All Stories")}
             </span>
           </div>
-          <div className="border-l-4 border-blue-600 pl-4 flex items-start justify-between gap-4">
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight tracking-tight">
+          <div className="border-l-4 border-teal-600 pl-4 flex items-start justify-between gap-4">
+            <h1 className="font-playfair text-3xl sm:text-4xl font-bold text-gray-900 leading-tight tracking-tight">
               {activeCategory ?? (searchQuery ? `"${searchQuery}"` : "All Stories")}
             </h1>
-            <span className="flex-shrink-0 mt-1.5 text-[10px] font-bold font-mono text-blue-600 border border-blue-200 bg-blue-50 px-2.5 py-1 rounded-full whitespace-nowrap">
+            <span className="flex-shrink-0 mt-1.5 text-[10px] font-bold font-mono text-teal-600 border border-teal-200 bg-teal-50 px-2.5 py-1 rounded-full whitespace-nowrap">
               {articles.length} articles
             </span>
           </div>
           {(searchQuery || activeCategory) && (
             <Link
               href="/search"
-              className="inline-flex items-center gap-1 mt-3 ml-5 text-[10px] font-bold text-blue-600 hover:text-blue-800 transition-colors"
+              className="inline-flex items-center gap-1 mt-3 ml-5 text-[10px] font-bold text-teal-600 hover:text-teal-800 transition-colors"
             >
               ← All Stories
             </Link>
@@ -683,8 +683,8 @@ async function SearchContent({
               href="/search"
               className={`flex-shrink-0 px-4 pb-3 pt-1 text-[11px] font-bold uppercase tracking-wider transition-all whitespace-nowrap border-b-2 -mb-px ${
                 !activeCategory && !searchQuery
-                  ? "text-blue-700 border-blue-700"
-                  : "text-gray-500 border-transparent hover:text-blue-700 hover:border-blue-300"
+                  ? "text-teal-700 border-teal-700"
+                  : "text-gray-500 border-transparent hover:text-teal-700 hover:border-teal-300"
               }`}
             >
               All
@@ -695,8 +695,8 @@ async function SearchContent({
                 href={activeCategory === cat ? "/search" : `/search?category=${encodeURIComponent(cat)}`}
                 className={`flex-shrink-0 px-4 pb-3 pt-1 text-[11px] font-bold uppercase tracking-wider transition-all whitespace-nowrap border-b-2 -mb-px ${
                   activeCategory === cat
-                    ? "text-blue-700 border-blue-700"
-                    : "text-gray-500 border-transparent hover:text-blue-700 hover:border-blue-300"
+                    ? "text-teal-700 border-teal-700"
+                    : "text-gray-500 border-transparent hover:text-teal-700 hover:border-teal-300"
                 }`}
               >
                 {cat}
@@ -746,22 +746,22 @@ async function SearchContent({
             {/* Topics — clean list widget */}
             {lavaguetechCategories.length > 0 && (
               <div className="border border-gray-200 overflow-hidden">
-                <div className="bg-blue-700 px-4 py-3 flex items-center justify-between">
+                <div className="bg-teal-700 px-4 py-3 flex items-center justify-between">
                   <h3 className="text-[10px] font-black uppercase tracking-widest text-white">Topics</h3>
-                  <span className="text-blue-300/70 text-[9px] font-mono">{lavaguetechCategories.length}</span>
+                  <span className="text-teal-300/70 text-[9px] font-mono">{lavaguetechCategories.length}</span>
                 </div>
                 <div className="bg-white divide-y divide-gray-100">
                   <Link
                     href="/search"
                     className={`flex items-center justify-between px-4 py-2.5 text-[11px] font-bold transition-colors group ${
                       !activeCategory && !searchQuery
-                        ? "text-blue-700 bg-blue-50"
-                        : "text-gray-700 hover:text-blue-700 hover:bg-blue-50/60"
+                        ? "text-teal-700 bg-teal-50"
+                        : "text-gray-700 hover:text-teal-700 hover:bg-teal-50/60"
                     }`}
                   >
                     <span>All Stories</span>
                     {(!activeCategory && !searchQuery) && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-700 flex-shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-teal-700 flex-shrink-0" />
                     )}
                   </Link>
                   {lavaguetechCategories.map((cat) => (
@@ -770,13 +770,13 @@ async function SearchContent({
                       href={activeCategory === cat ? "/search" : `/search?category=${encodeURIComponent(cat)}`}
                       className={`flex items-center justify-between px-4 py-2.5 text-[11px] font-bold transition-colors group ${
                         activeCategory === cat
-                          ? "text-blue-700 bg-blue-50"
-                          : "text-gray-700 hover:text-blue-700 hover:bg-blue-50/60"
+                          ? "text-teal-700 bg-teal-50"
+                          : "text-gray-700 hover:text-teal-700 hover:bg-teal-50/60"
                       }`}
                     >
                       <span>{cat}</span>
                       {activeCategory === cat && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-700 flex-shrink-0" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-teal-700 flex-shrink-0" />
                       )}
                     </Link>
                   ))}
@@ -787,7 +787,7 @@ async function SearchContent({
             {/* Trending Stories — custom editorial numbered list */}
             {trendingArticles.length > 0 && (
               <div className="border border-gray-200 overflow-hidden">
-                <div className="bg-blue-700 px-4 py-3 flex items-center gap-2">
+                <div className="bg-teal-700 px-4 py-3 flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />
                   <h3 className="text-[10px] font-black uppercase tracking-widest text-white">Trending Stories</h3>
                 </div>
@@ -796,9 +796,9 @@ async function SearchContent({
                     <Link
                       key={article.id}
                       href={`/article/${article.slug || article.id}`}
-                      className="group flex items-start gap-3 px-4 py-3.5 hover:bg-blue-50/50 transition-colors"
+                      className="group flex items-start gap-3 px-4 py-3.5 hover:bg-teal-50/50 transition-colors"
                     >
-                      <span className="font-mono text-[18px] font-black leading-none mt-0.5 w-6 flex-shrink-0 text-right text-blue-100 group-hover:text-blue-300 transition-colors tabular-nums">
+                      <span className="font-mono text-[18px] font-black leading-none mt-0.5 w-6 flex-shrink-0 text-right text-teal-100 group-hover:text-teal-300 transition-colors tabular-nums">
                         {i + 1}
                       </span>
                       <div className="flex-1 min-w-0">
@@ -807,7 +807,7 @@ async function SearchContent({
                             {article.category.categoryName}
                           </span>
                         )}
-                        <h4 className="text-[12px] font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-blue-700 transition-colors">
+                        <h4 className="text-[12px] font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-teal-700 transition-colors">
                           {article.title}
                         </h4>
                         <span className="text-[9px] text-gray-400 mt-1 block font-mono">
@@ -832,7 +832,7 @@ async function SearchContent({
           <div className="lg:hidden space-y-8">
             {trendingArticles.length > 0 && (
               <div className="border border-gray-200 overflow-hidden">
-                <div className="bg-blue-700 px-4 py-3 flex items-center gap-2">
+                <div className="bg-teal-700 px-4 py-3 flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />
                   <h3 className="text-[10px] font-black uppercase tracking-widest text-white">Trending Stories</h3>
                 </div>
@@ -841,9 +841,9 @@ async function SearchContent({
                     <Link
                       key={article.id}
                       href={`/article/${article.slug || article.id}`}
-                      className="group flex items-start gap-3 px-4 py-3.5 hover:bg-blue-50/50 transition-colors"
+                      className="group flex items-start gap-3 px-4 py-3.5 hover:bg-teal-50/50 transition-colors"
                     >
-                      <span className="font-mono text-[18px] font-black leading-none mt-0.5 w-6 flex-shrink-0 text-right text-blue-100 group-hover:text-blue-300 transition-colors tabular-nums">
+                      <span className="font-mono text-[18px] font-black leading-none mt-0.5 w-6 flex-shrink-0 text-right text-teal-100 group-hover:text-teal-300 transition-colors tabular-nums">
                         {i + 1}
                       </span>
                       <div className="flex-1 min-w-0">
@@ -852,7 +852,7 @@ async function SearchContent({
                             {article.category.categoryName}
                           </span>
                         )}
-                        <h4 className="text-[12px] font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-blue-700 transition-colors">
+                        <h4 className="text-[12px] font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-teal-700 transition-colors">
                           {article.title}
                         </h4>
                         <span className="text-[9px] text-gray-400 mt-1 block font-mono">

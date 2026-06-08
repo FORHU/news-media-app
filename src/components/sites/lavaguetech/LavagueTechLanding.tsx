@@ -80,11 +80,11 @@ function fromRss(a: RssArticle): DisplayItem {
 }
 
 const GRADIENTS = [
-  "from-blue-700 to-blue-900",
+  "from-teal-700 to-teal-900",
   "from-red-600 to-red-800",
-  "from-blue-500 to-indigo-700",
+  "from-teal-500 to-indigo-700",
   "from-slate-600 to-slate-800",
-  "from-blue-800 to-blue-950",
+  "from-teal-800 to-teal-950",
   "from-rose-600 to-red-700",
 ];
 
@@ -187,6 +187,17 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
   const msFiller = poolTail.slice(0, Math.max(0, 4 - adminRecommended.length));
   const recommendedItems: DisplayItem[] = [...adminRecommended, ...msFiller];
 
+  if (!hero && pool.length === 0) {
+    return (
+      <div className="min-h-[60vh] bg-white flex items-center justify-center px-4">
+        <div className="text-center">
+          <p className="text-xl font-bold text-gray-900 mb-2">Aucun article pour le moment.</p>
+          <p className="text-sm text-gray-500 mt-1">Revenez bientôt pour les dernières actualités tech.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white min-h-screen">
 
@@ -248,7 +259,7 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
                   {/* Content */}
                   <div className="absolute inset-0 flex flex-col justify-between p-6 sm:p-8">
                     <div>
-                      <span className="inline-block bg-blue-700 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5">
+                      <span className="inline-block bg-teal-700 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5">
                         Article vedette
                       </span>
                     </div>
@@ -257,12 +268,12 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
                         <span className="text-[10px] font-black uppercase tracking-widest text-red-400">
                           {hero.source ?? hero.category}
                         </span>
-                        <span className="text-white/30">·</span>
+                        <span className="text-white/45">·</span>
                         <span className="text-[10px] text-white/60">
                           {hero.date.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
                         </span>
                       </div>
-                      <h2 className="text-[22px] sm:text-[28px] font-bold text-white leading-tight line-clamp-3 mb-2">
+                      <h2 className="font-playfair text-[22px] sm:text-[28px] font-bold text-white leading-tight line-clamp-3 mb-2">
                         {hero.title}
                       </h2>
                       {hero.excerpt && (
@@ -305,13 +316,13 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[9px] text-gray-400">
+                      <span className="text-[9px] text-gray-500">
                         {item.date.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
                       </span>
                       <span className="text-gray-200">·</span>
                       <span className="text-[9px] font-bold text-red-600">{readTime(item.excerpt)} min de lecture</span>
                     </div>
-                    <h4 className="text-[13px] font-bold text-gray-800 leading-snug group-hover:text-blue-700 transition-colors line-clamp-2">
+                    <h4 className="text-[13px] font-bold text-gray-800 leading-snug group-hover:text-teal-700 transition-colors line-clamp-2">
                       {item.title}
                     </h4>
                   </div>
@@ -327,7 +338,7 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
       {recommendedItems.length > 0 && (
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pb-10 pt-2">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-1 h-5 bg-blue-700 flex-shrink-0" />
+            <div className="w-1 h-5 bg-teal-700 flex-shrink-0" />
             <h2 className="text-[11px] font-black text-gray-900 uppercase tracking-[0.3em]">Recommandé par nos éditeurs</h2>
             <div className="flex-1 h-px bg-gray-200" />
           </div>
@@ -348,10 +359,10 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
                       <ImageFallback seed={item.category} label={item.category} />
                     )}
                   </div>
-                  <span className="text-[9px] font-black uppercase tracking-widest text-blue-700 block mb-1">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-teal-700 block mb-1">
                     {item.source ?? item.category}
                   </span>
-                  <h3 className="text-[13px] font-bold text-gray-900 leading-snug group-hover:text-blue-700 transition-colors line-clamp-2">
+                  <h3 className="text-[13px] font-bold text-gray-900 leading-snug group-hover:text-teal-700 transition-colors line-clamp-2">
                     {item.title}
                   </h3>
                 </>
@@ -384,8 +395,8 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
       {weeklyCards.length > 0 && (
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-gray-100">
           <div className="text-center mb-10">
-            <h2 className="text-[28px] font-bold text-gray-900">Tendances de la semaine</h2>
-            <p className="text-gray-400 text-[13px] mt-2">
+            <h2 className="font-playfair text-[28px] font-bold text-gray-900">Tendances de la semaine</h2>
+            <p className="text-gray-500 text-[13px] mt-2">
               Restez informés des dernières tendances technologiques
             </p>
           </div>
@@ -407,13 +418,13 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
                   )}
                 </div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-[9px] text-gray-400">
+                  <span className="text-[9px] text-gray-500">
                     {item.date.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
                   </span>
-                  <span className="text-gray-300">·</span>
+                  <span className="text-gray-400">·</span>
                   <span className="text-[9px] font-bold text-red-600">{readTime(item.excerpt)} min de lecture</span>
                 </div>
-                <h3 className="text-[15px] font-bold text-gray-900 leading-snug group-hover:text-blue-700 transition-colors line-clamp-2 mb-2">
+                <h3 className="text-[15px] font-bold text-gray-900 leading-snug group-hover:text-teal-700 transition-colors line-clamp-2 mb-2">
                   {item.title}
                 </h3>
                 {item.excerpt && (
@@ -445,7 +456,7 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
                   )}
                 </div>
                 <span className="text-[9px] font-black uppercase tracking-widest text-red-600 block mb-1">{item.source ?? item.category}</span>
-                <h3 className="text-[12px] font-bold text-gray-800 leading-snug group-hover:text-blue-700 transition-colors line-clamp-2">
+                <h3 className="text-[12px] font-bold text-gray-800 leading-snug group-hover:text-teal-700 transition-colors line-clamp-2">
                   {item.title}
                 </h3>
               </a>
@@ -466,8 +477,8 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
         <div className="bg-gray-50 py-12">
           <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-8">
-              <h2 className="text-[24px] font-bold text-gray-900">Tendances du moment</h2>
-              <p className="text-gray-400 text-[13px] mt-1">Les actualités tech à ne pas manquer</p>
+              <h2 className="font-playfair text-[24px] font-bold text-gray-900">Tendances du moment</h2>
+              <p className="text-gray-500 text-[13px] mt-1">Les actualités tech à ne pas manquer</p>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
               {mainGrid.map((item) => (
@@ -482,11 +493,11 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
                       <ImageFallback seed={item.source ?? item.category} label={item.source ?? item.category} />
                     )}
                   </div>
-                  <span className="text-[9px] font-black uppercase tracking-widest text-blue-700 block mb-1">{item.source ?? item.category}</span>
-                  <h3 className="text-[12px] font-bold text-gray-900 leading-snug group-hover:text-blue-700 transition-colors line-clamp-2">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-teal-700 block mb-1">{item.source ?? item.category}</span>
+                  <h3 className="text-[12px] font-bold text-gray-900 leading-snug group-hover:text-teal-700 transition-colors line-clamp-2">
                     {item.title}
                   </h3>
-                  <span className="text-[10px] text-gray-400 mt-1.5 block">
+                  <span className="text-[10px] text-gray-500 mt-1.5 block">
                     {item.date.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
                   </span>
                 </a>
@@ -500,7 +511,7 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
       {mustRead.length > 0 && (
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center gap-3 mb-7">
-            <div className="w-1 h-5 bg-blue-700 flex-shrink-0" />
+            <div className="w-1 h-5 bg-teal-700 flex-shrink-0" />
             <h2 className="text-[11px] font-black text-gray-900 uppercase tracking-[0.3em] whitespace-nowrap">À ne pas manquer</h2>
             <div className="flex-1 h-px bg-gray-200" />
           </div>
@@ -518,16 +529,16 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-[9px] font-bold uppercase tracking-widest text-red-600">{item.source ?? item.category}</span>
-                    <span className="text-gray-300 text-[9px]">·</span>
-                    <span className="text-[9px] text-gray-400">
+                    <span className="text-gray-400 text-[9px]">·</span>
+                    <span className="text-[9px] text-gray-500">
                       {item.date.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
                     </span>
                   </div>
-                  <h3 className="text-[13px] font-bold text-gray-900 leading-snug group-hover:text-blue-700 transition-colors line-clamp-2">
+                  <h3 className="text-[13px] font-bold text-gray-900 leading-snug group-hover:text-teal-700 transition-colors line-clamp-2">
                     {item.title}
                   </h3>
                   {item.excerpt && (
-                    <p className="text-[11px] text-gray-400 line-clamp-1 mt-0.5">{item.excerpt}</p>
+                    <p className="text-[11px] text-gray-500 line-clamp-1 mt-0.5">{item.excerpt}</p>
                   )}
                 </div>
               </a>
@@ -538,7 +549,7 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
 
       {/* ── MONDE & TECH (dark band, mixed) ──────────────────────────── */}
       {darkBand.length > 0 && (
-        <div className="bg-blue-950 py-12">
+        <div className="bg-teal-950 py-12">
           <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-1 h-5 bg-red-500 flex-shrink-0" />
@@ -548,7 +559,7 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {darkBand.map((item) => (
                 <a key={item.id} href={item.href} target={item.external ? "_blank" : undefined} rel={item.external ? "noopener noreferrer" : undefined} className="group">
-                  <div className="relative aspect-[16/9] bg-blue-900 overflow-hidden mb-4">
+                  <div className="relative aspect-[16/9] bg-teal-900 overflow-hidden mb-4">
                     {cleanImage(item.imageUrl) ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={cleanImage(item.imageUrl)!} alt={item.title} className="w-full h-full object-cover opacity-75 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" />
@@ -559,11 +570,11 @@ export default function LavagueTechLanding({ articles, banners, rssArticles = []
                       {item.source ?? item.category}
                     </div>
                   </div>
-                  <h3 className="text-[14px] font-bold text-white leading-snug group-hover:text-blue-300 transition-colors line-clamp-3 mb-1">
+                  <h3 className="text-[14px] font-bold text-white leading-snug group-hover:text-teal-300 transition-colors line-clamp-3 mb-1">
                     {item.title}
                   </h3>
                   {item.excerpt && (
-                    <p className="text-[11px] text-blue-200/60 line-clamp-2">{item.excerpt}</p>
+                    <p className="text-[11px] text-teal-200/75 line-clamp-2">{item.excerpt}</p>
                   )}
                 </a>
               ))}

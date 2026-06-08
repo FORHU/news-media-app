@@ -110,7 +110,9 @@ export default function LavagueTechHeader({ onOpenNewsletter }: HeaderProps) {
               type="button"
               onClick={() => setIsSidebarOpen(true)}
               aria-label="Open menu"
-              className="p-2 text-gray-600 hover:text-blue-700 transition-colors"
+              aria-expanded={isSidebarOpen}
+              aria-haspopup="dialog"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 hover:text-teal-700 transition-colors"
             >
               <Menu size={22} />
             </button>
@@ -137,12 +139,12 @@ export default function LavagueTechHeader({ onOpenNewsletter }: HeaderProps) {
                 onChange={(e) => setQuery(e.target.value)}
                 onBlur={hideSuggestions}
                 placeholder="SEARCH..."
-                className="w-full bg-white border border-gray-300 focus:border-blue-600 rounded-full px-9 py-2 text-[10px] font-bold uppercase tracking-widest text-gray-800 placeholder:text-gray-400 outline-none transition-colors"
+                className="w-full bg-white border border-gray-300 focus:border-teal-600 rounded-full px-9 py-2 text-[10px] font-bold uppercase tracking-widest text-gray-800 placeholder:text-gray-500 outline-none transition-colors"
               />
-              <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
               {isMobileSearchOpen && (
                 <button type="button" onClick={() => setIsMobileSearchOpen(false)} className="absolute right-3 top-1/2 -translate-y-1/2 md:hidden">
-                  <X size={14} className="text-gray-400" />
+                  <X size={14} className="text-gray-500" />
                 </button>
               )}
               {showSuggestions && (
@@ -154,7 +156,7 @@ export default function LavagueTechHeader({ onOpenNewsletter }: HeaderProps) {
           {/* Right: actions */}
           <div className="flex items-center gap-3">
             {!isMobileSearchOpen && (
-              <button onClick={() => setIsMobileSearchOpen(true)} className="md:hidden text-gray-600 p-2" aria-label="Search">
+              <button onClick={() => setIsMobileSearchOpen(true)} className="md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600" aria-label="Search">
                 <Search size={20} />
               </button>
             )}
@@ -165,7 +167,7 @@ export default function LavagueTechHeader({ onOpenNewsletter }: HeaderProps) {
               >
                 Subscribe
               </button>
-              <Link href="/admin/dashboard" className="text-gray-400 hover:text-blue-700 transition-colors" title="Admin">
+              <Link href="/admin/dashboard" className="text-gray-500 hover:text-teal-700 transition-colors" title="Admin">
                 <User size={17} />
               </Link>
             </div>
@@ -188,14 +190,15 @@ export default function LavagueTechHeader({ onOpenNewsletter }: HeaderProps) {
               ref={navRef}
               className="flex items-center gap-7 text-[10px] font-bold uppercase tracking-widest text-gray-500 overflow-x-auto no-scrollbar scroll-smooth whitespace-nowrap flex-1 py-1"
             >
-              <Link href="/" className={`transition-colors whitespace-nowrap border-b-2 pb-0.5 ${isHome ? "text-blue-700 border-blue-700" : "border-transparent hover:text-blue-600 hover:border-blue-300"}`}>
+              <Link href="/" aria-current={isHome ? "page" : undefined} className={`transition-colors whitespace-nowrap border-b-2 pb-0.5 ${isHome ? "text-teal-700 border-teal-700" : "border-transparent hover:text-teal-600 hover:border-teal-300"}`}>
                 Latest News
               </Link>
               {coreCategories.map((cat) => (
                 <Link
                   key={cat}
                   href={categoryHref(cat)}
-                  className={`transition-colors whitespace-nowrap border-b-2 pb-0.5 ${isCatActive(cat) ? "text-blue-700 border-blue-700" : "border-transparent hover:text-blue-600 hover:border-blue-300"}`}
+                  aria-current={isCatActive(cat) ? "page" : undefined}
+                  className={`transition-colors whitespace-nowrap border-b-2 pb-0.5 ${isCatActive(cat) ? "text-teal-700 border-teal-700" : "border-transparent hover:text-teal-600 hover:border-teal-300"}`}
                 >
                   {cat}
                 </Link>

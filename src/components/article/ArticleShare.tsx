@@ -255,11 +255,11 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
         };
       case "lavaguetech":
         return {
-          trigger: "bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white px-8 py-2.5 text-[10px] font-black uppercase tracking-widest transition-colors rounded-none border border-blue-800",
-          modal: "sm:max-w-lg bg-white border-2 border-blue-700 rounded-none shadow-2xl",
-          header: "text-blue-900 font-black text-xl uppercase tracking-tight",
-          item: "rounded-none border-gray-200 hover:border-blue-700 hover:bg-blue-50/50 transition-all",
-          copyBtn: "bg-blue-700 text-white hover:bg-blue-800 rounded-none border-none",
+          trigger: "bg-red-600 hover:bg-red-500 active:bg-red-700 text-white px-8 py-2.5 text-[10px] font-black uppercase tracking-widest transition-colors rounded-none border border-red-700",
+          modal: "sm:max-w-lg bg-white border-2 border-teal-700 rounded-none shadow-2xl",
+          header: "text-teal-900 font-black text-xl uppercase tracking-tight",
+          item: "rounded-none border-gray-200 hover:border-teal-700 hover:bg-teal-50/50 transition-all",
+          copyBtn: "bg-teal-700 text-white hover:bg-teal-800 rounded-none border-none",
         };
       case "newsicons":
       default:
@@ -293,7 +293,7 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
                     : site === "skyblueprime"
                       ? "text-sky-500"
                       : site === "lavaguetech"
-                        ? "text-blue-700/60"
+                        ? "text-teal-700/60"
                         : "text-gray-400"
           )}
         >
@@ -312,7 +312,7 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
         site === "jejuqq" ? "text-[#b91c1c] font-garamond text-sm" :
         site === "jejujapan" ? "text-black/40 font-noto" :
         site === "skyblueprime" ? "text-sky-500" :
-        site === "lavaguetech" ? "text-blue-700/60" : "text-gray-400"
+        site === "lavaguetech" ? "text-teal-700/60" : "text-gray-400"
       )}>
         {site === "jejuqq" ? "Share the Story" : site === "jejujapan" ? "SHARE" : site === "lavaguetech" ? "Partager l'article" : "Share this article"}
       </p>

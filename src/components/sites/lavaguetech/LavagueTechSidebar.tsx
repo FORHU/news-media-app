@@ -35,10 +35,10 @@ export default function LavagueTechSidebar({ isOpen, onClose, onOpenNewsletter, 
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200">
-          <span className="text-gray-900 font-black text-lg tracking-tight">
-            <span className="text-red-600">L</span>avague<span className="text-blue-700">T</span>ech
+          <span className="font-playfair text-gray-900 font-black text-lg tracking-tight">
+            <span className="text-red-600">L</span>avague<span className="text-teal-700">T</span>ech
           </span>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-blue-700 transition-colors" aria-label="Close menu">
+          <button onClick={onClose} className="min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-teal-700 transition-colors" aria-label="Close menu">
             <X size={20} />
           </button>
         </div>
@@ -53,13 +53,14 @@ export default function LavagueTechSidebar({ isOpen, onClose, onOpenNewsletter, 
                 key={name}
                 href={link}
                 onClick={onClose}
+                aria-current={isActive ? "page" : undefined}
                 className={`flex items-center justify-between px-4 py-3 text-[11px] font-bold uppercase tracking-widest transition-colors group border-l-2 ${isActive
-                    ? "text-blue-700 bg-blue-50 border-blue-700"
-                    : "text-gray-600 hover:text-blue-700 hover:bg-blue-50 border-transparent"
+                    ? "text-teal-700 bg-teal-50 border-teal-700"
+                    : "text-gray-600 hover:text-teal-700 hover:bg-teal-50 border-transparent"
                   }`}
               >
                 {name}
-                <ChevronRight size={14} className={`transition-colors ${isActive ? "text-blue-500" : "text-gray-300 group-hover:text-blue-600"}`} />
+                <ChevronRight size={14} className={`transition-colors ${isActive ? "text-teal-500" : "text-gray-400 group-hover:text-teal-600"}`} />
               </Link>
             );
           })}
@@ -76,7 +77,7 @@ export default function LavagueTechSidebar({ isOpen, onClose, onOpenNewsletter, 
           <Link
             href="/admin/dashboard"
             onClick={onClose}
-            className="block w-full text-center text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-blue-700 py-2 transition-colors"
+            className="block w-full text-center text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-teal-700 py-2 transition-colors"
           >
             Admin
           </Link>

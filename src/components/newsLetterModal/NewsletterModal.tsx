@@ -96,16 +96,16 @@ const getDomainTheme = (domain: string): ThemeClasses => {
   }
   if (domain.includes("lavaguetech")) {
     return {
-      bg: "bg-blue-700",
-      text: "text-blue-700",
-      border: "border-blue-700",
-      borderFocus: "focus:border-blue-700",
-      hoverBg: "hover:bg-blue-800",
-      hoverText: "hover:text-blue-700",
-      bgLight: "bg-blue-50",
-      bgLight10: "bg-blue-700/10",
+      bg: "bg-red-600",
+      text: "text-red-600",
+      border: "border-red-600",
+      borderFocus: "focus:border-red-600",
+      hoverBg: "hover:bg-red-500",
+      hoverText: "hover:text-red-600",
+      bgLight: "bg-red-50",
+      bgLight10: "bg-red-600/10",
       font: "font-sans",
-      gradient: "from-blue-700/5",
+      gradient: "from-red-600/5",
     };
   }
   // Default / NewsIcons
