@@ -122,6 +122,29 @@ export default function CreateArticleModal({
         });
     };
 
+    const readFileAsPdfText = async (file: File): Promise<string> => {
+        const pdfjsLib = await import("pdfjs-dist");
+        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+            "pdfjs-dist/build/pdf.worker.min.mjs",
+            import.meta.url
+        ).toString();
+
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+        const pageTexts: string[] = [];
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            const page = await pdf.getPage(pageNum);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items
+                .map((item) => ("str" in item ? item.str : ""))
+                .join(" ");
+            pageTexts.push(pageText);
+        }
+
+        return pageTexts.join("\n\n");
+    };
+
     const readFileAsBase64 = (file: File): Promise<string> => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -194,8 +217,11 @@ export default function CreateArticleModal({
 
         setIsProcessingFiles(true);
         try {
-            const texts = await Promise.all(textFiles.map(readFileAsText));
-            const allTexts = texts.join("\n\n---\n\n");
+            const [texts, pdfTexts] = await Promise.all([
+                Promise.all(textFiles.map(readFileAsText)),
+                Promise.all(pdfMaterialFiles.map(readFileAsPdfText)),
+            ]);
+            const allTexts = [...texts, ...pdfTexts].join("\n\n---\n\n");
 
             if (allTexts) {
                 combinedFileContent = combinedFileContent
@@ -204,7 +230,6 @@ export default function CreateArticleModal({
             }
 
             const materialImages = await Promise.all(imageMaterialFiles.map(readFileAsBase64));
-            const materialDocuments = await Promise.all(pdfMaterialFiles.map(readFileAsBase64));
 
             if (imageFile) {
                 uploadedImageUrl = await readFileAsBase64(imageFile);
@@ -218,7 +243,6 @@ export default function CreateArticleModal({
                 language,
                 prompt: buildLanguageDirective(language),
                 materialImages,
-                materialDocuments,
             });
 
             queryClient.invalidateQueries({ queryKey: ['generatedArticles'] });

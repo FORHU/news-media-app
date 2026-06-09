@@ -192,16 +192,16 @@ export default function LavagueTechArticle({
   return (
     <main className="min-h-screen bg-white text-gray-900 pb-24 selection:bg-teal-100 relative">
 
-      {/* Gutter skyscrapers — bounded to article content, won't overlap footer */}
+      {/* Gutter skyscrapers — start below the full-width teal header + leaderboard (~480px) */}
       <div className="pointer-events-none absolute inset-0">
         <div className="relative h-full max-w-7xl mx-auto">
-          <div className="hidden min-[1650px]:block absolute right-full mr-6 top-32 bottom-0 w-[160px] z-30 pointer-events-auto">
-            <div className="sticky top-40">
+          <div className="hidden min-[1800px]:block absolute right-full mr-8 top-[480px] bottom-0 w-[160px] z-20 pointer-events-auto">
+            <div className="sticky top-32">
               <AdsterraBanner bannerKey={config.banners["160x600"]} width={160} height={600} className="!my-0" />
             </div>
           </div>
-          <div className="hidden min-[1650px]:block absolute left-full ml-6 top-32 bottom-0 w-[160px] z-30 pointer-events-auto">
-            <div className="sticky top-40">
+          <div className="hidden min-[1800px]:block absolute left-full ml-8 top-[480px] bottom-0 w-[160px] z-20 pointer-events-auto">
+            <div className="sticky top-32">
               <AdsterraBanner bannerKey={config.banners["160x600"]} width={160} height={600} className="!my-0" />
             </div>
           </div>

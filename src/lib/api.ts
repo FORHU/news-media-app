@@ -205,7 +205,6 @@ export const articlesApi = {
     extractedText?: string;
     s3ImageUrl?: string;
     materialImages?: string[];
-    materialDocuments?: string[];
   }): Promise<unknown> {
     const res = await fetch("/api/admin/generatedArticles/createFromUpload", {
       method: "POST",
