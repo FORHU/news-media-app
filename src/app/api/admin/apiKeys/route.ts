@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { randomBytes, createHash } from "crypto";
-import { prisma } from "@/lib/db";
 import { verifyAdminJwt, ADMIN_JWT_COOKIE } from "@/lib/auth";
+import { apiKeysService, ApiKeysServiceError } from "@/services/admin/apiKeys.service";
 
 export const dynamic = "force-dynamic";
 
@@ -22,44 +21,12 @@ export async function POST(req: NextRequest) {
     }
     const expiresAt = body.expiresAt ? new Date(body.expiresAt) : null;
 
-    const tenant = await prisma.tenant.findFirst({
-      where: { domain: "voicejeju.com" },
-      select: { id: true },
-    });
-    if (!tenant) {
-      return NextResponse.json({ error: "Target tenant not found" }, { status: 500 });
-    }
-    const tenantId = tenant.id;
-
-    // Ensure a system bot user exists for this tenant so external articles have a valid usersId
-    await prisma.user.upsert({
-      where: { tenantId_email: { tenantId, email: `external-bot@${tenantId}.internal` } },
-      update: {},
-      create: {
-        tenantId,
-        email: `external-bot@${tenantId}.internal`,
-        firstName: "External",
-        lastName: "Bot",
-        role: "external_bot",
-        password: randomBytes(16).toString("hex"),
-      },
-    });
-
-    const rawKey = randomBytes(32).toString("hex");
-    const hashedKey = createHash("sha256").update(rawKey).digest("hex");
-
-    const apiKey = await prisma.apiKey.create({
-      data: {
-        key: hashedKey,
-        tenantId,
-        sourceName,
-        expiresAt,
-      },
-      select: { id: true, sourceName: true, tenantId: true, isActive: true, expiresAt: true, createdAt: true },
-    });
-
-    return NextResponse.json({ ...apiKey, rawKey }, { status: 201 });
+    const apiKey = await apiKeysService.create(sourceName, expiresAt);
+    return NextResponse.json(apiKey, { status: 201 });
   } catch (error) {
+    if (error instanceof ApiKeysServiceError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("[admin/apiKeys POST]", error);
     return NextResponse.json({ error: "Failed to create API key" }, { status: 500 });
   }
@@ -73,12 +40,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const keys = await prisma.apiKey.findMany({
-      where: { tenantId: payload.tenantId },
-      select: { id: true, sourceName: true, isActive: true, autoPublish: true, expiresAt: true, createdAt: true },
-      orderBy: { createdAt: "desc" },
-    });
-
+    const keys = await apiKeysService.list(payload.tenantId);
     return NextResponse.json(keys);
   } catch (error) {
     console.error("[admin/apiKeys GET]", error);
@@ -99,21 +61,12 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "id and autoPublish (boolean) are required" }, { status: 400 });
     }
 
-    const existing = await prisma.apiKey.findFirst({
-      where: { id, tenantId: payload.tenantId },
-    });
-    if (!existing) {
-      return NextResponse.json({ error: "API key not found" }, { status: 404 });
-    }
-
-    const updated = await prisma.apiKey.update({
-      where: { id },
-      data: { autoPublish },
-      select: { id: true, sourceName: true, isActive: true, autoPublish: true, expiresAt: true, createdAt: true },
-    });
-
+    const updated = await apiKeysService.updateAutoPublish(id, autoPublish, payload.tenantId);
     return NextResponse.json(updated);
   } catch (error) {
+    if (error instanceof ApiKeysServiceError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("[admin/apiKeys PATCH]", error);
     return NextResponse.json({ error: "Failed to update API key" }, { status: 500 });
   }
