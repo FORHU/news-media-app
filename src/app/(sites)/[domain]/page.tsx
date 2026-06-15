@@ -158,7 +158,7 @@ export default async function Page({
         fetchRssFeed("https://www.01net.com/feed/", "01net", 12),
         fetchRssFeed("https://www.numerama.com/feed/", "Numerama", 12),
         fetchRssFeed("https://www.phonandroid.com/feed", "PhonAndroid", 12),
-        fetchRssFeed("https://www.clubic.com/feed/", "Clubic", 10),
+        fetchRssFeed("https://www.clubic.com/feed/rss/", "Clubic", 10),
       ]),
       fetchMediaStackNews({ categories: "technology", limit: 50 }),
     ]);
