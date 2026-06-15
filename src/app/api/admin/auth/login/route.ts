@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { signAdminJwt, ADMIN_JWT_COOKIE, ADMIN_ROLE_COOKIE } from "@/lib/auth";
+import { ADMIN_JWT_COOKIE, ADMIN_ROLE_COOKIE } from "@/lib/auth";
 import { resolveTenantIdFromRequest } from "@/lib/tenant";
-import bcrypt from "bcryptjs";
-
-const MODERATOR_ALLOWED_DOMAINS = ["voicejeju.com", "jejuqq.com", "jejujapan.com", "jejutime.com"];
+import { authService, AuthServiceError } from "@/services/admin/auth.service";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,66 +11,21 @@ export async function POST(request: NextRequest) {
     }
 
     const { email, password } = await request.json();
-
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
     }
 
-    const currentTenant = await prisma.tenant.findUnique({
-      where: { id: tenantId },
-      select: { domain: true },
-    });
+    const { token, role } = await authService.login(email, password, tenantId);
 
-    const currentDomain = currentTenant?.domain ?? "";
-
-    // Try admin lookup scoped to current tenant first
-    let user = await prisma.user.findFirst({
-      where: { email: { equals: email, mode: "insensitive" }, role: "admin", tenantId },
-      select: { id: true, email: true, password: true, role: true, tenantId: true },
-    });
-
-    // If not found as admin, try moderator across ALL tenants
-    if (!user) {
-      if (!MODERATOR_ALLOWED_DOMAINS.includes(currentDomain)) {
-        return NextResponse.json({ error: "Invalid login credentials" }, { status: 401 });
-      }
-      user = await prisma.user.findFirst({
-        where: { email: { equals: email, mode: "insensitive" }, role: "moderator" },
-        select: { id: true, email: true, password: true, role: true, tenantId: true },
-      });
-    }
-
-    if (!user) {
-      return NextResponse.json({ error: "Invalid login credentials" }, { status: 401 });
-    }
-
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
-      return NextResponse.json({ error: "Invalid login credentials" }, { status: 401 });
-    }
-
-    const jwtTenantId = user.tenantId;
-
-    const token = await signAdminJwt({
-      sub: user.id,
-      email: user.email,
-      tenantId: jwtTenantId,
-      role: user.role,
-    });
-
-    const cookieOpts = {
-      httpOnly: true,
-      sameSite: "lax" as const,
-      secure: process.env.COOKIE_SECURE === "true",
-      path: "/",
-      maxAge: 60 * 60 * 24,
-    };
-
-    const response = NextResponse.json({ ok: true, role: user.role });
+    const cookieOpts = authService.cookieOptions();
+    const response = NextResponse.json({ ok: true, role });
     response.cookies.set(ADMIN_JWT_COOKIE, token, cookieOpts);
     response.cookies.set(ADMIN_ROLE_COOKIE, "verified", cookieOpts);
     return response;
   } catch (error) {
+    if (error instanceof AuthServiceError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("[POST /api/admin/auth/login] Error:", error);
     return NextResponse.json({ error: "Login failed. Please try again." }, { status: 500 });
   }

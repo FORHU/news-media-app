@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { verifyAdminJwt, ADMIN_JWT_COOKIE } from "@/lib/auth";
+import { externalArticlesService, ExternalArticlesServiceError } from "@/services/admin/externalArticles.service";
 
 export const dynamic = "force-dynamic";
-
-const BATCH_WINDOW_MS = 10_000;
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,56 +17,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "articleId is required" }, { status: 400 });
     }
 
-    const article = await prisma.contentArticle.findUnique({
-      where: { id: articleId },
-      select: {
-        id: true,
-        publishDate: true,
-        sourceType: true,
-        externalSubmission: { select: { id: true } },
-      },
-    });
-
-    if (!article || article.sourceType !== "EXTERNAL") {
-      return NextResponse.json({ error: "Article not found." }, { status: 404 });
-    }
-
-    // Primary article (has externalSubmission) — delete the whole batch
-    if (article.externalSubmission && article.publishDate) {
-      const windowStart = new Date(article.publishDate.getTime() - BATCH_WINDOW_MS);
-      const windowEnd   = new Date(article.publishDate.getTime() + BATCH_WINDOW_MS);
-
-      const batchArticles = await prisma.contentArticle.findMany({
-        where: {
-          id: { not: articleId },
-          sourceType: "EXTERNAL",
-          publishDate: { gte: windowStart, lte: windowEnd },
-          externalSubmission: { is: null },
-        },
-        select: { id: true },
-      });
-
-      if (batchArticles.length > 0) {
-        await prisma.contentArticle.deleteMany({
-          where: { id: { in: batchArticles.map((a) => a.id) } },
-        });
-      }
-
-      await prisma.contentArticle.delete({ where: { id: articleId } });
-
-      console.log(
-        `[external/delete] Deleted primary + ${batchArticles.length} batch article(s) | id: ${articleId}`
-      );
-
-      return NextResponse.json({ success: true, deleted: 1 + batchArticles.length });
-    }
-
-    // Single article (translation sub-row or no batch context)
-    await prisma.contentArticle.delete({ where: { id: articleId } });
-    console.log(`[external/delete] Deleted single article | id: ${articleId}`);
-
-    return NextResponse.json({ success: true, deleted: 1 });
+    const deleted = await externalArticlesService.delete(articleId);
+    return NextResponse.json({ success: true, deleted });
   } catch (error) {
+    if (error instanceof ExternalArticlesServiceError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("[admin/external/delete]", error);
     return NextResponse.json({ error: "Failed to delete article" }, { status: 500 });
   }
