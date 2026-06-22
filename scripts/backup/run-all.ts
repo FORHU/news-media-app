@@ -1,19 +1,16 @@
 import fs from "fs";
 import path from "path";
 import { backupDatabase } from "./backup-database";
-import { backupStorage } from "./backup-storage";
 import { getBackupRoot, writeManifest } from "./lib";
 
 async function main(): Promise<void> {
   const startedAt = new Date().toISOString();
   const backupRoot = getBackupRoot();
 
-  console.log("=== Supabase backup ===\n");
+  console.log("=== Database backup ===\n");
   console.log(`Output folder: ${backupRoot}\n`);
 
   const dbResult = await backupDatabase();
-  console.log("");
-  const storageResult = await backupStorage();
 
   const summary = {
     type: "full",
@@ -21,12 +18,6 @@ async function main(): Promise<void> {
     completedAt: new Date().toISOString(),
     backupRoot,
     database: { method: dbResult.method, files: dbResult.files },
-    storage: {
-      bucket: storageResult.bucket,
-      downloaded: storageResult.downloaded,
-      failed: storageResult.failed,
-      totalBytes: storageResult.totalBytes,
-    },
   };
 
   writeManifest(backupRoot, summary);
@@ -34,7 +25,7 @@ async function main(): Promise<void> {
   // Human-readable summary
   const summaryPath = path.join(backupRoot, "SUMMARY.txt");
   const lines = [
-    `Supabase backup`,
+    `Database backup`,
     `Started:  ${startedAt}`,
     `Finished: ${summary.completedAt}`,
     ``,
@@ -43,21 +34,12 @@ async function main(): Promise<void> {
     ...dbResult.files.map(
       (f) => `  - ${f.filename} (${(f.bytes / 1024).toFixed(1)} KB)`
     ),
-    ``,
-    `Storage bucket: ${storageResult.bucket}`,
-    `  - Downloaded: ${storageResult.downloaded} file(s)`,
-    `  - Size: ${(storageResult.totalBytes / 1024).toFixed(1)} KB`,
-    `  - Failed: ${storageResult.failed.length}`,
   ];
   fs.writeFileSync(summaryPath, lines.join("\n"), "utf-8");
 
   console.log("\n=== Backup complete ===");
   console.log(`Folder: ${backupRoot}`);
   console.log(`Summary: ${summaryPath}`);
-
-  if (storageResult.failed.length > 0) {
-    process.exitCode = 1;
-  }
 }
 
 main().catch((error) => {
