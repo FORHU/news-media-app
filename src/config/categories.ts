@@ -48,15 +48,29 @@ export const TENANT_CATEGORIES: Record<string, string[]> = {
     "ビザ・入国情報",
     "ローカルビジネス・生活",
   ],
+  "lavaguetech.com": [
+    "Artificial Intelligence",
+    "Software Development",
+    "Consumer Tech",
+    "Cybersecurity",
+    "Startups",
+    "Big Tech",
+    "Tech Policy",
+    "Emerging Tech",
+    "Digital Culture",
+    "Enterprise & Cloud Infrastructure",
+  ],
   "newsicons.com": [
-    "Politics",
-    "Sports",
-    "Technology",
-    "Entertainment",
-    "Business",
-    "World",
-    "Travel",
-    "Science",
+    "Artificial Intelligence",
+    "Software Development",
+    "Consumer Tech",
+    "Cybersecurity",
+    "Startups",
+    "Big Tech",
+    "Tech Policy",
+    "Emerging Tech",
+    "Digital Culture",
+    "Enterprise & Cloud Infrastructure",
   ],
   "skyblueprime.com": [
     "Artificial Intelligence",
@@ -149,6 +163,10 @@ const CATEGORY_ALIASES: Record<string, string> = {
   "sports and fitness": "sports",
   "latest stories": "latest news",
   "latest news": "latest news",
+  "artificial intelligence and machine learning": "artificial intelligence",
+  "ai and machine learning": "artificial intelligence",
+  "ai machine learning": "artificial intelligence",
+  "artificial intelligence machine learning": "artificial intelligence",
 };
 
 const CATEGORY_VARIANTS: Record<string, string[]> = {
@@ -160,6 +178,12 @@ const CATEGORY_VARIANTS: Record<string, string[]> = {
   travel: ["Travel", "Tourism"],
   science: ["Science", "Research"],
   politics: ["Politics", "Political"],
+  "artificial intelligence": [
+    "Artificial Intelligence",
+    "Artificial Intelligence & Machine Learning",
+    "AI & Machine Learning",
+    "AI and Machine Learning",
+  ],
 };
 
 export function normalizeCategoryKey(value: string | null | undefined): string {

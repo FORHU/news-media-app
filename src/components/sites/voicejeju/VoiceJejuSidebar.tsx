@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Mail, User, ChevronDown } from "lucide-react";
+import { X, Mail, User } from "lucide-react";
 import ContactEmailButton from "@/components/ContactEmailButton";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
@@ -11,7 +11,6 @@ interface SidebarProps {
   onClose: () => void;
   onOpenNewsletter?: () => void;
   categoryLinks: { name: string; link: string }[];
-  overflowCategories: string[];
   categoryHref: (name: string) => string;
 }
 
@@ -20,7 +19,6 @@ export function VoiceJejuSidebar({
   onClose,
   onOpenNewsletter,
   categoryLinks,
-  overflowCategories,
   categoryHref,
 }: SidebarProps) {
   return (
@@ -70,26 +68,6 @@ export function VoiceJejuSidebar({
                       {cat.name}
                     </Link>
                   ))}
-                  {overflowCategories.length > 0 && (
-                    <details className="group">
-                      <summary className="flex items-center justify-between px-7 py-3 text-[13px] font-inter font-bold uppercase tracking-wider text-zinc-300 hover:text-white hover:bg-white/5 border-b border-white/5 border-l-2 border-l-transparent hover:border-l-white transition-all cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-                        <span>More</span>
-                        <ChevronDown className="w-4 h-4 text-zinc-600 group-hover:text-white group-open:rotate-180 transition-transform" />
-                      </summary>
-                      <div className="bg-white/5">
-                        {overflowCategories.map((name) => (
-                           <Link
-                            key={name}
-                            href={categoryHref(name)}
-                            onClick={onClose}
-                            className="block px-10 py-2.5 text-sm font-inter text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
-                          >
-                            {name}
-                          </Link>
-                        ))}
-                      </div>
-                    </details>
-                  )}
                 </nav>
               </div>
 
@@ -113,6 +91,8 @@ export function VoiceJejuSidebar({
                   iconSize={16}
                   showLabel
                   labelText="Contact Us"
+                  inline
+                  theme="voicejeju"
                 />
                 <Link
                   href="/admin/dashboard"

@@ -4,6 +4,13 @@ import { Prisma } from "@/generated/prisma/client";
 export type Banner = Prisma.BannerGetPayload<{}>;
 
 export const bannersRepository = {
+  async findAllForTenant(tenantId: string): Promise<Banner[]> {
+    return prisma.banner.findMany({
+      where: { tenantId, isActive: true },
+      orderBy: { createdAt: "desc" },
+    });
+  },
+
   async findMany(params: {
     position?: string | null;
     isActive?: boolean | null;

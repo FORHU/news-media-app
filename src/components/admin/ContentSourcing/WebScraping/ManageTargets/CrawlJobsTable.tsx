@@ -18,6 +18,7 @@ import { Variants } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import CrawlJobsFilters from './CrawlJobsFilters';
+import { useArticleStream } from '@/hooks/useArticleStream';
 
 const normalizeStatus = (status: string | null | undefined) => {
     const s = (status ?? '').trim().toLowerCase();
@@ -133,20 +134,17 @@ export default function CrawlJobsTable() {
     const [expandedIds, setExpandedIds] = React.useState<Set<string>>(new Set());
     const [stoppingIds, setStoppingIds] = React.useState<Set<string>>(new Set());
 
-    const { data, isLoading, isError, refetch } = useQuery<CrawlJobsResponse>({
+    useArticleStream();
+
+    const { data, isLoading, isFetching, isError, refetch } = useQuery<CrawlJobsResponse>({
         queryKey: ['crawlJobs', { page: currentPage, limit }],
         queryFn: () => articlesApi.getCrawlJobs({
             page: currentPage,
             limit
         }),
         staleTime: 0,
-        // Fallback polling every 5s if there are active jobs, to ensure UI sync
-        // even if real-time WebSockets are flaky.
-        refetchInterval: (query) => {
-            const jobs = query.state.data?.jobs || [];
-            const hasActive = jobs.some(j => isJobActivelyCrawling(j.status));
-            return hasActive ? 5000 : false;
-        }
+        placeholderData: (prev) => prev,
+        refetchInterval: process.env.NODE_ENV !== "production" ? 15_000 : false,
     });
 
     const stopMutation = useMutation({
@@ -296,7 +294,15 @@ export default function CrawlJobsTable() {
 
     return (
         <div className="space-y-6">
-            <h2 className="text-xl font-bold text-gray-900 px-2">Recent Crawl Jobs</h2>
+            <div className="flex items-center gap-3 px-2">
+                <h2 className="text-xl font-bold text-gray-900">Recent Crawl Jobs</h2>
+                {isFetching && !isLoading && (
+                    <span className="flex items-center gap-1.5 text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        Updating…
+                    </span>
+                )}
+            </div>
 
             {/* Filters */}
             <CrawlJobsFilters

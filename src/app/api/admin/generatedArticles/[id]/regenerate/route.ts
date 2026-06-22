@@ -8,6 +8,7 @@ import {
 } from "@/lib/regenerateGeneratedArticle";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
+import { sseBroadcaster } from "@/lib/sse";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -76,6 +77,7 @@ export async function POST(
           });
 
     await revalidateArticle(tenantId, updated.id, updated.slug);
+    sseBroadcaster.broadcast("articles:updated");
 
     return NextResponse.json(updated);
   } catch (error: unknown) {

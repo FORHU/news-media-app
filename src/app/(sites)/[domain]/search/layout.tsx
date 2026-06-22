@@ -5,6 +5,7 @@ import { bannersService } from "@/services/banners.service";
 import { TrendingSidebar } from "@/components/home/trending-sidebar";
 import { AdBanner } from "@/components/AdBanner";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
+import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
 import { TENANT_CATEGORIES } from "@/config/categories";
 
@@ -29,6 +30,10 @@ export default async function SearchLayout({
     ? "jejuqq"
     : domain.toLowerCase().includes("skyblueprime")
     ? "skyblueprime"
+    : domain.toLowerCase().includes("newsicons")
+    ? "newsicons"
+    : domain.toLowerCase().includes("lavaguetech")
+    ? "lavaguetech"
     : "default";
 
   const tenantConfig = ADSTERRA_CONFIG[tenantKey];
@@ -44,10 +49,12 @@ export default async function SearchLayout({
   const isJejuQQ = domain.toLowerCase().includes("jejuqq");
   const isJejuTime = domain.toLowerCase().includes("jejutime");
   const isSkyBluePrime = domain.toLowerCase().includes("skyblueprime");
+  const isNewsIcons = domain.toLowerCase().includes("newsicons");
+  const isLavagueTech = domain.toLowerCase().includes("lavaguetech");
 
   // Trending stories are "constant" for the search session, so we fetch them here
-  // (We skip fetching in layout if VoiceJeju, JejuJapan, or JejuQQ, since those render their sidebar inside page.tsx)
-  const [trendingArticles, sidebarBanners] = (isVoiceJeju || isJejuJapan || isJejuQQ)
+  // (We skip fetching in layout if the page handles its own sidebar)
+  const [trendingArticles, sidebarBanners] = (isVoiceJeju || isJejuJapan || isJejuQQ || isLavagueTech)
     ? [[], []]
     : await Promise.all([
         tenantId
@@ -163,6 +170,30 @@ export default async function SearchLayout({
     );
   }
 
+  if (isLavagueTech) {
+    return (
+      <div className="bg-white">
+        <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
+          {showSkyscrapers && adKeys?.["160x600"] && (
+            <div className="hidden min-[1650px]:block absolute right-full mr-6 top-32 bottom-32 w-[160px] z-30">
+              <div className="sticky top-40">
+                <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+              </div>
+            </div>
+          )}
+          {showSkyscrapers && adKeys?.["160x600"] && (
+            <div className="hidden min-[1650px]:block absolute left-full ml-6 top-32 bottom-32 w-[160px] z-30">
+              <div className="sticky top-40">
+                <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+              </div>
+            </div>
+          )}
+          {children}
+        </main>
+      </div>
+    );
+  }
+
   if (isVoiceJeju) {
     return (
       <div className="bg-white">
@@ -202,6 +233,44 @@ export default async function SearchLayout({
           )}
 
           {children}
+        </main>
+      </div>
+    );
+  }
+
+  if (isNewsIcons) {
+    return (
+      <div className="bg-slate-50 min-h-screen">
+        <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-10">
+          {showSkyscrapers && adKeys?.["160x600"] && (
+            <div className="hidden min-[1650px]:block absolute right-full mr-6 top-32 bottom-32 w-[160px] z-30">
+              <div className="sticky top-40">
+                <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+              </div>
+            </div>
+          )}
+          {showSkyscrapers && adKeys?.["160x600"] && (
+            <div className="hidden min-[1650px]:block absolute left-full ml-6 top-32 bottom-32 w-[160px] z-30">
+              <div className="sticky top-40">
+                <AdsterraBanner bannerKey={adKeys["160x600"]} width={160} height={600} className="!my-0" />
+              </div>
+            </div>
+          )}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-12">
+            <div className="lg:col-span-9">{children}</div>
+            <aside className="lg:col-span-3 space-y-8">
+              <TrendingSidebar articles={trendingArticles} domain={domain} />
+              {showSidebarBox && adKeys?.["300x250"] && (
+                <div className="flex justify-center">
+                  <AdsterraBanner bannerKey={adKeys["300x250"]} width={300} height={250} className="!my-0" />
+                </div>
+              )}
+              <AdBanner position="HOME_SIDEBAR" initialBanners={sidebarBanners} />
+            </aside>
+          </div>
+          <div className="mt-8 border-t border-slate-200 pt-8">
+            <AdsterraNativeBanner domain="newsicons.com" />
+          </div>
         </main>
       </div>
     );

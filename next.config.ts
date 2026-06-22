@@ -16,11 +16,14 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  reactCompiler: true,
+  // Disable React Compiler in dev — it recompiles components on every change
+  // and the resulting module updates can't always be hot-applied, causing
+  // full-page HMR reloads. Re-enabled in production where HMR is inactive.
+  reactCompiler: process.env.NODE_ENV === 'production',
   output: 'standalone',
   // Expose source maps in production builds — fixes Lighthouse "Missing source maps" audit
   productionBrowserSourceMaps: true,
-  allowedDevOrigins: ["voicejeju.com", "jejuqq.com", "jejujapan.com", "jejutime.com", "skyblueprime.com"],
+  allowedDevOrigins: ["newsicons.com", "lavaguetech.com", "voicejeju.com", "jejuqq.com", "jejujapan.com", "jejutime.com", "skyblueprime.com"],
   // Turbopack on Windows can panic (os error 80) when creating junctions into native/Prisma deps.
   serverExternalPackages: [
     "pg",
@@ -28,6 +31,13 @@ const nextConfig: NextConfig = {
     "@prisma/client",
     "prisma",
   ],
+
+  // Turbopack is the default bundler in Next.js 16.
+  // Declaring it here silences the "webpack config but no turbopack config" warning.
+  // Turbopack handles WASM files natively without the full-page HMR reload issue
+  // that webpack's experimental async-WASM caused with src/generated/prisma/.
+  turbopack: {},
+
   async headers() {
     return [
       {

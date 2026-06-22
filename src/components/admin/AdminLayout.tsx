@@ -3,6 +3,7 @@
 import React from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import ActiveCrawlIndicator from '@/components/admin/ActiveCrawlIndicator';
+import { ArticleStreamProvider } from '@/providers/ArticleStreamProvider';
 import { Menu } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -17,6 +18,7 @@ export default function AdminLayout({
     setSidebarOpen
 }: AdminLayoutProps) {
     return (
+        <ArticleStreamProvider>
         <div className="flex min-h-screen bg-[#fafafa]">
             {/* Backdrop for mobile */}
             {sidebarOpen && (
@@ -54,5 +56,6 @@ export default function AdminLayout({
             </main>
             <ActiveCrawlIndicator />
         </div>
+        </ArticleStreamProvider>
     );
 }

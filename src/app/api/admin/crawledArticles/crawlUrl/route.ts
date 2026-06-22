@@ -5,6 +5,7 @@ import {
 } from "@/services/admin/crawledArticles.service";
 import { crawlTriggerBodySchema } from "@/lib/validation/crawl";
 import { resolveTenantIdFromRequest } from "@/lib/tenant";
+import { sseBroadcaster } from "@/lib/sse";
 
 export async function POST(req: NextRequest) {
   const tenantId = await resolveTenantIdFromRequest(req);
@@ -43,6 +44,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const result = await crawledArticlesService.triggerCrawl(body);
+    sseBroadcaster.broadcast("crawlJobs:updated");
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
     if (error instanceof CrawledArticlesServiceError) {

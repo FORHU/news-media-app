@@ -5,6 +5,7 @@ import { generateUniqueArticleSlug } from "@/lib/slug";
 import { z } from "zod";
 import { getTenantDomainFromRequest, resolveTenantIdFromRequest } from "@/lib/tenant";
 import { uploadToS3 } from "@/lib/s3";
+import { sseBroadcaster } from "@/lib/sse";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -190,13 +191,13 @@ export async function POST(req: NextRequest) {
                 const base64Payload = match[2];
                 const fileBuffer = Buffer.from(base64Payload, "base64");
                 const extension = detectImageExtension(mimeType);
-                const analysisFilename = `material-${Date.now()}.${extension}`;
-                
-                const s3Url = await uploadToS3(fileBuffer, analysisFilename, mimeType);
+
+                const s3Url = await uploadToS3(fileBuffer, `material.${extension}`, mimeType);
                 let s3Key = s3Url;
                 try {
                     s3Key = new URL(s3Url).pathname.slice(1);
                 } catch (e) {}
+                const analysisFilename = s3Key.split("/").pop() || `material.${extension}`;
 
                 console.log(`[createFromUpload] Analyzing uploaded image via S3: ${s3Url}`);
 
@@ -361,6 +362,7 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${l
         },
       });
 
+      sseBroadcaster.broadcast("articles:updated");
       return NextResponse.json(contentArticle);
     } catch (error: any) {
       clearTimeout(timeout);

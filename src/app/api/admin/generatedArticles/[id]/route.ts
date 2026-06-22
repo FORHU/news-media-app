@@ -4,6 +4,7 @@ import { generateUniqueArticleSlug } from "@/lib/slug";
 import { z } from "zod";
 import { resolveTenantIdFromRequest } from "@/lib/tenant";
 import { revalidatePath } from "next/cache";
+import { sseBroadcaster } from "@/lib/sse";
 
 async function revalidateArticle(tenantId: string, articleId: string, slug?: string | null) {
   try {
@@ -115,6 +116,7 @@ export async function PATCH(
 
     // Trigger on-demand revalidation
     await revalidateArticle(tenantId, id, updated.slug);
+    sseBroadcaster.broadcast("articles:updated");
 
     return NextResponse.json(updated);
   } catch (error: any) {
@@ -145,6 +147,7 @@ export async function DELETE(
     await prisma.contentArticle.delete({
       where: { id },
     });
+    sseBroadcaster.broadcast("articles:updated");
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

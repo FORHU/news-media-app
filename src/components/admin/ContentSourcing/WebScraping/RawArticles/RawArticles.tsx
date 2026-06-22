@@ -41,6 +41,7 @@ import {
 import ReadRawArticleModal from './readRawArticleModal';
 import GenerateArticleModal from './generateArticleModal';
 import { normalizeCategoryName } from '@/lib/categoryDisplay';
+import { useArticleStream } from '@/hooks/useArticleStream';
 
 interface CrawledArticleCardProps {
     article: MappedRawArticle;
@@ -310,6 +311,8 @@ export default function RawArticles({ searchParams }: {
     const currentPage = parseInt(urlSearchParams.get('page') || searchParams.page || '1');
     const limit = 10;
 
+    useArticleStream();
+
     const { data, isLoading, isError } = useQuery<CrawledArticlesResponse>({
         queryKey: ['crawledArticles', { from, to, searchQuery, currentPage, source, date, status }],
         queryFn: () => articlesApi.getCrawledArticles({
@@ -324,7 +327,7 @@ export default function RawArticles({ searchParams }: {
         }),
         placeholderData: (prev) => prev,
         staleTime: 0,
-        refetchInterval: 3000,
+        refetchInterval: process.env.NODE_ENV !== "production" ? 30_000 : false,
     });
 
     const articles = data?.articles || [];

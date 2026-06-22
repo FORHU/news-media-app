@@ -35,6 +35,7 @@ import {
   stripOriginalPostBlock,
 } from "@/lib/tweetArticleDisplay";
 import { ArticleShare } from "@/components/article/ArticleShare";
+import { ArticleContentRenderer } from "@/components/article/ArticleContentRenderer";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
@@ -310,28 +311,24 @@ export default function JejuTimeArticle({
                       <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" sizes="(max-width: 640px) 400px, (max-width: 1024px) 100vw, 850px" />
                       </div>
                     )}
-                    <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-light break-words">
-                      {firstHalf}
-                    </div>
-
-                    {/* Adsterra Mid-Article Dynamic Ad */}
-                    {midArticleConfig && (
-                      <div className="my-10 flex justify-center border-y border-slate-100 py-6 bg-slate-50/50">
-                        <AdsterraBanner bannerKey={midArticleConfig.key} width={midArticleConfig.width} height={midArticleConfig.height} className="!my-0" />
-                      </div>
-                    )}
-
-                    {secondHalf && (
-                      <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-light break-words mt-8">
-                        {secondHalf}
-                      </div>
-                    )}
+                    <ArticleContentRenderer
+                      paragraphs={paragraphs}
+                      galleryImages={(article.imageUrls ?? []).slice(1)}
+                      title={article.title}
+                      imageWrapperClassName="relative aspect-[16/9] bg-slate-100 overflow-hidden shadow-lg ring-1 ring-black/5"
+                      textClassName="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-light break-words mt-8"
+                      adSlot={midArticleConfig && (
+                        <div className="my-10 flex justify-center border-y border-slate-100 py-6 bg-slate-50/50">
+                          <AdsterraBanner bannerKey={midArticleConfig.key} width={midArticleConfig.width} height={midArticleConfig.height} className="!my-0" />
+                        </div>
+                      )}
+                    />
                 </>
                 )}
 
-                <ArticleShare 
-                  site="jejutime" 
-                  title={article.title} 
+                <ArticleShare
+                  site="jejutime"
+                  title={article.title}
                   className="mt-12"
                 />
 

@@ -59,5 +59,11 @@ CLAUDE.md
 # Claude Code skills
 .agents/
 skills-lock.json
+.claude/skills/
 # Supabase / local backups (may contain production data)
 /backups/
+
+build.log
+scratch/
+verification-artifacts/
+.claude/settings.local.json

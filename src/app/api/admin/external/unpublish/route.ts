@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { verifyAdminJwt, ADMIN_JWT_COOKIE } from "@/lib/auth";
+import { externalArticlesService, ExternalArticlesServiceError } from "@/services/admin/externalArticles.service";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   try {
     const token = req.cookies.get(ADMIN_JWT_COOKIE)?.value;
     const payload = token ? await verifyAdminJwt(token) : null;
-    if (!payload || payload.role !== "admin") {
+    if (!payload || (payload.role !== "admin" && payload.role !== "moderator")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -17,17 +17,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "articleIds is required" }, { status: 400 });
     }
 
-    const { count } = await prisma.contentArticle.updateMany({
-      where: {
-        id: { in: articleIds },
-        sourceType: "EXTERNAL",
-        status: "published",
-      },
-      data: { status: "pending", publishDate: null },
-    });
-
-    return NextResponse.json({ success: true, unpublished: count });
+    const unpublished = await externalArticlesService.unpublish(articleIds);
+    return NextResponse.json({ success: true, unpublished });
   } catch (error) {
+    if (error instanceof ExternalArticlesServiceError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("[admin/external/unpublish]", error);
     return NextResponse.json({ error: "Failed to unpublish articles" }, { status: 500 });
   }

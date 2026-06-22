@@ -3,7 +3,8 @@
 import React, { useEffect } from 'react';
 import {
     Activity,
-    ArrowUpRight
+    ArrowUpRight,
+    Loader2
 } from 'lucide-react';
 import DashboardStatsGrid from '@/components/admin/dashboard/DashboardStatsGrid';
 import ActivityFeed from '@/components/admin/dashboard/ActivityFeed';
@@ -23,8 +24,7 @@ export default function DashboardPage() {
         // With global staleTime=5min, it will not refetch on remount if still fresh.
         refetchOnWindowFocus: false,
         refetchOnMount: false,
-        // Dashboard wants periodic updates while you’re on the page.
-        refetchInterval: 10_000,
+        refetchInterval: process.env.NODE_ENV !== "production" ? 30_000 : false,
     });
     
     // Set domain-specific title and favicon
@@ -58,7 +58,15 @@ export default function DashboardPage() {
                         </div>
                         System Overview
                     </div>
-                    <h1 className="text-2xl md:text-4xl font-black text-gray-900 tracking-tight">Admin Dashboard</h1>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-2xl md:text-4xl font-black text-gray-900 tracking-tight">Admin Dashboard</h1>
+                        {isFetching && !loading && (
+                            <span className="flex items-center gap-1.5 text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                                Syncing…
+                            </span>
+                        )}
+                    </div>
                     <p className="text-sm md:text-base text-gray-500 font-medium">Monitoring real-time intelligence & crawler health.</p>
                 </div>
                 

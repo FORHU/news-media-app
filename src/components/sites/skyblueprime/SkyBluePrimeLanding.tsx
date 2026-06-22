@@ -5,6 +5,13 @@ import dynamic from "next/dynamic";
 import { StoryImage } from "@/components/StoryImage";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
+import { getCoreCategories, normalizeCategoryKey } from "@/config/categories";
+import type { MediaStackArticle } from "@/lib/mediastack";
+
+const SKYBLUEPRIME_CATEGORIES = getCoreCategories("skyblueprime.com");
+const CANONICAL_CATEGORY_MAP = new Map(
+  SKYBLUEPRIME_CATEGORIES.map((c) => [normalizeCategoryKey(c), c.trim()])
+);
 
 const AdBanner = dynamic(() => import("@/components/AdBanner").then((m) => m.AdBanner), {
   ssr: true,
@@ -23,6 +30,7 @@ interface ArticleRow {
   imageUrl?: string | null;
   createdAt: string | Date;
   trendingScore?: number | null;
+  isHeadline?: boolean | null;
   category?: { categoryName?: string | null } | null;
 }
 
@@ -34,6 +42,7 @@ interface Props {
     sidebar: unknown[];
     footer: unknown[];
   };
+  mediastackArticles?: MediaStackArticle[];
 }
 
 function articleHref(article: { slug?: string | null; id: string }) {
@@ -44,6 +53,22 @@ function excerpt(text: string | null | undefined, max = 120) {
   if (!text) return "";
   const plain = text.replace(/<[^>]+>/g, "").trim();
   return plain.length > max ? `${plain.slice(0, max)}…` : plain;
+}
+
+function isMs(a: ArticleRow | MediaStackArticle): a is MediaStackArticle {
+  return "url" in a && "source" in a && !("slug" in a);
+}
+
+function cleanImage(url: string | null | undefined): string | null {
+  if (!url) return null;
+  if (
+    url.includes("googleusercontent.com") ||
+    url.includes("gstatic.com") ||
+    url.includes("news.google.com") ||
+    url.includes("google.com/s2/favicons")
+  )
+    return null;
+  return url;
 }
 
 function LeaderboardAd() {
@@ -67,21 +92,58 @@ function MediumRectAd({ className = "" }: { className?: string }) {
   );
 }
 
-export default function SkyBluePrimeLanding({ articles, banners }: Props) {
+export default function SkyBluePrimeLanding({ articles, banners, mediastackArticles = [] }: Props) {
   const sorted = [...articles].sort((a, b) => {
+    const aHeadline = a.isHeadline ? 1 : 0;
+    const bHeadline = b.isHeadline ? 1 : 0;
+    if (bHeadline !== aHeadline) return bHeadline - aHeadline;
     if ((b.trendingScore ?? 0) !== (a.trendingScore ?? 0)) {
       return (b.trendingScore ?? 0) - (a.trendingScore ?? 0);
     }
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
+  // Deduplicated slices — each article appears in exactly one section
   const hero = sorted[0];
-  const picks = sorted.slice(1, 4);
-  const trending = sorted.slice(0, 5);
+  const dbPicks = sorted.slice(1, 6);
+  const dbTrending = sorted.slice(6, 10);
+  const dbCenter = sorted.slice(10, 15);
+
+  // Filter to articles that have a real (non-placeholder) image
+  const msWithImage = mediastackArticles.filter((a) => cleanImage(a.image) !== null);
+
+  // Sections: Tech Buzz [0-3], In the Tech World [4-9], Tech Digest [10-29]
+  // Cap digest at index 30 so [30+] stays available as sidebar fallback
+  const msDigestPool = msWithImage.slice(10, 30);
+  const msDigestMid = Math.ceil(msDigestPool.length / 2);
+  const msDigestLeft = msDigestPool.slice(0, msDigestMid);
+  const msDigestRight = msDigestPool.slice(msDigestMid);
+
+  // [30+] reserved as fallback for picks / trending / centerArticles
+  const msFallback = msWithImage.slice(30);
+  let fbCursor = 0;
+
+  const picks: (ArticleRow | MediaStackArticle)[] = [...dbPicks];
+  while (picks.length < 5 && fbCursor < msFallback.length) picks.push(msFallback[fbCursor++]);
+
+  const trending: (ArticleRow | MediaStackArticle)[] = [...dbTrending];
+  while (trending.length < 4 && fbCursor < msFallback.length) trending.push(msFallback[fbCursor++]);
+
+  const centerArticles: (ArticleRow | MediaStackArticle)[] = [...dbCenter];
+  while (centerArticles.length < 5 && fbCursor < msFallback.length) centerArticles.push(msFallback[fbCursor++]);
+
+  const usedIds = new Set([
+    hero?.id,
+    ...dbPicks.map((a) => a.id),
+    ...dbTrending.map((a) => a.id),
+    ...dbCenter.map((a) => a.id),
+  ]);
 
   const groupedCategoriesMap = new Map<string, ArticleRow[]>();
   for (const a of sorted) {
-    const cat = a.category?.categoryName || "Uncategorized";
+    if (usedIds.has(a.id)) continue; // skip already-displayed articles
+    const rawCat = a.category?.categoryName || "Uncategorized";
+    const cat = CANONICAL_CATEGORY_MAP.get(normalizeCategoryKey(rawCat)) ?? rawCat;
     if (!groupedCategoriesMap.has(cat)) groupedCategoriesMap.set(cat, []);
     groupedCategoriesMap.get(cat)!.push(a);
   }
@@ -114,27 +176,30 @@ export default function SkyBluePrimeLanding({ articles, banners }: Props) {
               </h2>
             </div>
             <div className="space-y-6">
-              {picks.map((article) => (
-                <Link key={article.id} href={articleHref(article)} className="group block border-b border-sky-100 pb-6 last:border-0">
-                  <div className="relative aspect-[3/2] w-full mb-3 bg-sky-100 overflow-hidden">
-                    <StoryImage
-                      src={article.imageUrl}
-                      alt={article.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      sizes="(max-width: 1024px) 100vw, 25vw"
-                    />
-                  </div>
-                  <span className="block text-[10px] font-bold uppercase tracking-widest text-sky-500 mb-1">
-                    {article.category?.categoryName ?? "News"}
-                  </span>
-                  <h3 className="text-[16px] font-bold text-sky-950 leading-tight group-hover:text-sky-600 transition-colors">
-                    {article.title}
-                  </h3>
-                </Link>
-              ))}
+              {picks.map((article) => {
+                const external = isMs(article);
+                const imgSrc = external ? article.image : article.imageUrl;
+                const label = external ? article.source : (article.category?.categoryName ?? "News");
+                const cardBody = (
+                  <>
+                    <div className="relative aspect-[3/2] w-full mb-3 bg-sky-100 overflow-hidden">
+                      {external ? (
+                        imgSrc
+                          ? <img src={imgSrc} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          : <div className="w-full h-full bg-sky-200 flex items-center justify-center"><span className="text-sky-500 text-xs font-bold uppercase px-2 text-center">{label}</span></div>
+                      ) : (
+                        <StoryImage src={imgSrc} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 1024px) 100vw, 25vw" />
+                      )}
+                    </div>
+                    <span className="block text-[10px] font-bold uppercase tracking-widest text-sky-500 mb-1">{label}</span>
+                    <h3 className="text-[16px] font-bold text-sky-950 leading-tight group-hover:text-sky-600 transition-colors">{article.title}</h3>
+                  </>
+                );
+                return external
+                  ? <a key={article.id} href={article.url} target="_blank" rel="noopener noreferrer" className="group block border-b border-sky-100 pb-6 last:border-0">{cardBody}</a>
+                  : <Link key={article.id} href={articleHref(article)} className="group block border-b border-sky-100 pb-6 last:border-0">{cardBody}</Link>;
+              })}
             </div>
-
           </aside>
 
           {/* Center: Hero Article */}
@@ -169,7 +234,7 @@ export default function SkyBluePrimeLanding({ articles, banners }: Props) {
                 </div>
 
                 {/* Leaderboard below hero image */}
-                <div className="w-full flex justify-center border-t border-sky-100 pt-4">
+                <div className="w-full flex justify-center border-t border-sky-100 pt-4 mb-6">
                   <div className="hidden sm:block">
                     <AdsterraBanner bannerKey={adKeys["468x60"]} width={468} height={60} className="!my-0" />
                   </div>
@@ -177,6 +242,39 @@ export default function SkyBluePrimeLanding({ articles, banners }: Props) {
                     <AdsterraBanner bannerKey={adKeys["320x50"]} width={320} height={50} className="!my-0" />
                   </div>
                 </div>
+
+                {/* Below-headline article rows */}
+                {centerArticles.length > 0 && (
+                  <div className="w-full text-left flex flex-col divide-y divide-sky-100 border-t border-sky-100">
+                    {centerArticles.map((article) => {
+                      const external = isMs(article);
+                      const imgSrc = external ? article.image : article.imageUrl;
+                      const label = external ? article.source : (article.category?.categoryName ?? "News");
+                      const desc = external ? article.description : excerpt(article.content, 100);
+                      const rowBody = (
+                        <>
+                          <div className="relative w-[160px] h-[110px] shrink-0 bg-sky-100 overflow-hidden">
+                            {external ? (
+                              imgSrc
+                                ? <img src={imgSrc} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                : <div className="w-full h-full bg-sky-200 flex items-center justify-center"><span className="text-sky-500 text-xs font-bold uppercase px-2 text-center">{label}</span></div>
+                            ) : (
+                              <StoryImage src={imgSrc} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="160px" />
+                            )}
+                          </div>
+                          <div className="flex flex-col gap-1.5 min-w-0 justify-center">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-sky-500">{label}</span>
+                            <h3 className="text-[17px] font-bold text-sky-950 leading-snug group-hover:text-sky-600 transition-colors line-clamp-2">{article.title}</h3>
+                            {desc && <p className="text-[13px] text-sky-700/80 leading-snug line-clamp-2">{desc}</p>}
+                          </div>
+                        </>
+                      );
+                      return external
+                        ? <a key={article.id} href={article.url} target="_blank" rel="noopener noreferrer" className="group flex gap-5 items-center py-5 hover:bg-sky-50/40 transition-colors">{rowBody}</a>
+                        : <Link key={article.id} href={articleHref(article)} className="group flex gap-5 items-center py-5 hover:bg-sky-50/40 transition-colors">{rowBody}</Link>;
+                    })}
+                  </div>
+                )}
               </article>
             ) : (
               <div className="border-t-4 border-sky-950 pt-16 text-center">
@@ -193,18 +291,31 @@ export default function SkyBluePrimeLanding({ articles, banners }: Props) {
                 Trending
               </h2>
             </div>
-            <ol className="space-y-0">
-              {trending.map((article, i) => (
-                <li key={article.id} className="border-b border-sky-100 pb-5 mb-5 last:border-0 last:mb-0 last:pb-0">
-                  <Link href={articleHref(article)} className="group flex gap-3 items-start">
-                    <span className="text-[11px] font-black text-sky-300 w-5 shrink-0 pt-0.5">{i + 1}</span>
-                    <h3 className="text-[15px] font-bold text-sky-950 leading-tight group-hover:text-sky-600 transition-colors">
-                      {article.title}
-                    </h3>
-                  </Link>
-                </li>
-              ))}
-            </ol>
+            <div className="space-y-6">
+              {trending.map((article) => {
+                const external = isMs(article);
+                const imgSrc = external ? article.image : article.imageUrl;
+                const label = external ? article.source : (article.category?.categoryName ?? "News");
+                const cardBody = (
+                  <>
+                    <div className="relative aspect-[3/2] w-full mb-3 bg-sky-100 overflow-hidden">
+                      {external ? (
+                        imgSrc
+                          ? <img src={imgSrc} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          : <div className="w-full h-full bg-sky-200 flex items-center justify-center"><span className="text-sky-500 text-xs font-bold uppercase px-2 text-center">{label}</span></div>
+                      ) : (
+                        <StoryImage src={imgSrc} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 1024px) 100vw, 25vw" />
+                      )}
+                    </div>
+                    <span className="block text-[10px] font-bold uppercase tracking-widest text-sky-500 mb-1">{label}</span>
+                    <h3 className="text-[16px] font-bold text-sky-950 leading-tight group-hover:text-sky-600 transition-colors">{article.title}</h3>
+                  </>
+                );
+                return external
+                  ? <a key={article.id} href={article.url} target="_blank" rel="noopener noreferrer" className="group block border-b border-sky-100 pb-6 last:border-0">{cardBody}</a>
+                  : <Link key={article.id} href={articleHref(article)} className="group block border-b border-sky-100 pb-6 last:border-0">{cardBody}</Link>;
+              })}
+            </div>
 
             {/* 300x250 Ad below trending */}
             <div className="mt-8 flex justify-center border-t border-sky-100 pt-6">
@@ -297,6 +408,174 @@ export default function SkyBluePrimeLanding({ articles, banners }: Props) {
             </div>
           );
         })}
+
+        {/* ── Tech Buzz — 4-card grid (msWithImage 0–3) ─────── */}
+        {msWithImage.length > 0 && (
+          <section className="mt-12">
+            <div className="border-t-[6px] border-sky-500 pt-3 mb-8">
+              <h2 className="text-[11px] font-black uppercase tracking-widest text-white bg-sky-500 inline-block px-3 py-1.5 leading-none">
+                Tech Buzz
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {msWithImage.slice(0, 4).map((item) => (
+                <a
+                  key={item.id}
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex flex-col bg-white border border-sky-100 shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <div className="relative aspect-[16/9] bg-sky-100 overflow-hidden">
+                    {item.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    ) : (
+                      <div className="w-full h-full bg-sky-200 flex items-center justify-center">
+                        <span className="text-sky-500 text-xs font-bold uppercase px-2 text-center">{item.source}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4 flex flex-col gap-2 flex-1">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-sky-500">{item.source}</span>
+                    <h3 className="text-[15px] font-bold text-sky-950 leading-snug group-hover:text-sky-600 transition-colors line-clamp-3 flex-1">
+                      {item.title}
+                    </h3>
+                    {item.description && (
+                      <p className="text-[12px] text-sky-700/80 line-clamp-2 leading-relaxed">{item.description}</p>
+                    )}
+                    <span className="text-[10px] text-sky-400 font-medium">
+                      {new Date(item.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── In the Tech World — 3-col list (msWithImage 4–9) ── */}
+        {msWithImage.length > 4 && (
+          <section className="mt-12">
+            <div className="border-t-[6px] border-sky-950 pt-3 mb-8">
+              <h2 className="text-[11px] font-black uppercase tracking-widest text-white bg-sky-950 inline-block px-3 py-1.5 leading-none">
+                In the Tech World
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {msWithImage.slice(4, 10).map((item) => (
+                <a
+                  key={item.id}
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex gap-4 items-start bg-white border border-sky-100 p-4 shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <div className="w-[90px] h-[70px] shrink-0 bg-sky-100 overflow-hidden">
+                    {item.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    ) : (
+                      <div className="w-full h-full bg-sky-200 flex items-center justify-center">
+                        <span className="text-sky-500 text-[9px] font-bold uppercase text-center px-1">{item.source}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex flex-col gap-1">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-sky-500 block">{item.source}</span>
+                    <h4 className="text-[14px] font-bold text-sky-950 leading-snug group-hover:text-sky-600 transition-colors line-clamp-3">
+                      {item.title}
+                    </h4>
+                    {item.description && (
+                      <p className="text-[12px] text-sky-700/80 line-clamp-2 leading-relaxed">{item.description}</p>
+                    )}
+                  </div>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── Tech Digest — 2-col dense list (msWithImage 10–29) ── */}
+        {msWithImage.length > 10 && (
+          <section className="mt-12">
+            <div className="border-t-[6px] border-sky-500 pt-3 mb-8">
+              <h2 className="text-[11px] font-black uppercase tracking-widest text-white bg-sky-500 inline-block px-3 py-1.5 leading-none">
+                Tech Digest
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 bg-white border border-sky-100 shadow-sm divide-y lg:divide-y-0 lg:divide-x divide-sky-100">
+              <div className="flex flex-col divide-y divide-sky-100">
+                {msDigestLeft.map((item) => (
+                  <a
+                    key={item.id}
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex gap-3 items-center p-4 hover:bg-sky-50/60 transition-colors"
+                  >
+                    <div className="w-[80px] h-[60px] shrink-0 bg-sky-100 overflow-hidden">
+                      {item.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      ) : (
+                        <div className="w-full h-full bg-sky-200 flex items-center justify-center">
+                          <span className="text-sky-500 text-[9px] font-bold uppercase text-center px-1">{item.source}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex flex-col gap-0.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-sky-500 truncate">{item.source}</span>
+                        <span className="text-[9px] text-sky-400 shrink-0">
+                          {new Date(item.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                        </span>
+                      </div>
+                      <h4 className="text-[13px] font-bold text-sky-950 leading-snug group-hover:text-sky-600 transition-colors line-clamp-2">
+                        {item.title}
+                      </h4>
+                    </div>
+                  </a>
+                ))}
+              </div>
+              <div className="flex flex-col divide-y divide-sky-100">
+                {msDigestRight.map((item) => (
+                  <a
+                    key={item.id}
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex gap-3 items-center p-4 hover:bg-sky-50/60 transition-colors"
+                  >
+                    <div className="w-[80px] h-[60px] shrink-0 bg-sky-100 overflow-hidden">
+                      {item.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      ) : (
+                        <div className="w-full h-full bg-sky-200 flex items-center justify-center">
+                          <span className="text-sky-500 text-[9px] font-bold uppercase text-center px-1">{item.source}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex flex-col gap-0.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-sky-500 truncate">{item.source}</span>
+                        <span className="text-[9px] text-sky-400 shrink-0">
+                          {new Date(item.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                        </span>
+                      </div>
+                      <h4 className="text-[13px] font-bold text-sky-950 leading-snug group-hover:text-sky-600 transition-colors line-clamp-2">
+                        {item.title}
+                      </h4>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+
 
       </main>
     </div>

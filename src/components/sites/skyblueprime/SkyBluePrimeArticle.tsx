@@ -11,6 +11,7 @@ import { articlesApi } from "@/lib/api";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
 import type { Article } from "@/lib/types";
 import { ArticleShare } from "@/components/article/ArticleShare";
+import { ArticleImageGallery } from "@/components/article/ArticleImageGallery";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
 
@@ -145,6 +146,20 @@ export default function SkyBluePrimeArticle({
       })
       .toUpperCase();
 
+  // If content has no block-level HTML tags, treat it as plain text and wrap
+  // each double-newline-separated paragraph in <p> tags.
+  function normalizeContent(html: string): string {
+    if (!html) return "";
+    const hasBlockTags = /<(p|div|h[1-6]|ul|ol|blockquote|section|article)\b/i.test(html);
+    if (hasBlockTags) return html;
+    return html
+      .split(/\n{2,}/)
+      .map((para) => para.trim())
+      .filter(Boolean)
+      .map((para) => `<p>${para.replace(/\n/g, "<br />")}</p>`)
+      .join("");
+  }
+
   // Split HTML at the nearest </p> boundary after the midpoint so the mid-article
   // ad always falls between complete paragraphs, preserving all formatting.
   function splitHtmlAtMidpoint(html: string): [string, string] {
@@ -165,7 +180,8 @@ export default function SkyBluePrimeArticle({
     );
   }
 
-  const rawHtml = article.content || "";
+
+  const rawHtml = normalizeContent(article.content || "");
   const [firstHtml, secondHtml] = splitHtmlAtMidpoint(rawHtml);
   const firstHtmlWithLede = injectLedeStyle(firstHtml);
 
@@ -247,8 +263,14 @@ export default function SkyBluePrimeArticle({
             <div className="lg:col-span-8 lg:pr-8">
               {/* First half — dropcap bold injected on first 4 words */}
               <div
-                className="prose prose-sky max-w-none text-lg lg:text-[21px] leading-[1.8] text-sky-950 font-serif article-body"
+                className="prose prose-sky max-w-none text-lg lg:text-[21px] leading-[1.8] text-sky-950 font-serif article-body [&_p]:mb-6"
                 dangerouslySetInnerHTML={{ __html: firstHtmlWithLede }}
+              />
+
+              <ArticleImageGallery
+                images={article.imageUrls ?? []}
+                title={article.title}
+                imageWrapperClassName="relative aspect-[4/3] bg-sky-100 overflow-hidden"
               />
 
               {/* Mid-article Banner */}
@@ -266,7 +288,7 @@ export default function SkyBluePrimeArticle({
               {/* Second half */}
               {secondHtml && (
                 <div
-                  className="prose prose-sky max-w-none text-lg lg:text-[21px] leading-[1.8] text-sky-950 font-serif article-body"
+                  className="prose prose-sky max-w-none text-lg lg:text-[21px] leading-[1.8] text-sky-950 font-serif article-body [&_p]:mb-6"
                   dangerouslySetInnerHTML={{ __html: secondHtml }}
                 />
               )}

@@ -7,6 +7,7 @@ import { getValidImageSrc } from "@/lib/image-utils";
 import { getOpenAiImageModel } from "@/lib/openaiImages";
 import { runOpenAiFeaturedImagePipeline } from "@/lib/featuredImagePipeline";
 import type { FeaturedImageGenerationLog } from "@/lib/featuredImageGeneration";
+import { sseBroadcaster } from "@/lib/sse";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // Allow up to 5 minutes on Vercel Pro/Enterprise
@@ -271,6 +272,8 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${r
         data: { status: "generated" },
       });
 
+      sseBroadcaster.broadcast("articles:updated");
+      sseBroadcaster.broadcast("rawArticles:updated");
       return NextResponse.json({
         ...contentArticle,
         imageGeneration: featuredImageLog,

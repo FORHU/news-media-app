@@ -28,7 +28,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { FacebookShareButton } from "./FacebookShareButton";
 
-type SiteTheme = "jejutime" | "jejuqq" | "jejujapan" | "newsicons" | "voicejeju" | "skyblueprime";
+type SiteTheme = "jejutime" | "jejuqq" | "jejujapan" | "newsicons" | "voicejeju" | "skyblueprime" | "lavaguetech";
 
 function normalizeShareUrl(input: string) {
   try {
@@ -253,6 +253,14 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
           item: "rounded-none border-sky-100 hover:border-sky-950 hover:bg-sky-50 transition-all",
           copyBtn: "bg-sky-950 text-white hover:bg-sky-800 rounded-none border-none",
         };
+      case "lavaguetech":
+        return {
+          trigger: "bg-red-600 hover:bg-red-500 active:bg-red-700 text-white px-8 py-2.5 text-[10px] font-black uppercase tracking-widest transition-colors rounded-none border border-red-700",
+          modal: "sm:max-w-lg bg-white border-2 border-teal-700 rounded-none shadow-2xl",
+          header: "text-teal-900 font-black text-xl uppercase tracking-tight",
+          item: "rounded-none border-gray-200 hover:border-teal-700 hover:bg-teal-50/50 transition-all",
+          copyBtn: "bg-teal-700 text-white hover:bg-teal-800 rounded-none border-none",
+        };
       case "newsicons":
       default:
         return {
@@ -284,10 +292,12 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
                     ? "text-black/40 font-noto"
                     : site === "skyblueprime"
                       ? "text-sky-500"
-                      : "text-gray-400"
+                      : site === "lavaguetech"
+                        ? "text-teal-700/60"
+                        : "text-gray-400"
           )}
         >
-          {site === "jejuqq" ? "Share the Story" : site === "jejujapan" ? "SHARE" : "Share this article"}
+          {site === "jejuqq" ? "Share the Story" : site === "jejujapan" ? "SHARE" : site === "lavaguetech" ? "Partager l'article" : "Share this article"}
         </p>
       </div>
     );
@@ -297,13 +307,14 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
     <div className={cn("mt-12 pt-8 border-t border-slate-100 flex flex-col items-center gap-6", className)}>
       <p className={cn(
         "text-xs font-bold uppercase tracking-[0.2em]",
-        site === "voicejeju" ? "text-black font-inter" : 
-        site === "jejutime" ? "text-blue-600/60" : 
-        site === "jejuqq" ? "text-[#b91c1c] font-garamond text-sm" : 
-        site === "jejujapan" ? "text-black/40 font-noto" : 
-        site === "skyblueprime" ? "text-sky-500" : "text-gray-400"
+        site === "voicejeju" ? "text-black font-inter" :
+        site === "jejutime" ? "text-blue-600/60" :
+        site === "jejuqq" ? "text-[#b91c1c] font-garamond text-sm" :
+        site === "jejujapan" ? "text-black/40 font-noto" :
+        site === "skyblueprime" ? "text-sky-500" :
+        site === "lavaguetech" ? "text-teal-700/60" : "text-gray-400"
       )}>
-        {site === "jejuqq" ? "Share the Story" : site === "jejujapan" ? "SHARE" : "Share this article"}
+        {site === "jejuqq" ? "Share the Story" : site === "jejujapan" ? "SHARE" : site === "lavaguetech" ? "Partager l'article" : "Share this article"}
       </p>
 
       <Dialog>

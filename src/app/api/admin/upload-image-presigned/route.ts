@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { S3Client } from "@aws-sdk/client-s3";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 export const dynamic = "force-dynamic";
 
@@ -17,26 +15,34 @@ function getS3Client() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { filename, contentType } = await req.json();
-    if (!filename || !contentType) {
-      return NextResponse.json({ error: "filename and contentType are required" }, { status: 400 });
+    const formData = await req.formData();
+    const file = formData.get("file") as File | null;
+    if (!file) {
+      return NextResponse.json({ error: "file is required" }, { status: 400 });
     }
 
     const bucket = process.env.AWS_S3_BUCKET!;
     const cloudfrontUrl = process.env.CLOUDFRONT_URL?.replace(/\/$/, "");
-    const ext = filename.split(".").pop() ?? "jpg";
+    const ext = file.name.split(".").pop() ?? "jpg";
     const key = `article-images/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
-    const command = new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: contentType });
-    const presignedUrl = await getSignedUrl(getS3Client(), command, { expiresIn: 300 });
+    const buffer = Buffer.from(await file.arrayBuffer());
+    await getS3Client().send(
+      new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        Body: buffer,
+        ContentType: file.type,
+      })
+    );
 
     const publicUrl = cloudfrontUrl
       ? `${cloudfrontUrl}/${key}`
       : `https://${bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
 
-    return NextResponse.json({ presignedUrl, publicUrl });
+    return NextResponse.json({ publicUrl });
   } catch (error: any) {
     console.error("[upload-image-presigned] Error:", error);
-    return NextResponse.json({ error: error.message || "Failed to generate presigned URL" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Failed to upload image" }, { status: 500 });
   }
 }

@@ -40,6 +40,7 @@ function useTheme(): Theme {
   const [domain, setDomain] = useState('');
   useEffect(() => { setDomain(window.location.hostname); }, []);
 
+  if (domain.includes('lavaguetech')) return lavagueTechTheme;
   if (domain.includes('jejujapan')) return jejuJapanTheme;
   if (domain.includes('jejuqq'))   return jejuQQTheme;
   if (domain.includes('jejutime')) return jejuTimeTheme;
@@ -47,6 +48,48 @@ function useTheme(): Theme {
   if (domain.includes('skyblueprime')) return skyBluePrimeTheme;
   return newsIconsTheme;
 }
+
+/* ── LavagueTech ── */
+const lavagueTechTheme: Theme = {
+  bg: 'min-h-screen bg-white flex items-center justify-center px-4 py-12 relative overflow-y-auto',
+  card: 'bg-white border border-gray-200 shadow-lg p-8 md:p-12 relative overflow-hidden',
+  topBar: 'absolute top-0 left-0 w-full h-1 bg-teal-700',
+  logo: (
+    <div className="text-center mb-10 flex flex-col items-center">
+      <Image
+        src="/Logo/LAVAGUETECH.png"
+        alt="LavagueTech"
+        width={240}
+        height={60}
+        className="object-contain mb-3"
+        priority
+      />
+      <div className="flex items-center gap-3">
+        <span className="h-px w-8 bg-gray-200" />
+        <p className="text-[10px] font-black tracking-[0.35em] text-gray-500 uppercase">Admin Portal</p>
+        <span className="h-px w-8 bg-gray-200" />
+      </div>
+    </div>
+  ),
+  accent: '#0f766e',
+  accentCls: 'bg-teal-700',
+  accentHover: 'hover:bg-teal-800',
+  inputFocus: 'focus:border-teal-600',
+  inputBorder: 'border-gray-200 hover:border-gray-300',
+  inputBgCls: 'bg-gray-50',
+  inputRounded: 'rounded-none',
+  labelCls: 'text-[10px] font-black text-gray-800 uppercase tracking-[0.25em]',
+  btnCls: 'w-full bg-red-600 text-white py-4 font-black text-[11px] uppercase tracking-[0.3em] hover:bg-red-700 disabled:opacity-50 transition-all flex items-center justify-center gap-3 group rounded-none',
+  errorCls: 'text-xs text-red-600 bg-red-50 p-4 border border-red-100 font-bold flex items-center gap-3',
+  backCls: 'fixed top-6 left-6 sm:top-10 sm:left-10 flex items-center gap-3 text-gray-500 hover:text-teal-700 transition-all group z-10 font-black uppercase tracking-[0.25em] text-[10px]',
+  backIconCls: 'transition-transform group-hover:-translate-x-1',
+  headingCls: 'text-2xl font-black text-gray-900 tracking-tight mb-1',
+  subtextCls: 'text-sm text-gray-500',
+  footerCls: 'text-center mt-8 text-gray-500 font-bold text-[10px] uppercase tracking-[0.3em]',
+  tagline: 'Welcome Back',
+  footerText: '© LavagueTech · Technology News',
+  siteName: 'LavagueTech',
+};
 
 /* ── VoiceJeju ── */
 const voiceJejuTheme: Theme = {

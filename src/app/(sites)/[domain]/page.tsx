@@ -11,6 +11,8 @@ import { articlesService } from "@/services/articles.service";
 import { bannersService } from "@/services/banners.service";
 import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain, getSiteDescriptionFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
+import { fetchRssFeed } from "@/lib/rss";
+import { fetchMediaStackNews } from "@/lib/mediastack";
 
 // Domain-specific designs
 import NewsIconsLanding from "@/components/sites/newsicons/NewsIconsLanding";
@@ -19,10 +21,12 @@ import JejuQQLanding from "@/components/sites/jejuqq/JejuQQLanding";
 import JejuJapanLanding from "@/components/sites/jejujapan/JejuJapanLanding";
 import { VoiceJejuLanding } from "@/components/sites/voicejeju/VoiceJejuLanding";
 import SkyBluePrimeLanding from "@/components/sites/skyblueprime/SkyBluePrimeLanding";
+import LavagueTechLanding from "@/components/sites/lavaguetech/LavagueTechLanding";
 
 export const revalidate = 300;
 
 export async function generateStaticParams() {
+  if (process.env.NODE_ENV === "development") return [];
   try {
     const tenants = await prisma.tenant.findMany({
       where: { isActive: true },
@@ -105,79 +109,25 @@ export default async function Page({
   const { domain } = await params;
   const tenantId = await resolveTenantIdFromDomain(domain);
 
-  const articles = tenantId
-    ? await articlesService.getArticles(
-      { limit: 100, status: "published" },
-      tenantId
-    )
-    : [];
+  const emptyBanners = { top: [], sidebar: [], footer: [], sideLTop: [], sideLMid: [], sideRMid: [], sideRBtm: [], contentMid: [] };
 
-  const [
-    topBanners,
-    sidebarBanners,
-    footerBanners,
-    sideLTopBanners,
-    sideLMidBanners,
-    sideRMidBanners,
-    sideRBtmBanners,
-    contentMidBanners,
-  ] = await Promise.all([
+  const [articles, banners] = await Promise.all([
     tenantId
-      ? bannersService
-        .getBanners({ position: "HOME_TOP", isActive: true, tenantId })
-        .catch(() => [])
+      ? articlesService.getArticles({ limit: 60, status: "published" }, tenantId)
       : Promise.resolve([]),
     tenantId
-      ? bannersService
-        .getBanners({ position: "HOME_SIDEBAR", isActive: true, tenantId })
-        .catch(() => [])
-      : Promise.resolve([]),
-    tenantId
-      ? bannersService
-        .getBanners({ position: "GLOBAL_FOOTER", isActive: true, tenantId })
-        .catch(() => [])
-      : Promise.resolve([]),
-    tenantId
-      ? bannersService
-        .getBanners({ position: "SIDEBAR_L_TOP", isActive: true, tenantId })
-        .catch(() => [])
-      : Promise.resolve([]),
-    tenantId
-      ? bannersService
-        .getBanners({ position: "SIDEBAR_L_MID", isActive: true, tenantId })
-        .catch(() => [])
-      : Promise.resolve([]),
-    tenantId
-      ? bannersService
-        .getBanners({ position: "SIDEBAR_R_MID", isActive: true, tenantId })
-        .catch(() => [])
-      : Promise.resolve([]),
-    tenantId
-      ? bannersService
-        .getBanners({ position: "SIDEBAR_R_BTM", isActive: true, tenantId })
-        .catch(() => [])
-      : Promise.resolve([]),
-    tenantId
-      ? bannersService
-        .getBanners({ position: "CONTENT_MID", isActive: true, tenantId })
-        .catch(() => [])
-      : Promise.resolve([]),
+      ? bannersService.getAllBannersForTenant(tenantId).catch(() => emptyBanners)
+      : Promise.resolve(emptyBanners),
   ]);
-
-  const banners = {
-    top: topBanners,
-    sidebar: sidebarBanners,
-    footer: footerBanners,
-    sideLTop: sideLTopBanners,
-    sideLMid: sideLMidBanners,
-    sideRMid: sideRMidBanners,
-    sideRBtm: sideRBtmBanners,
-    contentMid: contentMidBanners,
-  };
 
   // --- Design Routing ---
   if (domain === "newsicons.com") {
-    return <NewsIconsLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
+    const mediastackArticles = await fetchMediaStackNews({
+      categories: "technology",
+      languages: "en",
+      limit: 100,
+    });
+    return <NewsIconsLanding tenantId={tenantId} articles={articles} banners={banners as any} mediastackArticles={mediastackArticles} />;
   }
 
   if (domain === "jejutime.com") {
@@ -197,7 +147,33 @@ export default async function Page({
   }
 
   if (domain === "skyblueprime.com") {
-    return <SkyBluePrimeLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
+    const sbpMediastack = await fetchMediaStackNews({ categories: "technology", languages: "en", limit: 100 });
+    return <SkyBluePrimeLanding tenantId={tenantId} articles={articles} banners={banners as any} mediastackArticles={sbpMediastack} />;
+  }
+
+  if (domain === "lavaguetech.com") {
+    const [ltRssFeeds, ltMediastack] = await Promise.all([
+      Promise.all([
+        fetchRssFeed("https://www.frandroid.com/feed", "Frandroid", 12),
+        fetchRssFeed("https://www.01net.com/feed/", "01net", 12),
+        fetchRssFeed("https://www.numerama.com/feed/", "Numerama", 12),
+        fetchRssFeed("https://www.phonandroid.com/feed", "PhonAndroid", 12),
+        fetchRssFeed("https://www.clubic.com/feed/rss/", "Clubic", 10),
+      ]),
+      fetchMediaStackNews({ categories: "technology", limit: 50 }),
+    ]);
+    const ltRssArticles = ltRssFeeds
+      .flat()
+      .sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
+    return (
+      <LavagueTechLanding
+        tenantId={tenantId}
+        articles={articles}
+        banners={banners as any}
+        rssArticles={ltRssArticles}
+        mediastackArticles={ltMediastack}
+      />
+    );
   }
 
   // Default design (current layout)
@@ -209,7 +185,7 @@ export default async function Page({
       </Suspense>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-        <AdBanner position="HOME_TOP" initialBanners={topBanners} />
+        <AdBanner position="HOME_TOP" initialBanners={banners.top} />
       </div>
 
       {articles.length > 0 && (
@@ -229,7 +205,7 @@ export default async function Page({
           />
           <div className="space-y-8">
             <TrendingSidebar articles={articles.slice(0, 5)} domain={domain} />
-            <AdBanner position="HOME_SIDEBAR" initialBanners={sidebarBanners} />
+            <AdBanner position="HOME_SIDEBAR" initialBanners={banners.sidebar} />
           </div>
         </div>
 

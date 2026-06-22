@@ -21,6 +21,7 @@ import {
   stripOriginalPostBlock,
 } from "@/lib/tweetArticleDisplay";
 import { ArticleShare } from "@/components/article/ArticleShare";
+import { ArticleImageGallery } from "@/components/article/ArticleImageGallery";
 
 export default function ArticlePageClient({
   articleId,
@@ -281,11 +282,23 @@ export default function ArticlePageClient({
                   />
                 </div>
 
-
-                {/* Article content — full */}
+                {/* Article content — first half */}
                 <div className="mt-8 text-gray-700 leading-relaxed whitespace-pre-wrap">
-                  {fullContent}
+                  {firstHalf}
                 </div>
+
+                <ArticleImageGallery
+                  images={article.imageUrls ?? []}
+                  title={article.title}
+                  imageWrapperClassName="rounded-xl overflow-hidden bg-gray-200 relative aspect-video shadow-sm"
+                />
+
+                {/* Article content — second half */}
+                {secondHalf && (
+                  <div className="mt-8 text-gray-700 leading-relaxed whitespace-pre-wrap">
+                    {secondHalf}
+                  </div>
+                )}
                 {referenceLine ? (
                   <div className="mt-12 pt-8 border-t border-gray-100">
                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">Reference</p>
@@ -298,9 +311,9 @@ export default function ArticlePageClient({
               </>
             )}
 
-            <ArticleShare 
-              site="newsicons" 
-              title={article.title} 
+            <ArticleShare
+              site="newsicons"
+              title={article.title}
               className="mt-12"
             />
           </article>

@@ -3,12 +3,10 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { Search, Menu, User, X, ChevronDown, ChevronLeft, ChevronRight, Globe, Sun, Cloud, CloudRain, CloudSnow, CloudLightning, Wind } from "lucide-react";
+import { Search, Menu, User, X, ChevronLeft, ChevronRight, Globe, Sun, Cloud, CloudRain, CloudSnow, CloudLightning, Wind } from "lucide-react";
 import ContactEmailButton from "@/components/ContactEmailButton";
-import { useQuery } from "@tanstack/react-query";
 import { useRef } from "react";
-import { articlesApi } from "@/lib/api";
-import { getCoreCategories, HOME_CATEGORY_LABEL, getHomeCategoryLabel, normalizeCategoryKey } from "@/config/categories";
+import { getCoreCategories, getHomeCategoryLabel } from "@/config/categories";
 import type { Article } from "@/lib/types";
 import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
@@ -20,7 +18,6 @@ const VoiceJejuSidebar = dynamic<{
   onClose: () => void;
   onOpenNewsletter?: () => void;
   categoryLinks: { name: string; link: string }[];
-  overflowCategories: string[];
   categoryHref: (name: string) => string;
 }>(() => import("./VoiceJejuSidebar").then(m => m.VoiceJejuSidebar), { ssr: false });
 
@@ -99,12 +96,6 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
     }
   };
 
-  const { data: categories = [] } = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => articlesApi.getCategories(),
-    staleTime: 5 * 60 * 1000,
-  });
-
   useEffect(() => {
     const nav = navRef.current;
     if (nav) {
@@ -117,25 +108,9 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
         clearTimeout(timer);
       };
     }
-  }, [categories]);
+  }, []);
 
   const coreCategories = getCoreCategories("voicejeju.com");
-  const coreCategoryKeys = new Set(
-    coreCategories.map((category) => normalizeCategoryKey(category))
-  );
-  
-  const overflowCategories = Array.from(
-    categories.reduce((acc, cat) => {
-      const name = cat.name.trim();
-      const key = normalizeCategoryKey(name);
-      if (!name || !key) return acc;
-      if (key === normalizeCategoryKey(HOME_CATEGORY_LABEL)) return acc;
-      if (coreCategoryKeys.has(key)) return acc;
-      if (!acc.has(key)) acc.set(key, name);
-      return acc;
-    }, new Map<string, string>())
-  ).map(([, name]) => name);
-
   const homeLabel = getHomeCategoryLabel("voicejeju.com");
 
   const categoryLinks = [
@@ -354,36 +329,17 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
                     {cat}
                   </Link>
                 ))}
-                {overflowCategories.length > 0 && (
-                  <div className="relative group cursor-pointer flex items-center gap-1 hover:text-white py-2 hidden lg:flex">
-                     MORE <ChevronDown size={12} />
-                     <div className="absolute top-full left-1/2 -translate-x-1/2 pt-0 hidden group-hover:block z-50">
-                        <div className="bg-black border border-gray-800 shadow-2xl p-6 grid grid-cols-2 gap-x-8 gap-y-4 min-w-[350px]">
-                           {overflowCategories.map((cat) => (
-                             <Link 
-                                key={cat} 
-                                href={categoryHref(cat)} 
-                                className="text-white/70 hover:text-white text-[11px] transition-colors uppercase tracking-wider"
-                             >
-                                {cat}
-                             </Link>
-                           ))}
-                        </div>
-                     </div>
-                  </div>
-                )}
              </nav>
           </div>
         </div>
 
       </header>
 
-      <VoiceJejuSidebar 
+      <VoiceJejuSidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
         onOpenNewsletter={onOpenNewsletter}
         categoryLinks={categoryLinks}
-        overflowCategories={overflowCategories}
         categoryHref={categoryHref}
       />
     </>

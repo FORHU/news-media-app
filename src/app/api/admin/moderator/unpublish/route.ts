@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { verifyAdminJwt, ADMIN_JWT_COOKIE } from "@/lib/auth";
+import { moderatorService } from "@/services/admin/moderator.service";
 
 export const dynamic = "force-dynamic";
 
@@ -17,19 +17,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "articleIds is required" }, { status: 400 });
     }
 
-    const { count } = await prisma.contentArticle.updateMany({
-      where: {
-        id: { in: articleIds },
-        sourceType: "MANUAL",
-      },
-      data: { status: "unpublished" },
-    });
-
-    console.log(
-      `[moderator/unpublish] ⬇️ Unpublished ${count}/${articleIds.length} articles | moderator: ${payload.email} | ids: [${articleIds.join(", ")}]`
-    );
-
-    return NextResponse.json({ success: true, unpublished: count });
+    const unpublished = await moderatorService.unpublishArticles(articleIds, payload.email);
+    return NextResponse.json({ success: true, unpublished });
   } catch (error: any) {
     console.error("[moderator/unpublish] Error:", error);
     return NextResponse.json({ error: "Failed to unpublish articles" }, { status: 500 });

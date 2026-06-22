@@ -40,6 +40,9 @@ export function AdsterraBanner({ bannerKey, width, height, className = "" }: Ads
         height={height}
         frameBorder="0"
         scrolling="no"
+        // allow-scripts: ad JS runs; allow-same-origin: cookies/frequency capping
+        // NOT allowing allow-popups or allow-top-navigation → no pop-ups/pop-unders
+        sandbox="allow-scripts allow-same-origin"
         style={{ border: "none", overflow: "hidden", display: "block" }}
         title={`Adsterra Banner ${width}x${height}`}
       />

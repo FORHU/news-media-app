@@ -23,6 +23,7 @@ import {
   stripOriginalPostBlock,
 } from "@/lib/tweetArticleDisplay";
 import { ArticleShare } from "@/components/article/ArticleShare";
+import { ArticleContentRenderer } from "@/components/article/ArticleContentRenderer";
 
 export function VoiceJejuArticle({
   articleId,
@@ -463,22 +464,18 @@ export function VoiceJejuArticle({
                     />
                   </div>
 
-                  <div className="text-gray-900 leading-[1.8] whitespace-pre-wrap font-inter text-lg lg:text-xl max-w-4xl mb-8">
-                    {firstHalf}
-                  </div>
-
-                  {/* Adsterra Mid-Article Dynamic Ad */}
-                  {midArticleConfig && (
-                    <div className="my-8 flex justify-center w-full">
-                       <AdsterraBanner bannerKey={midArticleConfig.key} width={midArticleConfig.width} height={midArticleConfig.height} className="!my-0" />
-                    </div>
-                  )}
-
-                  {secondHalf && (
-                    <div className="text-gray-900 leading-[1.8] whitespace-pre-wrap font-inter text-lg lg:text-xl max-w-4xl mb-8 mt-4">
-                      {secondHalf}
-                    </div>
-                  )}
+                  <ArticleContentRenderer
+                    paragraphs={paragraphs}
+                    galleryImages={(article.imageUrls ?? []).slice(1)}
+                    title={article.title}
+                    imageWrapperClassName="overflow-hidden bg-gray-50 relative aspect-video border-y border-gray-100"
+                    textClassName="text-gray-900 leading-[1.8] whitespace-pre-wrap font-inter text-lg lg:text-xl max-w-4xl mt-8"
+                    adSlot={midArticleConfig && (
+                      <div className="my-8 flex justify-center w-full">
+                        <AdsterraBanner bannerKey={midArticleConfig.key} width={midArticleConfig.width} height={midArticleConfig.height} className="!my-0" />
+                      </div>
+                    )}
+                  />
                 </>
               )}
 

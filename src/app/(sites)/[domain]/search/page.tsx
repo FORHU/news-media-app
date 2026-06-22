@@ -129,7 +129,9 @@ async function SearchContent({
           ? "jejuqq"
           : domain.toLowerCase().includes("skyblueprime")
             ? "skyblueprime"
-            : "default";
+            : domain.toLowerCase().includes("lavaguetech")
+              ? "lavaguetech"
+              : "default";
 
   const tenantConfig = ADSTERRA_CONFIG[tenantKey];
   const adKeys = tenantConfig?.banners;
@@ -146,6 +148,7 @@ async function SearchContent({
   const isJejuJapan = domain.toLowerCase().includes("jejujapan");
   const isJejuQQ = domain.toLowerCase().includes("jejuqq");
   const isJejuTime = domain.toLowerCase().includes("jejutime");
+  const isLavagueTech = domain.toLowerCase().includes("lavaguetech");
 
   const activeCategory = categoryParam ? decodeURIComponent(categoryParam) : null;
   const heroLabel = activeCategory ?? (searchQuery ? `"${searchQuery}"` : "전체 기사");
@@ -153,6 +156,7 @@ async function SearchContent({
   const jejuJapanCategories = isJejuJapan ? (TENANT_CATEGORIES["jejujapan.com"] ?? []) : [];
   const jejuqqCategories = isJejuQQ ? (TENANT_CATEGORIES["jejuqq.com"] ?? []) : [];
   const jejutimeCategories = isJejuTime ? (TENANT_CATEGORIES["jejutime.com"] ?? []) : [];
+  const lavaguetechCategories = isLavagueTech ? (TENANT_CATEGORIES["lavaguetech.com"] ?? []) : [];
 
   const sbpLabel = searchQuery
     ? `Search: "${searchQuery}"`
@@ -632,6 +636,236 @@ async function SearchContent({
             <TrendingSidebar articles={trendingArticles} domain={domain} />
             {showSidebarBox && adKeys?.["300x250"] && (
               <div className="flex justify-center border-b border-gray-200 pb-6">
+                <AdsterraBanner bannerKey={adKeys["300x250"]} width={300} height={250} className="!my-0" />
+              </div>
+            )}
+            <AdBanner position="HOME_SIDEBAR" initialBanners={sidebarBanners} />
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (isLavagueTech) {
+    return (
+      <>
+        {/* Breadcrumb + page header */}
+        <div className="mb-6 pt-2">
+          <div className="flex items-center gap-1.5 text-[9px] font-bold tracking-widest text-slate-400 mb-4 uppercase font-mono">
+            <Link href="/" className="hover:text-teal-600 transition-colors">LAVAGUETECH</Link>
+            <span className="text-slate-300">/</span>
+            <span className="text-teal-600">
+              {activeCategory ?? (searchQuery ? "Search Results" : "All Stories")}
+            </span>
+          </div>
+          <div className="border-l-4 border-teal-600 pl-4 flex items-start justify-between gap-4">
+            <h1 className="font-playfair text-3xl sm:text-4xl font-bold text-gray-900 leading-tight tracking-tight">
+              {activeCategory ?? (searchQuery ? `"${searchQuery}"` : "All Stories")}
+            </h1>
+            <span className="flex-shrink-0 mt-1.5 text-[10px] font-bold font-mono text-teal-600 border border-teal-200 bg-teal-50 px-2.5 py-1 rounded-full whitespace-nowrap">
+              {articles.length} articles
+            </span>
+          </div>
+          {(searchQuery || activeCategory) && (
+            <Link
+              href="/search"
+              className="inline-flex items-center gap-1 mt-3 ml-5 text-[10px] font-bold text-teal-600 hover:text-teal-800 transition-colors"
+            >
+              ← All Stories
+            </Link>
+          )}
+        </div>
+
+        {/* Mobile category — underline tab strip */}
+        {lavaguetechCategories.length > 0 && (
+          <div className="lg:hidden flex gap-0 mb-6 border-b border-gray-200 overflow-x-auto scrollbar-hide">
+            <Link
+              href="/search"
+              className={`flex-shrink-0 px-4 pb-3 pt-1 text-[11px] font-bold uppercase tracking-wider transition-all whitespace-nowrap border-b-2 -mb-px ${
+                !activeCategory && !searchQuery
+                  ? "text-teal-700 border-teal-700"
+                  : "text-gray-500 border-transparent hover:text-teal-700 hover:border-teal-300"
+              }`}
+            >
+              All
+            </Link>
+            {lavaguetechCategories.map((cat) => (
+              <Link
+                key={cat}
+                href={activeCategory === cat ? "/search" : `/search?category=${encodeURIComponent(cat)}`}
+                className={`flex-shrink-0 px-4 pb-3 pt-1 text-[11px] font-bold uppercase tracking-wider transition-all whitespace-nowrap border-b-2 -mb-px ${
+                  activeCategory === cat
+                    ? "text-teal-700 border-teal-700"
+                    : "text-gray-500 border-transparent hover:text-teal-700 hover:border-teal-300"
+                }`}
+              >
+                {cat}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 lg:gap-10 mb-12 items-start">
+          {/* Main content */}
+          <div className="min-w-0">
+            {/* Leaderboard ad */}
+            {(showTopLeaderboard || showMobileLeaderboard) && (
+              <div className="w-full flex justify-center py-4 border-b border-gray-100 mb-6 overflow-hidden">
+                {showTopLeaderboard && desktopLeaderboardKey && (
+                  <div className="hidden sm:block">
+                    <AdsterraBanner bannerKey={desktopLeaderboardKey} width={desktopLeaderboardWidth} height={desktopLeaderboardHeight} className="!my-0" />
+                  </div>
+                )}
+                {showMobileLeaderboard && adKeys?.["320x50"] && (
+                  <div className="block sm:hidden">
+                    <AdsterraBanner bannerKey={adKeys["320x50"]} width={320} height={50} className="!my-0" />
+                  </div>
+                )}
+              </div>
+            )}
+
+            <LatestStoriesSection
+              articles={articles}
+              error=""
+              searchQuery={searchQuery || null}
+              categoryName={categoryParam ? decodeURIComponent(categoryParam) : null}
+              isLoading={false}
+              domain={domain}
+            />
+
+            {tenantConfig?.native && (
+              <div className="mt-12 pt-8 border-t border-gray-100">
+                <AdsterraNativeBanner domain={domain} transparent />
+              </div>
+            )}
+          </div>
+
+          {/* Desktop sidebar */}
+          <aside className="hidden lg:block space-y-5 self-start sticky top-24">
+
+            {/* Topics — clean list widget */}
+            {lavaguetechCategories.length > 0 && (
+              <div className="border border-gray-200 overflow-hidden">
+                <div className="bg-teal-700 px-4 py-3 flex items-center justify-between">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-white">Topics</h3>
+                  <span className="text-teal-300/70 text-[9px] font-mono">{lavaguetechCategories.length}</span>
+                </div>
+                <div className="bg-white divide-y divide-gray-100">
+                  <Link
+                    href="/search"
+                    className={`flex items-center justify-between px-4 py-2.5 text-[11px] font-bold transition-colors group ${
+                      !activeCategory && !searchQuery
+                        ? "text-teal-700 bg-teal-50"
+                        : "text-gray-700 hover:text-teal-700 hover:bg-teal-50/60"
+                    }`}
+                  >
+                    <span>All Stories</span>
+                    {(!activeCategory && !searchQuery) && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-teal-700 flex-shrink-0" />
+                    )}
+                  </Link>
+                  {lavaguetechCategories.map((cat) => (
+                    <Link
+                      key={cat}
+                      href={activeCategory === cat ? "/search" : `/search?category=${encodeURIComponent(cat)}`}
+                      className={`flex items-center justify-between px-4 py-2.5 text-[11px] font-bold transition-colors group ${
+                        activeCategory === cat
+                          ? "text-teal-700 bg-teal-50"
+                          : "text-gray-700 hover:text-teal-700 hover:bg-teal-50/60"
+                      }`}
+                    >
+                      <span>{cat}</span>
+                      {activeCategory === cat && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-teal-700 flex-shrink-0" />
+                      )}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Trending Stories — custom editorial numbered list */}
+            {trendingArticles.length > 0 && (
+              <div className="border border-gray-200 overflow-hidden">
+                <div className="bg-teal-700 px-4 py-3 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-white">Trending Stories</h3>
+                </div>
+                <div className="bg-white divide-y divide-gray-100">
+                  {trendingArticles.slice(0, 6).map((article, i) => (
+                    <Link
+                      key={article.id}
+                      href={`/article/${article.slug || article.id}`}
+                      className="group flex items-start gap-3 px-4 py-3.5 hover:bg-teal-50/50 transition-colors"
+                    >
+                      <span className="font-mono text-[18px] font-black leading-none mt-0.5 w-6 flex-shrink-0 text-right text-teal-100 group-hover:text-teal-300 transition-colors tabular-nums">
+                        {i + 1}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        {article.category?.categoryName && (
+                          <span className="text-[8px] font-black uppercase tracking-[0.25em] text-red-500 block mb-1">
+                            {article.category.categoryName}
+                          </span>
+                        )}
+                        <h4 className="text-[12px] font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-teal-700 transition-colors">
+                          {article.title}
+                        </h4>
+                        <span className="text-[9px] text-gray-400 mt-1 block font-mono">
+                          {new Date(article.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {showSidebarBox && adKeys?.["300x250"] && (
+              <div className="flex justify-center">
+                <AdsterraBanner bannerKey={adKeys["300x250"]} width={300} height={250} className="!my-0" />
+              </div>
+            )}
+            <AdBanner position="HOME_SIDEBAR" initialBanners={sidebarBanners} />
+          </aside>
+
+          {/* Mobile sidebar — below content */}
+          <div className="lg:hidden space-y-8">
+            {trendingArticles.length > 0 && (
+              <div className="border border-gray-200 overflow-hidden">
+                <div className="bg-teal-700 px-4 py-3 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-white">Trending Stories</h3>
+                </div>
+                <div className="bg-white divide-y divide-gray-100">
+                  {trendingArticles.slice(0, 5).map((article, i) => (
+                    <Link
+                      key={article.id}
+                      href={`/article/${article.slug || article.id}`}
+                      className="group flex items-start gap-3 px-4 py-3.5 hover:bg-teal-50/50 transition-colors"
+                    >
+                      <span className="font-mono text-[18px] font-black leading-none mt-0.5 w-6 flex-shrink-0 text-right text-teal-100 group-hover:text-teal-300 transition-colors tabular-nums">
+                        {i + 1}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        {article.category?.categoryName && (
+                          <span className="text-[8px] font-black uppercase tracking-[0.25em] text-red-500 block mb-1">
+                            {article.category.categoryName}
+                          </span>
+                        )}
+                        <h4 className="text-[12px] font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-teal-700 transition-colors">
+                          {article.title}
+                        </h4>
+                        <span className="text-[9px] text-gray-400 mt-1 block font-mono">
+                          {new Date(article.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+            {showSidebarBox && adKeys?.["300x250"] && (
+              <div className="flex justify-center border-b border-gray-100 pb-6">
                 <AdsterraBanner bannerKey={adKeys["300x250"]} width={300} height={250} className="!my-0" />
               </div>
             )}

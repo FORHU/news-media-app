@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import type { Article } from "@/lib/types";
 
-export type SearchTheme = "jejutime" | "jejuqq" | "voicejeju" | "jejujapan" | "skyblueprime";
+export type SearchTheme = "jejutime" | "jejuqq" | "voicejeju" | "jejujapan" | "skyblueprime" | "light";
 
 interface SearchDropdownProps {
   query: string;
@@ -74,6 +74,16 @@ const themes: Record<SearchTheme, {
     empty: "text-sky-300",
     seeAll: "text-sky-600 font-bold hover:bg-sky-50",
     divider: "border-sky-100",
+  },
+  light: {
+    container: "bg-white border border-gray-200 shadow-xl rounded-none",
+    item: "hover:bg-gray-50",
+    title: "text-gray-900 font-bold leading-snug group-hover:text-blue-700 transition-colors",
+    category: "text-blue-600 font-bold uppercase tracking-widest",
+    spinner: "text-blue-500",
+    empty: "text-gray-400",
+    seeAll: "text-blue-700 font-bold hover:bg-gray-50",
+    divider: "border-gray-100",
   },
 };
 

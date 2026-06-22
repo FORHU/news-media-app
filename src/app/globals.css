@@ -41,6 +41,7 @@ html {
   --font-inter: var(--font-inter);
   --font-montserrat: var(--font-montserrat);
   --font-lora: var(--font-lora);
+  --font-oswald: var(--font-oswald);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -266,6 +267,21 @@ body {
   --font-mono: var(--font-voltaire);
   --font-baskerville: var(--font-voltaire);
   --font-geist-mono: var(--font-voltaire);
+}
+
+.site-theme-lavaguetech-com {
+  font-family: var(--font-roboto);
+
+  /* Roboto for all Sans/Body/UI content — clean, neutral, tech-native feel */
+  --font-sans: var(--font-roboto);
+  --font-noto: var(--font-roboto);
+  --font-geist-sans: var(--font-roboto);
+
+  /* Oswald for all Serif/Headline/section-label content — condensed, bold, news-punch */
+  --font-serif: var(--font-oswald);
+  --font-playfair: var(--font-oswald);
+  --font-baskerville: var(--font-oswald);
+  --font-garamond: var(--font-oswald);
 }
 
 @keyframes shimmer {

@@ -31,6 +31,7 @@ import {
   stripOriginalPostBlock,
 } from "@/lib/tweetArticleDisplay";
 import { ArticleShare } from "@/components/article/ArticleShare";
+import { ArticleContentRenderer } from "@/components/article/ArticleContentRenderer";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
@@ -260,14 +261,19 @@ export default function JejuQQArticle({
                       <StoryImage src={article.imageUrl} alt={article.title} fill priority className="object-cover" variant="hero" sizes="(max-width: 1024px) 100vw, 850px" />
                     </div>
                   )}
-                  <div className="prose prose-lg font-garamond max-w-none prose-headings:font-black prose-p:leading-relaxed prose-p:text-gray-900 whitespace-pre-wrap break-words">
-                    <div className="whitespace-pre-wrap mb-10 break-words">{firstHalf}</div>
-                    {midArticleConfig && (
-                      <div className="my-2 py-2 flex justify-center w-full">
-                        <AdsterraBanner bannerKey={midArticleConfig.key} width={midArticleConfig.width} height={midArticleConfig.height} className="!my-0" />
-                      </div>
-                    )}
-                    {secondHalf && <div className="whitespace-pre-wrap break-words">{secondHalf}</div>}
+                  <div className="prose prose-lg font-garamond max-w-none prose-headings:font-black prose-p:leading-relaxed prose-p:text-gray-900">
+                    <ArticleContentRenderer
+                      paragraphs={paragraphs}
+                      galleryImages={(article.imageUrls ?? []).slice(1)}
+                      title={article.title}
+                      imageWrapperClassName="relative aspect-[16/9] bg-gray-100 rounded-none overflow-hidden shadow-lg border-2 border-[#dc2626]"
+                      textClassName="whitespace-pre-wrap break-words mt-8"
+                      adSlot={midArticleConfig && (
+                        <div className="my-2 py-2 flex justify-center w-full">
+                          <AdsterraBanner bannerKey={midArticleConfig.key} width={midArticleConfig.width} height={midArticleConfig.height} className="!my-0" />
+                        </div>
+                      )}
+                    />
                   </div>
                 </>
               )}

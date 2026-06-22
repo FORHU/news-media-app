@@ -1,445 +1,911 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { X, Loader2, CheckCircle2, ArrowRight, RotateCcw, Globe, Upload, ChevronDown, Check } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  Globe2,
+  CheckCircle,
+  Ban,
+  FileText,
+  AlertCircle,
+  RefreshCw,
+  ExternalLink,
+  Clock,
+  EyeOff,
+  ChevronDown,
+  ChevronUp,
+  Send,
+  Trash2,
+  Eye,
+  X,
+  Loader2,
+} from "lucide-react";
+import Pagination from "@/components/ui/Pagination";
 
-type PageState = "form" | "generating" | "preview" | "published";
+type ExternalSubmission = {
+  id: string;
+  externalArticleId: string;
+  sourcePlatform: string;
+  callbackUrl: string | null;
+  callbackStatus: string | null;
+  callbackSentAt: string | null;
+};
 
-interface SiteArticle {
-    domain: string;
-    language: string;
-    flag: string;
-    id: string;
-    title: string;
-    content: string;
-    imageUrl: string | null;
+type ExternalArticle = {
+  id: string;
+  title: string;
+  slug: string | null;
+  status: string;
+  imageUrl: string | null;
+  content: string;
+  createdAt: string;
+  publishDate: string | null;
+  tenant: { domain: string; siteName: string } | null;
+  category: { id: string; categoryName: string };
+  externalSubmission: ExternalSubmission | null;
+};
+
+type ArticleGroup = {
+  groupKey: string;
+  primary: ExternalArticle;
+  translations: ExternalArticle[];
+};
+
+type ArticlesResponse = {
+  articles: ExternalArticle[];
+  total: number;
+  totalPages: number;
+};
+
+const STATUS_TABS = ["pending", "draft", "published", "rejected"] as const;
+type StatusTab = (typeof STATUS_TABS)[number];
+
+const DOMAIN_FLAG: Record<string, string> = {
+  "voicejeju.com": "🇰🇷",
+  "jejutime.com": "🇺🇸",
+  "jejuqq.com": "🇨🇳",
+  "jejujapan.com": "🇯🇵",
+};
+
+const DOMAIN_LANG: Record<string, string> = {
+  "voicejeju.com": "Korean",
+  "jejutime.com": "English",
+  "jejuqq.com": "Chinese",
+  "jejujapan.com": "Japanese",
+};
+
+function formatDate(d: string) {
+  return new Date(d).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
-const GENERATING_SITES = [
-    { flag: "🇺🇸", short: "EN", domain: "jejutime.com" },
-    { flag: "🇰🇷", short: "KO", domain: "voicejeju.com" },
-    { flag: "🇨🇳", short: "ZH", domain: "jejuqq.com" },
-    { flag: "🇯🇵", short: "JA", domain: "jejujapan.com" },
-];
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, string> = {
+    pending:
+      "bg-yellow-50 dark:bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-100 dark:border-yellow-500/20",
+    draft:
+      "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-500/20",
+    published:
+      "bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 border-green-100 dark:border-green-500/20",
+    rejected:
+      "bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border-red-100 dark:border-red-500/20",
+  };
+  const dot: Record<string, string> = {
+    pending: "bg-yellow-500",
+    draft: "bg-blue-500",
+    published: "bg-green-500",
+    rejected: "bg-red-500",
+  };
+  return (
+    <span
+      className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border ${map[status] ?? "bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400 border-gray-200 dark:border-zinc-700"}`}
+    >
+      <span
+        className={`w-1.5 h-1.5 rounded-full ${dot[status] ?? "bg-gray-400"}`}
+      />
+      {status}
+    </span>
+  );
+}
 
-function readFileAsBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
+function groupArticles(articles: ExternalArticle[]): ArticleGroup[] {
+  const groups = new Map<string, ExternalArticle[]>();
+  for (const article of articles) {
+    const date = article.publishDate
+      ? new Date(article.publishDate)
+      : new Date(article.createdAt);
+    const key = Math.floor(date.getTime() / 10000).toString();
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(article);
+  }
+  return Array.from(groups.entries())
+    .map(([key, arts]) => {
+      const primary =
+        arts.find((a) => a.tenant?.domain?.includes("voicejeju.com")) ??
+        arts.find((a) => a.externalSubmission !== null) ??
+        arts[0];
+      const translations = arts.filter((a) => a.id !== primary.id);
+      return { groupKey: key, primary, translations };
+    })
+    .sort((a, b) => {
+      const dateA = a.primary.publishDate ?? a.primary.createdAt;
+      const dateB = b.primary.publishDate ?? b.primary.createdAt;
+      return new Date(dateB).getTime() - new Date(dateA).getTime();
     });
 }
 
+async function fetchExternalArticles(
+  status: string,
+  page: number,
+): Promise<ArticlesResponse> {
+  const res = await fetch(
+    `/api/admin/external/articles?status=${status}&page=${page}`,
+    { cache: "no-store" },
+  );
+  if (!res.ok) throw new Error("Failed to fetch");
+  return res.json();
+}
+
 export default function ModeratorPage() {
-    const [pageState, setPageState] = useState<PageState>("form");
-    const [siteArticles, setSiteArticles] = useState<SiteArticle[]>([]);
-    const [activeTab, setActiveTab] = useState(0);
-    const [isPublishing, setIsPublishing] = useState(false);
-    const [publishError, setPublishError] = useState<string | null>(null);
-    const [generateError, setGenerateError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const activeTab = (searchParams.get("tab") as StatusTab) ?? "pending";
 
-    const [title, setTitle] = useState("");
-    const [topic, setTopic] = useState("");
-    const [imageFile, setImageFile] = useState<File | null>(null);
-    const [selectedCategory, setSelectedCategory] = useState("");
-    const [categoryName, setCategoryName] = useState("");
-    const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
-    const [catOpen, setCatOpen] = useState(false);
-    const catRef = useRef<HTMLDivElement>(null);
-    const [fieldErrors, setFieldErrors] = useState<{ title?: string; topic?: string; category?: string }>({});
+  const [page, setPage] = useState(1);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [confirmRejectId, setConfirmRejectId] = useState<string | null>(null);
+  const [editingArticle, setEditingArticle] = useState<ExternalArticle | null>(
+    null,
+  );
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
+  const [editImageUrl, setEditImageUrl] = useState("");
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [previewId, setPreviewId] = useState<string | null>(null);
+  const [previewImgError, setPreviewImgError] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
-    useEffect(() => {
-        fetch("/api/admin/moderator/categories", { cache: "no-store" })
-            .then((r) => r.json())
-            .then((data) => setCategories(Array.isArray(data) ? data : []))
-            .catch(() => {});
-    }, []);
+  useEffect(() => {
+    setPage(1);
+  }, [activeTab]);
+  useEffect(() => {
+    setPreviewImgError(false);
+  }, [previewId]);
 
-    useEffect(() => {
-        function onClickOutside(e: MouseEvent) {
-            if (catRef.current && !catRef.current.contains(e.target as Node)) {
-                setCatOpen(false);
-            }
-        }
-        if (catOpen) document.addEventListener("mousedown", onClickOutside);
-        return () => document.removeEventListener("mousedown", onClickOutside);
-    }, [catOpen]);
+  const { data, isLoading, isFetching, refetch } = useQuery({
+    queryKey: ["external-submissions", activeTab, page],
+    queryFn: () => fetchExternalArticles(activeTab, page),
+    staleTime: 30_000,
+  });
 
-    function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-        if (e.target.files?.[0]) setImageFile(e.target.files[0]);
+  const articles = data?.articles ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = data?.totalPages ?? 1;
+
+  function invalidateAll() {
+    queryClient.invalidateQueries({ queryKey: ["external-submissions"] });
+  }
+
+  function onError(e: unknown, fallback: string) {
+    setActionError(e instanceof Error ? e.message : fallback);
+  }
+
+  const approveMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch("/api/admin/external/approve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ articleIds: [id] }),
+      });
+      if (!res.ok) throw new Error("Failed to approve.");
+    },
+    onSuccess: invalidateAll,
+    onError: (e) => onError(e, "Approve failed."),
+  });
+
+  const publishMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch("/api/admin/external/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ articleIds: [id] }),
+      });
+      if (!res.ok) throw new Error("Failed to publish.");
+    },
+    onSuccess: invalidateAll,
+    onError: (e) => onError(e, "Publish failed."),
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: async ({ id, reason }: { id: string; reason: string }) => {
+      const res = await fetch("/api/admin/external/reject", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ articleIds: [id], reason }),
+      });
+      if (!res.ok) throw new Error("Failed to reject.");
+    },
+    onSuccess: () => {
+      setConfirmRejectId(null);
+      setRejectReason("");
+      invalidateAll();
+    },
+    onError: (e) => onError(e, "Reject failed."),
+  });
+
+  const unpublishMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch("/api/admin/external/unpublish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ articleIds: [id] }),
+      });
+      if (!res.ok) throw new Error("Failed to unpublish.");
+    },
+    onSuccess: invalidateAll,
+    onError: (e) => onError(e, "Unpublish failed."),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch("/api/admin/external/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ articleId: id }),
+      });
+      if (!res.ok) throw new Error("Failed to delete.");
+    },
+    onSuccess: () => {
+      setConfirmDeleteId(null);
+      invalidateAll();
+    },
+    onError: (e) => onError(e, "Delete failed."),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({
+      id,
+      title,
+      content,
+      imageUrl,
+    }: {
+      id: string;
+      title: string;
+      content: string;
+      imageUrl: string;
+    }) => {
+      const res = await fetch("/api/admin/external/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ articleId: id, title, content, imageUrl }),
+      });
+      if (!res.ok) throw new Error("Failed to save.");
+    },
+    onSuccess: () => {
+      setEditingArticle(null);
+      invalidateAll();
+    },
+    onError: (e) =>
+      setSaveError(e instanceof Error ? e.message : "Save failed."),
+  });
+
+  // Derive per-article loading IDs from mutation state
+  const approvingId = approveMutation.isPending
+    ? (approveMutation.variables ?? null)
+    : null;
+  const publishingId = publishMutation.isPending
+    ? (publishMutation.variables ?? null)
+    : null;
+  const rejectingId = rejectMutation.isPending
+    ? (rejectMutation.variables?.id ?? null)
+    : null;
+  const unpublishingId = unpublishMutation.isPending
+    ? (unpublishMutation.variables ?? null)
+    : null;
+  const deletingId = deleteMutation.isPending
+    ? (deleteMutation.variables ?? null)
+    : null;
+
+  function openEdit(article: ExternalArticle) {
+    setEditingArticle(article);
+    setEditTitle(article.title);
+    setEditContent(article.content);
+    setEditImageUrl(article.imageUrl ?? "");
+    setSaveError(null);
+  }
+
+  function toggleGroup(key: string) {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
+
+  const previewArticle = previewId
+    ? articles.find((a) => a.id === previewId)
+    : null;
+  const isGroupedTab = activeTab === "draft" || activeTab === "published";
+  const articleGroups = isGroupedTab ? groupArticles(articles) : [];
+
+  function ArticleActions({ article }: { article: ExternalArticle }) {
+    const isConfirmingReject = confirmRejectId === article.id;
+    const isConfirmingDelete = confirmDeleteId === article.id;
+
+    // Reject confirm expands into a column — handle separately
+    if (isConfirmingReject) {
+      return (
+        <div className="flex flex-col items-end gap-1.5">
+          <input
+            type="text"
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            placeholder="Reason (optional)"
+            className="text-xs border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 dark:placeholder:text-zinc-600 rounded-xl px-3 py-1.5 w-44 focus:outline-none focus:border-orange-400"
+          />
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => rejectMutation.mutate({ id: article.id, reason: rejectReason })}
+              disabled={rejectingId === article.id}
+              className="h-7 px-3 rounded-xl bg-red-500 hover:bg-red-600 text-white text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-50"
+            >
+              {rejectingId === article.id ? "…" : "Confirm"}
+            </button>
+            <button
+              onClick={() => { setConfirmRejectId(null); setRejectReason(""); }}
+              className="h-7 px-3 rounded-xl bg-gray-100 dark:bg-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-600 text-gray-600 dark:text-zinc-300 text-[10px] font-black uppercase tracking-widest transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      );
     }
-
-    function removeImage() { setImageFile(null); }
-
-    async function handleGenerate(e: React.SyntheticEvent) {
-        e.preventDefault();
-        const errors: typeof fieldErrors = {};
-        if (!selectedCategory) errors.category = "Please select a category.";
-        if (!title.trim()) errors.title = "Title is required.";
-        if (!topic.trim()) errors.topic = "Article content is required.";
-        setFieldErrors(errors);
-        if (Object.keys(errors).length > 0) return;
-
-        setGenerateError(null);
-        setPageState("generating");
-
-        try {
-            const s3ImageUrl = imageFile ? await readFileAsBase64(imageFile) : "";
-            const res = await fetch("/api/admin/moderator/generate", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ title, content: topic, categoryName, s3ImageUrl }),
-            });
-            if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                throw new Error(err.error || "Generation failed.");
-            }
-            const { articles } = await res.json();
-            setSiteArticles(articles);
-            setActiveTab(0);
-            setPageState("preview");
-        } catch (err: any) {
-            setGenerateError(err.message || "Something went wrong. Please try again.");
-            setPageState("form");
-        }
-    }
-
-    async function handlePublishAll() {
-        setIsPublishing(true);
-        setPublishError(null);
-        try {
-            const res = await fetch("/api/admin/moderator/publish", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ articleIds: siteArticles.map((a) => a.id) }),
-            });
-            if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                throw new Error(err.error || "Publish failed.");
-            }
-            setPageState("published");
-        } catch (err: any) {
-            setPublishError(err.message || "Publish failed. Please try again.");
-        } finally {
-            setIsPublishing(false);
-        }
-    }
-
-    function handleStartOver() {
-        setTitle(""); setTopic(""); setImageFile(null);
-        setSelectedCategory(""); setCategoryName("");
-        setFieldErrors({}); setSiteArticles([]);
-        setPublishError(null); setGenerateError(null);
-        setPageState("form");
-    }
-
-    // ── Published ─────────────────────────────────────────────────────────────
-    if (pageState === "published") {
-        return (
-            <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
-                className="h-full flex flex-col items-center justify-center gap-8 text-center px-4 py-16">
-                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
-                    transition={{ delay: 0.1, type: "spring", stiffness: 180, damping: 14 }}
-                    className="w-20 h-20 rounded-full bg-green-50 dark:bg-green-500/10 border-2 border-green-100 dark:border-green-500/20 flex items-center justify-center">
-                    <CheckCircle2 className="w-10 h-10 text-green-500" />
-                </motion.div>
-                <div className="space-y-2">
-                    <h2 className="text-2xl font-black uppercase tracking-widest text-gray-900 dark:text-zinc-100">Published Successfully</h2>
-                    <p className="text-sm text-gray-400 dark:text-zinc-500 max-w-xs mx-auto leading-relaxed">
-                        Your article is now live across all 4 sites in English, Korean, Chinese, and Japanese.
-                    </p>
-                </div>
-                <div className="flex flex-wrap justify-center gap-2">
-                    {GENERATING_SITES.map(({ flag, domain }, i) => (
-                        <motion.div key={domain} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.25 + i * 0.07 }}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 text-xs font-medium text-gray-500 dark:text-zinc-400">
-                            <span>{flag}</span><span>{domain}</span>
-                        </motion.div>
-                    ))}
-                </div>
-                <Button onClick={handleStartOver}
-                    className="h-12 px-8 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-black uppercase tracking-widest text-sm shadow-lg shadow-orange-200/50 gap-2">
-                    <ArrowRight className="w-4 h-4" />Create Another Article
-                </Button>
-            </motion.div>
-        );
-    }
-
-    // ── Generating ────────────────────────────────────────────────────────────
-    if (pageState === "generating") {
-        return (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                className="h-full flex flex-col items-center justify-center gap-10 text-center px-4 py-16">
-                <div className="relative w-20 h-20">
-                    <div className="absolute inset-0 rounded-full bg-orange-100 dark:bg-orange-500/20 animate-ping opacity-30" />
-                    <div className="relative w-20 h-20 rounded-full bg-orange-50 dark:bg-orange-500/10 border-2 border-orange-100 dark:border-orange-500/20 flex items-center justify-center">
-                        <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
-                    </div>
-                </div>
-                <div className="space-y-1.5">
-                    <h2 className="text-xl font-black uppercase tracking-widest text-gray-900 dark:text-zinc-100">Translating Article</h2>
-                    <p className="text-sm text-gray-400 dark:text-zinc-500">Creating versions for all 4 sites. This may take a moment.</p>
-                </div>
-                <div className="grid grid-cols-4 gap-3 w-full max-w-sm">
-                    {GENERATING_SITES.map(({ flag, short, domain }, i) => (
-                        <motion.div key={domain} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-                            className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 shadow-sm">
-                            <span className="text-2xl">{flag}</span>
-                            <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-zinc-400">{short}</span>
-                            <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.6, repeat: Infinity, delay: i * 0.25 }}
-                                className="w-8 h-1 rounded-full bg-orange-300 dark:bg-orange-500/50" />
-                        </motion.div>
-                    ))}
-                </div>
-            </motion.div>
-        );
-    }
-
-    // ── Preview ───────────────────────────────────────────────────────────────
-    if (pageState === "preview" && siteArticles.length > 0) {
-        const active = siteArticles[activeTab];
-        return (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-5 h-full">
-                {/* Header row */}
-                <div className="flex items-start justify-between gap-4 shrink-0">
-                    <div>
-                        <h1 className="text-xl font-black uppercase tracking-widest text-gray-900 dark:text-zinc-100">Review & Publish</h1>
-                        <p className="text-sm text-gray-400 dark:text-zinc-500 mt-0.5">Preview each version before publishing to all 4 sites.</p>
-                    </div>
-                    <button onClick={handleStartOver}
-                        className="shrink-0 flex items-center gap-1.5 text-xs font-bold text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-200 transition-colors mt-1">
-                        <RotateCcw className="w-3.5 h-3.5" />Start Over
-                    </button>
-                </div>
-
-                {/* Two-column: tabs left, article right */}
-                <div className="flex gap-5 flex-1 min-h-0">
-                    {/* Site tabs — vertical column */}
-                    <div className="flex flex-col gap-2 w-44 shrink-0">
-                        {siteArticles.map((a, i) => (
-                            <button key={a.domain} onClick={() => setActiveTab(i)}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all text-left ${
-                                    activeTab === i
-                                        ? "bg-orange-500 border-orange-500 text-white shadow-md shadow-orange-200/50"
-                                        : "bg-white dark:bg-zinc-800 border-gray-100 dark:border-zinc-700 text-gray-500 dark:text-zinc-400 hover:border-orange-200 dark:hover:border-orange-500/30 hover:bg-orange-50/40 dark:hover:bg-orange-500/5"
-                                }`}>
-                                <span className="text-2xl leading-none">{a.flag}</span>
-                                <div className="min-w-0">
-                                    <p className="text-[11px] font-black uppercase tracking-widest leading-none">{a.language}</p>
-                                    <p className={`text-[9px] font-medium truncate mt-0.5 ${activeTab === i ? "text-orange-100" : "text-gray-400 dark:text-zinc-600"}`}>
-                                        {a.domain}
-                                    </p>
-                                </div>
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Article preview — scrollable */}
-                    <div className="flex-1 min-w-0 flex flex-col gap-4 overflow-y-auto">
-                        <AnimatePresence mode="wait">
-                            <motion.div key={activeTab} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.18 }}
-                                className="bg-white dark:bg-zinc-800 rounded-3xl border border-gray-100 dark:border-zinc-700 shadow-sm overflow-hidden flex-1">
-                                {active.imageUrl && (
-                                    <div className="w-full h-56 overflow-hidden">
-                                        <img src={active.imageUrl} alt={active.title} className="w-full h-full object-cover" />
-                                    </div>
-                                )}
-                                <div className="p-7 space-y-4">
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                        <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-orange-500 bg-orange-50 dark:bg-orange-500/10 border border-orange-100 dark:border-orange-500/20 px-3 py-1 rounded-full">
-                                            {active.flag} {active.domain}
-                                        </span>
-                                        <span className="text-xs text-gray-400 dark:text-zinc-500 font-medium">{active.language}</span>
-                                    </div>
-                                    <h2 className="text-2xl font-black text-gray-900 dark:text-zinc-100 leading-snug">{active.title}</h2>
-                                    <div className="h-px bg-gray-100 dark:bg-zinc-700" />
-                                    <div className="text-[14px] text-gray-600 dark:text-zinc-300 leading-7 whitespace-pre-line">{active.content}</div>
-                                </div>
-                            </motion.div>
-                        </AnimatePresence>
-
-                        {publishError && (
-                            <p className="text-xs font-bold text-red-600 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 px-4 py-2.5 rounded-xl shrink-0">
-                                {publishError}
-                            </p>
-                        )}
-
-                        <div className="flex items-center justify-between shrink-0 pb-2">
-                            <Button variant="outline" onClick={handleStartOver}
-                                className="h-11 px-5 rounded-2xl font-black uppercase tracking-widest text-xs border-gray-200 dark:border-zinc-700 text-gray-500 dark:text-zinc-400 dark:bg-transparent dark:hover:bg-zinc-800">
-                                Discard
-                            </Button>
-                            <Button onClick={handlePublishAll} disabled={isPublishing}
-                                className="h-11 px-7 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-black uppercase tracking-widest text-xs shadow-lg shadow-orange-200/50 disabled:opacity-60 gap-2">
-                                {isPublishing
-                                    ? <><Loader2 className="w-4 h-4 animate-spin" />Publishing…</>
-                                    : <>Publish to All 4 Sites<ArrowRight className="w-3.5 h-3.5" /></>}
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            </motion.div>
-        );
-    }
-
-    // ── Form ──────────────────────────────────────────────────────────────────
-    const wordCount = topic.trim() ? topic.trim().split(/\s+/).length : 0;
 
     return (
-        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="flex-1 flex flex-col gap-4">
-            <form onSubmit={handleGenerate} className="flex-1 flex flex-col gap-4">
-                {/* Page header */}
-                <div className="shrink-0">
-                    <h1 className="text-xl font-black uppercase tracking-widest text-gray-900 dark:text-zinc-100">Create Article</h1>
-                    <p className="text-sm text-gray-400 dark:text-zinc-500 mt-1">Write in English — automatically translated for all 4 sites.</p>
-                </div>
+      <div className="flex items-center gap-1">
+        {/* Status-specific actions */}
+        {article.status === "pending" && (
+          <>
+            <button
+              onClick={() => { setActionError(null); approveMutation.mutate(article.id); }}
+              disabled={approvingId === article.id}
+              className="flex items-center gap-1 h-8 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-40 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-500/10 hover:bg-green-100 dark:hover:bg-green-500/20 border border-green-100 dark:border-green-500/20"
+            >
+              <CheckCircle className="w-3 h-3" />
+              {approvingId === article.id ? "Generating…" : "Approve"}
+            </button>
+            <button
+              onClick={() => { setConfirmRejectId(article.id); setActionError(null); }}
+              className="flex items-center gap-1 h-8 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 border border-red-100 dark:border-red-500/20"
+            >
+              <Ban className="w-3 h-3" />Reject
+            </button>
+          </>
+        )}
 
-                {generateError && (
-                    <div className="shrink-0 flex items-start gap-3 p-4 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20">
-                        <div className="shrink-0 w-1 self-stretch rounded-full bg-red-400 min-h-[20px]" />
-                        <p className="text-sm font-medium text-red-600 dark:text-red-400">{generateError}</p>
-                    </div>
-                )}
+        {article.status === "draft" && (
+          <>
+            <button
+              onClick={() => openEdit(article)}
+              className="flex items-center gap-1 h-8 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 border border-blue-100 dark:border-blue-500/20 transition-colors"
+            >
+              <Eye className="w-3 h-3" />View
+            </button>
+            {article.externalSubmission && (
+              <button
+                onClick={() => publishMutation.mutate(article.id)}
+                disabled={publishingId === article.id}
+                className="flex items-center gap-1 h-8 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-40 text-white bg-orange-500 hover:bg-orange-600 border border-orange-400 shadow-sm shadow-orange-200/50 dark:shadow-orange-900/30"
+              >
+                <Send className="w-3 h-3" />
+                {publishingId === article.id ? "Publishing…" : "Publish All"}
+              </button>
+            )}
+          </>
+        )}
 
-                {/* Translation strip */}
-                <div className="shrink-0 flex items-center gap-3 px-4 py-3 rounded-2xl bg-sky-50 dark:bg-sky-500/10 border border-sky-100 dark:border-sky-500/20">
-                    <Globe className="w-4 h-4 text-sky-400 shrink-0" />
-                    <div className="flex items-center gap-3 flex-1">
-                        {["🇺🇸 EN", "🇰🇷 KO", "🇨🇳 ZH", "🇯🇵 JA"].map((l) => (
-                            <span key={l} className="text-[11px] font-black uppercase tracking-widest text-sky-500 dark:text-sky-400">{l}</span>
-                        ))}
-                    </div>
-                    <span className="text-[11px] font-medium text-sky-400 dark:text-sky-500 shrink-0">Auto-translated</span>
-                </div>
+        {article.status === "published" && (
+          <>
+            {article.slug && article.tenant && (
+              <a
+                href={`https://${article.tenant.domain}/article/${article.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 h-8 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 border border-blue-100 dark:border-blue-500/20 transition-colors"
+              >
+                <ExternalLink className="w-3 h-3" />View
+              </a>
+            )}
+            <button
+              onClick={() => unpublishMutation.mutate(article.id)}
+              disabled={unpublishingId === article.id}
+              className="flex items-center gap-1 h-8 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 border border-red-100 dark:border-red-500/20 transition-colors disabled:opacity-40"
+            >
+              <EyeOff className="w-3 h-3" />
+              {unpublishingId === article.id ? "…" : "Unpublish"}
+            </button>
+          </>
+        )}
 
-                {/* Two-column grid — fills remaining height */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 lg:grid-rows-1 gap-4 flex-1 min-h-0">
+        {/* Divider */}
+        <div className="w-px h-5 bg-gray-200 dark:bg-zinc-700 mx-0.5" />
 
-                    {/* Left column */}
-                    <div className="flex flex-col gap-4">
-
-                        {/* 01 Category */}
-                        <div className="bg-white dark:bg-zinc-800 rounded-3xl border border-gray-100 dark:border-zinc-700 shadow-sm overflow-hidden">
-                            <div className="flex items-center gap-3 px-6 pt-5 pb-4 border-b border-gray-50 dark:border-zinc-700">
-                                <span className="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-[10px] font-black shrink-0">01</span>
-                                <span className="text-xs font-black uppercase tracking-widest text-gray-700 dark:text-zinc-300">Category</span>
-                            </div>
-                            <div className="px-6 py-5 space-y-2">
-                                <select value={selectedCategory}
-                                    onChange={(e) => {
-                                        const sel = categories.find((c) => c.id === e.target.value);
-                                        setSelectedCategory(e.target.value);
-                                        setCategoryName(sel?.name ?? "");
-                                        setFieldErrors((p) => ({ ...p, category: undefined }));
-                                    }}
-                                    className={`w-full h-11 rounded-xl bg-gray-50 dark:bg-zinc-900 border px-4 text-sm font-medium text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-orange-400/20 cursor-pointer transition-colors appearance-none ${
-                                        fieldErrors.category ? "border-red-300" : "border-gray-200 dark:border-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600"
-                                    }`}>
-                                    <option value="">Select a category…</option>
-                                    {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                </select>
-                                {fieldErrors.category && <p className="text-[10px] font-black text-red-500 uppercase tracking-widest">{fieldErrors.category}</p>}
-                            </div>
-                        </div>
-
-                        {/* 02 Title */}
-                        <div className="bg-white dark:bg-zinc-800 rounded-3xl border border-gray-100 dark:border-zinc-700 shadow-sm overflow-hidden">
-                            <div className="flex items-center gap-3 px-6 pt-5 pb-4 border-b border-gray-50 dark:border-zinc-700">
-                                <span className="w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 flex items-center justify-center text-[10px] font-black shrink-0">02</span>
-                                <span className="text-xs font-black uppercase tracking-widest text-gray-700 dark:text-zinc-300">Title</span>
-                            </div>
-                            <div className="px-6 py-5 space-y-2">
-                                <Input placeholder="Enter the article title in English…" value={title}
-                                    onChange={(e) => { setTitle(e.target.value); setFieldErrors((p) => ({ ...p, title: undefined })); }}
-                                    className={`h-12 rounded-xl bg-gray-50 dark:bg-zinc-900 dark:text-zinc-100 text-base font-medium border focus-visible:ring-orange-400/20 transition-colors ${
-                                        fieldErrors.title ? "border-red-300" : "border-gray-200 dark:border-zinc-700"
-                                    }`} />
-                                {fieldErrors.title && <p className="text-[10px] font-black text-red-500 uppercase tracking-widest">{fieldErrors.title}</p>}
-                            </div>
-                        </div>
-
-                        {/* 03 Featured Image */}
-                        <div className="bg-white dark:bg-zinc-800 rounded-3xl border border-gray-100 dark:border-zinc-700 shadow-sm overflow-hidden">
-                            <div className="flex items-center gap-3 px-6 pt-5 pb-4 border-b border-gray-50 dark:border-zinc-700">
-                                <span className="w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 flex items-center justify-center text-[10px] font-black shrink-0">03</span>
-                                <span className="text-xs font-black uppercase tracking-widest text-gray-700 dark:text-zinc-300">Featured Image</span>
-                                <span className="text-[10px] text-gray-400 dark:text-zinc-500 font-medium ml-1">Optional</span>
-                            </div>
-                            <div className="px-6 py-5">
-                                <div
-                                    className="relative group border-2 border-dashed border-gray-200 dark:border-zinc-700 rounded-2xl transition-all hover:border-orange-300 dark:hover:border-orange-500/40 hover:bg-orange-50/30 dark:hover:bg-orange-500/5 flex items-center justify-center cursor-pointer overflow-hidden min-h-[220px]"
-                                    onClick={() => !imageFile && document.getElementById("image-upload")?.click()}>
-                                    <input id="image-upload" type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
-                                    {imageFile ? (
-                                        <div className="absolute inset-0 w-full h-full">
-                                            <img src={URL.createObjectURL(imageFile)} alt="Preview" className="w-full h-full object-cover" />
-                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2.5">
-                                                <Button type="button" size="sm"
-                                                    className="rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/40 text-xs font-bold h-8 px-4"
-                                                    onClick={(e) => { e.stopPropagation(); document.getElementById("image-upload")?.click(); }}>Change</Button>
-                                                <Button type="button" variant="destructive" size="sm" className="rounded-full text-xs font-bold h-8 px-3"
-                                                    onClick={(e) => { e.stopPropagation(); removeImage(); }}>
-                                                    <X className="w-3.5 h-3.5 mr-1" />Remove
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="flex flex-col items-center gap-3 py-8">
-                                            <div className="w-11 h-11 rounded-2xl bg-gray-100 dark:bg-zinc-700 group-hover:bg-orange-100 dark:group-hover:bg-orange-500/20 flex items-center justify-center transition-colors">
-                                                <Upload className="w-5 h-5 text-gray-400 dark:text-zinc-500 group-hover:text-orange-500 transition-colors" />
-                                            </div>
-                                            <div className="text-center">
-                                                <p className="text-sm font-bold text-gray-700 dark:text-zinc-300">Click to upload</p>
-                                                <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">PNG, JPG, WebP</p>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Right column — Article Content (fills height) */}
-                    <div className="flex flex-col gap-4 min-h-0">
-                        <div className="bg-white dark:bg-zinc-800 rounded-3xl border border-gray-100 dark:border-zinc-700 shadow-sm overflow-hidden flex flex-col flex-1">
-                            <div className="flex items-center gap-3 px-6 pt-5 pb-4 border-b border-gray-50 dark:border-zinc-700 shrink-0">
-                                <span className="w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 flex items-center justify-center text-[10px] font-black shrink-0">04</span>
-                                <span className="text-xs font-black uppercase tracking-widest text-gray-700 dark:text-zinc-300">Article Content</span>
-                            </div>
-                            <div className="px-6 py-5 flex flex-col flex-1 gap-2">
-                                <Textarea
-                                    placeholder="Write the full article in English. It will be automatically translated into Korean, Chinese, and Japanese."
-                                    value={topic}
-                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => { setTopic(e.target.value); setFieldErrors((p) => ({ ...p, topic: undefined })); }}
-                                    className={`flex-1 min-h-[320px] rounded-xl bg-gray-50 dark:bg-zinc-900 dark:text-zinc-100 resize-none text-sm font-medium border focus-visible:ring-orange-400/20 transition-colors leading-relaxed ${
-                                        fieldErrors.topic ? "border-red-300" : "border-gray-200 dark:border-zinc-700"
-                                    }`}
-                                />
-                                <div className="flex items-center justify-between">
-                                    {fieldErrors.topic
-                                        ? <p className="text-[10px] font-black text-red-500 uppercase tracking-widest">{fieldErrors.topic}</p>
-                                        : <span />}
-                                    {wordCount > 0 && <p className="text-[11px] text-gray-400 dark:text-zinc-500 font-medium">{wordCount} word{wordCount !== 1 ? "s" : ""}</p>}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Submit */}
-                        <div className="shrink-0 flex justify-end pb-2">
-                            <Button type="submit"
-                                className="h-12 px-8 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-black uppercase tracking-widest text-sm shadow-lg shadow-orange-200/50 gap-2">
-                                Generate Article<ArrowRight className="w-4 h-4" />
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            </form>
-        </motion.div>
+        {/* Delete */}
+        {isConfirmingDelete ? (
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => deleteMutation.mutate(article.id)}
+              disabled={deletingId === article.id}
+              className="h-8 px-3 rounded-xl bg-red-500 hover:bg-red-600 text-white text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-50"
+            >
+              {deletingId === article.id ? "…" : "Confirm"}
+            </button>
+            <button
+              onClick={() => setConfirmDeleteId(null)}
+              className="h-8 px-3 rounded-xl bg-gray-100 dark:bg-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-600 text-gray-600 dark:text-zinc-300 text-[10px] font-black uppercase tracking-widest transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setConfirmDeleteId(article.id)}
+            className="flex items-center justify-center w-8 h-8 rounded-xl border border-gray-200 dark:border-zinc-700 text-gray-400 dark:text-zinc-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 hover:border-red-200 dark:hover:border-red-500/30 transition-all"
+            title="Delete"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
     );
+  }
+
+  function ArticleRow({
+    article,
+    compact = false,
+    onRowClick,
+    isExpanded,
+    translationCount = 0,
+  }: {
+    article: ExternalArticle;
+    compact?: boolean;
+    onRowClick?: () => void;
+    isExpanded?: boolean;
+    translationCount?: number;
+  }) {
+    const domain = article.tenant?.domain ?? "";
+    const flag = DOMAIN_FLAG[domain] ?? "🌐";
+    const lang = DOMAIN_LANG[domain] ?? article.tenant?.siteName ?? domain;
+    const isGroupHeader = onRowClick !== undefined;
+
+    return (
+      <div
+        className={`flex items-start gap-4 p-4 transition-colors ${
+          isGroupHeader
+            ? "border-l-4 border-orange-400 dark:border-orange-500 cursor-pointer hover:bg-orange-50/40 dark:hover:bg-orange-500/5"
+            : ""
+        }`}
+        onClick={onRowClick}
+      >
+        <div
+          className={`shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-gray-100 dark:bg-zinc-700 ${activeTab !== "draft" ? "cursor-pointer" : ""}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (activeTab !== "draft") setPreviewId(previewId === article.id ? null : article.id);
+          }}
+        >
+          {article.imageUrl ? (
+            <img
+              src={`/api/admin/proxy-image?url=${encodeURIComponent(article.imageUrl)}`}
+              alt={article.title}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Globe2 className="w-5 h-5 text-orange-400" />
+            </div>
+          )}
+        </div>
+
+        <div className="flex-1 min-w-0 space-y-2">
+          <p
+            className={`text-sm font-bold text-gray-900 dark:text-zinc-100 leading-snug transition-colors ${activeTab !== "draft" ? "cursor-pointer hover:text-orange-600 dark:hover:text-orange-400" : ""}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (activeTab !== "draft") setPreviewId(previewId === article.id ? null : article.id);
+            }}
+          >
+            {article.title}
+          </p>
+          <div className="flex items-center gap-2 flex-wrap">
+            {article.externalSubmission && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-100 dark:border-orange-500/20">
+                <Globe2 className="w-2.5 h-2.5" />
+                {article.externalSubmission.sourcePlatform ?? "External"}
+              </span>
+            )}
+            <StatusBadge status={article.status} />
+            <span className="text-[10px] font-black uppercase tracking-widest text-orange-500 dark:text-orange-400 bg-orange-50 dark:bg-orange-500/10 border border-orange-100 dark:border-orange-500/20 px-2 py-0.5 rounded-full">
+              {article.category.categoryName}
+            </span>
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-gray-500 dark:text-zinc-400 bg-gray-50 dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 px-2 py-0.5 rounded-full">
+              {flag} {lang}
+            </span>
+            {translationCount > 0 && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-orange-100 dark:bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-500/30">
+                <Globe2 className="w-2.5 h-2.5" />
+                {translationCount + 1} languages
+              </span>
+            )}
+            {!compact && (
+              <span className="inline-flex items-center gap-1 text-[10px] text-gray-400 dark:text-zinc-500 font-medium">
+                <Clock className="w-2.5 h-2.5" />
+                {formatDate(article.createdAt)}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div
+          className="flex items-center gap-2 shrink-0"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <ArticleActions article={article} />
+        </div>
+
+        {isGroupHeader && (
+          <div className="shrink-0 flex items-center self-stretch pl-1">
+            <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors ${
+              isExpanded
+                ? "bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400"
+                : "bg-gray-100 dark:bg-zinc-700 text-gray-500 dark:text-zinc-400"
+            }`}>
+              {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              {isExpanded ? "Hide" : "Show"}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
+          <Globe2 className="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-100 tracking-tight">
+            External Submissions
+          </h1>
+          <p className="text-gray-500 dark:text-zinc-400 text-sm font-medium">
+            Review and approve articles submitted by partner platforms
+          </p>
+        </div>
+      </div>
+
+      {actionError && (
+        <div className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 text-sm font-medium text-red-600 dark:text-red-400">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          {actionError}
+        </div>
+      )}
+
+      {/* Tabs */}
+      <div className="flex items-center gap-1 bg-gray-100 dark:bg-zinc-800 rounded-2xl p-1 w-fit">
+        {STATUS_TABS.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => router.push(`/admin/moderator?tab=${tab}`)}
+            className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+              activeTab === tab
+                ? "bg-white dark:bg-zinc-700 text-gray-900 dark:text-zinc-100 shadow-sm"
+                : "text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200"
+            }`}
+          >
+            {tab}
+            {tab === "pending" && total > 0 && activeTab === "pending" && (
+              <span className="ml-1.5 px-1.5 py-0.5 bg-orange-500 text-white rounded-full text-[9px]">
+                {total}
+              </span>
+            )}
+            {tab === "draft" && total > 0 && activeTab === "draft" && (
+              <span className="ml-1.5 px-1.5 py-0.5 bg-blue-500 text-white rounded-full text-[9px]">
+                {total}
+              </span>
+            )}
+          </button>
+        ))}
+        <button
+          onClick={() => refetch()}
+          className="ml-1 w-8 h-8 flex items-center justify-center rounded-xl text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-200 hover:bg-white dark:hover:bg-zinc-700 transition-all"
+          title="Refresh"
+        >
+          <RefreshCw
+            className={`w-3.5 h-3.5 ${isFetching ? "animate-spin" : ""}`}
+          />
+        </button>
+      </div>
+
+      {/* Draft tab info banner */}
+      {activeTab === "draft" && articles.length > 0 && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 text-sm text-blue-700 dark:text-blue-300">
+          <CheckCircle className="w-4 h-4 shrink-0 text-blue-500" />
+          <span>
+            These articles have been translated and are ready for review. Click{" "}
+            <strong>Publish All</strong> on a group to make them live across all
+            4 sites.
+          </span>
+        </div>
+      )}
+
+      {/* Two-panel layout when previewing (not in draft tab) */}
+      <div className={`${previewArticle && activeTab !== "draft" ? "grid grid-cols-2 gap-6" : ""}`}>
+        {/* Article list */}
+        <div
+          className={`space-y-3 transition-opacity duration-200 ${!isLoading && isFetching ? "opacity-50 pointer-events-none" : "opacity-100"}`}
+        >
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-24 rounded-2xl bg-gray-100 dark:bg-zinc-800 animate-pulse"
+              />
+            ))
+          ) : articles.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">
+              <div className="w-14 h-14 rounded-3xl bg-gray-100 dark:bg-zinc-800 flex items-center justify-center">
+                <FileText className="w-6 h-6 text-gray-300 dark:text-zinc-600" />
+              </div>
+              <p className="text-sm font-black uppercase tracking-widest text-gray-400 dark:text-zinc-500">
+                No {activeTab} submissions
+              </p>
+            </div>
+          ) : isGroupedTab ? (
+            articleGroups.map((group) => {
+              const isExpanded = expandedGroups.has(group.groupKey);
+              const hasTranslations = group.translations.length > 0;
+              return (
+                <div
+                  key={group.groupKey}
+                  className={`bg-white dark:bg-zinc-800/60 rounded-2xl border shadow-sm overflow-hidden transition-all ${
+                    previewId === group.primary.id
+                      ? "border-orange-300 dark:border-orange-500/50 ring-1 ring-orange-300 dark:ring-orange-500/50"
+                      : "border-gray-100 dark:border-zinc-700 hover:border-gray-200 dark:hover:border-zinc-600"
+                  }`}
+                >
+                  <ArticleRow
+                    article={group.primary}
+                    onRowClick={
+                      hasTranslations
+                        ? () => toggleGroup(group.groupKey)
+                        : undefined
+                    }
+                    isExpanded={isExpanded}
+                    translationCount={group.translations.length}
+                  />
+                  {isExpanded &&
+                    group.translations.map((t) => (
+                      <div
+                        key={t.id}
+                        className={`border-t border-gray-100 dark:border-zinc-700 bg-gray-50/60 dark:bg-zinc-900/40 ${
+                          previewId === t.id
+                            ? "ring-1 ring-inset ring-orange-300 dark:ring-orange-500/40"
+                            : ""
+                        }`}
+                      >
+                        <ArticleRow article={t} compact />
+                      </div>
+                    ))}
+                </div>
+              );
+            })
+          ) : (
+            articles.map((article) => (
+              <div
+                key={article.id}
+                className={`bg-white dark:bg-zinc-800/60 rounded-2xl border shadow-sm overflow-hidden transition-all ${
+                  previewId === article.id
+                    ? "border-orange-300 dark:border-orange-500/50 ring-1 ring-orange-300 dark:ring-orange-500/50"
+                    : "border-gray-100 dark:border-zinc-700 hover:border-gray-200 dark:hover:border-zinc-600"
+                }`}
+              >
+                <ArticleRow article={article} />
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Content preview panel — hidden on draft tab (use View modal instead) */}
+        {previewArticle && activeTab !== "draft" && (
+          <div className="sticky top-8 h-fit bg-white dark:bg-zinc-800 rounded-2xl border border-gray-100 dark:border-zinc-700 shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-zinc-700">
+              <p className="text-sm font-bold text-gray-900 dark:text-zinc-100 truncate pr-4">
+                {previewArticle.title}
+              </p>
+              <button
+                onClick={() => setPreviewId(null)}
+                className="shrink-0 text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-200 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+            {previewArticle.imageUrl && !previewImgError ? (
+              <img
+                src={`/api/admin/proxy-image?url=${encodeURIComponent(previewArticle.imageUrl)}`}
+                alt={previewArticle.title}
+                className="w-full h-40 object-cover"
+                onError={() => setPreviewImgError(true)}
+              />
+            ) : previewArticle.imageUrl && previewImgError ? (
+              <div className="w-full h-40 bg-gray-100 dark:bg-zinc-700 flex flex-col items-center justify-center gap-2 text-gray-400 dark:text-zinc-500">
+                <FileText className="w-8 h-8 opacity-40" />
+                <span className="text-[11px] font-semibold">
+                  Image unavailable
+                </span>
+              </div>
+            ) : null}
+            <div
+              className="px-5 py-4 prose prose-sm dark:prose-invert max-w-none max-h-[60vh] overflow-y-auto text-gray-700 dark:text-zinc-300 text-sm leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: previewArticle.content }}
+            />
+            <div className="px-5 py-3 border-t border-gray-100 dark:border-zinc-700 space-y-1">
+              <p className="text-[10px] text-gray-400 dark:text-zinc-500 font-medium">
+                External ID:{" "}
+                <span className="text-gray-600 dark:text-zinc-300 font-mono">
+                  {previewArticle.externalSubmission?.externalArticleId}
+                </span>
+              </p>
+              {previewArticle.externalSubmission?.callbackUrl && (
+                <p className="text-[10px] text-gray-400 dark:text-zinc-500 font-medium">
+                  Callback:{" "}
+                  <span className="text-gray-600 dark:text-zinc-300 font-mono break-all">
+                    {previewArticle.externalSubmission.callbackUrl}
+                  </span>
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        onPageChange={setPage}
+        itemLabel="submission"
+      />
+
+      {/* Edit modal */}
+      {editingArticle && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-200 dark:border-zinc-700 shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-zinc-700 shrink-0">
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-bold text-gray-900 dark:text-zinc-100">
+                  Edit Article
+                </span>
+                {editingArticle.tenant && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-gray-50 dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 text-gray-500 dark:text-zinc-400">
+                    {DOMAIN_FLAG[editingArticle.tenant.domain] ?? "🌐"}{" "}
+                    {DOMAIN_LANG[editingArticle.tenant.domain] ??
+                      editingArticle.tenant.siteName}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => setEditingArticle(null)}
+                className="flex items-center justify-center w-8 h-8 rounded-xl text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {editImageUrl && (
+              <div className="shrink-0 relative group">
+                <img
+                  src={`/api/admin/proxy-image?url=${encodeURIComponent(editImageUrl)}`}
+                  alt={editingArticle.title}
+                  className="w-full h-52 object-cover"
+                />
+              </div>
+            )}
+
+            {/* Image URL field — changes apply to all 4 language articles */}
+            <div className="px-6 pt-4 pb-0">
+              <div className="space-y-1.5">
+                <label className="text-xs font-black uppercase tracking-widest text-gray-500 dark:text-zinc-400">
+                  Image URL
+                  <span className="ml-1.5 text-[9px] normal-case tracking-normal font-semibold text-orange-500 dark:text-orange-400">(updates all 4 languages)</span>
+                </label>
+                <input
+                  type="text"
+                  value={editImageUrl}
+                  onChange={(e) => setEditImageUrl(e.target.value)}
+                  placeholder="https://example.com/image.jpg"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 text-sm focus:outline-none focus:border-orange-400 dark:focus:border-orange-500 transition-colors placeholder:text-gray-400 dark:placeholder:text-zinc-600"
+                />
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+              {saveError && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 text-sm text-red-600 dark:text-red-400">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  {saveError}
+                </div>
+              )}
+              <div className="space-y-1.5">
+                <label className="text-xs font-black uppercase tracking-widest text-gray-500 dark:text-zinc-400">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 text-sm font-medium focus:outline-none focus:border-orange-400 dark:focus:border-orange-500 transition-colors"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-black uppercase tracking-widest text-gray-500 dark:text-zinc-400">
+                  Content
+                </label>
+                <div
+                  contentEditable
+                  suppressContentEditableWarning
+                  dangerouslySetInnerHTML={{ __html: editContent }}
+                  onInput={(e) => setEditContent(e.currentTarget.innerHTML)}
+                  className="min-h-[260px] w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 text-sm leading-relaxed focus:outline-none focus:border-orange-400 dark:focus:border-orange-500 transition-colors prose prose-sm dark:prose-invert max-w-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-gray-100 dark:border-zinc-700 shrink-0">
+              <button
+                onClick={() => setEditingArticle(null)}
+                className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest text-gray-600 dark:text-zinc-300 bg-gray-100 dark:bg-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() =>
+                  updateMutation.mutate({
+                    id: editingArticle.id,
+                    title: editTitle,
+                    content: editContent,
+                    imageUrl: editImageUrl,
+                  })
+                }
+                disabled={
+                  updateMutation.isPending ||
+                  !editTitle.trim() ||
+                  !editContent.trim()
+                }
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-40 transition-colors"
+              >
+                {updateMutation.isPending && (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                )}
+                {updateMutation.isPending ? "Saving…" : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

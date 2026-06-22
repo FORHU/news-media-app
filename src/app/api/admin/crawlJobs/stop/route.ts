@@ -4,6 +4,7 @@ import {
   CrawlJobsServiceError,
 } from "@/services/admin/crawlJobs.service";
 import { crawlJobsStopBodySchema } from "@/lib/validation/crawl";
+import { sseBroadcaster } from "@/lib/sse";
 
 export async function POST(req: Request) {
   let json: unknown;
@@ -23,6 +24,7 @@ export async function POST(req: Request) {
 
   try {
     const result = await crawlJobsService.stopJob(parsed.data.job_id);
+    sseBroadcaster.broadcast("crawlJobs:updated");
     return NextResponse.json(result, { status: 200 });
   } catch (e) {
     if (e instanceof CrawlJobsServiceError) {
