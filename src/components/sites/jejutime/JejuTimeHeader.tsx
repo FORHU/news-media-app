@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { Search, Menu, User, X, Mail, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Menu, User, X, ChevronLeft, ChevronRight } from "lucide-react";
 import ContactEmailButton from "@/components/ContactEmailButton";
 import { useRef } from "react";
 import { getCoreCategories, HOME_CATEGORY_LABEL } from "@/config/categories";
@@ -27,7 +27,6 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
@@ -82,7 +81,10 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
   ];
 
   useEffect(() => {
+    // Resync editable query state when the URL search param changes externally
+    // (nav/back-forward) — user can still freely edit `query` between syncs.
     const q = searchParams.get("search") ?? "";
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setQuery(q);
   }, [searchParams]);
 

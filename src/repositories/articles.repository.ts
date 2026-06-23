@@ -3,27 +3,6 @@ import type { Article } from "@/lib/types";
 import { Prisma } from "@/generated/prisma/client";
 import { getCategoryFilterVariants } from "@/config/categories";
 
-// Full include — used by admin operations that need raw source data
-const articleInclude = {
-  category: true,
-  user: { select: { firstName: true, lastName: true } },
-  rawArticle: {
-    include: {
-      category: true,
-      crawledUrl: true,
-    },
-  },
-  rawVideo: true,
-  rawSourceUpload: true,
-  rawTweet: {
-    select: {
-      tweetId: true,
-      generationMode: true,
-      profileUrl: true,
-    },
-  },
-} satisfies Prisma.ContentArticleInclude;
-
 // Lightweight include — used for public article pages.
 // Omits rawArticle.crawledUrl, rawVideo, and rawSourceUpload which can be
 // several MBs and are not needed for rendering. Prevents 413 on Vercel.
@@ -126,7 +105,7 @@ export const articlesRepository = {
       });
     }
 
-    const queryOptions: any = {
+    const baseQueryOptions = {
       take: limit,
       where: and.length > 0 ? { AND: and } : undefined,
       orderBy: [
@@ -134,22 +113,26 @@ export const articlesRepository = {
         { publishDate: { sort: "desc", nulls: "last" } },
         { createdAt: "desc" }
       ],
-    };
+    } satisfies Prisma.ContentArticleFindManyArgs;
 
     if (onlySummary) {
-      queryOptions.select = articleSummarySelect;
-    } else {
-      queryOptions.include = articleDetailInclude;
+      return prisma.contentArticle.findMany({
+        ...baseQueryOptions,
+        select: articleSummarySelect,
+      }) as Promise<Article[]>;
     }
 
-    return prisma.contentArticle.findMany(queryOptions) as Promise<Article[]>;
+    return prisma.contentArticle.findMany({
+      ...baseQueryOptions,
+      include: articleDetailInclude,
+    }) as Promise<Article[]>;
   },
 
   async findById(id: string, tenantId?: string | null): Promise<Article | null> {
     const where: Prisma.ContentArticleWhereInput = tenantId ? { id, tenantId } : { id };
     where.status = { in: ["published", "blog", "article"] };
     return (await prisma.contentArticle.findFirst({
-      where: where as any,
+      where,
       include: articleDetailInclude,
     })) as Article | null;
   },
@@ -159,7 +142,7 @@ export const articlesRepository = {
       const where: Prisma.ContentArticleWhereInput = tenantId ? { slug, tenantId } : { slug };
       where.status = { in: ["published", "blog", "article"] };
       return (await prisma.contentArticle.findFirst({
-        where: where as any,
+        where,
         include: articleDetailInclude,
       })) as Article | null;
     } catch {

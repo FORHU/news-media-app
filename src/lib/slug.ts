@@ -60,7 +60,7 @@ function buildBaseSlug(title: string, date: Date): string {
 }
 
 export async function generateUniqueArticleSlug(
-  prisma: any,
+  prisma: PrismaClient,
   title: string,
   date: Date = new Date()
 ): Promise<string> {

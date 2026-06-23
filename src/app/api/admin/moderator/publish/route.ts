@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
     const published = await moderatorService.publishArticles(articleIds, payload.email);
     return NextResponse.json({ success: true, published });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[moderator/publish] Error:", error);
     return NextResponse.json({ error: "Failed to publish articles" }, { status: 500 });
   }

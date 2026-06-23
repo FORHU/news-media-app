@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     }
     const category = await categoriesService.createCategory(parsed.data.name, tenantId);
     return NextResponse.json(category, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Create category API error:", error);
     
     // Check if it's our custom validation error

@@ -12,18 +12,15 @@ export class ApiKeysServiceError extends Error {
 }
 
 export const apiKeysService = {
-  async create(sourceName: string, expiresAt: Date | null) {
-    const tenant = await apiKeysRepository.findTenantByDomain("voicejeju.com");
-    if (!tenant) throw new ApiKeysServiceError("Target tenant not found", 500);
-
-    await apiKeysRepository.upsertBotUser(tenant.id);
+  async create(sourceName: string, expiresAt: Date | null, tenantId: string) {
+    await apiKeysRepository.upsertBotUser(tenantId);
 
     const rawKey = randomBytes(32).toString("hex");
     const hashedKey = createHash("sha256").update(rawKey).digest("hex");
 
     const apiKey = await apiKeysRepository.create({
       key: hashedKey,
-      tenantId: tenant.id,
+      tenantId,
       sourceName,
       expiresAt,
     });

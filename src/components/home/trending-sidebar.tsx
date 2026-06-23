@@ -4,7 +4,6 @@ import type { Article } from "@/lib/types";
 import { ArticleLink } from "@/components/home/ArticleLink";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
 import { getDomainColor } from "@/lib/domainColors";
-import { useState, useEffect } from "react";
 
 
 interface TrendingSidebarProps {

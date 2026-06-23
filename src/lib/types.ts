@@ -83,4 +83,4 @@ export interface AdminUser {
   createdAt: string | Date;
 }
 
-export type Tenant = Prisma.TenantGetPayload<{}>;
+export type Tenant = Prisma.TenantGetPayload<object>;

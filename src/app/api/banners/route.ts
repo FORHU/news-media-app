@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json(banners);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Public banners fetch error:", error);
     return NextResponse.json(
       { error: "Internal server error" },

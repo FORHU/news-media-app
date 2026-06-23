@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { resolveTenantIdFromDomain } from "@/lib/tenant";
 import { articlesService } from "@/services/articles.service";
 import { bannersService } from "@/services/banners.service";
@@ -7,7 +6,6 @@ import { AdBanner } from "@/components/AdBanner";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
-import { TENANT_CATEGORIES } from "@/config/categories";
 
 export default async function SearchLayout({
   children,

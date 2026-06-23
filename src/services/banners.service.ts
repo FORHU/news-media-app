@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { bannersRepository, Banner } from "@/repositories/banners.repository";
+import { bannersRepository } from "@/repositories/banners.repository";
 import { Prisma } from "@/generated/prisma/client";
 
 export class BannersServiceError extends Error {

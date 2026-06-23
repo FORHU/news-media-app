@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { CirclePlay, Plus, Lightbulb, Calendar, X, Globe, ListChecks, Settings2 } from "lucide-react";
+import { Calendar, X, Settings2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,

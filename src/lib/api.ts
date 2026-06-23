@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Article, CrawledArticlesResponse, CrawlJobsResponse } from "./types";
+import type { Banner } from "@/repositories/banners.repository";
 
 const articlesParamsSchema = z.object({
   limit: z.number().optional(),
@@ -404,33 +405,33 @@ export const articlesApi = {
 };
 
 export const bannersApi = {
-  async getBanners(): Promise<any[]> {
+  async getBanners(): Promise<Banner[]> {
     const res = await fetch("/api/admin/banners");
     if (!res.ok) throw new Error("Failed to fetch banners");
     return res.json();
   },
 
-  async createBanner(data: any): Promise<any> {
+  async createBanner(data: Record<string, unknown>): Promise<Banner> {
     const res = await fetch("/api/admin/banners", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-      const error = await res.json().catch(() => ({}));
+      const error: { error?: string } = await res.json().catch(() => ({}));
       throw new Error(error.error || "Failed to create banner");
     }
     return res.json();
   },
 
-  async updateBanner(id: string, data: any): Promise<any> {
+  async updateBanner(id: string, data: Record<string, unknown>): Promise<Banner> {
     const res = await fetch(`/api/admin/banners/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-      const error = await res.json().catch(() => ({}));
+      const error: { error?: string } = await res.json().catch(() => ({}));
       throw new Error(error.error || "Failed to update banner");
     }
     return res.json();

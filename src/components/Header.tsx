@@ -26,13 +26,17 @@ function HeaderContent({ onOpenNewsletter }: HeaderProps) {
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
+    // Resync editable query state when the URL search param changes externally.
     const q = searchParams.get("search") ?? "";
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setQuery(q);
   }, [searchParams]);
 
   // Handle live suggestions
   useEffect(() => {
     if (!query.trim()) {
+      // Reset guard: clear suggestions immediately when query empties out.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSuggestions([]);
       setShowSuggestions(false);
       return;

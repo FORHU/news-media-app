@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
         }));
 
         return NextResponse.json({ tweets: formattedTweets });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Error fetching raw tweets:", error);
         return NextResponse.json(
             { error: "Failed to fetch crawled tweets" },

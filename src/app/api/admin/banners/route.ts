@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { bannersService } from "@/services/banners.service";
 import { resolveTenantIdFromRequest } from "@/lib/tenant";
+import type { Prisma } from "@/generated/prisma/client";
 
 import { bannerSchema } from "@/lib/validation/banners";
 
@@ -11,7 +12,7 @@ export async function GET(req: NextRequest) {
     const tenantId = await resolveTenantIdFromRequest(req);
     const banners = await bannersService.getBanners({ tenantId });
     return NextResponse.json(banners);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Admin banners fetch error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
@@ -27,14 +28,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Tenant not found" }, { status: 400 });
     }
 
-    const body = await req.json();
+    const body: unknown = await req.json();
     const validatedData = bannerSchema.parse(body);
-    const banner = await bannersService.createBanner({ 
-      ...validatedData, 
-      tenantId 
-    } as any); // Use 'as any' if there's a slight type mismatch with the schema
+    const banner = await bannersService.createBanner({
+      ...validatedData,
+      tenantId,
+    } satisfies Prisma.BannerUncheckedCreateInput);
     return NextResponse.json(banner, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Admin banner creation error:", error);
     if (error instanceof Error) {
        return NextResponse.json(

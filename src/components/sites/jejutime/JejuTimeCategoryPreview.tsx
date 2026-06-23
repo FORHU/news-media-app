@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { StoryImage } from "@/components/StoryImage";
+import type { Article } from "@/lib/types";
 
 interface CategoryData {
   name: string;
-  articles: any[];
+  articles: Article[];
 }
 
 interface Props {

@@ -1,20 +1,19 @@
 "use client";
 
 import React from 'react';
+import Image from 'next/image';
 import {
     Twitter,
     ExternalLink,
     Calendar,
     Zap,
     Search,
-    Loader2,
     MessageSquare,
     Heart,
     Repeat2
 } from 'lucide-react';
 import { div as MotionDiv } from 'framer-motion/client';
 import Pagination from '@/components/admin/pagination';
-import { useQuery } from '@tanstack/react-query';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { Variants } from 'framer-motion';
@@ -44,9 +43,9 @@ export function XContentCard({ item, variants }: { item: XContent; variants: Var
         >
             <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 overflow-hidden border border-blue-100">
+                    <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 overflow-hidden border border-blue-100 relative">
                         {item.avatarUrl ? (
-                            <img src={item.avatarUrl} alt={item.authorName} className="w-full h-full object-cover" />
+                            <Image src={item.avatarUrl} alt={item.authorName} fill sizes="48px" className="object-cover" />
                         ) : (
                             <Twitter className="w-6 h-6 text-blue-400" />
                         )}

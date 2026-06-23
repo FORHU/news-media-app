@@ -1,7 +1,6 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { generateUniqueArticleSlug } from "@/lib/slug";
-import { getValidImageSrc } from "@/lib/image-utils";
 import { stripOriginalPostBlock } from "@/lib/tweetArticleDisplay";
 import { runOpenAiFeaturedImagePipeline } from "@/lib/featuredImagePipeline";
 
@@ -439,7 +438,8 @@ ${materials}
     }
   }
 
-  let { title, content } = extractArticleData(responseText, fallbackTitle);
+  const { title, content: extractedContent } = extractArticleData(responseText, fallbackTitle);
+  let content = extractedContent;
   if (postProcess) content = postProcess(content);
 
   if (!content || content.length < 50) {

@@ -9,11 +9,11 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
-    const body = await req.json();
+    const body: unknown = await req.json();
     const validatedData = bannerUpdateSchema.parse(body);
     const banner = await bannersService.updateBanner(id, validatedData);
     return NextResponse.json(banner);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Admin banner update error:", error);
     if (error instanceof Error) {
       return NextResponse.json(
@@ -33,10 +33,11 @@ export async function DELETE(
     const { id } = await params;
     await bannersService.deleteBanner(id);
     return new NextResponse(null, { status: 204 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Admin banner deletion error:", error);
+    const message = error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json(
-      { error: error.message || "Internal server error" },
+      { error: message },
       { status: 400 }
     );
   }

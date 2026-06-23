@@ -1,27 +1,7 @@
 import "dotenv/config";
 import bcrypt from "bcryptjs";
 import crypto from "node:crypto";
-import { SourceType } from "../src/generated/prisma";
 import { prisma } from "../src/lib/db";
-
-const syncTableOrder = [
-  "tenants",
-  "users",
-  "categories",
-  "subscribers",
-  "subscriber_preferences",
-  "crawl_jobs",
-  "crawled_urls",
-  "raw_tweets",
-  "raw_videos",
-  "raw_source_uploads",
-  "raw_articles",
-  "content_articles",
-  "social_channels",
-  "content_transformations",
-  "social_media_posts",
-  "banners",
-] as const;
 
 function randomPassword(length = 16): string {
   return crypto
@@ -62,26 +42,28 @@ async function main() {
   const existingAdmin = await prisma.user.findUnique({
     where: { tenantId_email: { tenantId: tenant.id, email: adminEmail } },
   });
-  const admin = existingAdmin
-    ? await prisma.user.update({
-        where: { id: existingAdmin.id },
-        data: {
-          firstName: "Seed",
-          lastName: "Admin",
-          role: "admin",
-          password: hashedPassword,
-        },
-      })
-    : await prisma.user.create({
-        data: {
-          tenantId: tenant.id,
-          firstName: "Seed",
-          lastName: "Admin",
-          email: adminEmail,
-          password: hashedPassword,
-          role: "admin",
-        },
-      });
+  if (existingAdmin) {
+    await prisma.user.update({
+      where: { id: existingAdmin.id },
+      data: {
+        firstName: "Seed",
+        lastName: "Admin",
+        role: "admin",
+        password: hashedPassword,
+      },
+    });
+  } else {
+    await prisma.user.create({
+      data: {
+        tenantId: tenant.id,
+        firstName: "Seed",
+        lastName: "Admin",
+        email: adminEmail,
+        password: hashedPassword,
+        role: "admin",
+      },
+    });
+  }
 
   const category = await prisma.category.upsert({
     where: { tenantId_categoryName: { tenantId: tenant.id, categoryName: "General" } },

@@ -59,12 +59,14 @@ export default function RegeneratePromptDialog({
     const copy = COPY[type];
     const isText = type === "text";
 
-    React.useEffect(() => {
+    const [prevDeps, setPrevDeps] = React.useState({ open, type });
+    if (open !== prevDeps.open || type !== prevDeps.type) {
+        setPrevDeps({ open, type });
         if (open) {
             setPrompt("");
             setError(null);
         }
-    }, [open, type]);
+    }
 
     const handleConfirm = () => {
         const trimmed = prompt.trim();

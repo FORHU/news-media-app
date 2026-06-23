@@ -22,14 +22,6 @@ const LEGAL_LINKS = [
     { label: "Cookie Policy", href: "#" },
 ];
 
-interface Banner {
-    id: string;
-    imageUrl: string;
-    linkUrl: string;
-    altText: string | null;
-    positions: string[];
-}
-
 interface FooterProps {
     onOpenNewsletter?: () => void;
 }

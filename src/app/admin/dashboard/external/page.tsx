@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { Globe2, CheckCircle, Ban, FileText, AlertCircle, RefreshCw, ExternalLink, Clock, EyeOff, ChevronDown, ChevronUp, Send, Trash2, Eye, X, Loader2 } from "lucide-react";
 import Pagination from "@/components/ui/Pagination";
 
@@ -142,9 +143,26 @@ export default function ExternalSubmissionsPage() {
     }
   }, [activeTab, page]);
 
+  // Standard fetch-on-dependency-change pattern; fetchArticles sets loading
+  // state synchronously before its first await.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchArticles(); }, [fetchArticles]);
-  useEffect(() => { setPage(1); setInitialLoad(true); }, [activeTab]);
-  useEffect(() => { setPreviewImgError(false); }, [previewId]);
+
+  // Reset pagination when the tab changes — computed during render (not an
+  // effect) so it takes effect before this render paints, no extra render pass.
+  const [prevActiveTab, setPrevActiveTab] = useState(activeTab);
+  if (activeTab !== prevActiveTab) {
+    setPrevActiveTab(activeTab);
+    setPage(1);
+    setInitialLoad(true);
+  }
+
+  // Reset the broken-image flag when switching which article is previewed.
+  const [prevPreviewId, setPrevPreviewId] = useState(previewId);
+  if (previewId !== prevPreviewId) {
+    setPrevPreviewId(previewId);
+    setPreviewImgError(false);
+  }
 
   async function handleApprove(id: string) {
     setApprovingId(id);
@@ -417,6 +435,7 @@ export default function ExternalSubmissionsPage() {
     const domain = article.tenant?.domain ?? "";
     const flag = DOMAIN_FLAG[domain] ?? "🌐";
     const lang = DOMAIN_LANG[domain] ?? article.tenant?.siteName ?? domain;
+    const [imgError, setImgError] = useState(false);
 
     return (
       <div
@@ -424,11 +443,11 @@ export default function ExternalSubmissionsPage() {
         onClick={onRowClick}
       >
         <div
-          className="shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-gray-100 cursor-pointer"
+          className="shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-gray-100 cursor-pointer relative"
           onClick={(e) => { e.stopPropagation(); setPreviewId(previewId === article.id ? null : article.id); }}
         >
-          {article.imageUrl
-            ? <img src={`/api/admin/proxy-image?url=${encodeURIComponent(article.imageUrl)}`} alt={article.title} className="w-full h-full object-cover" />
+          {article.imageUrl && !imgError
+            ? <Image src={`/api/admin/proxy-image?url=${encodeURIComponent(article.imageUrl)}`} alt={article.title} fill sizes="56px" className="object-cover" unoptimized onError={() => setImgError(true)} />
             : <div className="w-full h-full flex items-center justify-center"><Globe2 className="w-5 h-5 text-orange-400" /></div>}
         </div>
 
@@ -603,12 +622,17 @@ export default function ExternalSubmissionsPage() {
               </button>
             </div>
             {previewArticle.imageUrl && !previewImgError ? (
-              <img
-                src={`/api/admin/proxy-image?url=${encodeURIComponent(previewArticle.imageUrl)}`}
-                alt={previewArticle.title}
-                className="w-full h-40 object-cover"
-                onError={() => setPreviewImgError(true)}
-              />
+              <div className="relative w-full h-40">
+                <Image
+                  src={`/api/admin/proxy-image?url=${encodeURIComponent(previewArticle.imageUrl)}`}
+                  alt={previewArticle.title}
+                  fill
+                  sizes="400px"
+                  className="object-cover"
+                  onError={() => setPreviewImgError(true)}
+                  unoptimized
+                />
+              </div>
             ) : previewArticle.imageUrl && previewImgError ? (
               <div className="w-full h-40 bg-gray-100 flex flex-col items-center justify-center gap-2 text-gray-400">
                 <FileText className="w-8 h-8 opacity-40" />
@@ -664,11 +688,14 @@ export default function ExternalSubmissionsPage() {
 
             {/* Article image */}
             {editingArticle.imageUrl && (
-              <div className="shrink-0">
-                <img
+              <div className="shrink-0 relative w-full h-52">
+                <Image
                   src={`/api/admin/proxy-image?url=${encodeURIComponent(editingArticle.imageUrl)}`}
                   alt={editingArticle.title}
-                  className="w-full h-52 object-cover"
+                  fill
+                  sizes="600px"
+                  className="object-cover"
+                  unoptimized
                 />
               </div>
             )}

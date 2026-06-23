@@ -100,7 +100,7 @@ export default function SkyBluePrimeArticle({
             Content Unavailable
           </p>
           <p className="text-sky-800 mb-6 font-medium">
-            We couldn't load this article. Please try again or return to the main feed.
+            We couldn&apos;t load this article. Please try again or return to the main feed.
           </p>
           <button
             onClick={() => router.push("/")}

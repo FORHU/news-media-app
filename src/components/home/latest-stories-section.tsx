@@ -1,10 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useState, Fragment } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, Calendar, Clock } from "lucide-react";
+import { Calendar, Clock } from "lucide-react";
 import { ArticleLink } from "@/components/home/ArticleLink";
 import type { Article } from "@/lib/types";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";

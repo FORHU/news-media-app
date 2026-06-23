@@ -8,8 +8,20 @@ import {
     TrendingUp,
     ArrowUpRight
 } from 'lucide-react';
+import type { dashboardService } from '@/services/admin/dashboard.service';
 
-const StatCard = ({ title, value, icon, color, description, loading }: any) => (
+type DashboardStats = Awaited<ReturnType<typeof dashboardService.getStats>>;
+
+interface StatCardProps {
+    title: string;
+    value: number;
+    icon: React.ReactElement<{ className?: string }>;
+    color: string;
+    description?: string;
+    loading: boolean;
+}
+
+const StatCard = ({ title, value, icon, color, description, loading }: StatCardProps) => (
     <div className="bg-white p-5 md:p-8 rounded-2xl md:rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all group">
         <div className="flex justify-between items-start mb-4">
             <div className={`p-3 md:p-4 rounded-xl md:rounded-2xl ${color} shadow-sm transition-all group-hover:shadow-md`}>
@@ -33,7 +45,7 @@ export default function DashboardStatsGrid({
     stats,
     loading,
 }: {
-    stats: any;
+    stats?: DashboardStats;
     loading: boolean;
 }) {
 

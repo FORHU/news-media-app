@@ -56,12 +56,14 @@ export default function CategorySelectWithOther({
     [categories]
   );
 
-  React.useEffect(() => {
+  const [prevIsOtherMode, setPrevIsOtherMode] = React.useState(isOtherMode);
+  if (isOtherMode !== prevIsOtherMode) {
+    setPrevIsOtherMode(isOtherMode);
     if (!isOtherMode) {
       setNewCategoryName("");
       setLocalError(null);
     }
-  }, [isOtherMode]);
+  }
 
   const createCategoryMutation = useMutation({
     mutationFn: (name: string) => articlesApi.createCategory(name),

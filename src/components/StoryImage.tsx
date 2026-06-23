@@ -24,6 +24,9 @@ export function StoryImage(props: StoryImageProps) {
   const isBlockedS3Origin = false;
 
   useEffect(() => {
+    // Resync imgSrc/error when the src prop changes (e.g. carousel swapping
+    // images on an already-mounted instance) — resets the error fallback too.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setImgSrc(src || null);
     setError(false);
   }, [src]);

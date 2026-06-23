@@ -184,9 +184,12 @@ export function ManualArticleImage({
                 
                 {imageFile ? (
                     <div className="absolute inset-0 w-full h-full animate-in fade-in zoom-in duration-300">
-                        <img 
-                            src={URL.createObjectURL(imageFile)} 
-                            alt="Article Preview" 
+                        {/* createObjectURL produces a blob: URL — next/image's optimizer
+                            can't fetch blob: URLs, plain img is the correct tool here. */}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                            src={URL.createObjectURL(imageFile)}
+                            alt="Article Preview"
                             className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">

@@ -1,4 +1,5 @@
 import "dotenv/config";
+import type { PrismaClient } from "../../src/generated/prisma/client";
 import { prisma } from "../../src/lib/db";
 import { articles } from "./articles";
 
@@ -82,7 +83,7 @@ async function main() {
            imageUrl: a.imageUrl,
            status: a.status,
            trendingScore: Math.floor(Math.random() * 100),
-         } as any
+         } as Parameters<PrismaClient["contentArticle"]["create"]>[0]["data"]
        });
        console.log(`Inserted: ${a.title} in ${techCategoryName}`);
     } else {

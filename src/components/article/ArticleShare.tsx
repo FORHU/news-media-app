@@ -6,15 +6,14 @@ import {
   Link as LinkIcon, 
   Check,
 } from "lucide-react";
-import { 
-  FaXTwitter, 
-  FaFacebook, 
-  FaFacebookMessenger, 
-  FaUniversalAccess,
-  FaWhatsapp, 
-  FaLinkedin, 
-  FaTelegram, 
-  FaReddit 
+import {
+  FaXTwitter,
+  FaFacebook,
+  FaFacebookMessenger,
+  FaWhatsapp,
+  FaLinkedin,
+  FaTelegram,
+  FaReddit
 } from "react-icons/fa6";
 import { SiGmail, SiKakaotalk } from "react-icons/si";
 import {
@@ -125,6 +124,9 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
   const [currentUrl, setCurrentUrl] = useState(url ? normalizeShareUrl(url) : "");
 
   useEffect(() => {
+    // Hydration-safe mount flag + client-only window.location read — both
+    // genuinely need an effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     if (!url) {
       setCurrentUrl(normalizeShareUrl(window.location.href));
@@ -149,7 +151,7 @@ export function ArticleShare({ title, url, site, className }: ArticleShareProps)
         input.setSelectionRange(0, 99999);
         try {
           return document.execCommand("copy");
-        } catch (err) {
+        } catch {
           return false;
         }
       }

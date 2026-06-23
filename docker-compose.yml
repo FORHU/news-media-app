@@ -35,7 +35,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=postgresql://postgres:password@postgres:5432/news-media
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/news-media?sslmode=disable
       - NODE_ENV=production
       - COOKIE_SECURE=false
       - CRAWL_API_URL=${CRAWL_API_URL}

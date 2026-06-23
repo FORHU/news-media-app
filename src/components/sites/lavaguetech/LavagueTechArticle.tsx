@@ -114,7 +114,7 @@ export default function LavagueTechArticle({
     return (
       <div className="flex items-center justify-center py-32 px-6 bg-white min-h-[60vh]">
         <div className="text-center max-w-md bg-white border border-gray-200 shadow-sm p-10">
-          <p className="text-gray-900 font-bold mb-5">We couldn't load this article.</p>
+          <p className="text-gray-900 font-bold mb-5">We couldn&apos;t load this article.</p>
           <Link
             href="/"
             className="inline-flex items-center gap-2 text-sm text-teal-700 hover:text-teal-600 transition-colors bg-teal-50 px-4 py-2"

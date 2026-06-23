@@ -13,7 +13,7 @@ if (!process.env.DATABASE_URL) {
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter } as any);
+const prisma = new PrismaClient({ adapter });
 
 const VOICE_JEJU_CATEGORIES = [
   "제주 오늘",
@@ -57,7 +57,6 @@ async function main() {
     console.log("No user found for voicejeju.com, creating admin...");
     // We assume there's a base user or we just create a dummy one for relation
     // In a real app, you'd use supabase auth id, but for local mock we just need a valid UUID in the DB
-    const dummyId = '00000000-0000-0000-0000-000000000000'; // Replace with a real one if needed or gen one
     await prisma.$executeRawUnsafe(
       `INSERT INTO public.users (id, tenant_id, email, role, updated_at) VALUES ($1, $2, $3, $4, NOW())`,
       crypto.randomUUID(), tenantId, "admin@voicejeju.com", "admin"
@@ -117,7 +116,7 @@ async function main() {
           status: i % 5 === 0 ? "blog" : "published", // Mix some blogs for "Discover" section
           trendingScore: Math.floor(Math.random() * 100),
           createdAt: new Date(Date.now() - (i * 3600000)) // Spread them out by hour
-        } as any
+        } as Parameters<PrismaClient["contentArticle"]["create"]>[0]["data"]
       });
     }
   }

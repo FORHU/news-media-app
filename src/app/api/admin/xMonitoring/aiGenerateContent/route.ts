@@ -220,8 +220,9 @@ export async function POST(req: NextRequest) {
                     logs.push(`Failed to transcribe video. API Status: ${apifyRes.status}`);
                     console.error("[Apify] Failed to transcribe video. Status:", apifyRes.status);
                 }
-            } catch (err: any) {
-                logs.push(`Error connecting to transcription service: ${err.message}`);
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : String(err);
+                logs.push(`Error connecting to transcription service: ${message}`);
                 console.error("[Apify] Error connecting to Apify:", err);
             }
         } else if (!apifyToken) {
@@ -273,7 +274,8 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${r
         const { response } = await chatRes.json();
         if (!response) throw new Error("AI service returned an empty response");
 
-        let { title, content } = extractArticleData(response, `Analysis: ${tweet.sourceName} on X`);
+        const { title, content: extractedContent } = extractArticleData(response, `Analysis: ${tweet.sourceName} on X`);
+        let content = extractedContent;
 
         if (generationMode === "commentary") {
           content = stripOriginalPostBlock(content);
@@ -312,14 +314,16 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${r
         });
 
         return NextResponse.json({ article: contentArticle, logs });
-    } catch (err: any) {
+    } catch (err: unknown) {
         clearTimeout(timeout);
         console.error("AI Generation Process Error:", err);
-        return NextResponse.json({ 
-            error: err.name === 'AbortError' ? "AI Service timed out" : err.message || "Failed to generate article" 
-        }, { status: err.name === 'AbortError' ? 504 : 500 });
+        const isAbort = err instanceof Error && err.name === 'AbortError';
+        const message = err instanceof Error ? err.message || "Failed to generate article" : "Failed to generate article";
+        return NextResponse.json({
+            error: isAbort ? "AI Service timed out" : message
+        }, { status: isAbort ? 504 : 500 });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Critical API Error:", error);
     return NextResponse.json({ error: "An unexpected server error occurred" }, { status: 500 });
   }

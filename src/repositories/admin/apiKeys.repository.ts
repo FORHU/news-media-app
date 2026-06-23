@@ -11,10 +11,6 @@ const SELECT = {
 } as const;
 
 export const apiKeysRepository = {
-  findTenantByDomain(domain: string) {
-    return prisma.tenant.findFirst({ where: { domain }, select: { id: true } });
-  },
-
   async upsertBotUser(tenantId: string) {
     const email = `external-bot@${tenantId}.internal`;
     return prisma.user.upsert({

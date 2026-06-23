@@ -3,13 +3,11 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { Search, Menu, User, X, ChevronLeft, ChevronRight, Globe, Sun, Cloud, CloudRain, CloudSnow, CloudLightning, Wind } from "lucide-react";
+import { Search, Menu, User, X, Sun, Cloud, CloudRain, CloudSnow, CloudLightning, Wind } from "lucide-react";
 import ContactEmailButton from "@/components/ContactEmailButton";
 import { useRef } from "react";
 import { getCoreCategories, getHomeCategoryLabel } from "@/config/categories";
-import type { Article } from "@/lib/types";
 import dynamic from "next/dynamic";
-import { cn } from "@/lib/utils";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { SearchDropdown } from "@/components/search/SearchDropdown";
 
@@ -43,8 +41,6 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
   const navRef = useRef<HTMLDivElement>(null);
   const { suggestions, isSearching, showSuggestions, hideSuggestions } = useSearchSuggestions(query);
   const [weather, setWeather] = useState({ temp: "18°C", condition: "Clear" });
-  const [showLeftArrow, setShowLeftArrow] = useState(false);
-  const [showRightArrow, setShowRightArrow] = useState(false);
 
   useEffect(() => {
     // Fetch live weather for Jeju using JSON format for safety
@@ -79,21 +75,7 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
   };
 
   const checkScroll = () => {
-    if (navRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = navRef.current;
-      setShowLeftArrow(scrollLeft > 10);
-      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
-    }
-  };
-
-  const scroll = (direction: 'left' | 'right') => {
-    if (navRef.current) {
-      const scrollAmount = 300;
-      navRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth'
-      });
-    }
+    // No-op: retained as the registered scroll/resize listener below.
   };
 
   useEffect(() => {
@@ -153,7 +135,7 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
           <div className="max-w-[1440px] mx-auto px-4 lg:px-6 h-8 flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-gray-500">
             <div className="flex items-center gap-4">
               <span>{today}</span>
-              <span className="hidden sm:inline border-l border-gray-200 pl-4">Today's Paper</span>
+              <span className="hidden sm:inline border-l border-gray-200 pl-4">Today&apos;s Paper</span>
             </div>
 
             <div className="flex items-center gap-4">

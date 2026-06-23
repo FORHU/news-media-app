@@ -19,7 +19,6 @@ export function VoiceJejuSidebar({
   onClose,
   onOpenNewsletter,
   categoryLinks,
-  categoryHref,
 }: SidebarProps) {
   return (
     <AnimatePresence>

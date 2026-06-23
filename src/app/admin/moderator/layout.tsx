@@ -21,7 +21,10 @@ export default function ModeratorLayout({ children }: { children: React.ReactNod
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        // localStorage is client-only; reading it during render would mismatch
+        // SSR output, so this must stay in an effect (hydration-safe mount flag).
         const saved = localStorage.getItem("moderator-dark");
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setDark(saved !== "false");
         setMounted(true);
 

@@ -1,8 +1,12 @@
 import { SignJWT, jwtVerify } from "jose";
 
-const SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET ?? "dev-fallback-secret-change-in-production"
-);
+if (!process.env.JWT_SECRET) {
+  throw new Error(
+    "JWT_SECRET environment variable must be set — admin/moderator auth cannot run without it."
+  );
+}
+
+const SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 const ALGORITHM = "HS256";
 const EXPIRY = "24h";

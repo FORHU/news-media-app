@@ -48,8 +48,6 @@ interface CrawledArticleCardProps {
     variants: Variants;
 }
 
-const GENERATION_PROMPT_MAX_LEN = 4000;
-
 export function CrawledArticleCard({ article, variants }: CrawledArticleCardProps) {
     const isGenerated = !!article.contentArticle;
     const publishDate = article.publishDate || article.createdAt;
@@ -300,7 +298,6 @@ export default function RawArticles({ searchParams }: {
     const router = useRouter();
     const pathname = usePathname();
     const urlSearchParams = useSearchParams();
-    const queryClient = useQueryClient();
 
     const from = urlSearchParams.get('from') || searchParams.from || '';
     const to = urlSearchParams.get('to') || searchParams.to || '';
@@ -373,21 +370,28 @@ export default function RawArticles({ searchParams }: {
     });
     const [statusDraft, setStatusDraft] = React.useState(status);
 
-    React.useEffect(() => {
+    // Resync editable drafts when their backing prop changes externally —
+    // computed during render (not effects), no extra render pass.
+    const [prevSearchQuery, setPrevSearchQuery] = React.useState(searchQuery);
+    if (searchQuery !== prevSearchQuery) {
+        setPrevSearchQuery(searchQuery);
         setSearchDraft(searchQuery);
-    }, [searchQuery]);
-
-    React.useEffect(() => {
+    }
+    const [prevRange, setPrevRange] = React.useState({ from, to });
+    if (from !== prevRange.from || to !== prevRange.to) {
+        setPrevRange({ from, to });
         setRangeDraft({ from, to });
-    }, [from, to]);
-
-    React.useEffect(() => {
+    }
+    const [prevSource, setPrevSource] = React.useState(source);
+    if (source !== prevSource) {
+        setPrevSource(source);
         setSourceDraft(source);
-    }, [source]);
-
-    React.useEffect(() => {
+    }
+    const [prevStatus, setPrevStatus] = React.useState(status);
+    if (status !== prevStatus) {
+        setPrevStatus(status);
         setStatusDraft(status);
-    }, [status]);
+    }
 
 
     React.useEffect(() => {
@@ -478,7 +482,7 @@ export default function RawArticles({ searchParams }: {
                         </SelectContent>
                     </Select>
 
-                    <Select value={statusDraft} onValueChange={(val: any) => setStatusDraft(val)}>
+                    <Select value={statusDraft} onValueChange={(val: "all" | "generated" | "pending") => setStatusDraft(val)}>
                         <SelectTrigger className="h-12 w-[160px] rounded-2xl bg-gray-50/50 border-gray-100 text-sm font-semibold text-gray-900 focus-visible:ring-orange-500/20">
                             <SelectValue placeholder="Status" />
                         </SelectTrigger>

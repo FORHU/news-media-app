@@ -30,8 +30,10 @@ function resolvePoolMax(): number {
 
 const maxConnections = resolvePoolMax();
 
-const isRemoteDb = !process.env.DATABASE_URL?.includes("localhost") &&
-  !process.env.DATABASE_URL?.includes("127.0.0.1");
+const databaseUrl = process.env.DATABASE_URL ?? "";
+const isRemoteDb = !databaseUrl.includes("sslmode=disable") &&
+  !databaseUrl.includes("localhost") &&
+  !databaseUrl.includes("127.0.0.1");
 
 const pool: Pool = g.pool ?? new Pool({
   connectionString: process.env.DATABASE_URL,

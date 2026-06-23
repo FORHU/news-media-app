@@ -4,7 +4,7 @@ import { getTenantDomainFromRequest } from "@/lib/tenant";
 
 export async function POST(
   request: NextRequest,
-  context: any
+  context: { params: Promise<{ id: string }> }
 ) {
   console.log("[View Tracker] API Route Hit");
   try {
@@ -37,8 +37,9 @@ export async function POST(
     console.log(`[View Tracker] Success: ${id}`);
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    console.error("[View Tracker] CRITICAL ERROR:", error.message || error);
-    return NextResponse.json({ error: "Internal Error", details: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("[View Tracker] CRITICAL ERROR:", message);
+    return NextResponse.json({ error: "Internal Error", details: message }, { status: 500 });
   }
 }
