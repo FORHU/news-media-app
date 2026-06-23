@@ -68,7 +68,7 @@ export async function getRequestBaseUrl(domainFromParams: string) {
         host = h.get("x-forwarded-host") ?? h.get("host") ?? "newsicons.com";
       }
     }
-  } catch (e) {
+  } catch {
     // Fallback to domainFromParams and https for static generation
     if (!host) host = "newsicons.com";
   }

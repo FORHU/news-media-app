@@ -11,6 +11,8 @@ export function useSearchSuggestions(query: string) {
 
   useEffect(() => {
     if (!query.trim()) {
+      // Reset guard: clear suggestions immediately when query empties out.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSuggestions([]);
       setShowSuggestions(false);
       return;

@@ -26,9 +26,9 @@ async function main() {
     }
     
     console.log("Migration complete!");
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Migration failed or 'position' column no longer exists:");
-    console.error(error.message || error);
+    console.error(error instanceof Error ? error.message : String(error));
   }
 }
 

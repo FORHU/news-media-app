@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { AdBanner, Banner } from "@/components/AdBanner";
-import { Twitter, Instagram, Facebook, Mail, MapPin, Phone } from "lucide-react";
+import { Twitter, Instagram, Facebook, Mail } from "lucide-react";
 
 interface FooterProps {
   onOpenNewsletter?: () => void;
@@ -32,7 +32,7 @@ export default function JejuTimeFooter({ onOpenNewsletter, footerBanners }: Foot
               </div>
             </div>
             <p className="text-slate-400 text-sm leading-relaxed max-w-sm mb-8 font-light">
-              Capturing the weightless essence of Jeju's volcanic soul and coastal rhythm. Premium journalism for the modern islander.
+              Capturing the weightless essence of Jeju&apos;s volcanic soul and coastal rhythm. Premium journalism for the modern islander.
             </p>
             <div className="flex space-x-6 text-slate-300">
               <Twitter size={18} className="hover:text-blue-400 cursor-pointer transition-colors" />

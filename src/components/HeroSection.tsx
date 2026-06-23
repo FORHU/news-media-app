@@ -1,8 +1,6 @@
 "use client";
 
-import Image from "next/image";
-import { useState, useEffect } from "react";
-import Link from "next/link";
+import { useState } from "react";
 import { ChevronLeft, ChevronRight, Calendar, Clock, ArrowRight } from "lucide-react";
 import { ArticleLink } from "@/components/home/ArticleLink";
 import { motion, AnimatePresence } from "framer-motion";

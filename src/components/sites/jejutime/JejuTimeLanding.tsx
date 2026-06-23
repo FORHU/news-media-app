@@ -6,10 +6,6 @@ const AdBanner = dynamic(() => import("@/components/AdBanner").then(mod => mod.A
    loading: () => <div className="h-[120px] animate-pulse bg-slate-50 flex items-center justify-center text-[10px] text-slate-300 font-bold uppercase tracking-widest border border-slate-100" />
 });
 
-const JejuTimeFeaturedSection = dynamic(() => import("./JejuTimeFeaturedSection"), {
-   ssr: true,
-   loading: () => <div className="h-64 animate-pulse bg-slate-50 w-full rounded-2xl" />
-});
 const JejuTimeCategoryPreview = dynamic(() => import("./JejuTimeCategoryPreview"), {
    ssr: true,
    loading: () => <div className="h-64 animate-pulse bg-slate-50 w-full rounded-2xl" />
@@ -20,22 +16,24 @@ const JejuTimeTrendingProducts = dynamic(() => import("./JejuTimeTrendingProduct
 });
 import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
-import { Suspense, useRef } from "react";
+import { useRef } from "react";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
+import type { Banner } from "@/components/AdBanner";
+import type { Article } from "@/lib/types";
 
 interface Props {
    tenantId: string | null;
-   articles: any[];
+   articles: Article[];
    banners: {
-      top: any[];
-      sidebar: any[];
-      footer: any[];
+      top: Banner[];
+      sidebar: Banner[];
+      footer: Banner[];
    };
 }
 
-export default function JejuTimeLanding({ tenantId, articles, banners }: Props) {
+export default function JejuTimeLanding({ articles, banners }: Props) {
    // ── Deduplication Logic ──
    const sortedArticles = [...articles].sort((a, b) => {
       if (!!b.isHeadline !== !!a.isHeadline) return b.isHeadline ? 1 : -1;
@@ -99,13 +97,13 @@ export default function JejuTimeLanding({ tenantId, articles, banners }: Props) 
    // 3. List Rows (Everything else)
    const listRowArticles = remainingForChunks.slice(numPairedArticles);
 
-   const trendingProducts = articles.filter((a: any) => a.status === "blog").slice(0, 4);
+   const trendingProducts = articles.filter((a) => a.status === "blog").slice(0, 4);
 
    const mainArticle = heroArticles[0];
    const secondaryArticles = heroArticles.slice(1, 3);
 
    // 8. Categories Preview
-   const articlesByCategory: Record<string, any[]> = {};
+   const articlesByCategory: Record<string, Article[]> = {};
    sortedArticles.forEach(article => {
       const catName = article.category?.categoryName || "General";
       if (!articlesByCategory[catName]) articlesByCategory[catName] = [];

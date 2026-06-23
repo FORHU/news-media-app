@@ -47,6 +47,14 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
+    // Default localPatterns (pathname: '**', search: '') blocks any local image
+    // with a query string. /api/admin/proxy-image needs its `url` query param,
+    // so it gets its own entry; the catch-all preserves the previous default
+    // for every other local image (logos, icons, favicons).
+    localPatterns: [
+      { pathname: '**', search: '' },
+      { pathname: '/api/admin/proxy-image' },
+    ],
     remotePatterns: [
       {
         protocol: 'https',

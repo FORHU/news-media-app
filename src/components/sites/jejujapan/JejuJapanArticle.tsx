@@ -33,11 +33,10 @@ import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
 
 
-export default function JejuJapanArticle({ 
-  articleId, 
+export default function JejuJapanArticle({
+  articleId,
   initialOtherArticles = [],
-  domain = "jejujapan.com"
-}: { 
+}: {
   articleId: string;
   initialOtherArticles?: Article[];
   domain?: string;
@@ -83,7 +82,7 @@ export default function JejuJapanArticle({
     return (
       <div className="flex items-center justify-center py-32 px-6">
         <div className="text-center max-w-md">
-          <p className="text-gray-900 font-semibold mb-2">We couldn't load this article.</p>
+          <p className="text-gray-900 font-semibold mb-2">We couldn&apos;t load this article.</p>
           <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#bc002d] transition-colors">
             <ArrowLeft className="w-4 h-4" /> Back to home
           </Link>

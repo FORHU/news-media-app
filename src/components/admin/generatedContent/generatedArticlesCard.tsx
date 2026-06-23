@@ -1,14 +1,12 @@
 "use client";
 
 import React from 'react';
-import Image from 'next/image';
 import {
     Globe,
     Youtube,
     Twitter,
     Upload,
     PenLine,
-    ExternalLink,
     Calendar,
     Zap,
     Check,
@@ -24,12 +22,9 @@ import Pagination from '@/components/admin/pagination';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { articlesApi } from '@/lib/api';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { format } from 'date-fns';
 import { Article } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as ShadCalendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import CreateArticleModal from '@/components/admin/generatedContent/CreateArticleModal/createArticleModal';
 import ArticleEditorModal from '@/components/admin/generatedContent/ArticleEditorModal';
@@ -90,9 +85,11 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
     const [isHeadlineConfirmOpen, setIsHeadlineConfirmOpen] = React.useState(false);
     const queryClient = useQueryClient();
 
-    React.useEffect(() => {
+    const [prevArticleIsHeadline, setPrevArticleIsHeadline] = React.useState(article.isHeadline);
+    if (article.isHeadline !== prevArticleIsHeadline) {
+        setPrevArticleIsHeadline(article.isHeadline);
         setIsHeadline(article.isHeadline ?? false);
-    }, [article.isHeadline]);
+    }
 
     const handleUnpublishClick = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -220,7 +217,7 @@ export function GeneratedArticleCard({ article, variants }: GeneratedArticleCard
                     ) : null}
 
                     {(() => {
-                        const meta = getSourceMeta((article as any).sourceType);
+                        const meta = getSourceMeta(article.sourceType);
                         const Icon = meta.Icon;
                         return (
                             <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border ${meta.className}`}>
@@ -403,7 +400,6 @@ export default function GeneratedArticlesList({ searchParams }: {
     const router = useRouter();
     const pathname = usePathname();
     const urlSearchParams = useSearchParams();
-    const queryClient = useQueryClient();
 
     const searchQuery = urlSearchParams.get('q') || searchParams.q || '';
     const date = urlSearchParams.get('date') || searchParams.date || '';
@@ -461,17 +457,21 @@ export default function GeneratedArticlesList({ searchParams }: {
     const [statusDraft, setStatusDraft] = React.useState(status);
     const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false);
 
-    React.useEffect(() => {
+    const [prevCategory, setPrevCategory] = React.useState(category);
+    if (category !== prevCategory) {
+        setPrevCategory(category);
         setCategoryDraft(category);
-    }, [category]);
-
-    React.useEffect(() => {
+    }
+    const [prevStatus, setPrevStatus] = React.useState(status);
+    if (status !== prevStatus) {
+        setPrevStatus(status);
         setStatusDraft(status);
-    }, [status]);
-
-    React.useEffect(() => {
+    }
+    const [prevSearchQuery, setPrevSearchQuery] = React.useState(searchQuery);
+    if (searchQuery !== prevSearchQuery) {
+        setPrevSearchQuery(searchQuery);
         setSearchDraft(searchQuery);
-    }, [searchQuery]);
+    }
 
     React.useEffect(() => {
         const t = setTimeout(() => {
@@ -559,7 +559,7 @@ export default function GeneratedArticlesList({ searchParams }: {
                         </SelectTrigger>
                         <SelectContent className="max-h-[400px]">
                             <SelectItem value={ALL_CATEGORIES_VALUE}>All Categories</SelectItem>
-                            {(categories ?? []).map((cat: any) => (
+                            {(categories ?? []).map((cat: { id: string; name: string }) => (
                                 <SelectItem key={cat.id} value={cat.name} className="font-medium">
                                     {getCategoryLabel(cat.name)}
                                 </SelectItem>

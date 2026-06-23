@@ -1,6 +1,6 @@
 "use client";
 
-import { AdBanner } from "@/components/AdBanner";
+import { AdBanner, type Banner } from "@/components/AdBanner";
 import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
 import { ChevronRight, TrendingUp, ChevronLeft, Clock } from "lucide-react";
@@ -9,18 +9,19 @@ import { useHeroCarousel } from "@/hooks/useHeroCarousel";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
+import type { Article } from "@/lib/types";
 
 interface Props {
   tenantId: string | null;
-  articles: any[];
+  articles: Article[];
   banners: {
-    top: any[];
-    sidebar: any[];
-    footer: any[];
+    top: Banner[];
+    sidebar: Banner[];
+    footer: Banner[];
   };
 }
 
-export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
+export default function JejuQQLanding({ articles, banners }: Props) {
   const tenantConfig = ADSTERRA_CONFIG.jejuqq;
   const adKeys = tenantConfig.banners;
   const showSkyscrapers = adKeys["160x600"] && adKeys["160x600"].length > 0;
@@ -65,10 +66,10 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
   const sidebarMore = sidebarPool.slice(10, 20);
 
   const featuredArticles = articles.slice(0, 4);
-  const trendingProducts = articles.filter((a: any) => a.status === "blog").slice(0, 4);
+  const trendingProducts = articles.filter((a) => a.status === "blog").slice(0, 4);
 
   // Group remaining articles by category for additional category blocks
-  const categoryBuckets = sortedArticles.reduce((acc: Record<string, any[]>, article: any) => {
+  const categoryBuckets = sortedArticles.reduce((acc: Record<string, Article[]>, article) => {
     const categoryName = article.category?.categoryName || "More Stories";
     if (!acc[categoryName]) {
       acc[categoryName] = [];
@@ -78,11 +79,11 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
   }, {});
 
   const categorySections = Object.entries(categoryBuckets)
-    .filter(([_, list]) => list.length > 0)
+    .filter(([, list]) => list.length > 0)
     .slice(0, 4);
 
   const otherCategorySections = Object.entries(categoryBuckets)
-    .filter(([_, list]) => list.length > 0)
+    .filter(([, list]) => list.length > 0)
     .slice(4, 8);
 
   const { index, direction, paginate, goTo } = useHeroCarousel(heroArticles.length);
@@ -340,7 +341,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                       </div>
 
                       <div className="divide-y divide-gray-200">
-                        {moreHeadlines.map((article: any, i: number) => (
+                        {moreHeadlines.map((article, i) => (
                           <Link
                             key={article.id}
                             href={`/article/${article.slug || article.id}`}
@@ -382,7 +383,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                       </div>
 
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        {photoStories.map((article: any) => (
+                        {photoStories.map((article) => (
                           <Link
                             key={article.id}
                             href={`/article/${article.slug || article.id}`}
@@ -425,7 +426,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {inDepthStories.slice(0, 6).map((article: any) => (
+                        {inDepthStories.slice(0, 6).map((article) => (
                           <Link
                             key={article.id}
                             href={`/article/${article.slug || article.id}`}
@@ -490,7 +491,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                 <section className="bg-black rounded-none p-5 md:p-6 lg:p-8 text-white overflow-hidden relative">
                   <h3 className="text-2xl md:text-3xl font-garamond font-bold mb-5 flex items-center gap-4 relative z-10">Explore More <span className="h-1 w-16 bg-[#dc2626]"></span></h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 relative z-10">
-                    {trendingProducts.map((article: any) => (
+                    {trendingProducts.map((article) => (
                       <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group bg-white/5 border border-white/10 p-3 md:p-4 rounded-none hover:bg-[#dc2626] transition-colors">
                         <div className="relative w-full aspect-square mb-3 overflow-hidden rounded-none">
                           <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" />
@@ -510,7 +511,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                 <section className="pt-1 border-t border-gray-200">
                   <div className="space-y-5">
                     {categorySections.map(([categoryName, list]) => {
-                      const items = (list as any[]).slice(0, 5);
+                      const items = list.slice(0, 5);
                       return (
                         <div key={categoryName} className="bg-white/60 border border-gray-200 px-4 sm:px-5 md:px-6 py-4 md:py-5 shadow-sm">
                           <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
@@ -555,7 +556,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
 
                             {/* Compact list (always fills, no empty cells) */}
                             <div className="lg:col-span-5 space-y-2.5">
-                              {items.slice(1).map((article: any) => (
+                              {items.slice(1).map((article) => (
                                 <Link
                                   key={article.id}
                                   href={`/article/${article.slug || article.id}`}
@@ -703,7 +704,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
           <section className="mt-10 pt-8 border-t-2 border-primary/20">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
               {otherCategorySections.map(([categoryName, list]) => {
-                const items = (list as any[]).slice(0, 4);
+                const items = list.slice(0, 4);
                 const lead = items[0];
                 const subItems = items.slice(1);
 
@@ -733,7 +734,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
                     )}
 
                     <div className="space-y-5">
-                      {subItems.map((article: any) => (
+                      {subItems.map((article) => (
                         <Link
                           key={article.id}
                           href={`/article/${article.slug || article.id}`}
@@ -780,7 +781,7 @@ export default function JejuQQLanding({ tenantId, articles, banners }: Props) {
             </div>
 
             <div className="flex gap-3 overflow-x-auto pb-4 px-1 snap-x snap-mandatory scrollbar-hide">
-              {footerStripArticles.map((article: any) => (
+              {footerStripArticles.map((article) => (
                 <Link
                   key={article.id}
                   href={`/article/${article.slug || article.id}`}

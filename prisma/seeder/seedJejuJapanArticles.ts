@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { PrismaClient } from "../../src/generated/prisma/client";
-import { articles, seedArticles } from "./articles";
+import { articles } from "./articles";
 
 const prisma = new PrismaClient();
 
@@ -73,7 +73,7 @@ async function main() {
            content: a.content,
            imageUrl: a.imageUrl,
            status: a.status,
-         } as any
+         } as Parameters<PrismaClient["contentArticle"]["create"]>[0]["data"]
        });
        console.log(`Inserted: ${a.title}`);
     } else {

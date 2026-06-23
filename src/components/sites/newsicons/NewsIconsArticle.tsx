@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -52,7 +52,6 @@ export default function NewsIconsArticle({
 
   const {
     data: article,
-    isLoading,
     isError,
   } = useQuery({
     queryKey: ["article", articleId],
@@ -67,7 +66,7 @@ export default function NewsIconsArticle({
       <div className="flex items-center justify-center py-32 px-6">
         <div className="text-center max-w-md">
           <p className="text-gray-900 font-semibold mb-2">
-            We couldn't load this article.
+            We couldn&apos;t load this article.
           </p>
           <p className="text-gray-600 mb-6">
             Please try again, or go back to the homepage.

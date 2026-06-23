@@ -115,7 +115,10 @@ export default function ArticleEditorModal({
     }, []);
 
     React.useEffect(() => {
+        // syncFormFromArticle mutates fileInputRef.current — refs can't be
+        // touched during render, so this must stay a real effect.
         if (open && article) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             syncFormFromArticle(article);
             setError(null);
             setFieldErrors({});
@@ -516,7 +519,10 @@ export default function ArticleEditorModal({
                                     {/* Preview */}
                                     <div className="relative w-full min-h-[12rem] rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 mb-3">
                                         {currentImage ? (
-                                            // Use plain <img> so arbitrary external URLs work without Next.js domain config
+                                            // currentImage can be a FileReader data: URI (imagePreview) or an
+                                            // arbitrary external URL (imageUrlInput) — next/image's optimizer
+                                            // doesn't reliably handle both, plain img is the correct tool here.
+                                            // eslint-disable-next-line @next/next/no-img-element
                                             <img
                                                 src={currentImage}
                                                 alt={title}

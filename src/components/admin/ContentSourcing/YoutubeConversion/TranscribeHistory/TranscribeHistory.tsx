@@ -14,15 +14,15 @@ import { articlesApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import Pagination from '@/components/admin/pagination';
 import { format } from 'date-fns';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function TranscribeHistory() {
     const router = useRouter();
-    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const searchParams = useSearchParams();
     const historyRef = React.useRef<HTMLDivElement>(null);
 
     React.useEffect(() => {
-        if (searchParams?.get('view') === 'history') {
+        if (searchParams.get('view') === 'history') {
             historyRef.current?.scrollIntoView({ behavior: 'smooth' });
         }
     }, [searchParams]);

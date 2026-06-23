@@ -51,8 +51,9 @@ export async function POST(request: NextRequest) {
     );
 
     return NextResponse.json({ ok: true });
-  } catch (error: any) {
-    console.error("[Facebook Share] debug route error:", error?.message ?? error);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : error;
+    console.error("[Facebook Share] debug route error:", message);
     return NextResponse.json({ ok: false }, { status: 400 });
   }
 }

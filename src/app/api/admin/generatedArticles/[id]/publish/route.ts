@@ -196,7 +196,7 @@ export async function PATCH(
     sseBroadcaster.broadcast("articles:updated");
 
     return NextResponse.json(updated);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[PATCH publish/route] Error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }

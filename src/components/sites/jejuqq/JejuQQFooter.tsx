@@ -8,7 +8,8 @@ interface JejuQQFooterProps {
   onOpenNewsletter?: () => void;
 }
 
-export default function JejuQQFooter({ onOpenNewsletter }: JejuQQFooterProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function JejuQQFooter(_props: JejuQQFooterProps) {
   const currentYear = new Date().getFullYear();
 
   return (

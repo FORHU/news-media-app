@@ -34,13 +34,13 @@ export default function SkyBluePrimeFooter({ onOpenNewsletter }: SkyBluePrimeFoo
                 Clear reporting and curated stories — your daily source for AI, tech, cybersecurity, and the digital world.
               </p>
               <div className="mt-6 flex gap-3">
-                <a
+                <Link
                   href="/"
                   aria-label="skyblueprime.com"
                   className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sky-300 transition-colors"
                 >
                   <Globe size={16} />
-                </a>
+                </Link>
                 <a
                   href="mailto:contact@skyblueprime.com"
                   aria-label="Contact"

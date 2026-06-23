@@ -43,9 +43,12 @@ export async function uploadToS3(file: Buffer, fileName: string, contentType: st
         }
 
         return `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
-    } catch (error: any) {
-        console.error("S3 Upload Error — code:", error?.Code ?? error?.name, "| message:", error?.message, "| key:", key, "| bucket:", bucketName, "| region:", process.env.AWS_REGION);
-        throw new Error(`Failed to upload file to S3: [${error?.Code ?? error?.name}] ${error?.message}`);
+    } catch (error: unknown) {
+        const code = error instanceof Error && "Code" in error ? (error as Error & { Code?: string }).Code : undefined;
+        const name = error instanceof Error ? error.name : undefined;
+        const message = error instanceof Error ? error.message : String(error);
+        console.error("S3 Upload Error — code:", code ?? name, "| message:", message, "| key:", key, "| bucket:", bucketName, "| region:", process.env.AWS_REGION);
+        throw new Error(`Failed to upload file to S3: [${code ?? name}] ${message}`);
     }
 }
 

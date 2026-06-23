@@ -1,16 +1,12 @@
 "use client";
 
 import React from "react";
-import { 
-  Plus, 
-  Search, 
-  ImageIcon as ImageIconLucide, 
-  Trash2, 
-  Edit3, 
-  Eye, 
-  EyeOff, 
-  Loader2, 
-  ArrowUpRight,
+import {
+  Plus,
+  Search,
+  ImageIcon as ImageIconLucide,
+  Trash2,
+  Loader2,
   Link2,
   LayoutGrid,
   List,
@@ -21,19 +17,19 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { bannersApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
+import { motion } from "framer-motion";
 import { StoryImage } from "@/components/StoryImage";
 import { extractYoutubeId } from "@/lib/utils";
 import BannerForm from "./BannerForm";
 import ConfirmationModal from "@/components/admin/shared/ConfirmationModal";
+import type { Banner } from "@/repositories/banners.repository";
 
 export default function BannerManagement() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isFormOpen, setIsFormOpen] = React.useState(false);
-  const [selectedBanner, setSelectedBanner] = React.useState<any>(null);
+  const [selectedBanner, setSelectedBanner] = React.useState<Banner | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
-  const [bannerToDelete, setBannerToDelete] = React.useState<any>(null);
+  const [bannerToDelete, setBannerToDelete] = React.useState<Banner | null>(null);
   const [viewMode, setViewMode] = React.useState<"grid" | "list">("grid");
   const [currentPage, setCurrentPage] = React.useState(1);
   const ITEMS_PER_PAGE = viewMode === "grid" ? 6 : 10;
@@ -79,12 +75,14 @@ export default function BannerManagement() {
     currentPage * ITEMS_PER_PAGE
   );
 
-  // Reset to page 1 when search or view mode changes
-  React.useEffect(() => {
+  // Reset to page 1 when search or view mode changes — during render, no effect.
+  const [prevFilters, setPrevFilters] = React.useState({ searchQuery, viewMode });
+  if (searchQuery !== prevFilters.searchQuery || viewMode !== prevFilters.viewMode) {
+    setPrevFilters({ searchQuery, viewMode });
     setCurrentPage(1);
-  }, [searchQuery, viewMode]);
+  }
 
-  const handleEdit = (banner: any) => {
+  const handleEdit = (banner: Banner) => {
     setSelectedBanner(banner);
     setIsFormOpen(true);
   };
@@ -94,7 +92,7 @@ export default function BannerManagement() {
     setIsFormOpen(true);
   };
 
-  const handleDeleteClick = (banner: any) => {
+  const handleDeleteClick = (banner: Banner) => {
     setBannerToDelete(banner);
     setIsDeleteModalOpen(true);
   };

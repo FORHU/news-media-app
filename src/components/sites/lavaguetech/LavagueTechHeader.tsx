@@ -7,7 +7,7 @@ import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { Search, Menu, X, ChevronLeft, ChevronRight, User } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
-import { getCoreCategories, HOME_CATEGORY_LABEL, normalizeCategoryKey } from "@/config/categories";
+import { getCoreCategories, HOME_CATEGORY_LABEL } from "@/config/categories";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { SearchDropdown } from "@/components/search/SearchDropdown";
 import dynamic from "next/dynamic";
@@ -46,8 +46,6 @@ export default function LavagueTechHeader({ onOpenNewsletter }: HeaderProps) {
     staleTime: 5 * 60 * 1000,
   });
 
-  const coreCategoryKeys = new Set(coreCategories.map(normalizeCategoryKey));
-
   const categoryLinks = [
     { name: HOME_CATEGORY_LABEL, link: "/" },
     ...coreCategories.map((name) => ({ name, link: categoryHref(name) })),
@@ -78,6 +76,9 @@ export default function LavagueTechHeader({ onOpenNewsletter }: HeaderProps) {
   }, [categories]);
 
   useEffect(() => {
+    // Resync editable query state when the URL search param changes externally
+    // (nav/back-forward) — user can still freely edit `query` between syncs.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setQuery(searchParams.get("search") ?? "");
   }, [searchParams]);
 

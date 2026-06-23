@@ -3,12 +3,8 @@
 import React from "react";
 import {
     Zap,
-    Upload,
-    FileText,
-    Image as ImageIcon,
     File,
     X,
-    Check,
     Loader2,
 } from "lucide-react";
 import {
@@ -19,7 +15,6 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
     Select,
     SelectContent,
@@ -29,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { 
     LANGUAGE_OPTIONS, 
     ManualArticleContext, 
@@ -62,7 +57,7 @@ export default function CreateArticleModal({
         materials?: string;
     }>({});
     const [isProcessingFiles, setIsProcessingFiles] = React.useState(false);
-    const [uploadProgress, setUploadProgress] = React.useState<number | null>(null);
+    const [, setUploadProgress] = React.useState<number | null>(null);
 
     const resetForm = React.useCallback(() => {
         setTopic("");
@@ -78,12 +73,14 @@ export default function CreateArticleModal({
         setGenerateNewImage(false);
     }, []);
 
-    // Reset form when modal closes
-    React.useEffect(() => {
+    // Reset form when modal closes — during render, no effect.
+    const [prevDeps, setPrevDeps] = React.useState({ open, resetForm });
+    if (open !== prevDeps.open || resetForm !== prevDeps.resetForm) {
+        setPrevDeps({ open, resetForm });
         if (!open) {
             resetForm();
         }
-    }, [open, resetForm]);
+    }
 
     const queryClient = useQueryClient();
 
@@ -247,9 +244,9 @@ export default function CreateArticleModal({
 
             queryClient.invalidateQueries({ queryKey: ['generatedArticles'] });
             onOpenChange(false);
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Manual Generation Error:", err);
-            setError(err.message || "Failed to process local files.");
+            setError(err instanceof Error ? err.message : "Failed to process local files.");
             setIsProcessingFiles(false);
         }
     };

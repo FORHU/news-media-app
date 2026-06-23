@@ -36,8 +36,9 @@ export async function POST(req: NextRequest) {
             filename: filename,
             fileUrl: fileUrl
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Upload Presigned URL Error:", error);
-        return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
+        const message = error instanceof Error ? error.message : "Internal server error";
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

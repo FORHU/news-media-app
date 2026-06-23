@@ -6,6 +6,7 @@ import { z } from "zod";
 import { getTenantDomainFromRequest, resolveTenantIdFromRequest } from "@/lib/tenant";
 import { uploadToS3 } from "@/lib/s3";
 import { sseBroadcaster } from "@/lib/sse";
+import { SourceType } from "@/generated/prisma/client";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -172,9 +173,10 @@ export async function POST(req: NextRequest) {
       const data = await sessionRes.json();
       session_id = data.session_id;
       console.log("[createFromUpload] AI Session ID acquired:", session_id);
-    } catch (e: any) {
-      console.error("[createFromUpload] AI Session fetch network error:", e.message);
-      throw new Error(`AI Service Connection Error: ${e.message}`);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      console.error("[createFromUpload] AI Session fetch network error:", message);
+      throw new Error(`AI Service Connection Error: ${message}`);
     }
 
     // Analyze material images
@@ -196,7 +198,7 @@ export async function POST(req: NextRequest) {
                 let s3Key = s3Url;
                 try {
                     s3Key = new URL(s3Url).pathname.slice(1);
-                } catch (e) {}
+                } catch {}
                 const analysisFilename = s3Key.split("/").pop() || `material.${extension}`;
 
                 console.log(`[createFromUpload] Analyzing uploaded image via S3: ${s3Url}`);
@@ -315,12 +317,12 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${l
       clearTimeout(timeout);
 
       if (!chatRes.ok) {
-        const errorData = await chatRes.json().catch(() => ({}));
+        const errorData: { detail?: string } = await chatRes.json().catch(() => ({}));
         console.error("[createFromUpload] AI chat failed with status:", chatRes.status, "Error:", errorData);
         throw new Error(errorData?.detail || `AI service error (${chatRes.status})`);
       }
 
-      const { response } = await chatRes.json();
+      const { response } = (await chatRes.json()) as { response?: string };
       console.log("[createFromUpload] AI Response received (length):", response?.length || 0);
       const { title, content } = extractArticleData(response, topic || "New Article");
       if (!content || content.length < 50) {
@@ -343,8 +345,8 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${l
       const publishDate = new Date();
       const slug = await generateUniqueArticleSlug(prisma, title, publishDate);
 
-      const sourceType =
-        resolvedImageUrl || (extractedText && extractedText.trim()) ? "UPLOAD" : "MANUAL";
+      const sourceType: SourceType =
+        resolvedImageUrl || (extractedText && extractedText.trim()) ? SourceType.UPLOAD : SourceType.MANUAL;
 
       const contentArticle = await prisma.contentArticle.create({
         data: {
@@ -358,23 +360,25 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${l
           imageUrl: resolvedImageUrl || null,
           content,
           status: "pending",
-          sourceType: sourceType as any,
+          sourceType,
         },
       });
 
       sseBroadcaster.broadcast("articles:updated");
       return NextResponse.json(contentArticle);
-    } catch (error: any) {
+    } catch (error: unknown) {
       clearTimeout(timeout);
-      const isTimeout = error?.name === "AbortError";
+      const isTimeout = error instanceof Error && error.name === "AbortError";
+      const message = error instanceof Error ? error.message : "Server error";
       return NextResponse.json(
-        { error: isTimeout ? "AI generation request timed out." : error?.message || "Server error" },
+        { error: isTimeout ? "AI generation request timed out." : message },
         { status: isTimeout ? 504 : 500 }
       );
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[createFromUpload] Error:", error);
-    return NextResponse.json({ error: error?.message || "Internal server error" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 

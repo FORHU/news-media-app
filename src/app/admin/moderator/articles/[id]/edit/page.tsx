@@ -122,8 +122,8 @@ export default function EditArticlePage({ params }: { params: Promise<{ id: stri
             setImageState({ type: "unchanged" });
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 3000);
-        } catch (err: any) {
-            setSaveError(err.message || "Something went wrong.");
+        } catch (err: unknown) {
+            setSaveError(err instanceof Error ? err.message : "Something went wrong.");
         } finally {
             setSaving(false);
         }
@@ -281,6 +281,10 @@ export default function EditArticlePage({ params }: { params: Promise<{ id: stri
                                     <input id="img-upload" type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                                     {currentImageUrl ? (
                                         <div className="absolute inset-0 w-full h-full">
+                                            {/* currentImageUrl can be a blob: object URL for a freshly-picked
+                                                file (URL.createObjectURL) — next/image's optimizer can't fetch
+                                                blob: URLs, so a plain img is the correct tool here. */}
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
                                             <img src={currentImageUrl} alt="Preview" className="w-full h-full object-cover" />
                                             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2.5">
                                                 <Button type="button" size="sm"

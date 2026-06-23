@@ -17,7 +17,7 @@ const JejuQQFooter = dynamic(() => import("./sites/jejuqq/JejuQQFooter"), { ssr:
 const JejuJapanHeader = dynamic(() => import("./sites/jejujapan/JejuJapanHeader"), { ssr: true });
 const JejuJapanFooter = dynamic(() => import("./sites/jejujapan/JejuJapanFooter"), { ssr: true });
 const VoiceJejuHeader = dynamic<{ onOpenNewsletter?: () => void }>(() => import("@/components/sites/voicejeju/VoiceJejuHeader").then(m => m.VoiceJejuHeader), { ssr: true });
-const VoiceJejuFooter = dynamic<{ onOpenNewsletter?: () => void; footerBanners?: any[] }>(() => import("@/components/sites/voicejeju/VoiceJejuFooter").then(m => m.VoiceJejuFooter), { ssr: true });
+const VoiceJejuFooter = dynamic<{ onOpenNewsletter?: () => void; footerBanners?: import("@/components/sites/voicejeju/VoiceJejuFooter").Banner[] }>(() => import("@/components/sites/voicejeju/VoiceJejuFooter").then(m => m.VoiceJejuFooter), { ssr: true });
 const SkyBluePrimeHeader = dynamic(() => import("./sites/skyblueprime/SkyBluePrimeHeader"), { ssr: true });
 const SkyBluePrimeFooter = dynamic(() => import("./sites/skyblueprime/SkyBluePrimeFooter"), { ssr: true });
 const LavagueTechHeader = dynamic(() => import("./sites/lavaguetech/LavagueTechHeader"), { ssr: true });

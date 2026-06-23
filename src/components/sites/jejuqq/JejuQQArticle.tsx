@@ -40,7 +40,6 @@ import { ADSTERRA_CONFIG } from "@/config/adsterra";
 export default function JejuQQArticle({
   articleId,
   initialOtherArticles = [],
-  domain = "jejuqq.com"
 }: {
   articleId: string;
   initialOtherArticles?: Article[];
@@ -76,7 +75,7 @@ export default function JejuQQArticle({
     return (
       <div className="flex items-center justify-center py-32 px-6">
         <div className="text-center max-w-md">
-          <p className="text-[#222] font-black mb-2 uppercase tracking-widest">We couldn't load this article.</p>
+          <p className="text-[#222] font-black mb-2 uppercase tracking-widest">We couldn&apos;t load this article.</p>
           <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#b91c1c] transition-colors font-bold uppercase tracking-widest">
             <ArrowLeft className="w-4 h-4" /> Back to home
           </Link>
@@ -145,7 +144,6 @@ export default function JejuQQArticle({
   );
 
   const paragraphs = layoutContent.split(/\n+/).map((p) => p.trim()).filter(Boolean);
-  const fullContent = paragraphs.join("\n\n");
   const midpoint = Math.ceil(paragraphs.length / 2);
   const firstHalf = paragraphs.slice(0, midpoint).join("\n\n");
   const secondHalf = paragraphs.slice(midpoint).join("\n\n");

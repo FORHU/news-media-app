@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import {
-    Youtube,
     Zap,
     Loader2,
     CheckCircle2,
@@ -42,7 +41,7 @@ export default function Transcribe() {
     });
 
     const mutation = useMutation({
-        mutationFn: (params: any) => articlesApi.generateManualArticle(params),
+        mutationFn: (params: Parameters<typeof articlesApi.generateManualArticle>[0]) => articlesApi.generateManualArticle(params),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['generatedArticles'] });
             setSuccessMessage("Article generation started successfully!");
@@ -53,8 +52,8 @@ export default function Transcribe() {
             setGenerationMode("standalone");
             setTimeout(() => setSuccessMessage(null), 5000);
         },
-        onError: (err: any) => {
-            setGlobalError(err.message || "Failed to generate article.");
+        onError: (err: unknown) => {
+            setGlobalError(err instanceof Error ? err.message : "Failed to generate article.");
         }
     });
 
@@ -72,8 +71,8 @@ export default function Transcribe() {
             const data = await articlesApi.transcribeYoutube(trimmedUrl);
             setYoutubeVideoId(data.video_id || "");
             setYoutubeTranscript(data.transcript || "");
-        } catch (err: any) {
-            setTranscriptError(err?.message || "Failed to transcribe YouTube video.");
+        } catch (err: unknown) {
+            setTranscriptError(err instanceof Error ? err.message : "Failed to transcribe YouTube video.");
             setYoutubeVideoId("");
             setYoutubeTranscript("");
         } finally {
@@ -85,7 +84,7 @@ export default function Transcribe() {
         setFieldErrors({});
         setGlobalError(null);
         
-        const newErrors: any = {};
+        const newErrors: { category?: string; transcript?: string } = {};
         if (!selectedCategory) newErrors.category = "Category is required";
         if (!youtubeTranscript.trim()) newErrors.transcript = "Transcript is required";
 

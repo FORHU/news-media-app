@@ -497,7 +497,7 @@ function WireCategoryDeskSection({ blocks }: { blocks: { name: string; previews:
                            {browse}
                         </div>
                         <ul className="divide-y divide-gray-100">
-                           {previews.map((a, i) => (
+                           {previews.map((a) => (
                               <li key={a.id}>
                                  <Link
                                     href={articleHref(a)}
@@ -728,7 +728,7 @@ function ReportDeskCluster({
                         : "grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-2"
                   )}
                >
-                  {subs.slice(0, 4).map((a, idx) => (
+                  {subs.slice(0, 4).map((a) => (
                      <li key={a.id}>
                         {variant === "primary" ? (
                            <Link
@@ -930,7 +930,6 @@ function ReportDeskFeed({ articles }: { articles: LandingArticle[] }) {
    let i = 0;
    let seg = 0;
    const n = articles.length;
-   let clusterIndex = 0;
 
    const pushCluster = (leadIdx: number) => {
       const lead = articles[leadIdx];
@@ -939,8 +938,7 @@ function ReportDeskFeed({ articles }: { articles: LandingArticle[] }) {
       const avail = n - leadIdx - 1;
       const subCount = Math.min(maxSubs, Math.max(0, avail));
       const subs = articles.slice(leadIdx + 1, leadIdx + 1 + subCount);
-      const variant = clusterIndex === 0 ? "primary" : "secondary";
-      clusterIndex += 1;
+      const variant = blocks.length === 0 ? "primary" : "secondary";
       blocks.push(
          <ReportDeskCluster
             key={`rd-cluster-${lead.id}-${leadIdx}`}
@@ -1502,7 +1500,7 @@ export function VoiceJejuLanding(props: Props) {
                            <div className="h-px flex-1 bg-black/10 ml-3" />
                         </h2>
                         <div className="space-y-1">
-                           {trendingArticles.map((article, i) => (
+                           {trendingArticles.map((article) => (
                               <Link
                                  key={article.id}
                                  href={articleHref(article)}

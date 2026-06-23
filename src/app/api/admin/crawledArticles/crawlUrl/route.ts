@@ -20,10 +20,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
+  const jsonObj = (typeof json === "object" && json !== null ? json : {}) as Record<string, unknown>;
   const parsed = crawlTriggerBodySchema.safeParse({
-    ...(json as any),
+    ...jsonObj,
     // Map frontend's max_requests_per_crawl to the new max_articles field
-    max_articles: (json as any)?.max_articles ?? (json as any)?.max_requests_per_crawl,
+    max_articles: jsonObj.max_articles ?? jsonObj.max_requests_per_crawl,
     tenant_id: tenantId,
   });
   

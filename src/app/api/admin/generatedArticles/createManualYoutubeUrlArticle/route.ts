@@ -223,7 +223,7 @@ export async function POST(req: NextRequest) {
         let s3Key = imageUrl;
         try {
           s3Key = new URL(imageUrl).pathname.slice(1);
-        } catch (e) {
+        } catch {
           console.warn("Invalid URL format for s3Key extraction:", imageUrl);
         }
         const filename = s3Key.split("/").pop() || "image.jpg";
@@ -304,12 +304,12 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${l
       clearTimeout(timeout);
 
       if (!chatRes.ok) {
-        const errorData = await chatRes.json().catch(() => ({}));
+        const errorData: { detail?: string } = await chatRes.json().catch(() => ({}));
         console.error("[Manual AI Generate] Error Status:", chatRes.status, errorData);
         throw new Error(errorData?.detail || `AI service reported an error (Status: ${chatRes.status})`);
       }
 
-      const { response } = await chatRes.json();
+      const { response } = (await chatRes.json()) as { response?: string };
       if (!response) throw new Error("AI service returned empty response");
 
       const extracted = extractArticleData(response, topic || "New Article");
@@ -347,15 +347,16 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${l
 
       sseBroadcaster.broadcast("articles:updated");
       return NextResponse.json(contentArticle);
-    } catch (error: any) {
+    } catch (error: unknown) {
       clearTimeout(timeout);
-      const isTimeout = error.name === "AbortError";
+      const isTimeout = error instanceof Error && error.name === "AbortError";
+      const message = error instanceof Error ? error.message || "Failed to generate content" : "Failed to generate content";
       return NextResponse.json(
-        { error: isTimeout ? "AI generation request timed out." : error.message || "Failed to generate content" },
+        { error: isTimeout ? "AI generation request timed out." : message },
         { status: isTimeout ? 504 : 500 }
       );
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Manual AI Generation error:", error);
     return NextResponse.json({ error: "Invalid request or server error" }, { status: 400 });
   }

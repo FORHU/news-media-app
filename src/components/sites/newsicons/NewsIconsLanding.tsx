@@ -7,29 +7,20 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { getCoreCategories, normalizeCategoryKey } from "@/config/categories";
 import type { MediaStackArticle } from "@/lib/mediastack";
+import type { Banner } from "@/components/AdBanner";
+import type { Article } from "@/lib/types";
 
 const TrendingProductsSection = dynamic(() => import("@/components/home/trending-products-section").then(m => m.TrendingProductsSection), { ssr: true });
 
-interface ArticleRow {
-  id: string;
-  slug?: string | null;
-  title: string;
-  content?: string | null;
-  imageUrl?: string | null;
-  createdAt: string | Date;
-  trendingScore?: number | null;
-  isHeadline?: boolean | null;
-  status?: string | null;
-  category?: { categoryName?: string | null } | null;
-}
+type ArticleRow = Article;
 
 interface Props {
   tenantId: string | null;
   articles: ArticleRow[];
   banners: {
-    top: any[];
-    sidebar: any[];
-    footer: any[];
+    top: Banner[];
+    sidebar: Banner[];
+    footer: Banner[];
   };
   mediastackArticles?: MediaStackArticle[];
 }
@@ -534,7 +525,7 @@ export default function NewsIconsLanding({ articles, banners, mediastackArticles
 
         {/* Blog / Trending Products */}
         <TrendingProductsSection
-          articles={articles.filter((a: any) => a.status === "blog").slice(0, 4) as any}
+          articles={articles.filter((a) => a.status === "blog").slice(0, 4)}
         />
 
         {/* Native banner */}

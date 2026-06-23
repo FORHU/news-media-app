@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { AdBanner } from "@/components/AdBanner";
-import { Globe, Mail, Phone, MapPin } from "lucide-react";
+import { Globe, Mail } from "lucide-react";
 
 interface Banner {
   id: string;
@@ -18,7 +18,7 @@ interface JejuJapanFooterProps {
   footerBanners?: Banner[];
 }
 
-export default function JejuJapanFooter({ onOpenNewsletter, footerBanners }: JejuJapanFooterProps) {
+export default function JejuJapanFooter({ onOpenNewsletter }: JejuJapanFooterProps) {
   return (
     <>
       <div className="max-w-7xl mx-auto px-6 w-full">

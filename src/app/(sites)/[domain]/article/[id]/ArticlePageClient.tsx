@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -51,7 +51,6 @@ export default function ArticlePageClient({
 
   const {
     data: article,
-    isLoading,
     isError,
   } = useQuery({
     queryKey: ["article", articleId],

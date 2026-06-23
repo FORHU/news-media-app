@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -174,12 +175,18 @@ export default function ModeratorPage() {
   const [previewImgError, setPreviewImgError] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
+  // Reset pagination/error flags during render (not effects) — no extra
+  // render pass, takes effect before this render paints.
+  const [prevActiveTab, setPrevActiveTab] = useState(activeTab);
+  if (activeTab !== prevActiveTab) {
+    setPrevActiveTab(activeTab);
     setPage(1);
-  }, [activeTab]);
-  useEffect(() => {
+  }
+  const [prevPreviewId, setPrevPreviewId] = useState(previewId);
+  if (previewId !== prevPreviewId) {
+    setPrevPreviewId(previewId);
     setPreviewImgError(false);
-  }, [previewId]);
+  }
 
   const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ["external-submissions", activeTab, page],
@@ -488,6 +495,7 @@ export default function ModeratorPage() {
     const flag = DOMAIN_FLAG[domain] ?? "🌐";
     const lang = DOMAIN_LANG[domain] ?? article.tenant?.siteName ?? domain;
     const isGroupHeader = onRowClick !== undefined;
+    const [imgError, setImgError] = useState(false);
 
     return (
       <div
@@ -499,17 +507,21 @@ export default function ModeratorPage() {
         onClick={onRowClick}
       >
         <div
-          className={`shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-gray-100 dark:bg-zinc-700 ${activeTab !== "draft" ? "cursor-pointer" : ""}`}
+          className={`shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-gray-100 dark:bg-zinc-700 relative ${activeTab !== "draft" ? "cursor-pointer" : ""}`}
           onClick={(e) => {
             e.stopPropagation();
             if (activeTab !== "draft") setPreviewId(previewId === article.id ? null : article.id);
           }}
         >
-          {article.imageUrl ? (
-            <img
+          {article.imageUrl && !imgError ? (
+            <Image
               src={`/api/admin/proxy-image?url=${encodeURIComponent(article.imageUrl)}`}
               alt={article.title}
-              className="w-full h-full object-cover"
+              fill
+              sizes="56px"
+              className="object-cover"
+              unoptimized
+              onError={() => setImgError(true)}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
@@ -744,12 +756,17 @@ export default function ModeratorPage() {
               </button>
             </div>
             {previewArticle.imageUrl && !previewImgError ? (
-              <img
-                src={`/api/admin/proxy-image?url=${encodeURIComponent(previewArticle.imageUrl)}`}
-                alt={previewArticle.title}
-                className="w-full h-40 object-cover"
-                onError={() => setPreviewImgError(true)}
-              />
+              <div className="relative w-full h-40">
+                <Image
+                  src={`/api/admin/proxy-image?url=${encodeURIComponent(previewArticle.imageUrl)}`}
+                  alt={previewArticle.title}
+                  fill
+                  sizes="400px"
+                  className="object-cover"
+                  onError={() => setPreviewImgError(true)}
+                  unoptimized
+                />
+              </div>
             ) : previewArticle.imageUrl && previewImgError ? (
               <div className="w-full h-40 bg-gray-100 dark:bg-zinc-700 flex flex-col items-center justify-center gap-2 text-gray-400 dark:text-zinc-500">
                 <FileText className="w-8 h-8 opacity-40" />
@@ -816,11 +833,14 @@ export default function ModeratorPage() {
             </div>
 
             {editImageUrl && (
-              <div className="shrink-0 relative group">
-                <img
+              <div className="shrink-0 relative group w-full h-52">
+                <Image
                   src={`/api/admin/proxy-image?url=${encodeURIComponent(editImageUrl)}`}
                   alt={editingArticle.title}
-                  className="w-full h-52 object-cover"
+                  fill
+                  sizes="600px"
+                  className="object-cover"
+                  unoptimized
                 />
               </div>
             )}

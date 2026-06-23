@@ -180,7 +180,7 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${r
 
     let title = "";
     let content = "";
-    let resolvedCategoryId = categoryId;
+    const resolvedCategoryId = categoryId;
 
     try {
       const chatRes = await fetch(`${baseUrl}/chat`, {
@@ -278,7 +278,7 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${r
         ...contentArticle,
         imageGeneration: featuredImageLog,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       clearTimeout(timeout);
 
       // Update status to failed only if it was a real attempt
@@ -289,11 +289,11 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${r
         }).catch(err => console.error("Failed to set article as failed:", err));
       }
 
-      const isTimeout = error.name === "AbortError";
-      const errorMsg = error.message?.toLowerCase() || "";
+      const isTimeout = error instanceof Error && error.name === "AbortError";
+      const errorMsg = error instanceof Error ? error.message?.toLowerCase() || "" : "";
       const isTokenLimit = errorMsg.includes("token") || errorMsg.includes("limit") || errorMsg.includes("too long");
 
-      let message = error.message || "Failed to generate AI content";
+      let message = error instanceof Error ? error.message || "Failed to generate AI content" : "Failed to generate AI content";
       if (isTimeout) {
         message = "AI generation request timed out after 3 minutes. The article might be too large or the service is under heavy load.";
       } else if (isTokenLimit) {
@@ -302,7 +302,7 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${r
 
       return NextResponse.json({ error: message }, { status: isTimeout ? 504 : 500 });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("AI Generation Payload error:", error);
     return NextResponse.json({ error: "Invalid request or server error" }, { status: 400 });
   }

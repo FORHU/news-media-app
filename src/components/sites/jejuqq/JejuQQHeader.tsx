@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
@@ -49,6 +49,9 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
   const coreCategories = getCoreCategories("jejuqq.com");
 
   useEffect(() => {
+    // Resync editable query state when the URL search param changes externally
+    // (nav/back-forward) — user can still freely edit `query` between syncs.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setQuery(searchParams.get("search") ?? "");
   }, [searchParams]);
 

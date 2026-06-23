@@ -9,6 +9,9 @@ import {
 } from 'lucide-react';
 import Sparkline from './Sparkline';
 import SystemStatusLiveClock from './SystemStatusLiveClock';
+import type { dashboardService } from '@/services/admin/dashboard.service';
+
+type DashboardStats = Awaited<ReturnType<typeof dashboardService.getStats>>;
 
 interface MetricProps {
   label: string;
@@ -52,7 +55,7 @@ const MetricRow = ({ label, value, total = 100, icon, color, delay = 0 }: Metric
   );
 };
 
-export default function QueueStatusCard({ data }: { data: any }) {
+export default function QueueStatusCard({ data }: { data?: DashboardStats }) {
   // Use real data from the API or defaults
   const queue = data?.queueStatus || { pendingAI: 0, activeCrawls: 0, totalToday: 0 };
   

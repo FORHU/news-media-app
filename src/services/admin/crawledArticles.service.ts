@@ -185,13 +185,19 @@ export const crawledArticlesService = {
       throw new CrawledArticlesServiceError("urls is required", 400);
     }
 
-    const payload: any = { 
+    const payload: {
+      urls: string[];
+      tenant_id: string;
+      start_date?: string;
+      end_date?: string;
+      max_articles?: number;
+    } = {
       urls,
-      tenant_id: params.tenant_id 
+      tenant_id: params.tenant_id
     };
     if (isIsoDateString(params.start_date)) payload.start_date = params.start_date;
     if (isIsoDateString(params.end_date)) payload.end_date = params.end_date;
-    
+
     if (typeof params.max_articles === "number" && Number.isFinite(params.max_articles)) {
       payload.max_articles = Math.max(1, Math.floor(params.max_articles));
     }

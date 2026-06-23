@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
     const unpublished = await moderatorService.unpublishArticles(articleIds, payload.email);
     return NextResponse.json({ success: true, unpublished });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[moderator/unpublish] Error:", error);
     return NextResponse.json({ error: "Failed to unpublish articles" }, { status: 500 });
   }

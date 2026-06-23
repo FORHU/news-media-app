@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/db";
-import { CrawlJob } from "@/generated/prisma/client";
 
 export const crawlJobsRepository = {
   async fetchJobs(params: { offset: number; limit: number; tenantId: string }) {
