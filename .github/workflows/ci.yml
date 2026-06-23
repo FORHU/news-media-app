@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
+      JWT_SECRET: dummy-build-time-secret-not-for-production-use
 
     steps:
       - name: Checkout code
