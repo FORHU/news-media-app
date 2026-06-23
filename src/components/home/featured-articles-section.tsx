@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import type { Article } from "@/lib/types";
 import { ArticleLink } from "@/components/home/ArticleLink";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";

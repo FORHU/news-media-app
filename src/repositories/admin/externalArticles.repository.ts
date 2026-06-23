@@ -72,7 +72,7 @@ export const externalArticlesRepository = {
       where: {
         id: { not: primaryId },
         sourceType: "EXTERNAL",
-        status: { in: statuses as any },
+        status: { in: statuses },
         publishDate: batchWindow(publishDate),
         externalSubmission: { is: null },
       },

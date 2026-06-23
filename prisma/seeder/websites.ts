@@ -1,6 +1,6 @@
 import "dotenv/config";
 import bcrypt from "bcryptjs";
-import type { PrismaClient } from "../../src/generated/prisma/client";
+import { SourceType, type PrismaClient } from "../../src/generated/prisma/client";
 import { prisma } from "../../src/lib/db";
 
 type WebsiteSeed = {
@@ -109,7 +109,7 @@ async function ensureContentArticle(p: PrismaClient, args: {
         "This is a sample article seeded for local development. Replace this content with real website content later.",
       status: "pending",
       // SOURCE is optional because schema has a default, but we set it explicitly for clarity.
-      sourceType: "ARTICLE" as any,
+      sourceType: SourceType.ARTICLE,
       imageUrl: "https://placehold.co/1200x675/png",
     },
   });

@@ -1,7 +1,6 @@
 import { SiteShell } from "@/components/SiteShell";
-import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain } from "@/lib/tenant";
+import { getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
-import { bannersService } from "@/services/banners.service";
 import { Metadata } from "next";
 
 export async function generateStaticParams() {
@@ -78,7 +77,6 @@ export default async function SiteLayout({
   params: Promise<{ domain: string }>;
 }) {
   const { domain } = await params;
-  const tenantId = await resolveTenantIdFromDomain(domain);
 
   return (
     <div className={`site-theme-${domain.replace(".", "-")}`}>

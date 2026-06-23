@@ -11,15 +11,15 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { bannersApi } from "@/lib/api";
 import { bannerSchema } from "@/lib/validation/banners";
+import type { Banner } from "@/repositories/banners.repository";
 
 interface BannerFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  banner?: any; // If provided, we are editing
+  banner?: Banner | null; // If provided, we are editing
 }
 
 const POSITIONS = [
@@ -69,7 +69,10 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
 
   const queryClient = useQueryClient();
 
-  React.useEffect(() => {
+  // reset when open or banner changes — during render, no effect.
+  const [prevDeps, setPrevDeps] = React.useState({ open, banner });
+  if (open !== prevDeps.open || banner !== prevDeps.banner) {
+    setPrevDeps({ open, banner });
     if (open) {
       setName(banner?.name || "");
       setBannerType(banner?.banner_type || "IMAGE");
@@ -84,7 +87,7 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
       setError(null);
       setFieldErrors({});
     }
-  }, [open, banner]);
+  }
 
   // Handle final cleanup of any leftover previewUrl on unmount
   React.useEffect(() => {
@@ -94,7 +97,7 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
   }, [previewUrl]);
 
   const mutation = useMutation({
-    mutationFn: (data: any) => {
+    mutationFn: (data: Record<string, unknown>) => {
       if (banner?.id) {
         return bannersApi.updateBanner(banner.id, data);
       }
@@ -104,8 +107,8 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
       queryClient.invalidateQueries({ queryKey: ["banners"] });
       onOpenChange(false);
     },
-    onError: (err: any) => {
-      setError(err.message || "Failed to save banner.");
+    onError: (err: unknown) => {
+      setError(err instanceof Error ? err.message : "Failed to save banner.");
     },
   });
 
@@ -206,9 +209,9 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
       }
 
       mutation.mutate(finalResult.data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Submit error:", err);
-      setError(err.message || "Failed to save banner.");
+      setError(err instanceof Error ? err.message : "Failed to save banner.");
     } finally {
       setIsUploading(false);
     }
@@ -303,10 +306,13 @@ export default function BannerForm({ open, onOpenChange, banner }: BannerFormPro
                     <div className="relative group">
                       {(previewUrl || (imageUrl && imageUrl.trim() !== "")) ? (
                         <div className="relative aspect-[21/9] rounded-2xl overflow-hidden shadow-inner bg-gray-50 border border-gray-100">
-                          <img 
-                            src={previewUrl || imageUrl} 
-                            alt={altText || "Banner Preview"} 
-                            className="w-full h-full object-cover animate-in fade-in duration-300" 
+                          {/* previewUrl is a blob: object URL for a freshly-picked file —
+                              next/image's optimizer can't fetch blob: URLs. */}
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={previewUrl || imageUrl}
+                            alt={altText || "Banner Preview"}
+                            className="w-full h-full object-cover animate-in fade-in duration-300"
                           />
                           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                             <label className="cursor-pointer bg-white text-gray-900 px-4 py-2 rounded-xl text-xs font-bold shadow-lg hover:scale-105 transition-transform">

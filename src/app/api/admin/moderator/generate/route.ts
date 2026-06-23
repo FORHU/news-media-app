@@ -212,8 +212,9 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ articles: results });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[moderator/generate] Error:", error);
-    return NextResponse.json({ error: error?.message || "Generation failed." }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Generation failed.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

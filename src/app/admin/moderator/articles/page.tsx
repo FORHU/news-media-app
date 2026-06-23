@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Pencil, Trash2, ChevronLeft, ChevronRight, Plus, FileText, AlertCircle, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -67,6 +68,9 @@ export default function ModeratorArticlesPage() {
         }
     }, [page]);
 
+    // Standard fetch-on-dependency-change pattern; fetchArticles sets loading
+    // state synchronously before its first await.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => { fetchArticles(); }, [fetchArticles]);
 
     async function handleRepublish(groupKey: string, allIds: string[]) {
@@ -79,8 +83,8 @@ export default function ModeratorArticlesPage() {
             });
             if (!res.ok) throw new Error("Failed to publish.");
             fetchArticles();
-        } catch (e: any) {
-            setDeleteError(e.message || "Publish failed.");
+        } catch (e: unknown) {
+            setDeleteError(e instanceof Error ? e.message : "Publish failed.");
         } finally {
             setPublishingKey(null);
         }
@@ -96,8 +100,8 @@ export default function ModeratorArticlesPage() {
             });
             if (!res.ok) throw new Error("Failed to unpublish.");
             fetchArticles();
-        } catch (e: any) {
-            setDeleteError(e.message || "Unpublish failed.");
+        } catch (e: unknown) {
+            setDeleteError(e instanceof Error ? e.message : "Unpublish failed.");
         } finally {
             setUnpublishingKey(null);
         }
@@ -111,8 +115,8 @@ export default function ModeratorArticlesPage() {
             if (!res.ok) throw new Error("Failed to delete.");
             setConfirmDeleteId(null);
             fetchArticles();
-        } catch (e: any) {
-            setDeleteError(e.message || "Delete failed.");
+        } catch (e: unknown) {
+            setDeleteError(e instanceof Error ? e.message : "Delete failed.");
         } finally {
             setDeletingId(null);
         }
@@ -185,9 +189,9 @@ export default function ModeratorArticlesPage() {
                                     onClick={() => siblings.length > 0 && setExpandedKey(isExpanded ? null : groupKey)}>
 
                                     {/* Thumbnail */}
-                                    <div className="shrink-0 w-12 h-12 rounded-xl overflow-hidden bg-gray-100 dark:bg-zinc-700">
+                                    <div className="shrink-0 w-12 h-12 rounded-xl overflow-hidden bg-gray-100 dark:bg-zinc-700 relative">
                                         {primary.imageUrl
-                                            ? <img src={primary.imageUrl} alt={primary.title} className="w-full h-full object-cover" />
+                                            ? <Image src={primary.imageUrl} alt={primary.title} fill sizes="48px" className="object-cover" />
                                             : <div className="w-full h-full flex items-center justify-center"><FileText className="w-4 h-4 text-gray-300 dark:text-zinc-500" /></div>}
                                     </div>
 

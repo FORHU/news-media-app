@@ -15,7 +15,7 @@ export async function proxy(request: NextRequest) {
         const tenantDomain = getTenantDomainFromRequest(request);
 
         // Create initial response
-        let response = NextResponse.next({ request });
+        const response = NextResponse.next({ request });
 
         if (tenantDomain) {
             response.cookies.set(TENANT_DOMAIN_COOKIE, tenantDomain, {
@@ -93,7 +93,7 @@ export async function proxy(request: NextRequest) {
         response.headers.set("Surrogate-Control", "no-store");
 
         return response;
-    } catch (error) {
+    } catch {
         return NextResponse.next();
     }
 }

@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { StoryImage } from "@/components/StoryImage";
+import type { Article } from "@/lib/types";
 
 interface Props {
-  products: any[];
+  products: Article[];
 }
 
 export default function JejuTimeTrendingProducts({ products }: Props) {
@@ -16,7 +17,7 @@ export default function JejuTimeTrendingProducts({ products }: Props) {
         <h3 className="text-xl font-baskerville font-black text-blue-950">Discover More</h3>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {products.map((article: any) => (
+        {products.map((article) => (
           <Link
             key={article.id}
             href={`/article/${article.slug || article.id}`}

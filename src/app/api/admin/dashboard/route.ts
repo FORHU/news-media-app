@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
     const stats = await dashboardService.getStats(tenantId);
     return NextResponse.json(stats);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Dashboard Stats Error:", error);
     return NextResponse.json({ error: "Failed to fetch dashboard stats." }, { status: 500 });
   }

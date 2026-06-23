@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@/generated/prisma/client";
 import { resolveTenantIdFromRequest } from "@/lib/tenant";
 import { accountsService, AccountsServiceError } from "@/services/admin/accounts.service";
 
@@ -35,12 +36,12 @@ export async function POST(request: NextRequest) {
 
     const newUser = await accountsService.createAccount({ firstName, lastName, email, password }, tenantId);
     return NextResponse.json(newUser, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof AccountsServiceError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
     console.error("[POST /api/admin/accounts] Error:", error);
-    if (error?.code === "P2002") {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return NextResponse.json({ error: "Email already exists" }, { status: 400 });
     }
     return NextResponse.json({ error: "Failed to create account" }, { status: 500 });
@@ -61,12 +62,13 @@ export async function DELETE(request: NextRequest) {
 
     await accountsService.deleteAccount(id, tenantId);
     return NextResponse.json({ message: "User deleted successfully" });
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof AccountsServiceError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
     console.error("[DELETE /api/admin/accounts] Error:", error);
-    return NextResponse.json({ error: error.message || "Failed to delete account" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Failed to delete account";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -85,11 +87,12 @@ export async function PATCH(request: NextRequest) {
 
     const updatedUser = await accountsService.updateAccount(id, { firstName, lastName, password }, tenantId);
     return NextResponse.json(updatedUser);
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof AccountsServiceError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
     console.error("[PATCH /api/admin/accounts] Error:", error);
-    return NextResponse.json({ error: error.message || "Failed to update account" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Failed to update account";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

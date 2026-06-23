@@ -10,7 +10,6 @@ import {
     Mail,
     Lock,
     AlertCircle,
-    Check,
     Eye,
     EyeOff,
 } from "lucide-react";
@@ -49,8 +48,10 @@ export default function CreateAccountModal({
     const [error, setError] = React.useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
 
-    // reset when open changes
-    React.useEffect(() => {
+    // reset when open changes — during render, no effect.
+    const [prevOpen, setPrevOpen] = React.useState(open);
+    if (open !== prevOpen) {
+        setPrevOpen(open);
         if (open) {
             setFirstName("");
             setLastName("");
@@ -62,7 +63,7 @@ export default function CreateAccountModal({
             setError(null);
             setFieldErrors({});
         }
-    }, [open]);
+    }
 
     // ── validation ──
     const validate = () => {
@@ -98,8 +99,8 @@ export default function CreateAccountModal({
             onOpenChange(false);
             if (onSuccess) onSuccess();
         },
-        onError: (err: any) => {
-            setError(err.message || "Something went wrong.");
+        onError: (err: unknown) => {
+            setError(err instanceof Error ? err.message : "Something went wrong.");
         },
     });
 

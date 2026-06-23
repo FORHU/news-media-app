@@ -20,7 +20,6 @@ export default function JejuTimeSidebar({
   onClose,
   onOpenNewsletter,
   categoryLinks,
-  categoryHref,
 }: SidebarProps) {
   return (
     <AnimatePresence>

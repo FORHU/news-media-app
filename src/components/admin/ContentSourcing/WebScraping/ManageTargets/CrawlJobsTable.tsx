@@ -13,7 +13,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { articlesApi } from '@/lib/api';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Pagination from '@/components/admin/pagination';
-import { CrawlJob, CrawlJobsResponse } from '@/lib/types';
+import { CrawlJobsResponse } from '@/lib/types';
 import { Variants } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -43,7 +43,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 
     let colorClass = "bg-gray-300 shadow-[0_0_0_3px_rgba(209,213,219,0.15)]";
     let label = status || 'Pending';
-    let isCrawling = s === 'crawling';
+    const isCrawling = s === 'crawling';
 
     if (s === 'success') {
         colorClass = "bg-[#22c55e] shadow-[0_0_0_3px_rgba(34,197,94,0.15)]";
@@ -102,16 +102,6 @@ const getDisplayHost = (urls: string[]) => {
     }
 };
 
-const toLocalISODate = (value: string | Date | null | undefined) => {
-    if (!value) return '';
-    const d = new Date(value);
-    if (Number.isNaN(d.getTime())) return '';
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-};
-
 const CRAWL_ACTIVE_STATUSES = new Set([
     'RUNNING',
     'PROCESSING',
@@ -165,7 +155,7 @@ export default function CrawlJobsTable() {
     });
 
 
-    const jobs = data?.jobs || [];
+    const jobs = React.useMemo(() => data?.jobs || [], [data?.jobs]);
     const pagination = data?.pagination || { totalPages: 0 };
 
     const setPage = React.useCallback((page: number) => {
@@ -224,6 +214,9 @@ export default function CrawlJobsTable() {
     }, [dateFrom, dateTo, jobs, qFilter, statusFilter]);
 
     React.useEffect(() => {
+        // Cleanup reacting to async job-polling data (jobs); functional updater
+        // already bails out via reference equality when nothing changed.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setStoppingIds((prev) => {
             if (prev.size === 0) return prev;
             const next = new Set(prev);

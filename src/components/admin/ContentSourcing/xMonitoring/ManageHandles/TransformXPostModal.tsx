@@ -9,7 +9,6 @@ import {
     DialogContent,
     DialogDescription,
     DialogFooter,
-    DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -65,8 +64,6 @@ export default function TransformXPostModal({
     onOpenChange,
     onGenerate,
     isPending,
-    tweetText,
-    authorName,
     tweetUrl
 }: TransformXPostModalProps) {
     const [generationPrompt, setGenerationPrompt] = React.useState('');
@@ -78,7 +75,9 @@ export default function TransformXPostModal({
     const resolvedGenerationMode: TweetArticleGenerationMode =
         generationKind === "standalone" ? "standalone" : "commentary";
 
-    React.useEffect(() => {
+    const [prevOpen, setPrevOpen] = React.useState(open);
+    if (open !== prevOpen) {
+        setPrevOpen(open);
         if (open) {
             setGenerationPrompt('');
             setSelectedCategory('');
@@ -86,7 +85,7 @@ export default function TransformXPostModal({
             setGenerationKind("standalone");
             setFieldErrors({});
         }
-    }, [open]);
+    }
 
     const handleCategoryChange = (val: string) => {
         setSelectedCategory(val);

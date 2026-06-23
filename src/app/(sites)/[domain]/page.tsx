@@ -127,28 +127,28 @@ export default async function Page({
       languages: "en",
       limit: 100,
     });
-    return <NewsIconsLanding tenantId={tenantId} articles={articles} banners={banners as any} mediastackArticles={mediastackArticles} />;
+    return <NewsIconsLanding tenantId={tenantId} articles={articles} banners={banners} mediastackArticles={mediastackArticles} />;
   }
 
   if (domain === "jejutime.com") {
-    return <JejuTimeLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
+    return <JejuTimeLanding tenantId={tenantId} articles={articles} banners={banners} />;
   }
 
   if (domain === "jejuqq.com") {
-    return <JejuQQLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
+    return <JejuQQLanding tenantId={tenantId} articles={articles} banners={banners} />;
   }
 
   if (domain === "jejujapan.com") {
-    return <JejuJapanLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
+    return <JejuJapanLanding tenantId={tenantId} articles={articles} banners={banners} />;
   }
 
   if (domain === "voicejeju.com") {
-    return <VoiceJejuLanding tenantId={tenantId} articles={articles} banners={banners as any} />;
+    return <VoiceJejuLanding tenantId={tenantId} articles={articles} banners={banners} />;
   }
 
   if (domain === "skyblueprime.com") {
     const sbpMediastack = await fetchMediaStackNews({ categories: "technology", languages: "en", limit: 100 });
-    return <SkyBluePrimeLanding tenantId={tenantId} articles={articles} banners={banners as any} mediastackArticles={sbpMediastack} />;
+    return <SkyBluePrimeLanding tenantId={tenantId} articles={articles} banners={banners} mediastackArticles={sbpMediastack} />;
   }
 
   if (domain === "lavaguetech.com") {
@@ -169,7 +169,7 @@ export default async function Page({
       <LavagueTechLanding
         tenantId={tenantId}
         articles={articles}
-        banners={banners as any}
+        banners={banners}
         rssArticles={ltRssArticles}
         mediastackArticles={ltMediastack}
       />

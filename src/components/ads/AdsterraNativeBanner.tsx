@@ -14,19 +14,24 @@ export function AdsterraNativeBanner({ domain: propDomain, transparent }: Adster
   const [iframeHeight, setIframeHeight] = useState(300);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // Resolve domain
+  // Resolve domain: propDomain mirror happens during render (no effect needed);
+  // the window.location fallback genuinely needs an effect (client-only DOM access).
+  const [prevPropDomain, setPrevPropDomain] = useState(propDomain);
+  if (propDomain !== prevPropDomain) {
+    setPrevPropDomain(propDomain);
+    if (propDomain) setResolvedDomain(propDomain);
+  }
+
   useEffect(() => {
-    if (propDomain) {
-      setResolvedDomain(propDomain);
-    } else {
-      const hostname = window.location.hostname.toLowerCase();
-      if (hostname.includes("voicejeju")) setResolvedDomain("voicejeju.com");
-      else if (hostname.includes("jejujapan")) setResolvedDomain("jejujapan.com");
-      else if (hostname.includes("jejuqq")) setResolvedDomain("jejuqq.com");
-      else if (hostname.includes("skyblueprime")) setResolvedDomain("skyblueprime.com");
-      else if (hostname.includes("newsicons")) setResolvedDomain("newsicons.com");
-      else setResolvedDomain("jejutime.com");
-    }
+    if (propDomain) return;
+    const hostname = window.location.hostname.toLowerCase();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (hostname.includes("voicejeju")) setResolvedDomain("voicejeju.com");
+    else if (hostname.includes("jejujapan")) setResolvedDomain("jejujapan.com");
+    else if (hostname.includes("jejuqq")) setResolvedDomain("jejuqq.com");
+    else if (hostname.includes("skyblueprime")) setResolvedDomain("skyblueprime.com");
+    else if (hostname.includes("newsicons")) setResolvedDomain("newsicons.com");
+    else setResolvedDomain("jejutime.com");
   }, [propDomain]);
 
   // Watch container width with a debounced ResizeObserver so the iframe

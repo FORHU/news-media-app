@@ -1,8 +1,8 @@
-/* eslint-disable react-hooks/exhaustive-deps */
+ 
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { X, Mail, Check, ChevronLeft, CheckCircle } from "lucide-react";
+import { X, Mail, CheckCircle } from "lucide-react";
 import { RemoveScroll } from "react-remove-scroll";
 import { AnimatePresence, motion } from "framer-motion";
 import { newsletterSubscribeSchema } from "@/lib/validation/newsletter";
@@ -152,7 +152,10 @@ export function NewsletterModal({ isOpen, onClose, domain = "" }: NewsletterModa
   const [localDomain, setLocalDomain] = useState(domain);
   
   useEffect(() => {
+    // Resync localDomain when the domain prop arrives/changes (async tenant
+    // resolution upstream) — falls back to window.location until it does.
     if (domain) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLocalDomain(domain);
     } else {
       setLocalDomain(window.location.hostname);

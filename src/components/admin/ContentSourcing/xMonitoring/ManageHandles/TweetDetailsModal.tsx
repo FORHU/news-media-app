@@ -1,8 +1,8 @@
 import React from 'react';
+import Image from 'next/image';
 import {
     Dialog,
     DialogContent,
-    DialogHeader,
     DialogTitle,
     DialogDescription,
 } from "@/components/ui/dialog";
@@ -101,9 +101,9 @@ export default function TweetDetailsModal({ tweet, open, onClose }: TweetDetails
                             <XLogo className="w-6 h-6 text-gray-200" />
                         </div>
                         <div className="flex items-center gap-3 mb-4">
-                            <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-xl overflow-hidden shadow-sm">
+                            <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-xl overflow-hidden shadow-sm relative">
                                 {tweet.thumbnail_url ? (
-                                    <img src={tweet.thumbnail_url} className="w-full h-full object-cover" alt="" />
+                                    <Image src={tweet.thumbnail_url} fill sizes="48px" className="object-cover" alt="" />
                                 ) : (
                                     <span>{tweet.source_name?.[0]?.toUpperCase()}</span>
                                 )}
@@ -227,6 +227,10 @@ export default function TweetDetailsModal({ tweet, open, onClose }: TweetDetails
                             {tweet.detected_image_url_or_data && (
                                 <div className="mb-6">
                                     <div className="rounded-2xl overflow-hidden bg-black/50 border border-white/10 max-w-sm">
+                                        {/* detected_image_url_or_data can hold either a real URL or an
+                                            inline data: URI — next/image's optimizer can't handle both
+                                            reliably, plain img is the correct tool here. */}
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
                                         <img
                                             src={tweet.detected_image_url_or_data}
                                             alt="Detected media"

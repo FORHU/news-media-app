@@ -5,7 +5,6 @@ import {
     LayoutDashboard,
     FileText,
     Link as LinkIcon,
-    Database,
     LogOut,
     ChevronLeft,
     ChevronRight,
@@ -142,7 +141,6 @@ export default function AdminSidebar({
             {/* Navigation */}
             <nav className="flex-1 p-4 overflow-y-auto scrollbar-hide">
                 {menuItems.map((item) => {
-                    const hasSubItems = item.subSections && item.subSections.length > 0;
                     const isExpanded = expandedMenus.includes(item.id);
                     const isActive = item.href ? pathname === item.href : item.subSections?.some(s => s.items.some(si => pathname === si.href));
 

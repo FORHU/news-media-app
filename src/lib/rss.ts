@@ -22,12 +22,29 @@ const parser = new Parser({
   },
 });
 
+interface RssMediaEntry {
+  $?: { url?: string; medium?: string; type?: string };
+  url?: string;
+}
+
+type RssMediaValue = RssMediaEntry | RssMediaEntry[] | undefined;
+
+interface RssFeedItemExtras {
+  mediaThumbnail?: RssMediaValue;
+  mediaContent?: RssMediaValue;
+  enclosure?: { url?: string; type?: string };
+  "content:encoded"?: string;
+  content?: string;
+  summary?: string;
+  description?: string;
+}
+
 /**
  * rss-parser can return media elements as a single object {$: {url}} or as an
  * array [{$: {url}}, ...]. This helper normalises both forms and returns the
  * first usable URL.
  */
-function pickUrl(val: unknown): string | null {
+function pickUrl(val: RssMediaValue): string | null {
   if (!val) return null;
   if (Array.isArray(val)) {
     for (const v of val) {
@@ -36,11 +53,10 @@ function pickUrl(val: unknown): string | null {
     }
     return null;
   }
-  const obj = val as Record<string, any>;
-  return obj?.["$"]?.url || obj?.url || null;
+  return val?.["$"]?.url || val?.url || null;
 }
 
-function extractImage(item: any): string | null {
+function extractImage(item: RssFeedItemExtras): string | null {
   // 1. media:thumbnail  {$: {url}} or [{$: {url}}]
   const thumb = pickUrl(item.mediaThumbnail);
   if (thumb) return thumb;
@@ -48,7 +64,7 @@ function extractImage(item: any): string | null {
   // 2. media:content — prefer medium="image" entry, fall back to first url
   const mc = item.mediaContent;
   if (mc) {
-    const entries: any[] = Array.isArray(mc) ? mc : [mc];
+    const entries: RssMediaEntry[] = Array.isArray(mc) ? mc : [mc];
     const preferred = entries.find(
       (e) => e?.["$"]?.medium === "image" || e?.["$"]?.type?.startsWith("image")
     );

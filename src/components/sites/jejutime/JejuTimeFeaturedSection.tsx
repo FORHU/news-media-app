@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { StoryImage } from "@/components/StoryImage";
+import type { Article } from "@/lib/types";
 
 interface Props {
-  articles: any[];
+  articles: Article[];
 }
 
 export default function JejuTimeFeaturedSection({ articles }: Props) {

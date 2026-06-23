@@ -32,7 +32,7 @@ export async function POST(req: Request) {
 
             clearTimeout(timeoutId);
 
-            const data = await res.json().catch(() => ({}));
+            const data: { message?: string; content?: Array<{ text?: string }> } = await res.json().catch(() => ({}));
 
             if (!res.ok) {
                 return NextResponse.json(
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
 
             // Supadata returns segments in 'content' array
             const segments = data.content;
-            
+
             if (!segments || !Array.isArray(segments) || segments.length === 0) {
                 return NextResponse.json(
                     { error: "No transcript segments found for this video. Captions might be disabled or unavailable." },
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
             }
 
             const fullTranscript = segments
-                .map((segment: any) => segment.text)
+                .map((segment) => segment.text)
                 .join(" ")
                 .trim();
 
@@ -69,9 +69,9 @@ export async function POST(req: Request) {
                 video_id: videoId,
                 transcript: fullTranscript
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             clearTimeout(timeoutId);
-            if (error.name === 'AbortError') {
+            if (error instanceof Error && error.name === 'AbortError') {
                 return NextResponse.json(
                     { error: "Transcription request timed out. The video might be too long or the service is slow." },
                     { status: 504 }
@@ -79,10 +79,11 @@ export async function POST(req: Request) {
             }
             throw error; // Rethrow to outer catch
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Transcription error:", error);
+        const message = error instanceof Error ? error.message : "Internal server error";
         return NextResponse.json(
-            { error: error.message || "Internal server error" },
+            { error: message },
             { status: 500 }
         );
     }

@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     }
     const expiresAt = body.expiresAt ? new Date(body.expiresAt) : null;
 
-    const apiKey = await apiKeysService.create(sourceName, expiresAt);
+    const apiKey = await apiKeysService.create(sourceName, expiresAt, payload.tenantId);
     return NextResponse.json(apiKey, { status: 201 });
   } catch (error) {
     if (error instanceof ApiKeysServiceError) {

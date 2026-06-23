@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { Prisma } from "@/generated/prisma/client";
 
-export type Banner = Prisma.BannerGetPayload<{}>;
+export type Banner = Prisma.BannerGetPayload<object>;
 
 export const bannersRepository = {
   async findAllForTenant(tenantId: string): Promise<Banner[]> {

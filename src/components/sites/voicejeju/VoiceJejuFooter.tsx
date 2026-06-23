@@ -1,11 +1,9 @@
 "use client"; // VoiceJeju Footer Component
 
 import Link from "next/link";
-import { AdBanner } from "@/components/AdBanner";
-import { Twitter, Instagram, Facebook, Mail, Globe, Sun } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Twitter, Instagram, Facebook, Mail, Sun } from "lucide-react";
 
-interface Banner {
+export interface Banner {
   id: string;
   imageUrl: string;
   linkUrl: string;
@@ -18,7 +16,7 @@ interface FooterProps {
   footerBanners?: Banner[];
 }
 
-export function VoiceJejuFooter({ onOpenNewsletter, footerBanners }: FooterProps) {
+export function VoiceJejuFooter({ onOpenNewsletter }: FooterProps) {
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',

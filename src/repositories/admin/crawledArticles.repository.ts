@@ -21,7 +21,7 @@ export const crawledArticlesRepository = {
     };
 
     if (from || to) {
-      const createdAtFilter: any = {};
+      const createdAtFilter: Prisma.DateTimeFilter = {};
       if (from) createdAtFilter.gte = new Date(from);
       if (to) createdAtFilter.lte = new Date(to);
       where.createdAt = createdAtFilter;

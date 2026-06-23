@@ -49,8 +49,10 @@ export default function EditAccountModal({
     const [error, setError] = React.useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
 
-    // reset when open changes
-    React.useEffect(() => {
+    // reset when open or user changes — during render, no effect.
+    const [prevDeps, setPrevDeps] = React.useState({ open, user });
+    if (open !== prevDeps.open || user !== prevDeps.user) {
+        setPrevDeps({ open, user });
         if (open && user) {
             setFirstName(user.firstName);
             setLastName(user.lastName);
@@ -61,7 +63,7 @@ export default function EditAccountModal({
             setError(null);
             setFieldErrors({});
         }
-    }, [open, user]);
+    }
 
     // ── validation ──
     const validate = () => {
@@ -84,7 +86,7 @@ export default function EditAccountModal({
             if (!user) throw new Error("No user selected");
             setError(null);
             
-            const payload: any = { id: user.id, firstName, lastName };
+            const payload: { id: string; firstName: string; lastName: string; password?: string } = { id: user.id, firstName, lastName };
             if (password) payload.password = password;
 
             const response = await fetch('/api/admin/accounts', {
@@ -104,8 +106,8 @@ export default function EditAccountModal({
             onOpenChange(false);
             if (onSuccess) onSuccess();
         },
-        onError: (err: any) => {
-            setError(err.message || "Something went wrong.");
+        onError: (err: unknown) => {
+            setError(err instanceof Error ? err.message : "Something went wrong.");
         },
     });
 

@@ -5,7 +5,6 @@ import {
     DialogContent,
     DialogDescription,
     DialogFooter,
-    DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -38,7 +37,6 @@ const GENERATION_PROMPT_MAX_LEN = 4000;
 export default function GenerateArticleModal({
     open,
     onOpenChange,
-    crawledThumbnailUrl: _crawledThumbnailUrl,
     onGenerate,
     isPending
 }: GenerateArticleModalProps) {
@@ -51,7 +49,9 @@ export default function GenerateArticleModal({
     const [error, setError] = React.useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = React.useState<{ category?: string }>({});
 
-    React.useEffect(() => {
+    const [prevOpen, setPrevOpen] = React.useState(open);
+    if (open !== prevOpen) {
+        setPrevOpen(open);
         if (open) {
             setGenerationPrompt('');
             setSelectedCategory('');
@@ -60,7 +60,7 @@ export default function GenerateArticleModal({
             setError(null);
             setFieldErrors({});
         }
-    }, [open]);
+    }
 
     const handleCategoryChange = (val: string) => {
         setSelectedCategory(val);

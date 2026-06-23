@@ -164,7 +164,6 @@ export default function JejuTimeArticle({
   );
 
   const paragraphs = layoutContent.replace(/<[^>]*>/g, "").split(/\n+/).map((p) => p.trim()).filter(Boolean);
-  const fullContent = paragraphs.join("\n\n");
   const midpoint = Math.ceil(paragraphs.length / 2);
   const firstHalf = paragraphs.slice(0, midpoint).join("\n\n");
   const secondHalf = paragraphs.slice(midpoint).join("\n\n");

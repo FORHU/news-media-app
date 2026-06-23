@@ -6,6 +6,9 @@ export default function SystemStatusLiveClock() {
     const [time, setTime] = useState<string>('');
 
     useEffect(() => {
+        // Wall-clock subscription — genuine effect (interval), initial sync
+        // setTime kicks off the display before the first tick.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setTime(new Date().toLocaleTimeString());
         const interval = setInterval(() => {
             setTime(new Date().toLocaleTimeString());

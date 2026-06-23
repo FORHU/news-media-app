@@ -119,7 +119,7 @@ export async function PATCH(
     sseBroadcaster.broadcast("articles:updated");
 
     return NextResponse.json(updated);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[PATCH Article] Error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
@@ -150,7 +150,7 @@ export async function DELETE(
     sseBroadcaster.broadcast("articles:updated");
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[DELETE Article] Error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }

@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import dynamic from "next/dynamic";
 import { StoryImage } from "@/components/StoryImage";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
@@ -21,6 +23,43 @@ const AdBanner = dynamic(() => import("@/components/AdBanner").then((m) => m.AdB
 });
 
 const adKeys = ADSTERRA_CONFIG.skyblueprime.banners;
+
+// External (media-source) article images come from arbitrary third-party
+// hosts — kept separate from StoryImage (which has its own internal-content
+// assumptions) so a failed load here degrades visibly to the label fallback
+// instead of silently reusing unrelated fallback behavior.
+function ExternalThumb({
+  src,
+  alt,
+  label,
+  sizes,
+  className,
+}: {
+  src: string;
+  alt: string;
+  label: string;
+  sizes: string;
+  className?: string;
+}) {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return (
+      <div className="w-full h-full bg-sky-200 flex items-center justify-center">
+        <span className="text-sky-500 text-xs font-bold uppercase px-2 text-center">{label}</span>
+      </div>
+    );
+  }
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      sizes={sizes}
+      className={className}
+      onError={() => setFailed(true)}
+    />
+  );
+}
 
 interface ArticleRow {
   id: string;
@@ -185,7 +224,7 @@ export default function SkyBluePrimeLanding({ articles, banners, mediastackArtic
                     <div className="relative aspect-[3/2] w-full mb-3 bg-sky-100 overflow-hidden">
                       {external ? (
                         imgSrc
-                          ? <img src={imgSrc} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          ? <ExternalThumb src={imgSrc} alt={article.title} label={label} sizes="(max-width: 1024px) 100vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                           : <div className="w-full h-full bg-sky-200 flex items-center justify-center"><span className="text-sky-500 text-xs font-bold uppercase px-2 text-center">{label}</span></div>
                       ) : (
                         <StoryImage src={imgSrc} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 1024px) 100vw, 25vw" />
@@ -256,7 +295,7 @@ export default function SkyBluePrimeLanding({ articles, banners, mediastackArtic
                           <div className="relative w-[160px] h-[110px] shrink-0 bg-sky-100 overflow-hidden">
                             {external ? (
                               imgSrc
-                                ? <img src={imgSrc} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                ? <ExternalThumb src={imgSrc} alt={article.title} label={label} sizes="160px" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                                 : <div className="w-full h-full bg-sky-200 flex items-center justify-center"><span className="text-sky-500 text-xs font-bold uppercase px-2 text-center">{label}</span></div>
                             ) : (
                               <StoryImage src={imgSrc} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="160px" />
@@ -301,7 +340,7 @@ export default function SkyBluePrimeLanding({ articles, banners, mediastackArtic
                     <div className="relative aspect-[3/2] w-full mb-3 bg-sky-100 overflow-hidden">
                       {external ? (
                         imgSrc
-                          ? <img src={imgSrc} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          ? <ExternalThumb src={imgSrc} alt={article.title} label={label} sizes="(max-width: 1024px) 100vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                           : <div className="w-full h-full bg-sky-200 flex items-center justify-center"><span className="text-sky-500 text-xs font-bold uppercase px-2 text-center">{label}</span></div>
                       ) : (
                         <StoryImage src={imgSrc} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 1024px) 100vw, 25vw" />

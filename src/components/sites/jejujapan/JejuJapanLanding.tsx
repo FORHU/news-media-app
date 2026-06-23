@@ -14,18 +14,20 @@ import { useHeroCarousel } from "@/hooks/useHeroCarousel";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
+import type { Banner } from "@/components/AdBanner";
+import type { Article } from "@/lib/types";
 
 interface Props {
   tenantId: string | null;
-  articles: any[];
+  articles: Article[];
   banners: {
-    top: any[];
-    sidebar: any[];
-    footer: any[];
+    top: Banner[];
+    sidebar: Banner[];
+    footer: Banner[];
   };
 }
 
-export default function JejuJapanLanding({ tenantId, articles, banners }: Props) {
+export default function JejuJapanLanding({ articles, banners }: Props) {
 
   const sortedArticles = [...articles].sort((a, b) => {
     if ((b.trendingScore || 0) !== (a.trendingScore || 0)) {
@@ -79,11 +81,11 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
 
   // Bottom — Discover / Blog
   const trendingProducts = articles
-    .filter((a: any) => a.status === "blog")
+    .filter((a) => a.status === "blog")
     .slice(0, 4);
 
   // Category sections — group all articles by category, show top 4 categories
-  const categoryMap = new Map<string, any[]>();
+  const categoryMap = new Map<string, Article[]>();
   articles.forEach(a => {
     const catName = a.category?.categoryName;
     if (!catName) return;
@@ -91,7 +93,7 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
     categoryMap.get(catName)!.push(a);
   });
   const categoryBlocks = Array.from(categoryMap.entries())
-    .filter(([_, items]) => items.length >= 2)
+    .filter(([, items]) => items.length >= 2)
     .sort((a, b) => b[1].length - a[1].length)
     .slice(0, 4)
     .map(([name, items]) => ({ name, articles: items.slice(0, 4) }));
@@ -166,7 +168,7 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                   <Clock size={14} className="text-[#bc002d]" /> Latest
                 </h3>
                 <div className="space-y-4">
-                  {leftSidebarArticles.map((article, i) => (
+                  {leftSidebarArticles.map((article) => (
                     <Link key={article.id} href={`/article/${article.slug || article.id}`} className="block group">
                       <div className="relative aspect-[16/10] overflow-hidden mb-1.5 bg-gray-100">
                         <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="180px" />
@@ -427,7 +429,7 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                   Discover <ChevronRight size={16} className="text-[#bc002d]" />
                </h3>
                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {trendingProducts.map((article: any) => (
+                  {trendingProducts.map((article) => (
                      <Link key={article.id} href={`/article/${article.slug || article.id}`} className="block group border border-gray-100 p-3 hover:border-black transition-colors">
                         <div className="relative w-full aspect-video overflow-hidden mb-3 bg-gray-100">
                            <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" />
@@ -452,7 +454,7 @@ export default function JejuJapanLanding({ tenantId, articles, banners }: Props)
                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{cat.articles.length} Articles</span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {cat.articles.map((article: any, ai: number) => (
+                    {cat.articles.map((article, ai) => (
                       <Link key={article.id} href={`/article/${article.slug || article.id}`} className="group block">
                         <div className="relative aspect-[16/10] overflow-hidden mb-3 bg-gray-100">
                           <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 640px) 100vw, 300px" />

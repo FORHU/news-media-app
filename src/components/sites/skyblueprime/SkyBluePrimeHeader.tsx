@@ -34,6 +34,9 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
     activeCategory.toLowerCase() === cat.toLowerCase();
 
   useEffect(() => {
+    // Resync editable query state when the URL search param changes externally
+    // (nav/back-forward) — user can still freely edit `query` between syncs.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setQuery(searchParams.get("search") ?? "");
   }, [searchParams]);
 

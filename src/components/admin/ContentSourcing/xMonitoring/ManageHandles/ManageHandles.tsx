@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { Plus, Loader2, Heart, Repeat2, ChevronLeft, ChevronRight, Zap, Check, X as XIcon, Search, Filter } from "lucide-react";
 
 function XLogo({ className }: { className?: string }) {
@@ -14,7 +15,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -40,56 +40,12 @@ type ScrapeDebug = {
   }>;
 };
 
-function isLikelyImageUrl(value: string): boolean {
-  const lowerValue = value.toLowerCase();
-  return (
-    lowerValue.startsWith("data:image/") ||
-    /\.(jpg|jpeg|png|webp|gif|bmp|svg)(\?|$)/.test(lowerValue)
-  );
-}
-
-function isLikelyVideoUrl(value: string): boolean {
-  const lowerValue = value.toLowerCase();
-  return (
-    lowerValue.startsWith("data:video/") ||
-    /\.(mp4|mov|m4v|webm|mkv)(\?|$)/.test(lowerValue)
-  );
-}
-
-function normalizeTweetMedia(tweet: ScrapedTweet): ScrapedTweet {
-  const declaredType = (tweet.media_type ?? "").toLowerCase();
-  const mediaUrls = Array.isArray(tweet.media_urls) ? tweet.media_urls : [];
-  const thumbnailUrl = tweet.thumbnail_url ?? "";
-  const imageFromMediaUrls = mediaUrls.find((url) => isLikelyImageUrl(url)) ?? undefined;
-  const imageFromThumbnail = isLikelyImageUrl(thumbnailUrl) ? thumbnailUrl : undefined;
-  const imageUrlOrData = imageFromMediaUrls ?? imageFromThumbnail;
-  const hasVideoInMediaUrls = mediaUrls.some((url) => isLikelyVideoUrl(url));
-  const hasVideoDeclared =
-    declaredType.includes("video") ||
-    declaredType.includes("animated_gif") ||
-    declaredType.includes("gif");
-  const hasImageDeclared = declaredType.includes("image") || declaredType.includes("photo");
-
-  let detectedMediaKind: "image" | "video" | "none" = "none";
-  if (hasVideoDeclared || hasVideoInMediaUrls) {
-    detectedMediaKind = "video";
-  } else if (hasImageDeclared || Boolean(imageUrlOrData)) {
-    detectedMediaKind = "image";
-  }
-
-  return {
-    ...tweet,
-    detected_media_kind: detectedMediaKind,
-    detected_image_url_or_data: imageUrlOrData,
-  };
-}
-
 export default function ManageHandles() {
   const [profileUrlOrHandle, setProfileUrlOrHandle] = React.useState("");
   const [limit, setLimit] = React.useState(5);
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [debug, setDebug] = React.useState<ScrapeDebug | null>(null);
+  const [, setDebug] = React.useState<ScrapeDebug | null>(null);
   const [selectedAuthor, setSelectedAuthor] = React.useState<string | null>(null);
   const [isCrawlModalOpen, setIsCrawlModalOpen] = React.useState(false);
   const [isMetadataModalOpen, setIsMetadataModalOpen] = React.useState(false);
@@ -114,7 +70,7 @@ export default function ManageHandles() {
     }
   });
 
-  const tweets = tweetsData || [];
+  const tweets = React.useMemo(() => tweetsData || [], [tweetsData]);
 
   const generationMutation = useMutation({
     mutationFn: ({
@@ -210,8 +166,8 @@ export default function ManageHandles() {
       queryClient.invalidateQueries({ queryKey: ['xMonitoringTweets'] });
       setProfileUrlOrHandle(""); // Clear input on success
       setIsCrawlModalOpen(false); // Close modal on success
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setIsLoading(false);
     }
@@ -263,10 +219,12 @@ export default function ManageHandles() {
     return result;
   }, [groupedByAuthor, searchQuery, sortOrder]);
 
-  // Reset pagination when search or sort changes
-  React.useEffect(() => {
+  // Reset pagination when search or sort changes — during render, no effect.
+  const [prevFilters, setPrevFilters] = React.useState({ searchQuery, sortOrder });
+  if (searchQuery !== prevFilters.searchQuery || sortOrder !== prevFilters.sortOrder) {
+    setPrevFilters({ searchQuery, sortOrder });
     setChannelPage(1);
-  }, [searchQuery, sortOrder]);
+  }
 
   const totalChannelPages = Math.ceil(filteredAndSortedChannels.length / CHANNELS_PER_PAGE);
   const paginatedChannels = filteredAndSortedChannels.slice(
@@ -398,7 +356,7 @@ export default function ManageHandles() {
                   <Filter className="w-4 h-4 text-gray-400" />
                   <select
                     value={postFilter}
-                    onChange={(e) => setPostFilter(e.target.value as any)}
+                    onChange={(e) => setPostFilter(e.target.value as "all" | "pending" | "generated")}
                     className="py-1.5 pl-3 pr-8 rounded-xl border border-gray-200 bg-white focus:bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/20 transition-all text-xs font-bold text-gray-700 appearance-none cursor-pointer"
                     style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.2em 1.2em' }}
                   >
@@ -515,7 +473,7 @@ export default function ManageHandles() {
                 <Filter className="w-4 h-4 text-gray-400" />
                 <select
                   value={sortOrder}
-                  onChange={(e) => setSortOrder(e.target.value as any)}
+                  onChange={(e) => setSortOrder(e.target.value as "recent" | "count" | "name")}
                   className="flex-1 sm:flex-none py-2 pl-3 pr-8 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/20 transition-all text-sm font-bold text-gray-700 appearance-none cursor-pointer"
                   style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
                 >
@@ -538,7 +496,7 @@ export default function ManageHandles() {
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">No Sources Connected</h3>
                 <p className="text-gray-500 max-w-sm mx-auto">
-                  Click "Crawl New Feed" to add your first X monitoring target.
+                  Click &quot;Crawl New Feed&quot; to add your first X monitoring target.
                 </p>
               </div>
             ) : (
@@ -560,9 +518,9 @@ export default function ManageHandles() {
                       onClick={() => setSelectedAuthor(author.handle)}
                     >
                       {/* Channel Profile */}
-                      <div className="w-14 h-14 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-700 font-black text-xl overflow-hidden shadow-sm group-hover:scale-110 transition-transform flex-shrink-0">
+                      <div className="w-14 h-14 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-700 font-black text-xl overflow-hidden shadow-sm group-hover:scale-110 transition-transform flex-shrink-0 relative">
                         {author.thumbnail ? (
-                          <img src={author.thumbnail} className="w-full h-full object-cover" alt="" />
+                          <Image src={author.thumbnail} fill sizes="56px" className="object-cover" alt="" />
                         ) : (
                           <span>{author.name?.[0]?.toUpperCase()}</span>
                         )}
