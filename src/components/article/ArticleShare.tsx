@@ -24,6 +24,31 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { FacebookShareButton } from "./FacebookShareButton";
 
+interface KakaoSDK {
+  isInitialized: () => boolean;
+  init: (key: string) => void;
+  Share: {
+    sendDefault: (params: {
+      objectType: string;
+      content: {
+        title: string;
+        imageUrl: string;
+        description?: string;
+        link: { mobileWebUrl: string; webUrl: string };
+      };
+      buttons: Array<{
+        title: string;
+        link: { mobileWebUrl: string; webUrl: string };
+      }>;
+    }) => void;
+  };
+}
+
+type KakaoWindow = Window & { Kakao?: KakaoSDK };
+type WindowWithOpen = Omit<Window, "open"> & {
+  open: (url?: string, target?: string) => Window | { focus: () => void; closed: boolean } | null;
+};
+
 type SiteTheme =
   | "jejutime"
   | "jejuqq"
@@ -209,7 +234,7 @@ export function ArticleShare({
     const appKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
     if (!appKey || !dialogOpen) return;
 
-    const win = window as Window & { Kakao?: any };
+    const win = window as KakaoWindow;
     const init = () => {
       if (!win.Kakao?.isInitialized()) win.Kakao?.init(appKey);
     };
@@ -229,7 +254,7 @@ export function ArticleShare({
   // so window.open fires synchronously within the click handler — user-gesture
   // context is intact and popup blockers cannot interfere.
   const handleKakaoShare = useCallback(() => {
-    const win = window as Window & { Kakao?: any };
+    const win = window as KakaoWindow;
     if (!win.Kakao?.isInitialized()) return;
 
     // Pull OG metadata from the page rather than requiring extra props.
@@ -245,8 +270,8 @@ export function ArticleShare({
     // Strip popup dimensions so the SDK opens a new TAB instead of a popup window.
     // Tabs are never blocked by popup blockers; popups on HTTP often are.
     // Also return a no-op stub when null so the SDK doesn't crash on null.focus().
-    const origOpen = (window as any).open.bind(window);
-    (window as any).open = (url?: string, target?: string) =>
+    const origOpen = (window as unknown as WindowWithOpen).open.bind(window);
+    (window as unknown as WindowWithOpen).open = (url?: string, target?: string) =>
       origOpen(url, target ?? "_blank") ?? { focus: () => {}, closed: true };
 
     try {
@@ -268,7 +293,7 @@ export function ArticleShare({
     } catch {
       // SDK call failed
     } finally {
-      (window as any).open = origOpen;
+      (window as unknown as WindowWithOpen).open = origOpen;
     }
   }, [shareUrl, title]);
 
