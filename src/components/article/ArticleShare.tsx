@@ -2,17 +2,6 @@
 
 import { useState, useMemo, useId, useEffect, useCallback } from "react";
 
-declare global {
-  interface Window {
-    Kakao: {
-      isInitialized: () => boolean;
-      init: (appKey: string) => void;
-      Share: {
-        sendScrap: (options: { requestUrl: string }) => void;
-      };
-    };
-  }
-}
 import { Share2, Link as LinkIcon, Check } from "lucide-react";
 import {
   FaXTwitter,
@@ -212,31 +201,76 @@ export function ArticleShare({
     }
   }, [url]);
 
-  // Pre-load Kakao SDK on mount so sendScrap runs synchronously inside the
-  // click handler — browsers block popups from async (non-gesture) contexts.
-  useEffect(() => {
-    const appKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
-    if (!appKey || window.Kakao) return;
-    const script = document.createElement("script");
-    script.src = "https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js";
-    script.crossOrigin = "anonymous";
-    script.onload = () => {
-      if (!window.Kakao.isInitialized()) window.Kakao.init(appKey);
-    };
-    document.head.appendChild(script);
-  }, []);
-
   const shareUrl = currentUrl;
 
-  const handleKakaoShare = useCallback(() => {
-    if (!window.Kakao?.isInitialized()) return;
-    try {
-      window.Kakao.Share.sendScrap({ requestUrl: shareUrl });
-    } catch {
-      // Popup was blocked by the browser — user needs to allow popups for this site
-      console.warn("KakaoTalk share popup was blocked. Allow popups for this site in browser settings.");
+  // Preload the Kakao SDK as soon as the share dialog opens so it's initialized
+  // before the user clicks the KakaoTalk button.
+  useEffect(() => {
+    const appKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
+    if (!appKey || !dialogOpen) return;
+
+    const win = window as Window & { Kakao?: any };
+    const init = () => {
+      if (!win.Kakao?.isInitialized()) win.Kakao?.init(appKey);
+    };
+
+    if (win.Kakao) {
+      init();
+    } else if (!document.getElementById("kakao-sdk")) {
+      const script = document.createElement("script");
+      script.id = "kakao-sdk";
+      script.src = "https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js";
+      script.onload = init;
+      document.head.appendChild(script);
     }
-  }, [shareUrl]);
+  }, [dialogOpen]);
+
+  // sendDefault() builds the share URL entirely client-side (no async server call),
+  // so window.open fires synchronously within the click handler — user-gesture
+  // context is intact and popup blockers cannot interfere.
+  const handleKakaoShare = useCallback(() => {
+    const win = window as Window & { Kakao?: any };
+    if (!win.Kakao?.isInitialized()) return;
+
+    // Pull OG metadata from the page rather than requiring extra props.
+    const imageUrl =
+      document.querySelector<HTMLMetaElement>('meta[property="og:image"]')
+        ?.content ?? "";
+    const description =
+      document.querySelector<HTMLMetaElement>('meta[property="og:description"]')
+        ?.content ?? "";
+
+    if (!imageUrl) return;
+
+    // Strip popup dimensions so the SDK opens a new TAB instead of a popup window.
+    // Tabs are never blocked by popup blockers; popups on HTTP often are.
+    // Also return a no-op stub when null so the SDK doesn't crash on null.focus().
+    const origOpen = (window as any).open.bind(window);
+    (window as any).open = (url?: string, target?: string) =>
+      origOpen(url, target ?? "_blank") ?? { focus: () => {}, closed: true };
+
+    try {
+      win.Kakao.Share.sendDefault({
+        objectType: "feed",
+        content: {
+          title,
+          imageUrl,
+          ...(description && { description }),
+          link: { mobileWebUrl: shareUrl, webUrl: shareUrl },
+        },
+        buttons: [
+          {
+            title: "기사 보기",
+            link: { mobileWebUrl: shareUrl, webUrl: shareUrl },
+          },
+        ],
+      });
+    } catch {
+      // SDK call failed
+    } finally {
+      (window as any).open = origOpen;
+    }
+  }, [shareUrl, title]);
 
   const handleCopy = async () => {
     const copyToClipboard = async () => {
