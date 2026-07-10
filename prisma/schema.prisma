@@ -276,6 +276,7 @@ model SocialChannel {
   transformations ContentTransformation[]
   tenant          Tenant                  @relation(fields: [tenantId], references: [id])
 
+  @@unique([tenantId, socialMediaName])
   @@index([tenantId])
   @@map("social_channels")
 }

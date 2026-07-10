@@ -12,7 +12,8 @@ import {
     X,
     Users,
     Image as ImageIcon,
-    Globe2
+    Globe2,
+    Facebook
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -52,6 +53,7 @@ export default function AdminSidebar({
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/admin/dashboard' },
         { id: 'generated', label: 'Generated Articles', icon: FileText, href: '/admin/dashboard/generated' },
         { id: 'external', label: 'External Submissions', icon: Globe2, href: '/admin/dashboard/external' },
+        { id: 'facebook', label: 'Facebook Publishing', icon: Facebook, href: '/admin/dashboard/facebook' },
         {
             id: 'crawl',
             label: 'Content Sourcing',
