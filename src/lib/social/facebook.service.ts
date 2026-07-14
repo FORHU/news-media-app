@@ -1,13 +1,7 @@
 import { getFacebookConfig } from "./facebook.config";
 import { buildFacebookFeedEndpoint, FACEBOOK_REQUEST_TIMEOUT_MS } from "./facebook.constants";
-import type {
-  FacebookFeedPostResponse,
-  FacebookGraphError,
-  FacebookGraphErrorResponse,
-  SocialArticleInput,
-  SocialPublishResult,
-  SocialPublisher,
-} from "./facebook.types";
+import type { FacebookFeedPostResponse, FacebookGraphError, FacebookGraphErrorResponse } from "./facebook.types";
+import type { SocialArticleInput, SocialPublishResult, SocialPublisher } from "./socialPublisher.types";
 
 function buildMessage(article: SocialArticleInput): string {
   const summary = article.summary?.trim();
