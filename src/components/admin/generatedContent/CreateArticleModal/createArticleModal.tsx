@@ -6,6 +6,10 @@ import {
     File,
     X,
     Loader2,
+    PenLine,
+    Save,
+    Send,
+    Layout,
 } from "lucide-react";
 import {
     Dialog,
@@ -15,6 +19,7 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
     Select,
     SelectContent,
@@ -25,14 +30,31 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
 import { motion } from "framer-motion";
-import { 
-    LANGUAGE_OPTIONS, 
-    ManualArticleContext, 
-    ManualMaterialsUpload, 
-    ManualArticleImage 
+import {
+    LANGUAGE_OPTIONS,
+    ManualArticleContext,
+    ManualMaterialsUpload,
+    ManualArticleImage
 } from "./ManualGenerationTab";
 import CategorySelectWithOther from "@/components/admin/shared/CategorySelectWithOther";
 import FeaturedImageChoiceSection from "@/components/admin/shared/FeaturedImageChoiceSection";
+
+type CreateArticleTab = "ai" | "manual";
+
+async function uploadImageToS3(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch("/api/admin/upload-image-presigned", {
+        method: "POST",
+        body: formData,
+    });
+    if (!res.ok) {
+        const { error } = await res.json().catch(() => ({}));
+        throw new Error(error || "Failed to upload image");
+    }
+    const { publicUrl } = await res.json();
+    return publicUrl;
+}
 
 interface CreateArticleModalProps {
     open: boolean;
@@ -59,6 +81,21 @@ export default function CreateArticleModal({
     const [isProcessingFiles, setIsProcessingFiles] = React.useState(false);
     const [, setUploadProgress] = React.useState<number | null>(null);
 
+    // Manual (non-AI) entry tab
+    const [activeTab, setActiveTab] = React.useState<CreateArticleTab>("ai");
+    const [manualTitle, setManualTitle] = React.useState("");
+    const [manualContent, setManualContent] = React.useState("");
+    const [manualCategory, setManualCategory] = React.useState("");
+    const [manualImageFile, setManualImageFile] = React.useState<File | null>(null);
+    const [manualIsHeadline, setManualIsHeadline] = React.useState(false);
+    const [manualFieldErrors, setManualFieldErrors] = React.useState<{
+        title?: string;
+        content?: string;
+        category?: string;
+    }>({});
+    const [manualError, setManualError] = React.useState<string | null>(null);
+    const [isSubmittingManual, setIsSubmittingManual] = React.useState(false);
+
     const resetForm = React.useCallback(() => {
         setTopic("");
         setFiles([]);
@@ -71,6 +108,15 @@ export default function CreateArticleModal({
         setSelectedCategory("");
         setLanguage("English");
         setGenerateNewImage(false);
+        setActiveTab("ai");
+        setManualTitle("");
+        setManualContent("");
+        setManualCategory("");
+        setManualImageFile(null);
+        setManualIsHeadline(false);
+        setManualFieldErrors({});
+        setManualError(null);
+        setIsSubmittingManual(false);
     }, []);
 
     // Reset form when modal closes — during render, no effect.
@@ -251,7 +297,57 @@ export default function CreateArticleModal({
         }
     };
 
-    const isModalBusy = isProcessingFiles;
+    const handleManualImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setManualImageFile(e.target.files[0]);
+        }
+    };
+
+    const removeManualImage = () => {
+        setManualImageFile(null);
+    };
+
+    const handleManualCreate = async (publish: boolean) => {
+        setManualError(null);
+        const newErrors: typeof manualFieldErrors = {};
+
+        if (!manualTitle.trim()) newErrors.title = "Title is required";
+        if (!manualContent.trim()) newErrors.content = "Article content is required";
+        if (!manualCategory) newErrors.category = "Please select a category";
+
+        if (Object.keys(newErrors).length > 0) {
+            setManualFieldErrors(newErrors);
+            return;
+        }
+
+        setIsSubmittingManual(true);
+        try {
+            let uploadedImageUrl: string | undefined;
+            if (manualImageFile) {
+                uploadedImageUrl = await uploadImageToS3(manualImageFile);
+            }
+
+            await articlesApi.createManualArticle({
+                title: manualTitle.trim(),
+                content: manualContent.trim(),
+                categoryId: manualCategory,
+                imageUrl: uploadedImageUrl,
+                isHeadline: manualIsHeadline,
+                publish,
+            });
+
+            queryClient.invalidateQueries({ queryKey: ['generatedArticles'] });
+            onOpenChange(false);
+        } catch (err: unknown) {
+            console.error("Manual Article Creation Error:", err);
+            setManualError(err instanceof Error ? err.message : "Failed to create article.");
+        } finally {
+            setIsSubmittingManual(false);
+        }
+    };
+
+    const isModalBusy = activeTab === "ai" ? isProcessingFiles : isSubmittingManual;
+    const showAiCraftingScreen = activeTab === "ai" && isProcessingFiles;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -259,7 +355,7 @@ export default function CreateArticleModal({
                 showCloseButton={false}
                 className="sm:max-w-[840px] p-0 overflow-hidden rounded-[2.5rem] border-none bg-white shadow-2xl"
             >
-                {isModalBusy ? (
+                {showAiCraftingScreen ? (
                     <div className="relative min-h-[500px] flex flex-col items-center justify-center gap-6 px-10 py-16 bg-gradient-to-b from-white to-orange-50/40 overflow-hidden">
                         <div className="absolute inset-0 pointer-events-none opacity-50">
                             <div className="absolute -top-20 -left-12 w-48 h-48 rounded-full bg-orange-100 blur-3xl" />
@@ -313,20 +409,47 @@ export default function CreateArticleModal({
                                         Create Article
                                     </DialogTitle>
                                     <DialogDescription className="text-gray-400 font-medium">
-                                        Fuel your platform with AI-generated storytelling.
+                                        {activeTab === "ai"
+                                            ? "Fuel your platform with AI-generated storytelling."
+                                            : "Write and publish an article by hand."}
                                     </DialogDescription>
                                 </div>
+                            </div>
+
+                            <div className="relative inline-flex items-center gap-1 p-1 mt-6 bg-white/5 border border-white/10 rounded-2xl">
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveTab("ai")}
+                                    disabled={isModalBusy}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${activeTab === "ai" ? "bg-white text-gray-900 shadow" : "text-gray-400 hover:text-white"
+                                        }`}
+                                >
+                                    <Zap className="w-3.5 h-3.5" />
+                                    AI Generate
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveTab("manual")}
+                                    disabled={isModalBusy}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${activeTab === "manual" ? "bg-white text-gray-900 shadow" : "text-gray-400 hover:text-white"
+                                        }`}
+                                >
+                                    <PenLine className="w-3.5 h-3.5" />
+                                    Manual Entry
+                                </button>
                             </div>
                         </div>
 
                         <div className="px-8 py-8 space-y-10 max-h-[65vh] overflow-y-auto custom-scrollbar">
+                            {activeTab === "ai" ? (
+                                <>
                             {error && (
                                 <div className="p-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 text-sm font-bold animate-in fade-in slide-in-from-top-2">
                                     {error}
                                 </div>
                             )}
 
-                            <ManualMaterialsUpload 
+                            <ManualMaterialsUpload
                                 files={files} 
                                 handleFileChange={handleMaterialsFileChange} 
                                 removeFile={removeFile}
@@ -405,6 +528,113 @@ export default function CreateArticleModal({
                                     </div>
                                 </div>
                             </div>
+                                </>
+                            ) : (
+                                <>
+                                    {manualError && (
+                                        <div className="p-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 text-sm font-bold animate-in fade-in slide-in-from-top-2">
+                                            {manualError}
+                                        </div>
+                                    )}
+
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-3">
+                                            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-black text-xs">01</span>
+                                            <label className="text-sm font-black uppercase tracking-widest text-gray-900">Title</label>
+                                        </div>
+                                        <Input
+                                            placeholder="Article headline"
+                                            value={manualTitle}
+                                            onChange={(e) => {
+                                                setManualTitle(e.target.value);
+                                                if (manualFieldErrors.title) setManualFieldErrors(prev => ({ ...prev, title: undefined }));
+                                            }}
+                                            className={`h-14 rounded-2xl bg-gray-50 text-base font-medium focus-visible:ring-orange-500/20 transition-all ${manualFieldErrors.title ? "border-red-500 bg-red-50/30" : "border-gray-100"
+                                                }`}
+                                        />
+                                        {manualFieldErrors.title && (
+                                            <p className="text-[10px] font-black text-red-500 uppercase tracking-widest ml-1 animate-in fade-in slide-in-from-top-1">{manualFieldErrors.title}</p>
+                                        )}
+                                    </div>
+
+                                    <ManualArticleImage
+                                        imageFile={manualImageFile}
+                                        handleImageChange={handleManualImageChange}
+                                        removeImage={removeManualImage}
+                                    />
+
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-3">
+                                            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 text-orange-600 font-black text-xs">03</span>
+                                            <label className="text-sm font-black uppercase tracking-widest text-gray-900">Content</label>
+                                        </div>
+                                        <textarea
+                                            placeholder="Write the full article body here..."
+                                            value={manualContent}
+                                            onChange={(e) => {
+                                                setManualContent(e.target.value);
+                                                if (manualFieldErrors.content) setManualFieldErrors(prev => ({ ...prev, content: undefined }));
+                                            }}
+                                            className={`w-full min-h-[240px] rounded-2xl bg-gray-50 p-4 text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 resize-y transition-all border ${manualFieldErrors.content ? "border-red-500 ring-red-500/10" : "border-gray-100"
+                                                }`}
+                                        />
+                                        {manualFieldErrors.content && (
+                                            <p className="text-[10px] font-black text-red-500 uppercase tracking-widest ml-1 animate-in fade-in slide-in-from-top-1">{manualFieldErrors.content}</p>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-6 pt-4 border-t border-gray-100">
+                                        <div className="flex items-center gap-3">
+                                            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 text-purple-600 font-black text-xs">04</span>
+                                            <label className="text-sm font-black uppercase tracking-widest text-gray-900">Configuration</label>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="space-y-2">
+                                                <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Category <span className="text-red-500">*</span></span>
+                                                <CategorySelectWithOther
+                                                    value={manualCategory}
+                                                    onValueChange={(val) => {
+                                                        setManualCategory(val);
+                                                        if (manualFieldErrors.category) setManualFieldErrors(prev => ({ ...prev, category: undefined }));
+                                                    }}
+                                                    categories={categories ?? []}
+                                                    isLoading={isLoadingCategories}
+                                                    placeholder="Select Category"
+                                                    triggerClassName={`w-full h-12 rounded-xl bg-gray-50 text-sm font-bold text-gray-900 focus-visible:ring-orange-500/20 shadow-sm transition-all ${manualFieldErrors.category ? "border-red-500 bg-red-50/30" : "border-gray-100"
+                                                        }`}
+                                                    contentClassName="max-h-[400px]"
+                                                    error={manualFieldErrors.category}
+                                                />
+                                                {manualFieldErrors.category && (
+                                                    <p className="text-[10px] font-black text-red-500 uppercase tracking-widest ml-1 mt-2 animate-in fade-in slide-in-from-top-1">{manualFieldErrors.category}</p>
+                                                )}
+                                            </div>
+
+                                            <div className="flex items-center justify-between p-4 rounded-2xl bg-orange-50 border border-orange-100 h-fit self-end">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-orange-500 shadow-sm shrink-0">
+                                                        <Layout className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-black text-gray-900">Headline</p>
+                                                        <p className="text-[11px] text-gray-500">Feature on the site hero</p>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setManualIsHeadline(!manualIsHeadline)}
+                                                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${manualIsHeadline ? "bg-orange-500" : "bg-gray-200"}`}
+                                                >
+                                                    <span
+                                                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${manualIsHeadline ? "translate-x-5" : "translate-x-0"}`}
+                                                    />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                         </div>
 
                         {/* Footer with Premium Button */}
@@ -419,23 +649,60 @@ export default function CreateArticleModal({
                                     Discard
                                 </Button>
                             </div>
-                            <Button
-                                onClick={handleGenerate}
-                                disabled={isModalBusy}
-                                className="flex-1 max-w-[200px] h-14 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-black text-base shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 transition-all"
-                            >
-                                {isModalBusy ? (
-                                    <div className="flex items-center gap-2">
-                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                        <span>Processing...</span>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center gap-2">
-                                        <Zap className="w-5 h-5 fill-white" />
-                                        <span>Generate</span>
-                                    </div>
-                                )}
-                            </Button>
+                            {activeTab === "ai" ? (
+                                <Button
+                                    onClick={handleGenerate}
+                                    disabled={isModalBusy}
+                                    className="flex-1 max-w-[200px] h-14 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-black text-base shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 transition-all"
+                                >
+                                    {isModalBusy ? (
+                                        <div className="flex items-center gap-2">
+                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                            <span>Processing...</span>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-2">
+                                            <Zap className="w-5 h-5 fill-white" />
+                                            <span>Generate</span>
+                                        </div>
+                                    )}
+                                </Button>
+                            ) : (
+                                <div className="flex items-center gap-3">
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => handleManualCreate(false)}
+                                        disabled={isModalBusy}
+                                        className="h-14 rounded-2xl font-black px-6 border-gray-200"
+                                    >
+                                        {isSubmittingManual ? (
+                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                        ) : (
+                                            <>
+                                                <Save className="w-4 h-4 mr-2" />
+                                                Save Draft
+                                            </>
+                                        )}
+                                    </Button>
+                                    <Button
+                                        onClick={() => handleManualCreate(true)}
+                                        disabled={isModalBusy}
+                                        className="h-14 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-black text-base px-6 shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 transition-all"
+                                    >
+                                        {isSubmittingManual ? (
+                                            <div className="flex items-center gap-2">
+                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                <span>Publishing...</span>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-2">
+                                                <Send className="w-4 h-4" />
+                                                <span>Publish</span>
+                                            </div>
+                                        )}
+                                    </Button>
+                                </div>
+                            )}
                         </DialogFooter>
                     </>
                 )}

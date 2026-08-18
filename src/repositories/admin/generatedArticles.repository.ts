@@ -1,5 +1,16 @@
 import { prisma } from "@/lib/db";
 import { Prisma } from "@/generated/prisma";
+import { generateUniqueArticleSlug } from "@/lib/slug";
+
+export type CreateManualArticleParams = {
+  tenantId: string;
+  categoryId: string;
+  title: string;
+  content: string;
+  imageUrl?: string | null;
+  isHeadline?: boolean;
+  publish?: boolean;
+};
 
 export type FetchGeneratedArticlesParams = {
   q: string;
@@ -214,6 +225,47 @@ export const generatedArticlesRepository = {
       data,
       count,
     };
+  },
+
+  async createManualArticle(params: CreateManualArticleParams) {
+    const { tenantId, categoryId, title, content, imageUrl, isHeadline, publish } = params;
+
+    const category = await prisma.category.findFirst({
+      where: { id: categoryId, tenantId },
+    });
+    if (!category) {
+      throw new Error("Selected category does not exist.");
+    }
+
+    const user =
+      (await prisma.user.findFirst({ where: { email: "admin@newsmedia.app" } })) ||
+      (await prisma.user.findFirst());
+    if (!user) {
+      throw new Error("No system user found for attribution");
+    }
+
+    const publishDate = new Date();
+    const slug = await generateUniqueArticleSlug(prisma, title, publishDate);
+
+    return prisma.contentArticle.create({
+      data: {
+        tenantId,
+        usersId: user.id,
+        categoryId,
+        title,
+        slug,
+        content,
+        imageUrl: imageUrl || null,
+        status: publish ? "published" : "pending",
+        publishDate,
+        sourceType: "MANUAL",
+        isHeadline: isHeadline ?? false,
+      },
+      include: {
+        category: true,
+        user: { select: { firstName: true, lastName: true } },
+      },
+    });
   },
 
   async updateStatus(id: string, status: string, tenantId?: string): Promise<void> {

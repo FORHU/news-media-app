@@ -198,6 +198,30 @@ export const articlesApi = {
     return res.json();
   },
 
+  async createManualArticle(params: {
+    title: string;
+    content: string;
+    categoryId: string;
+    imageUrl?: string;
+    isHeadline?: boolean;
+    publish?: boolean;
+  }): Promise<unknown> {
+    const res = await fetch("/api/admin/generatedArticles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(params),
+    });
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(
+        typeof error.error === "string" ? error.error : "Failed to create article."
+      );
+    }
+
+    return res.json();
+  },
+
   async createArticleFromUpload(params: {
     categoryId: string;
     topic?: string;

@@ -21,3 +21,15 @@ export const generatedArticlesQuerySchema = z.object({
     .default(10),
 });
 
+/** API: manually create a generated article (no AI) */
+export const createManualArticleSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  content: z.string().min(1, "Article content is required"),
+  categoryId: z.string().min(1, "Category is required"),
+  imageUrl: z.string().url().optional().or(z.literal("")),
+  isHeadline: z.boolean().optional(),
+  publish: z.boolean().optional(),
+});
+
+export type CreateManualArticleInput = z.infer<typeof createManualArticleSchema>;
+

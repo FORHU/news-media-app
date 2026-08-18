@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generatedArticlesService } from "@/services/admin/generatedArticles.service";
-import { generatedArticlesQuerySchema } from "@/lib/validation/generated";
+import { generatedArticlesQuerySchema, createManualArticleSchema } from "@/lib/validation/generated";
 import { resolveTenantIdFromRequest } from "@/lib/tenant";
+import { sseBroadcaster } from "@/lib/sse";
 
 export const dynamic = "force-dynamic";
 
@@ -50,5 +51,32 @@ export async function GET(req: NextRequest) {
       { error: "Failed to fetch generated articles" },
       { status: 500 }
     );
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const tenantId = await resolveTenantIdFromRequest(req);
+    if (!tenantId) {
+      return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+    }
+
+    const json = await req.json();
+    const parsed = createManualArticleSchema.safeParse(json);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: parsed.error.issues.map((e) => e.message).join(", ") },
+        { status: 400 }
+      );
+    }
+
+    const created = await generatedArticlesService.createManualArticle(parsed.data, tenantId);
+    sseBroadcaster.broadcast("articles:updated");
+
+    return NextResponse.json(created, { status: 201 });
+  } catch (error) {
+    console.error("Error creating manual article:", error);
+    const message = error instanceof Error ? error.message : "Failed to create article";
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }

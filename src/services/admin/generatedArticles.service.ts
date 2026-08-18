@@ -3,6 +3,7 @@ import {
   type FetchGeneratedArticlesParams,
 } from "@/repositories/admin/generatedArticles.repository";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
+import type { CreateManualArticleInput } from "@/lib/validation/generated";
 
 type GetGeneratedArticlesParams = {
   q: string;
@@ -114,6 +115,18 @@ export const generatedArticlesService = {
         totalPages: Math.ceil(count / params.limit),
       },
     };
+  },
+
+  async createManualArticle(params: CreateManualArticleInput, tenantId: string) {
+    return generatedArticlesRepository.createManualArticle({
+      tenantId,
+      categoryId: params.categoryId,
+      title: params.title.trim(),
+      content: params.content.trim(),
+      imageUrl: params.imageUrl || null,
+      isHeadline: params.isHeadline,
+      publish: params.publish,
+    });
   },
 
   async publishArticle(id: string, tenantId?: string | null) {
