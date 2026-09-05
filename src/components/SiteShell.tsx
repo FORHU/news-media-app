@@ -22,6 +22,8 @@ const SkyBluePrimeHeader = dynamic(() => import("./sites/skyblueprime/SkyBluePri
 const SkyBluePrimeFooter = dynamic(() => import("./sites/skyblueprime/SkyBluePrimeFooter"), { ssr: true });
 const LavagueTechHeader = dynamic(() => import("./sites/lavaguetech/LavagueTechHeader"), { ssr: true });
 const LavagueTechFooter = dynamic(() => import("./sites/lavaguetech/LavagueTechFooter"), { ssr: true });
+const LegalHyperHeader = dynamic<{ onOpenNewsletter?: () => void }>(() => import("@/components/sites/legalhyper/LegalHyperHeader").then(m => m.LegalHyperHeader), { ssr: true });
+const LegalHyperFooter = dynamic<{ onOpenNewsletter?: () => void }>(() => import("@/components/sites/legalhyper/LegalHyperFooter").then(m => m.LegalHyperFooter), { ssr: true });
 
 // Fallbacks
 const DefaultHeader = dynamic(() => import("./Header").then(m => m.Header), { ssr: true });
@@ -46,6 +48,7 @@ export function SiteShell({ children, domain }: SiteShellProps) {
     if (d.includes("newsicons")) return "newsicons";
     if (d.includes("skyblueprime")) return "skyblueprime";
     if (d.includes("lavaguetech")) return "lavaguetech";
+    if (d.includes("legalhyper")) return "legalhyper";
     return "default";
   }, [domain]);
 
@@ -58,6 +61,7 @@ export function SiteShell({ children, domain }: SiteShellProps) {
       case "newsicons": return <NewsIconsHeader onOpenNewsletter={openNewsletter} />;
       case "skyblueprime": return <SkyBluePrimeHeader onOpenNewsletter={openNewsletter} />;
       case "lavaguetech": return <LavagueTechHeader onOpenNewsletter={openNewsletter} />;
+      case "legalhyper": return <LegalHyperHeader onOpenNewsletter={openNewsletter} />;
       default: return <DefaultHeader onOpenNewsletter={openNewsletter} />;
     }
   };
@@ -71,6 +75,7 @@ export function SiteShell({ children, domain }: SiteShellProps) {
       case "newsicons": return <NewsIconsFooter onOpenNewsletter={openNewsletter} />;
       case "skyblueprime": return <SkyBluePrimeFooter onOpenNewsletter={openNewsletter} />;
       case "lavaguetech": return <LavagueTechFooter onOpenNewsletter={openNewsletter} />;
+      case "legalhyper": return <LegalHyperFooter onOpenNewsletter={openNewsletter} />;
       default: return <DefaultFooter onOpenNewsletter={openNewsletter} />;
     }
   };

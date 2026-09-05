@@ -15,6 +15,13 @@ export default async function SearchLayout({
   params: Promise<{ domain: string }>;
 }) {
   const { domain } = await params;
+
+  // LegalHyperSearch owns its full page layout (no Tenant row/DB content exists yet
+  // for this domain), so skip the DB-driven chrome below entirely.
+  if (domain === "legalhyper.com") {
+    return <>{children}</>;
+  }
+
   const tenantId = await resolveTenantIdFromDomain(domain);
 
   // Dynamic Tenant Resolution for Adsterra Config

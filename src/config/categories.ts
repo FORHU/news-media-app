@@ -96,6 +96,14 @@ export const TENANT_CATEGORIES: Record<string, string[]> = {
     "비자 및 입국 정보",
     "로컬 비즈니스 및 생활"
   ],
+  "legalhyper.com": [
+    "Legal AI",
+    "LegalTech News",
+    "Regulation & Policy",
+    "Courts & Litigation",
+    "Legal Geek Coverage",
+    "Industry Analysis",
+  ],
 };
 
 export const CATEGORY_TRANSLATIONS: Record<string, string> = {

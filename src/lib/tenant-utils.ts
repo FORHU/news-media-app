@@ -15,6 +15,7 @@ export function getSiteNameFromDomain(domain: string | null): string {
   if (d.includes('jejuqq')) return "JejuQQ";
   if (d.includes('jejutime')) return "JejuTime";
   if (d.includes('skyblueprime')) return "Sky Blue Prime";
+  if (d.includes('legalhyper')) return "LegalHyper";
   return "NewsIcons";
 }
 
@@ -27,6 +28,7 @@ export function getSiteIconFromDomain(domain: string | null): string {
   if (d.includes('jejuqq')) return "/icons/jejuqq.ico";
   if (d.includes('jejutime')) return "/icons/jejutime.ico";
   if (d.includes('skyblueprime')) return "/icons/skyblueprime.ico";
+  if (d.includes('legalhyper')) return "/icons/legalhyper.ico";
   return "/icons/newsicons.ico";
 }
 
@@ -39,6 +41,7 @@ export function getSiteLogoFromDomain(domain: string | null): string {
   if (d.includes('jejuqq')) return "JEJUQQLOGO.png";
   if (d.includes('jejutime')) return "JEJUTIMELOGO.png";
   if (d.includes('skyblueprime')) return "NEWSICONSLOGO.png";
+  if (d.includes('legalhyper')) return "LEGALHYPERLOGO.png";
   return "NEWSICONSLOGO.png";
 }
 
@@ -51,6 +54,7 @@ export function getSiteDescriptionFromDomain(domain: string | null): string {
   if (d.includes('jejuqq')) return "Connecting the Jeju community with real-time news and updates.";
   if (d.includes('jejutime')) return "Timely news and in-depth reporting from across Jeju Island.";
   if (d.includes('skyblueprime')) return "Premium news, analysis, and stories — clear reporting for a connected world.";
+  if (d.includes('legalhyper')) return "LegalHyper — independent journalism on the AI transforming the practice of law.";
   return "Media & Content Hub for curated news, blogs, and insights.";
 }
 

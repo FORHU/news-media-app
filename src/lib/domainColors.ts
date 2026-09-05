@@ -56,17 +56,26 @@ export const DOMAIN_COLORS: Record<string, DomainColor> = {
     hoverBgClass: "hover:bg-sky-700",
     ringClass: "focus:ring-sky-600/20",
   },
+  "legalhyper.com": {
+    hex: "#8A6A22",
+    bgClass: "bg-[#8A6A22]",
+    textClass: "text-[#8A6A22]",
+    borderClass: "border-[#8A6A22]",
+    hoverBgClass: "hover:bg-[#6f5419]",
+    ringClass: "focus:ring-[#8A6A22]/20",
+  },
 };
 
 export function getDomainColor(domain: string = ""): DomainColor {
   const normalized = domain.toLowerCase();
-  
+
   if (normalized.includes("voicejeju")) return DOMAIN_COLORS["voicejeju.com"];
   if (normalized.includes("jejutime")) return DOMAIN_COLORS["jejutime.com"];
   if (normalized.includes("jejuqq")) return DOMAIN_COLORS["jejuqq.com"];
   if (normalized.includes("jejujapan")) return DOMAIN_COLORS["jejujapan.com"];
   if (normalized.includes("skyblueprime")) return DOMAIN_COLORS["skyblueprime.com"];
-  
+  if (normalized.includes("legalhyper")) return DOMAIN_COLORS["legalhyper.com"];
+
   // Default to NewsIcons
   return DOMAIN_COLORS["newsicons.com"];
 }
