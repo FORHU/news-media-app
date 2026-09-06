@@ -15,6 +15,8 @@ import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
 import { TENANT_CATEGORIES } from "@/config/categories";
 import { LegalHyperSearch } from "@/components/sites/legalhyper/LegalHyperSearch";
+import { mapMediaStackToLegalHyperArticles } from "@/components/sites/legalhyper/mockArticles";
+import { fetchMediaStackNews } from "@/lib/mediastack";
 
 export async function generateMetadata({ params }: { params: Promise<{ domain: string }> }): Promise<Metadata> {
   const { domain } = await params;
@@ -67,10 +69,12 @@ export default async function SearchPage({
   const { domain } = await params;
   const { search: searchQuery, category: categoryParam } = await searchParams;
 
-  // Static placeholder content — no Tenant row or DB-backed articles exist for this
-  // domain yet, so this bypasses the DB entirely, matching the home/article pages.
+  // LegalHyper's content is sourced live from MediaStack (see the home page),
+  // not the DB-backed article pipeline used by every other domain.
   if (domain === "legalhyper.com") {
-    return <LegalHyperSearch searchQuery={searchQuery} categoryParam={categoryParam} />;
+    const legalhyperMediastack = await fetchMediaStackNews({ keywords: "legal", languages: "en", limit: 100 });
+    const legalhyperArticles = mapMediaStackToLegalHyperArticles(legalhyperMediastack);
+    return <LegalHyperSearch articles={legalhyperArticles} searchQuery={searchQuery} categoryParam={categoryParam} />;
   }
 
   const tenantId = await resolveTenantIdFromDomain(domain);

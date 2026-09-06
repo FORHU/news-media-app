@@ -1,9 +1,9 @@
-"use client"; // LegalHyper search/category results — filters the static mock set client-side
+"use client"; // LegalHyper search/category results — filters the MediaStack-backed article list client-side
 
 import Link from "next/link";
 import { StoryImage } from "@/components/StoryImage";
 import { TENANT_CATEGORIES } from "@/config/categories";
-import { LEGALHYPER_MOCK_ARTICLES } from "./mockArticles";
+import { ArticleLink } from "./LegalHyperLanding";
 import type { MockArticle } from "./mockArticles";
 
 const INK = "#0E1A2F";
@@ -11,10 +11,6 @@ const GOLD = "#8A6A22";
 const BRASS = "#B08D3F";
 const PARCHMENT = "#F4F0E6";
 const RULE = "#DCD5C2";
-
-function articleHref(article: MockArticle) {
-  return `/article/${article.slug || article.id}`;
-}
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
@@ -26,16 +22,18 @@ function readingMinutes(content?: string | null) {
 }
 
 export function LegalHyperSearch({
+  articles,
   searchQuery,
   categoryParam,
 }: {
+  articles: MockArticle[];
   searchQuery?: string;
   categoryParam?: string;
 }) {
   const categories = TENANT_CATEGORIES["legalhyper.com"] ?? [];
   const activeCategory = categoryParam ? decodeURIComponent(categoryParam) : null;
 
-  const results = LEGALHYPER_MOCK_ARTICLES.filter((a) => {
+  const results = articles.filter((a) => {
     if (activeCategory && a.category?.categoryName !== activeCategory) return false;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -45,7 +43,7 @@ export function LegalHyperSearch({
     return true;
   }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-  const trending = [...LEGALHYPER_MOCK_ARTICLES]
+  const trending = [...articles]
     .sort((a, b) => (b.trendingScore ?? 0) - (a.trendingScore ?? 0))
     .slice(0, 5);
 
@@ -120,20 +118,20 @@ export function LegalHyperSearch({
             ) : (
               results.map((article) => (
                 <article key={article.id} className="flex flex-wrap gap-6.5 py-7" style={{ borderBottom: `1px solid ${RULE}`, gap: 26 }}>
-                  <Link href={articleHref(article)} className="shrink-0" style={{ flexBasis: 220, maxWidth: "100%" }}>
+                  <ArticleLink article={article} className="shrink-0" style={{ flexBasis: 220, maxWidth: "100%" }}>
                     <div className="relative w-full aspect-[4/3] overflow-hidden bg-[#E3DECF]">
                       <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" sizes="220px" />
                     </div>
-                  </Link>
+                  </ArticleLink>
                   <div className="flex-1 min-w-0" style={{ flexBasis: 280 }}>
                     <span className="text-[10.5px] font-bold uppercase" style={{ letterSpacing: "0.24em", color: GOLD }}>
                       {article.category?.categoryName}
                     </span>
-                    <Link href={articleHref(article)}>
+                    <ArticleLink article={article}>
                       <h3 className="font-garamond font-semibold mt-2.5 mb-0" style={{ fontSize: 24, lineHeight: 1.2, color: INK }}>
                         {article.title}
                       </h3>
-                    </Link>
+                    </ArticleLink>
                     {article.content && (
                       <p className="text-[15px] leading-[1.6] mt-2.5" style={{ color: "#4E4E45" }}>
                         {article.content}
@@ -159,9 +157,9 @@ export function LegalHyperSearch({
                 <div className="font-bodoni shrink-0" style={{ fontSize: 32, lineHeight: 0.9, color: "#C3BCA7" }}>
                   {String(i + 1).padStart(2, "0")}
                 </div>
-                <Link href={articleHref(article)} className="font-garamond" style={{ fontSize: 17, lineHeight: 1.3, color: INK }}>
+                <ArticleLink article={article} className="font-garamond" style={{ fontSize: 17, lineHeight: 1.3, color: INK }}>
                   {article.title}
-                </Link>
+                </ArticleLink>
               </div>
             ))}
           </aside>

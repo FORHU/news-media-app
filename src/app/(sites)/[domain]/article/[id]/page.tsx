@@ -17,8 +17,6 @@ import { VoiceJejuArticle } from "@/components/sites/voicejeju/VoiceJejuArticle"
 import SkyBluePrimeArticle from "@/components/sites/skyblueprime/SkyBluePrimeArticle";
 import LavagueTechArticle from "@/components/sites/lavaguetech/LavagueTechArticle";
 import NewsIconsArticle from "@/components/sites/newsicons/NewsIconsArticle";
-import { LegalHyperMockArticle } from "@/components/sites/legalhyper/LegalHyperMockArticle";
-import { LEGALHYPER_MOCK_ARTICLES } from "@/components/sites/legalhyper/mockArticles";
 import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain, getSiteDescriptionFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
 
@@ -262,16 +260,6 @@ export default async function ArticlePage({
 
   if (!articleId) {
     notFound();
-  }
-
-  // Static placeholder content — no Tenant row exists for this domain yet, so
-  // resolveTenantIdFromDomain below would always 404. Serve mock articles directly.
-  if (domain === "legalhyper.com") {
-    const mockArticle = LEGALHYPER_MOCK_ARTICLES.find((a) => a.id === articleId);
-    if (!mockArticle) {
-      notFound();
-    }
-    return <LegalHyperMockArticle article={mockArticle} otherArticles={LEGALHYPER_MOCK_ARTICLES} />;
   }
 
   const tenantId = await resolveTenantIdFromDomain(domain);
