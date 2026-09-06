@@ -23,7 +23,7 @@ import { VoiceJejuLanding } from "@/components/sites/voicejeju/VoiceJejuLanding"
 import SkyBluePrimeLanding from "@/components/sites/skyblueprime/SkyBluePrimeLanding";
 import LavagueTechLanding from "@/components/sites/lavaguetech/LavagueTechLanding";
 import { LegalHyperLanding } from "@/components/sites/legalhyper/LegalHyperLanding";
-import { LEGALHYPER_MOCK_ARTICLES } from "@/components/sites/legalhyper/mockArticles";
+import { mapMediaStackToLegalHyperArticles } from "@/components/sites/legalhyper/mockArticles";
 
 export const revalidate = 300;
 
@@ -112,12 +112,6 @@ export default async function Page({
 
   const emptyBanners = { top: [], sidebar: [], footer: [], sideLTop: [], sideLMid: [], sideRMid: [], sideRBtm: [], contentMid: [] };
 
-  // Static placeholder content — no Tenant row or DB-backed articles exist for this
-  // domain yet. Bypasses the DB entirely so this can be previewed locally right now.
-  if (domain === "legalhyper.com") {
-    return <LegalHyperLanding tenantId={null} articles={LEGALHYPER_MOCK_ARTICLES} banners={emptyBanners} />;
-  }
-
   const tenantId = await resolveTenantIdFromDomain(domain);
 
   const [articles, banners] = await Promise.all([
@@ -158,6 +152,12 @@ export default async function Page({
   if (domain === "skyblueprime.com") {
     const sbpMediastack = await fetchMediaStackNews({ categories: "technology", languages: "en", limit: 100 });
     return <SkyBluePrimeLanding tenantId={tenantId} articles={articles} banners={banners} mediastackArticles={sbpMediastack} />;
+  }
+
+  if (domain === "legalhyper.com") {
+    const legalhyperMediastack = await fetchMediaStackNews({ keywords: "legal", languages: "en", limit: 100 });
+    const legalhyperArticles = mapMediaStackToLegalHyperArticles(legalhyperMediastack);
+    return <LegalHyperLanding tenantId={tenantId} articles={legalhyperArticles} banners={banners} />;
   }
 
   if (domain === "lavaguetech.com") {

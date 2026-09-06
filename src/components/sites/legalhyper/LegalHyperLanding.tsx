@@ -1,6 +1,7 @@
 "use client"; // LegalHyper Landing — broadsheet homepage per "The Legal Review" design
 
 import Link from "next/link";
+import type { CSSProperties, ReactNode } from "react";
 import { StoryImage } from "@/components/StoryImage";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
@@ -10,7 +11,7 @@ import type { MockArticle } from "./mockArticles";
 
 interface Banner {
   id: string;
-  imageUrl: string;
+  imageUrl: string | null;
   linkUrl: string;
   altText: string | null;
   positions: string[];
@@ -28,6 +29,33 @@ interface Props {
 
 function articleHref(article: MockArticle) {
   return `/article/${article.slug || article.id}`;
+}
+
+// MediaStack-sourced articles carry a `url` to the original source and open in a
+// new tab there — there's no internal page for content LegalHyper doesn't own.
+export function ArticleLink({
+  article,
+  className,
+  style,
+  children,
+}: {
+  article: MockArticle;
+  className?: string;
+  style?: CSSProperties;
+  children: ReactNode;
+}) {
+  if (article.url) {
+    return (
+      <a href={article.url} target="_blank" rel="noopener noreferrer" className={className} style={style}>
+        {children}
+      </a>
+    );
+  }
+  return (
+    <Link href={articleHref(article)} className={className} style={style}>
+      {children}
+    </Link>
+  );
 }
 
 function readingMinutes(content?: string | null) {
@@ -55,10 +83,26 @@ function Kicker({ children }: { children: React.ReactNode }) {
   );
 }
 
+// MediaStack thumbnails come from whatever source outlet — a source credit
+// discloses the image isn't LegalHyper's own.
 function ImagePlaceholder({ article, aspect }: { article: MockArticle; aspect: string }) {
   return (
-    <div className="relative w-full overflow-hidden bg-[#E3DECF]" style={{ aspectRatio: aspect }}>
-      <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 1200px" />
+    <div className="relative w-full overflow-hidden bg-[#0B1424]" style={{ aspectRatio: aspect }}>
+      <StoryImage
+        src={article.imageUrl}
+        alt={article.title}
+        fill
+        className="object-cover"
+        sizes="(max-width: 1024px) 100vw, 1200px"
+      />
+      {article.author && (
+        <span
+          className="absolute bottom-2.5 right-2.5 text-[9px] font-bold uppercase px-2 py-1"
+          style={{ letterSpacing: "0.14em", color: "#F4F0E6", background: "rgba(11,20,36,0.72)" }}
+        >
+          {article.author}
+        </span>
+      )}
     </div>
   );
 }
@@ -122,9 +166,9 @@ export function LegalHyperLanding({ articles, banners }: Props) {
       <main className="max-w-[1340px] mx-auto px-4 sm:px-7">
         {/* Hero — full-width lead image, then a two-column split */}
         <section className="pt-11">
-          <Link href={articleHref(lead)} className="block">
+          <ArticleLink article={lead} className="block">
             <ImagePlaceholder article={lead} aspect="21/9" />
-          </Link>
+          </ArticleLink>
 
           <div className="flex flex-wrap gap-10 sm:gap-13 pt-8" style={{ gap: 40 }}>
             <div className="flex-1 min-w-0" style={{ flexBasis: 600 }}>
@@ -132,14 +176,14 @@ export function LegalHyperLanding({ articles, banners }: Props) {
                 <Kicker>{lead.category?.categoryName}</Kicker>
                 <span className="flex-1 h-px" style={{ background: BRASS }} />
               </div>
-              <Link href={articleHref(lead)}>
+              <ArticleLink article={lead}>
                 <h1
                   className="font-bodoni font-medium uppercase m-0 mt-5"
                   style={{ fontSize: "clamp(30px,4.4vw,54px)", lineHeight: 1.06, letterSpacing: "-0.005em", color: INK }}
                 >
                   {lead.title}
                 </h1>
-              </Link>
+              </ArticleLink>
               {lead.content && (
                 <p className="font-garamond text-[19px] leading-[1.58] max-w-[58ch] mt-5" style={{ color: "#3B3B33" }}>
                   {lead.content}
@@ -165,11 +209,11 @@ export function LegalHyperLanding({ articles, banners }: Props) {
               </div>
               {alsoThisMorning.map((article, i) => (
                 <div key={article.id} style={i > 0 ? { borderTop: `1px solid ${RULE}`, paddingTop: 22 } : undefined}>
-                  <Link href={articleHref(article)}>
+                  <ArticleLink article={article}>
                     <h2 className="font-garamond font-semibold m-0" style={{ fontSize: 22, lineHeight: 1.24, color: INK }}>
                       {article.title}
                     </h2>
-                  </Link>
+                  </ArticleLink>
                   <div className="mt-2.5 text-[10.5px] uppercase" style={{ letterSpacing: "0.12em", color: "#7A7466" }}>
                     {article.author} · {readingMinutes(article.content)} min
                   </div>
@@ -206,18 +250,18 @@ export function LegalHyperLanding({ articles, banners }: Props) {
 
             {latest.map((article) => (
               <article key={article.id} className="flex flex-wrap gap-6.5 py-7" style={{ borderBottom: `1px solid ${RULE}`, gap: 26 }}>
-                <Link href={articleHref(article)} className="shrink-0" style={{ flexBasis: 220, maxWidth: "100%" }}>
+                <ArticleLink article={article} className="shrink-0" style={{ flexBasis: 220, maxWidth: "100%" }}>
                   <div className="relative w-full aspect-[4/3] overflow-hidden bg-[#E3DECF]">
                     <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" sizes="220px" />
                   </div>
-                </Link>
+                </ArticleLink>
                 <div className="flex-1 min-w-0" style={{ flexBasis: 280 }}>
                   <Kicker>{article.category?.categoryName}</Kicker>
-                  <Link href={articleHref(article)}>
+                  <ArticleLink article={article}>
                     <h3 className="font-garamond font-semibold mt-2.5 mb-0" style={{ fontSize: 25, lineHeight: 1.2, color: INK }}>
                       {article.title}
                     </h3>
-                  </Link>
+                  </ArticleLink>
                   {article.content && (
                     <p className="text-[15px] leading-[1.6] mt-2.5" style={{ color: "#4E4E45" }}>
                       {article.content}
@@ -246,9 +290,9 @@ export function LegalHyperLanding({ articles, banners }: Props) {
                 <div className="font-bodoni shrink-0" style={{ fontSize: 36, lineHeight: 0.9, color: "#C3BCA7" }}>
                   {String(i + 1).padStart(2, "0")}
                 </div>
-                <Link href={articleHref(article)} className="font-garamond" style={{ fontSize: 19, lineHeight: 1.3, color: INK }}>
+                <ArticleLink article={article} className="font-garamond" style={{ fontSize: 19, lineHeight: 1.3, color: INK }}>
                   {article.title}
-                </Link>
+                </ArticleLink>
               </div>
             ))}
 
@@ -299,14 +343,14 @@ export function LegalHyperLanding({ articles, banners }: Props) {
                   <h3 className="font-garamond font-semibold m-0" style={{ fontSize: 21, color: INK }}>{category}</h3>
                   <div className="flex flex-col gap-3.5 mt-4.5" style={{ marginTop: 18 }}>
                     {items.map((a, i) => (
-                      <Link
+                      <ArticleLink
                         key={a.id}
-                        href={articleHref(a)}
+                        article={a}
                         className="text-[15px] leading-[1.45] transition-colors hover:text-[#8A6A22]"
                         style={{ color: "#1A1A16", borderTop: i > 0 ? "1px solid #E6E0D0" : "none", paddingTop: i > 0 ? 14 : 0 }}
                       >
                         {a.title}
-                      </Link>
+                      </ArticleLink>
                     ))}
                   </div>
                 </div>
@@ -363,11 +407,11 @@ export function LegalHyperLanding({ articles, banners }: Props) {
             </div>
             <div className="flex flex-wrap gap-11">
               <div className="flex-1 min-w-0" style={{ flexBasis: 540 }}>
-                <Link href={articleHref(investigation)}>
+                <ArticleLink article={investigation}>
                   <div className="relative w-full overflow-hidden" style={{ aspectRatio: "3/2", background: "repeating-linear-gradient(135deg,#16223A 0 10px,#1C2A46 10px 20px)" }}>
                     <StoryImage src={investigation.imageUrl} alt={investigation.title} fill className="object-cover" sizes="600px" />
                   </div>
-                </Link>
+                </ArticleLink>
                 <h2 className="font-bodoni font-medium uppercase mt-7" style={{ fontSize: "clamp(26px,3.2vw,40px)", lineHeight: 1.12, color: "#F4F0E6" }}>
                   {investigation.title}
                 </h2>
@@ -390,12 +434,12 @@ export function LegalHyperLanding({ articles, banners }: Props) {
                   More from the series
                 </div>
                 {investigationSeries.map((a) => (
-                  <Link key={a.id} href={articleHref(a)} className="py-5" style={{ color: "#EDE9DE", borderBottom: "1px solid #26314A" }}>
+                  <ArticleLink key={a.id} article={a} className="py-5" style={{ color: "#EDE9DE", borderBottom: "1px solid #26314A" }}>
                     <div className="font-garamond" style={{ fontSize: 21, lineHeight: 1.26 }}>{a.title}</div>
                     <div className="text-[11px] uppercase mt-2" style={{ letterSpacing: "0.1em", color: "#8E97A8" }}>
                       {readingMinutes(a.content)} min read
                     </div>
-                  </Link>
+                  </ArticleLink>
                 ))}
                 <Link href="/search" className="mt-6 inline-block text-center px-6 py-3 text-[10.5px] uppercase" style={{ border: `1px solid ${BRASS}`, color: BRASS, letterSpacing: "0.2em" }}>
                   All investigations
