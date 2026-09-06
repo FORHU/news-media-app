@@ -37,6 +37,29 @@ function isGenericPlaceholder(url: string): boolean {
   );
 }
 
+/** Keeps only articles MediaStack reported as published within the last `hours`. */
+export function filterMediaStackWithinHours(
+  articles: MediaStackArticle[],
+  hours: number
+): MediaStackArticle[] {
+  const cutoff = Date.now() - hours * 60 * 60 * 1000;
+  return articles.filter((a) => new Date(a.publishedAt).getTime() >= cutoff);
+}
+
+/** MediaStack occasionally puts a non-image URL (an article page, a redirect
+ *  link, etc.) in the `image` field — that fails Next's image optimizer at
+ *  render time ("requested resource isn't a valid image ... received null").
+ *  Require an actual image file extension so those get routed through
+ *  fetchOgImage (or dropped) instead of being rendered directly. */
+function looksLikeImageUrl(url: string): boolean {
+  try {
+    const { pathname } = new URL(url);
+    return /\.(jpe?g|png|gif|webp|avif|bmp|svg)$/i.test(pathname);
+  } catch {
+    return false;
+  }
+}
+
 // Use Microlink API to extract the real og:image from any article URL.
 // Microlink handles JS-rendered pages and Google News redirects properly.
 // Free tier: no API key needed. Cached 24h per URL to stay within limits.
@@ -86,8 +109,8 @@ export async function fetchMediaStackNews(params: {
     ...(params.keywords && { keywords: params.keywords }),
   });
 
-  // Free plan requires HTTP (not HTTPS)
-  const url = `http://api.mediastack.com/v1/news?${query.toString()}`;
+  // Standard plan supports HTTPS (the free tier requires HTTP)
+  const url = `https://api.mediastack.com/v1/news?${query.toString()}`;
 
   try {
     const res = await fetch(url, {
@@ -134,10 +157,13 @@ export async function fetchMediaStackNews(params: {
       image: a.image && (imageFreq.get(a.image) ?? 0) > 1 ? null : a.image,
     }));
 
-    // Enrich articles that still have no image or a known generic placeholder.
+    // Enrich articles that still have no image, a known generic placeholder,
+    // or an `image` value that isn't actually an image file.
     const enriched = await Promise.all(
       deduped.map(async (article) => {
-        if (article.image && !isGenericPlaceholder(article.image)) return article;
+        if (article.image && !isGenericPlaceholder(article.image) && looksLikeImageUrl(article.image)) {
+          return article;
+        }
         const ogImage = await fetchOgImage(article.url);
         return { ...article, image: ogImage ?? null };
       })
