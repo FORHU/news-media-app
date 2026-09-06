@@ -56,7 +56,8 @@ type SiteTheme =
   | "newsicons"
   | "voicejeju"
   | "skyblueprime"
-  | "lavaguetech";
+  | "lavaguetech"
+  | "legalhyper";
 
 function normalizeShareUrl(input: string) {
   try {
@@ -451,6 +452,17 @@ export function ArticleShare({
           item: "rounded-none border-gray-200 hover:border-teal-700 hover:bg-teal-50/50 transition-all",
           copyBtn:
             "bg-teal-700 text-white hover:bg-teal-800 rounded-none border-none",
+        };
+      case "legalhyper":
+        return {
+          trigger:
+            "bg-[#0E1A2F] hover:bg-[#0B1424] text-white rounded-none px-8 py-2.5 transition-all font-chivo text-[11px] font-black uppercase tracking-[0.2em] border border-[#0E1A2F] shadow-sm",
+          modal:
+            "sm:max-w-lg bg-[#F4F0E6] border-[#0E1A2F] border-2 rounded-none shadow-2xl",
+          header: "text-[#0E1A2F] font-bodoni uppercase text-3xl font-medium tracking-tight",
+          item: "rounded-none border-gray-100 hover:border-[#B08D3F] transition-all",
+          copyBtn:
+            "bg-[#0E1A2F] text-white hover:bg-[#0B1424] rounded-none border-none",
         };
       case "newsicons":
       default:

@@ -5,7 +5,7 @@ import { Mail, Copy, Check } from "lucide-react";
 
 const EMAIL = "socials@forhu.ai";
 
-type Theme = "default" | "voicejeju" | "jejutime" | "skyblueprime";
+type Theme = "default" | "voicejeju" | "jejutime" | "skyblueprime" | "legalhyper";
 
 const themeStyles: Record<Theme, {
   container: string;
@@ -41,6 +41,13 @@ const themeStyles: Record<Theme, {
     mailIcon: "text-sky-400",
     copyBtn: "hover:bg-sky-800 text-sky-400 hover:text-white",
     sendBtn: "bg-sky-500 hover:bg-sky-400 text-white rounded-xl",
+  },
+  legalhyper: {
+    container: "bg-[#F4F0E6] border border-[#0E1A2F]/20 rounded-none shadow-xl",
+    emailText: "text-[#0E1A2F]",
+    mailIcon: "text-[#8A6A22]",
+    copyBtn: "hover:bg-[#0E1A2F]/5 text-[#8A6A22] hover:text-[#0E1A2F]",
+    sendBtn: "bg-[#0E1A2F] hover:bg-[#0B1424] text-white rounded-none",
   },
 };
 

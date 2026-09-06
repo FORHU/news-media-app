@@ -73,6 +73,31 @@ export const ADSTERRA_CONFIG: Record<string, AdsterraTenantConfig> = {
       height: 50,
     },
   },
+  // Reusing VoiceJeju's Adsterra zone for now — swap for a dedicated zone once one exists for the real domain.
+  legalhyper: {
+    socialBar: "", // no pop ups
+    native: {
+      containerId: "container-9c5ecdec78c05c286aa87cb118bfee5b",
+      src: "https://pl29489864.effectivecpmnetwork.com/9c5ecdec78c05c286aa87cb118bfee5b/invoke.js",
+    },
+    banners: {
+      "300x250": "1fc758c95674c51a8dc1e7bdff580f7e",
+      "728x90": "c242943e75df6497a5929d27852b1159",
+      "468x60": "",
+      "320x50": "d68b3e9b0c05a075a85176317f822b6d",
+      "160x600": "b283cf02940081bd261a4fb0c9e177cf",
+    },
+    midArticle: {
+      key: "d68b3e9b0c05a075a85176317f822b6d",
+      width: 320,
+      height: 50,
+    },
+    midFeed: {
+      key: "d68b3e9b0c05a075a85176317f822b6d",
+      width: 320,
+      height: 50,
+    },
+  },
   jejujapan: {
     socialBar: "", // no pop ups
     native: {

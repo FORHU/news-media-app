@@ -14,6 +14,7 @@ import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
 import { TENANT_CATEGORIES } from "@/config/categories";
+import { LegalHyperSearch } from "@/components/sites/legalhyper/LegalHyperSearch";
 
 export async function generateMetadata({ params }: { params: Promise<{ domain: string }> }): Promise<Metadata> {
   const { domain } = await params;
@@ -65,6 +66,13 @@ export default async function SearchPage({
 }) {
   const { domain } = await params;
   const { search: searchQuery, category: categoryParam } = await searchParams;
+
+  // Static placeholder content — no Tenant row or DB-backed articles exist for this
+  // domain yet, so this bypasses the DB entirely, matching the home/article pages.
+  if (domain === "legalhyper.com") {
+    return <LegalHyperSearch searchQuery={searchQuery} categoryParam={categoryParam} />;
+  }
+
   const tenantId = await resolveTenantIdFromDomain(domain);
 
   // We use a key on Suspense to force it to show the fallback during searchParams changes

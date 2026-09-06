@@ -22,6 +22,8 @@ import JejuJapanLanding from "@/components/sites/jejujapan/JejuJapanLanding";
 import { VoiceJejuLanding } from "@/components/sites/voicejeju/VoiceJejuLanding";
 import SkyBluePrimeLanding from "@/components/sites/skyblueprime/SkyBluePrimeLanding";
 import LavagueTechLanding from "@/components/sites/lavaguetech/LavagueTechLanding";
+import { LegalHyperLanding } from "@/components/sites/legalhyper/LegalHyperLanding";
+import { LEGALHYPER_MOCK_ARTICLES } from "@/components/sites/legalhyper/mockArticles";
 
 export const revalidate = 300;
 
@@ -107,9 +109,16 @@ export default async function Page({
   params: Promise<{ domain: string }>;
 }) {
   const { domain } = await params;
-  const tenantId = await resolveTenantIdFromDomain(domain);
 
   const emptyBanners = { top: [], sidebar: [], footer: [], sideLTop: [], sideLMid: [], sideRMid: [], sideRBtm: [], contentMid: [] };
+
+  // Static placeholder content — no Tenant row or DB-backed articles exist for this
+  // domain yet. Bypasses the DB entirely so this can be previewed locally right now.
+  if (domain === "legalhyper.com") {
+    return <LegalHyperLanding tenantId={null} articles={LEGALHYPER_MOCK_ARTICLES} banners={emptyBanners} />;
+  }
+
+  const tenantId = await resolveTenantIdFromDomain(domain);
 
   const [articles, banners] = await Promise.all([
     tenantId
