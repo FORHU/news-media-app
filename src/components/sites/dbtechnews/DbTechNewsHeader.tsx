@@ -8,8 +8,8 @@ import ContactEmailButton from "@/components/ContactEmailButton";
 import { getCoreCategories, HOME_CATEGORY_LABEL } from "@/config/categories";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { SearchDropdown } from "@/components/search/SearchDropdown";
-import { getTechNewsTheme, techNewsVars } from "./theme";
-import { Wordmark } from "./parts";
+import { getTechNewsTheme, techNewsVars } from "../technews-shared/theme";
+import { Wordmark } from "../technews-shared/parts";
 
 function categoryHref(categoryName: string) {
   return `/search?category=${encodeURIComponent(categoryName)}`;

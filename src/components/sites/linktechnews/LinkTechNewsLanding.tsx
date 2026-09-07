@@ -9,8 +9,8 @@ import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
 import { getCoreCategories, normalizeCategoryKey } from "@/config/categories";
 import type { MediaStackArticle } from "@/lib/mediastack";
-import { getTechNewsTheme, techNewsVars, type TechNewsTheme } from "./theme";
-import { SectionLabel, SourceChip } from "./parts";
+import { getTechNewsTheme, techNewsVars, type TechNewsTheme } from "../technews-shared/theme";
+import { SectionLabel, SourceChip } from "../technews-shared/parts";
 
 const AdBanner = dynamic(() => import("@/components/AdBanner").then((m) => m.AdBanner), {
   ssr: true,

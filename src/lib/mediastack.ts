@@ -37,6 +37,18 @@ function isGenericPlaceholder(url: string): boolean {
   );
 }
 
+/** MediaStack `image` URLs that are obviously low-res publisher thumbnails, not
+ *  the full article image. Extend as new patterns show up in the wild. */
+function isLikelyLowResThumb(url: string): boolean {
+  return (
+    /\/1s\//.test(url) ||                       // DailyMail small mirror
+    /-image-[ms]-\d/.test(url) ||               // DailyMail "-image-m-16" / "-image-s-"
+    /-\d{2,3}x\d{2,3}\.(jpe?g|png|webp)/i.test(url) || // WordPress "-150x150.jpg"
+    /[?&](w|width|resize)=(\d{1,3})(&|$)/i.test(url) || // "?w=320"
+    /=s\d{2,3}(-|$)/.test(url)                  // Google "=s90"
+  );
+}
+
 /** Keeps only articles MediaStack reported as published within the last `hours`. */
 export function filterMediaStackWithinHours(
   articles: MediaStackArticle[],
@@ -60,10 +72,47 @@ function looksLikeImageUrl(url: string): boolean {
   }
 }
 
-// Use Microlink API to extract the real og:image from any article URL.
-// Microlink handles JS-rendered pages and Google News redirects properly.
-// Free tier: no API key needed. Cached 24h per URL to stay within limits.
-async function fetchOgImage(articleUrl: string): Promise<string | null> {
+// Pull og:image / twitter:image straight from the article HTML — free, no
+// third-party. Works for most news sites that render meta tags server-side.
+async function fetchOgImageDirect(articleUrl: string): Promise<string | null> {
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 4000);
+    const res = await fetch(articleUrl, {
+      signal: controller.signal,
+      next: { revalidate: 86400 },
+      headers: {
+        // A real UA — some publishers serve bare markup to unknown clients.
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36",
+        // og:image lives in <head>; ask for just the start of the document.
+        // Compliant servers honour this; the rest send the full body and we cap
+        // the parse below.
+        Range: "bytes=0-65535",
+      },
+    });
+    clearTimeout(timer);
+    if (!res.ok) return null;
+    // Only need the <head>; cap the body read so we don't download whole pages.
+    const html = (await res.text()).slice(0, 60000);
+    const m =
+      html.match(/<meta[^>]+property=["']og:image(?::url)?["'][^>]+content=["']([^"']+)["']/i) ||
+      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image(?::url)?["']/i) ||
+      html.match(/<meta[^>]+name=["']twitter:image(?::src)?["'][^>]+content=["']([^"']+)["']/i);
+    const img = m?.[1]?.trim();
+    if (img && img.startsWith("http") && !isGenericPlaceholder(img) && !isLikelyLowResThumb(img)) {
+      return img;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+// Microlink fallback — handles JS-rendered pages and Google News redirects that
+// the direct fetch can't. Free tier: no API key, ~50 req/day, so it's only hit
+// when the direct scrape fails. Cached 24h per URL.
+async function fetchOgImageMicrolink(articleUrl: string): Promise<string | null> {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 8000);
@@ -82,6 +131,18 @@ async function fetchOgImage(articleUrl: string): Promise<string | null> {
   } catch {
     return null;
   }
+}
+
+/** Best available article image: free direct og:image scrape first, then the
+ *  rate-limited Microlink fallback (only when `allowMicrolink` is set). */
+async function fetchOgImage(
+  articleUrl: string,
+  opts: { allowMicrolink?: boolean } = {},
+): Promise<string | null> {
+  const direct = await fetchOgImageDirect(articleUrl);
+  if (direct) return direct;
+  if (opts.allowMicrolink) return fetchOgImageMicrolink(articleUrl);
+  return null;
 }
 
 export async function fetchMediaStackNews(params: {
@@ -109,7 +170,8 @@ export async function fetchMediaStackNews(params: {
     ...(params.keywords && { keywords: params.keywords }),
   });
 
-  // Standard plan supports HTTPS (the free tier requires HTTP)
+  // HTTPS requires a paid MediaStack plan (Standard+); the free tier is HTTP-only,
+  // so keep an eye on this if the plan lapses.
   const url = `https://api.mediastack.com/v1/news?${query.toString()}`;
 
   try {
@@ -157,15 +219,28 @@ export async function fetchMediaStackNews(params: {
       image: a.image && (imageFreq.get(a.image) ?? 0) > 1 ? null : a.image,
     }));
 
-    // Enrich articles that still have no image, a known generic placeholder,
-    // or an `image` value that isn't actually an image file.
+    // Upgrade images: MediaStack's `image` is only the publisher's feed thumbnail
+    // — often a tiny (~150px) crop, sometimes not even an image URL. Enrich when
+    // the article has no image, a generic placeholder, a non-image URL, or an
+    // obvious low-res thumbnail, pulling the article's real og:image instead
+    // (usually 1200×630+). The free direct scrape runs for every candidate; the
+    // rate-limited Microlink fallback only for the first handful (which get the
+    // largest on-page slots).
     const enriched = await Promise.all(
-      deduped.map(async (article) => {
-        if (article.image && !isGenericPlaceholder(article.image) && looksLikeImageUrl(article.image)) {
-          return article;
-        }
-        const ogImage = await fetchOgImage(article.url);
-        return { ...article, image: ogImage ?? null };
+      deduped.map(async (article, i) => {
+        const img = article.image;
+        const usable =
+          !!img &&
+          !isGenericPlaceholder(img) &&
+          looksLikeImageUrl(img) &&
+          !isLikelyLowResThumb(img);
+        if (usable) return article;
+
+        const better = await fetchOgImage(article.url, { allowMicrolink: i < 6 });
+        if (better) return { ...article, image: better };
+        // No upgrade found: keep a real (if small) thumbnail, but drop a
+        // non-image URL so Next's optimizer doesn't choke on it.
+        return img && looksLikeImageUrl(img) ? article : { ...article, image: null };
       })
     );
 

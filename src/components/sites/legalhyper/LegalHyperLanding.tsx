@@ -1,6 +1,7 @@
 "use client"; // LegalHyper Landing — broadsheet homepage per "The Legal Review" design
 
 import Link from "next/link";
+import { useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { StoryImage } from "@/components/StoryImage";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
@@ -83,27 +84,83 @@ function Kicker({ children }: { children: React.ReactNode }) {
   );
 }
 
-// MediaStack thumbnails come from whatever source outlet — a source credit
-// discloses the image isn't LegalHyper's own.
-function ImagePlaceholder({ article, aspect }: { article: MockArticle; aspect: string }) {
-  return (
-    <div className="relative w-full overflow-hidden bg-[#0B1424]" style={{ aspectRatio: aspect }}>
-      <StoryImage
-        src={article.imageUrl}
-        alt={article.title}
-        fill
-        className="object-cover"
-        sizes="(max-width: 1024px) 100vw, 1200px"
+// MediaStack thumbnails come from whatever source outlet — quality varies wildly
+// (some are only ~150px wide). This box measures the real pixel size on load and
+// never renders the image larger than it actually is: small thumbnails sit at
+// native resolution on a panel (sharp, never stretched), full-size images fill
+// the design slot and crop with object-cover. A source credit discloses the
+// image isn't LegalHyper's own.
+function ImagePlaceholder({
+  article,
+  aspect,
+  maxHeight,
+  maxWidth = 720,
+  smallThreshold = 512,
+}: {
+  article: MockArticle;
+  aspect: string;
+  maxHeight?: string;
+  maxWidth?: number;
+  smallThreshold?: number;
+}) {
+  const [nat, setNat] = useState<{ w: number; h: number } | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  const isSmall = nat !== null && nat.w > 0 && nat.w < smallThreshold;
+  // Cap the rendered width at the image's true pixel width so it is never upscaled.
+  const figureMaxWidth = nat ? Math.min(nat.w, maxWidth) : maxWidth;
+  // Small images keep their own aspect ratio (no crop); larger ones use the
+  // design ratio and crop with object-cover.
+  const boxAspect = isSmall && nat ? `${nat.w} / ${nat.h}` : aspect;
+
+  if (!article.imageUrl || failed) {
+    return (
+      <div
+        className="relative w-full overflow-hidden"
+        style={{
+          aspectRatio: aspect,
+          maxHeight,
+          maxWidth,
+          background: "#E7E1D0",
+          borderLeft: `3px solid ${MAROON}`,
+        }}
       />
+    );
+  }
+
+  return (
+    <figure className="relative m-0 overflow-hidden bg-[#0B1424]" style={{ width: "100%", maxWidth: figureMaxWidth }}>
+      <div style={{ position: "relative", width: "100%", aspectRatio: boxAspect, maxHeight }}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- deliberate: need the true source pixel size, which next/image hides behind the optimizer */}
+        <img
+          src={article.imageUrl}
+          alt={article.title}
+          loading="eager"
+          decoding="async"
+          onLoad={(e) => {
+            const el = e.currentTarget;
+            if (el.naturalWidth) setNat({ w: el.naturalWidth, h: el.naturalHeight });
+          }}
+          onError={() => setFailed(true)}
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: isSmall ? "contain" : "cover",
+            objectPosition: "center",
+          }}
+        />
+      </div>
       {article.author && (
-        <span
+        <figcaption
           className="absolute bottom-2.5 right-2.5 text-[9px] font-bold uppercase px-2 py-1"
           style={{ letterSpacing: "0.14em", color: "#F4F0E6", background: "rgba(11,20,36,0.72)" }}
         >
           {article.author}
-        </span>
+        </figcaption>
       )}
-    </div>
+    </figure>
   );
 }
 
@@ -164,13 +221,9 @@ export function LegalHyperLanding({ articles, banners }: Props) {
       )}
 
       <main className="max-w-[1340px] mx-auto px-4 sm:px-7">
-        {/* Hero — full-width lead image, then a two-column split */}
+        {/* Hero — headline leads; the image is a supporting element, not a full-bleed banner */}
         <section className="pt-11">
-          <ArticleLink article={lead} className="block">
-            <ImagePlaceholder article={lead} aspect="21/9" />
-          </ArticleLink>
-
-          <div className="flex flex-wrap gap-10 sm:gap-13 pt-8" style={{ gap: 40 }}>
+          <div className="flex flex-wrap gap-10 sm:gap-13" style={{ gap: 40 }}>
             <div className="flex-1 min-w-0" style={{ flexBasis: 600 }}>
               <div className="flex items-center gap-3.5">
                 <Kicker>{lead.category?.categoryName}</Kicker>
@@ -183,6 +236,9 @@ export function LegalHyperLanding({ articles, banners }: Props) {
                 >
                   {lead.title}
                 </h1>
+              </ArticleLink>
+              <ArticleLink article={lead} className="block mt-6">
+                <ImagePlaceholder article={lead} aspect="16/9" maxHeight="clamp(200px, 30vw, 340px)" />
               </ArticleLink>
               {lead.content && (
                 <p className="font-garamond text-[19px] leading-[1.58] max-w-[58ch] mt-5" style={{ color: "#3B3B33" }}>

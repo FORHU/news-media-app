@@ -4,10 +4,10 @@ import Link from "next/link";
 import { Mail, Globe } from "lucide-react";
 import { AdBanner } from "@/components/AdBanner";
 import { getCoreCategories } from "@/config/categories";
-import { getTechNewsTheme, techNewsVars } from "./theme";
-import { Wordmark, SectionLabel } from "./parts";
+import { getTechNewsTheme, techNewsVars } from "../technews-shared/theme";
+import { Wordmark, SectionLabel } from "../technews-shared/parts";
 
-export default function NewYorkSignalFooter({
+export default function LinkTechNewsFooter({
   domain,
   onOpenNewsletter,
 }: {

@@ -14,8 +14,8 @@ import { ArticleShare } from "@/components/article/ArticleShare";
 import { ArticleImageGallery } from "@/components/article/ArticleImageGallery";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
-import { getTechNewsTheme, techNewsVars } from "./theme";
-import { SectionLabel } from "./parts";
+import { getTechNewsTheme, techNewsVars } from "../technews-shared/theme";
+import { SectionLabel } from "../technews-shared/parts";
 
 export default function LinkTechNewsArticle({
   domain,

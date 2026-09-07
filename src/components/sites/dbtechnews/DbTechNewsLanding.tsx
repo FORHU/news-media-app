@@ -6,9 +6,9 @@ import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
 import { StoryImage } from "@/components/StoryImage";
 import type { MediaStackArticle } from "@/lib/mediastack";
-import { getTechNewsTheme, techNewsVars } from "./theme";
-import { toFeedRows, excerpt, type FeedRow } from "./feed";
-import { FeedLink } from "./FeedLink";
+import { getTechNewsTheme, techNewsVars } from "../technews-shared/theme";
+import { toFeedRows, excerpt, type FeedRow } from "../technews-shared/feed";
+import { FeedLink } from "../technews-shared/FeedLink";
 
 interface Props {
   domain: string;
@@ -91,10 +91,35 @@ export default function DbTechNewsLanding({ domain, articles, banners, mediastac
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-7">
             {hero && (
-              <FeedLink row={hero} className="group relative block h-[420px] overflow-hidden bg-[var(--tn-ink)]" style={{ borderRadius: "var(--tn-radius)" }}>
-                <StoryImage src={hero.imageUrl} alt={hero.title} fill className="object-cover group-hover:scale-105 transition-transform duration-700" sizes="700px" priority />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/10" />
-                <div className="absolute inset-0 flex flex-col justify-between p-6 sm:p-8">
+              <FeedLink
+                row={hero}
+                className="group block"
+                style={{
+                  position: "relative",
+                  display: "block",
+                  width: "100%",
+                  height: "clamp(240px, 38vw, 420px)",
+                  overflow: "hidden",
+                  borderRadius: "var(--tn-radius)",
+                  backgroundColor: "var(--tn-ink)",
+                  backgroundImage: hero.imageUrl ? `url("${hero.imageUrl}")` : undefined,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              >
+                <span
+                  aria-hidden
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background:
+                      "linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.1))",
+                  }}
+                />
+                <div
+                  className="flex flex-col justify-between p-6 sm:p-8"
+                  style={{ position: "absolute", inset: 0 }}
+                >
                   <span className="inline-block self-start bg-[var(--tn-accent)] text-[var(--tn-accent-ink)] font-mono text-[10px] font-bold uppercase tracking-widest px-3 py-1.5">
                     HEAD
                   </span>
@@ -116,7 +141,7 @@ export default function DbTechNewsLanding({ domain, articles, banners, mediastac
             <div className="divide-y divide-[var(--tn-rule)] h-full flex flex-col">
               {sidebarItems.map((item) => (
                 <FeedLink key={item.id} row={item} className="group flex gap-4 py-4 first:pt-0 hover:bg-[var(--tn-accent-soft)]/50 -mx-2 px-2 transition-colors">
-                  <div className="w-[88px] h-[66px] shrink-0 bg-[var(--tn-accent-soft)] overflow-hidden">
+                  <div className="w-[88px] h-[66px] shrink-0 bg-[var(--tn-accent-soft)] overflow-hidden relative">
                     <StoryImage src={item.imageUrl} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="88px" />
                   </div>
                   <div className="flex-1 min-w-0 font-mono">
@@ -141,7 +166,7 @@ export default function DbTechNewsLanding({ domain, articles, banners, mediastac
           <div className="grid grid-cols-1 md:grid-cols-3 gap-7">
             {weeklyCards.map((item) => (
               <FeedLink key={item.id} row={item} className="group block border border-[var(--tn-rule)]" >
-                <div className="aspect-[4/3] bg-[var(--tn-accent-soft)] overflow-hidden">
+                <div className="relative aspect-[4/3] bg-[var(--tn-accent-soft)] overflow-hidden">
                   <StoryImage src={item.imageUrl} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="360px" />
                 </div>
                 <div className="p-4">
@@ -166,7 +191,7 @@ export default function DbTechNewsLanding({ domain, articles, banners, mediastac
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
             {moreGrid.map((item) => (
               <FeedLink key={item.id} row={item} className="group block">
-                <div className="aspect-[4/3] bg-[var(--tn-accent-soft)] overflow-hidden mb-3">
+                <div className="relative aspect-[4/3] bg-[var(--tn-accent-soft)] overflow-hidden mb-3">
                   <StoryImage src={item.imageUrl} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="280px" />
                 </div>
                 <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-[var(--tn-accent)] block mb-1">{catOf(item)}</span>
@@ -199,7 +224,7 @@ export default function DbTechNewsLanding({ domain, articles, banners, mediastac
                         <span className="font-mono text-[24px] font-bold text-[var(--tn-rule)] group-hover:text-[var(--tn-accent)] transition-colors w-11 shrink-0 text-right tabular-nums">
                           {String(rank).padStart(2, "0")}
                         </span>
-                        <div className="w-[76px] h-[56px] shrink-0 bg-[var(--tn-accent-soft)] overflow-hidden">
+                        <div className="w-[76px] h-[56px] shrink-0 bg-[var(--tn-accent-soft)] overflow-hidden relative">
                           <StoryImage src={item.imageUrl} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="76px" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -223,7 +248,7 @@ export default function DbTechNewsLanding({ domain, articles, banners, mediastac
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {dontMiss.map((item) => (
               <FeedLink key={item.id} row={item} className="group flex gap-4">
-                <div className="w-[120px] h-[80px] shrink-0 bg-[var(--tn-accent-soft)] overflow-hidden">
+                <div className="w-[120px] h-[80px] shrink-0 bg-[var(--tn-accent-soft)] overflow-hidden relative">
                   <StoryImage src={item.imageUrl} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="120px" />
                 </div>
                 <div className="flex-1 min-w-0">

@@ -4,12 +4,16 @@ import type { CSSProperties } from "react";
  * Shared theme system for the "technews" tenant family.
  *
  * Six domains (LinkTechnews, DbTechnews, MagazineTechy, MagazineAir, TechyGate,
- * NewYorkSignal) share ONE set of layout components — the same page skeleton —
- * and differ only by the values in this file: palette, wordmark rendering,
- * section-label rendering, and a single signature motif. Fonts are swapped per
- * domain in globals.css via the `.site-theme-<domain>-com` blocks, which remap
- * the semantic `--font-serif` / `--font-sans` / `--font-mono` slots the
- * components reference.
+ * NewYorkSignal) share the same page skeleton and differ only by the values in
+ * this file: palette, wordmark rendering, section-label rendering, and a single
+ * signature motif. Fonts are swapped per domain in globals.css via the
+ * `.site-theme-<domain>-com` blocks, which remap the semantic `--font-serif` /
+ * `--font-sans` / `--font-mono` slots the components reference.
+ *
+ * Each domain keeps its own component folder (`sites/<key>/<Name>Header|Footer|
+ * Landing|Article.tsx`) matching the rest of the frontend; this folder
+ * (`sites/technews-shared/`) holds only what every domain imports: this theme,
+ * `feed.ts`, `parts.tsx`, and `FeedLink.tsx`.
  *
  * To bring a new domain online:
  *   1. Add its palette + knobs to TECHNEWS_THEMES below.

@@ -8,9 +8,9 @@ import { ADSTERRA_CONFIG } from "@/config/adsterra";
 import { StoryImage } from "@/components/StoryImage";
 import { getCoreCategories, normalizeCategoryKey } from "@/config/categories";
 import type { MediaStackArticle } from "@/lib/mediastack";
-import { getTechNewsTheme, techNewsVars } from "./theme";
-import { toFeedRows, excerpt, type FeedRow } from "./feed";
-import { FeedLink } from "./FeedLink";
+import { getTechNewsTheme, techNewsVars } from "../technews-shared/theme";
+import { toFeedRows, excerpt, type FeedRow } from "../technews-shared/feed";
+import { FeedLink } from "../technews-shared/FeedLink";
 
 const AdBanner = dynamic(() => import("@/components/AdBanner").then((m) => m.AdBanner), {
   ssr: true,
@@ -102,15 +102,26 @@ export default function TechyGateLanding({ domain, articles, banners, mediastack
         {lead && (
           <FeedLink
             row={lead}
-            className="group grid grid-cols-1 lg:grid-cols-2 border-4 border-[var(--tn-ink)]"
-            style={{ alignItems: "center" }}
+            className="group border-4 border-[var(--tn-ink)]"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+              alignItems: "center",
+            }}
           >
             <div
-              className="relative w-full bg-[var(--tn-accent-soft)] overflow-hidden"
-              style={{ height: "clamp(200px, 34vw, 400px)" }}
-            >
-              <StoryImage src={lead.imageUrl} alt={lead.title} fill className="object-cover group-hover:scale-105 transition-transform duration-700" sizes="(max-width: 1024px) 100vw, 640px" />
-            </div>
+              aria-hidden
+              style={{
+                position: "relative",
+                width: "100%",
+                height: "clamp(200px, 34vw, 400px)",
+                overflow: "hidden",
+                backgroundColor: "var(--tn-accent-soft)",
+                backgroundImage: lead.imageUrl ? `url("${lead.imageUrl}")` : undefined,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+            />
             <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-10">
                 <span className="inline-block self-start bg-[var(--tn-accent)] text-[var(--tn-accent-ink)] text-[11px] font-bold uppercase tracking-[0.16em] px-2.5 py-1 mb-3">
                   {lead.category?.categoryName ?? "Top"}
@@ -232,7 +243,7 @@ export default function TechyGateLanding({ domain, articles, banners, mediastack
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {extRows.slice(14, 20).map((item) => (
                 <a key={item.id} href={item.href} target="_blank" rel="noopener noreferrer" className="group flex gap-4 items-start border-2 border-[var(--tn-ink)] p-4">
-                  <div className="w-[90px] h-[70px] shrink-0 bg-[var(--tn-accent-soft)] overflow-hidden">
+                  <div className="relative w-[90px] h-[70px] shrink-0 bg-[var(--tn-accent-soft)] overflow-hidden">
                     <StoryImage src={item.imageUrl} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="90px" />
                   </div>
                   <div className="min-w-0">

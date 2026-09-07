@@ -17,12 +17,12 @@ import { VoiceJejuArticle } from "@/components/sites/voicejeju/VoiceJejuArticle"
 import SkyBluePrimeArticle from "@/components/sites/skyblueprime/SkyBluePrimeArticle";
 import LavagueTechArticle from "@/components/sites/lavaguetech/LavagueTechArticle";
 import NewsIconsArticle from "@/components/sites/newsicons/NewsIconsArticle";
-import LinkTechNewsArticle from "@/components/sites/technews/LinkTechNewsArticle";
-import DbTechNewsArticle from "@/components/sites/technews/DbTechNewsArticle";
-import MagazineTechyArticle from "@/components/sites/technews/MagazineTechyArticle";
-import MagazineAirArticle from "@/components/sites/technews/MagazineAirArticle";
-import TechyGateArticle from "@/components/sites/technews/TechyGateArticle";
-import NewYorkSignalArticle from "@/components/sites/technews/NewYorkSignalArticle";
+import LinkTechNewsArticle from "@/components/sites/linktechnews/LinkTechNewsArticle";
+import DbTechNewsArticle from "@/components/sites/dbtechnews/DbTechNewsArticle";
+import MagazineTechyArticle from "@/components/sites/magazinetechy/MagazineTechyArticle";
+import MagazineAirArticle from "@/components/sites/magazineair/MagazineAirArticle";
+import TechyGateArticle from "@/components/sites/techygate/TechyGateArticle";
+import NewYorkSignalArticle from "@/components/sites/newyorksignal/NewYorkSignalArticle";
 
 const TECHNEWS_ARTICLES: Record<string, typeof LinkTechNewsArticle> = {
   "linktechnews.com": LinkTechNewsArticle,
