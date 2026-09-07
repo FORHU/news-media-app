@@ -282,28 +282,31 @@ export default function NewsIconsLanding({ articles, banners, mediastackArticles
                     href={item.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group flex gap-3 items-center p-4 hover:bg-slate-50 transition-colors flex-1"
+                    className="group block p-4 hover:bg-slate-50 transition-colors"
                   >
                     {item.image ? (
-                      <div className="relative w-[90px] h-[76px] shrink-0 bg-slate-100 overflow-hidden">
+                      <div className="relative w-full aspect-[16/9] bg-slate-100 overflow-hidden">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       </div>
                     ) : (
-                      <div className="w-[90px] h-[76px] shrink-0 bg-slate-100 flex items-center justify-center">
-                        <span className="text-slate-400 text-[9px] font-bold uppercase text-center px-1 leading-tight">{item.source}</span>
+                      <div className="w-full aspect-[16/9] bg-slate-100 flex items-center justify-center">
+                        <span className="text-slate-400 text-xs font-bold uppercase text-center px-2 leading-tight">{item.source}</span>
                       </div>
                     )}
-                    <div className="flex flex-col gap-0.5 min-w-0">
+                    <div className="flex flex-col gap-1.5 mt-3">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[9px] font-bold uppercase tracking-widest text-orange-500 truncate">{item.source}</span>
-                        <span className="text-[9px] text-slate-400 shrink-0">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-orange-500 truncate">{item.source}</span>
+                        <span className="text-[10px] text-slate-400 shrink-0">
                           {new Date(item.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                         </span>
                       </div>
-                      <h4 className="text-[13px] font-serif font-bold text-slate-900 leading-snug group-hover:text-orange-500 transition-colors line-clamp-2">
+                      <h4 className="text-[16px] font-serif font-bold text-slate-900 leading-snug group-hover:text-orange-500 transition-colors line-clamp-2">
                         {item.title}
                       </h4>
+                      {item.description && (
+                        <p className="text-[12.5px] text-slate-500 leading-relaxed line-clamp-2">{item.description}</p>
+                      )}
                     </div>
                   </a>
                 ))}

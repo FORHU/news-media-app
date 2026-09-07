@@ -12,7 +12,7 @@ import { bannersService } from "@/services/banners.service";
 import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain, getSiteDescriptionFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
 import { fetchRssFeed } from "@/lib/rss";
-import { fetchMediaStackNews } from "@/lib/mediastack";
+import { fetchMediaStackNews, filterMediaStackWithinHours } from "@/lib/mediastack";
 
 // Domain-specific designs
 import NewsIconsLanding from "@/components/sites/newsicons/NewsIconsLanding";
@@ -142,11 +142,17 @@ export default async function Page({
 
   // --- Design Routing ---
   if (domain === "newsicons.com") {
-    const mediastackArticles = await fetchMediaStackNews({
+    // "technology" only gets a handful of articles/day, so sorting desc still reaches
+    // back weeks once you're 20-30 items deep. Fetch a wide pool, then cut anything
+    // older than 5 days — sections with too little recent volume just render fewer
+    // items (NewsIconsLanding already guards each section on array length) instead
+    // of backfilling with stale articles.
+    const mediastackArticlesRaw = await fetchMediaStackNews({
       categories: "technology",
       languages: "en",
       limit: 100,
     });
+    const mediastackArticles = filterMediaStackWithinHours(mediastackArticlesRaw, 24 * 5);
     return <NewsIconsLanding tenantId={tenantId} articles={articles} banners={banners} mediastackArticles={mediastackArticles} />;
   }
 

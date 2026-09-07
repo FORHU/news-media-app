@@ -49,6 +49,29 @@ function isLikelyLowResThumb(url: string): boolean {
   );
 }
 
+/** Keeps only articles MediaStack reported as published within the last `hours`. */
+export function filterMediaStackWithinHours(
+  articles: MediaStackArticle[],
+  hours: number
+): MediaStackArticle[] {
+  const cutoff = Date.now() - hours * 60 * 60 * 1000;
+  return articles.filter((a) => new Date(a.publishedAt).getTime() >= cutoff);
+}
+
+/** MediaStack occasionally puts a non-image URL (an article page, a redirect
+ *  link, etc.) in the `image` field — that fails Next's image optimizer at
+ *  render time ("requested resource isn't a valid image ... received null").
+ *  Require an actual image file extension so those get routed through
+ *  fetchOgImage (or dropped) instead of being rendered directly. */
+function looksLikeImageUrl(url: string): boolean {
+  try {
+    const { pathname } = new URL(url);
+    return /\.(jpe?g|png|gif|webp|avif|bmp|svg)$/i.test(pathname);
+  } catch {
+    return false;
+  }
+}
+
 // Pull og:image / twitter:image straight from the article HTML — free, no
 // third-party. Works for most news sites that render meta tags server-side.
 async function fetchOgImageDirect(articleUrl: string): Promise<string | null> {
@@ -147,8 +170,8 @@ export async function fetchMediaStackNews(params: {
     ...(params.keywords && { keywords: params.keywords }),
   });
 
-  // HTTPS requires a paid MediaStack plan (Standard+); it silently falls back to
-  // HTTP-only on the free tier, so keep an eye on this if the plan lapses.
+  // HTTPS requires a paid MediaStack plan (Standard+); the free tier is HTTP-only,
+  // so keep an eye on this if the plan lapses.
   const url = `https://api.mediastack.com/v1/news?${query.toString()}`;
 
   try {
@@ -196,22 +219,28 @@ export async function fetchMediaStackNews(params: {
       image: a.image && (imageFreq.get(a.image) ?? 0) > 1 ? null : a.image,
     }));
 
-    // Upgrade images: MediaStack's `image` is just the publisher's feed thumbnail,
-    // which is often a tiny (~150px) crop. For any article with no image, a
-    // generic placeholder, or an obvious low-res thumbnail, pull the article's
-    // real og:image instead (usually 1200×630+). The free direct scrape runs for
-    // every candidate; the rate-limited Microlink fallback only for the first
-    // handful (which get the largest on-page slots).
+    // Upgrade images: MediaStack's `image` is only the publisher's feed thumbnail
+    // — often a tiny (~150px) crop, sometimes not even an image URL. Enrich when
+    // the article has no image, a generic placeholder, a non-image URL, or an
+    // obvious low-res thumbnail, pulling the article's real og:image instead
+    // (usually 1200×630+). The free direct scrape runs for every candidate; the
+    // rate-limited Microlink fallback only for the first handful (which get the
+    // largest on-page slots).
     const enriched = await Promise.all(
       deduped.map(async (article, i) => {
-        const hasImage = !!article.image && !isGenericPlaceholder(article.image);
-        const lowRes = hasImage && isLikelyLowResThumb(article.image as string);
-        if (hasImage && !lowRes) return article;
+        const img = article.image;
+        const usable =
+          !!img &&
+          !isGenericPlaceholder(img) &&
+          looksLikeImageUrl(img) &&
+          !isLikelyLowResThumb(img);
+        if (usable) return article;
 
         const better = await fetchOgImage(article.url, { allowMicrolink: i < 6 });
         if (better) return { ...article, image: better };
-        // No upgrade found — a small thumbnail still beats nothing.
-        return hasImage ? article : { ...article, image: null };
+        // No upgrade found: keep a real (if small) thumbnail, but drop a
+        // non-image URL so Next's optimizer doesn't choke on it.
+        return img && looksLikeImageUrl(img) ? article : { ...article, image: null };
       })
     );
 
