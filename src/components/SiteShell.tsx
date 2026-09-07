@@ -6,7 +6,7 @@ import { NewsletterModal } from "@/components/newsLetterModal/NewsletterModal";
 import { AdsterraSocialBar } from "@/components/ads/AdsterraSocialBar";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
-import { isTechNewsDomain } from "@/components/sites/technews/theme";
+import { isTechNewsDomain } from "@/components/sites/technews-shared/theme";
 
 // Lazy load domain-specific components with SSR enabled
 const NewsIconsHeader = dynamic(() => import("./sites/newsicons/NewsIconsHeader"), { ssr: true });
@@ -27,18 +27,18 @@ const LegalHyperHeader = dynamic<{ onOpenNewsletter?: () => void }>(() => import
 const LegalHyperFooter = dynamic<{ onOpenNewsletter?: () => void }>(() => import("@/components/sites/legalhyper/LegalHyperFooter").then(m => m.LegalHyperFooter), { ssr: true });
 // technews tenant family — one per-domain component set each
 type TechNewsChromeProps = { domain: string; onOpenNewsletter?: () => void };
-const LinkTechNewsHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technews/LinkTechNewsHeader"), { ssr: true });
-const LinkTechNewsFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technews/LinkTechNewsFooter"), { ssr: true });
-const DbTechNewsHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technews/DbTechNewsHeader"), { ssr: true });
-const DbTechNewsFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technews/DbTechNewsFooter"), { ssr: true });
-const MagazineTechyHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technews/MagazineTechyHeader"), { ssr: true });
-const MagazineTechyFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technews/MagazineTechyFooter"), { ssr: true });
-const MagazineAirHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technews/MagazineAirHeader"), { ssr: true });
-const MagazineAirFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technews/MagazineAirFooter"), { ssr: true });
-const TechyGateHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technews/TechyGateHeader"), { ssr: true });
-const TechyGateFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technews/TechyGateFooter"), { ssr: true });
-const NewYorkSignalHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technews/NewYorkSignalHeader"), { ssr: true });
-const NewYorkSignalFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technews/NewYorkSignalFooter"), { ssr: true });
+const LinkTechNewsHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/linktechnews/LinkTechNewsHeader"), { ssr: true });
+const LinkTechNewsFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/linktechnews/LinkTechNewsFooter"), { ssr: true });
+const DbTechNewsHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/dbtechnews/DbTechNewsHeader"), { ssr: true });
+const DbTechNewsFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/dbtechnews/DbTechNewsFooter"), { ssr: true });
+const MagazineTechyHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/magazinetechy/MagazineTechyHeader"), { ssr: true });
+const MagazineTechyFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/magazinetechy/MagazineTechyFooter"), { ssr: true });
+const MagazineAirHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/magazineair/MagazineAirHeader"), { ssr: true });
+const MagazineAirFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/magazineair/MagazineAirFooter"), { ssr: true });
+const TechyGateHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/techygate/TechyGateHeader"), { ssr: true });
+const TechyGateFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/techygate/TechyGateFooter"), { ssr: true });
+const NewYorkSignalHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/newyorksignal/NewYorkSignalHeader"), { ssr: true });
+const NewYorkSignalFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/newyorksignal/NewYorkSignalFooter"), { ssr: true });
 
 const TECHNEWS_HEADERS: Record<string, React.ComponentType<TechNewsChromeProps>> = {
   "linktechnews.com": LinkTechNewsHeader,

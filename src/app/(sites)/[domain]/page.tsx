@@ -24,12 +24,12 @@ import SkyBluePrimeLanding from "@/components/sites/skyblueprime/SkyBluePrimeLan
 import LavagueTechLanding from "@/components/sites/lavaguetech/LavagueTechLanding";
 import { LegalHyperLanding } from "@/components/sites/legalhyper/LegalHyperLanding";
 import { mapMediaStackToLegalHyperArticles } from "@/components/sites/legalhyper/mockArticles";
-import LinkTechNewsLanding from "@/components/sites/technews/LinkTechNewsLanding";
-import DbTechNewsLanding from "@/components/sites/technews/DbTechNewsLanding";
-import MagazineTechyLanding from "@/components/sites/technews/MagazineTechyLanding";
-import MagazineAirLanding from "@/components/sites/technews/MagazineAirLanding";
-import TechyGateLanding from "@/components/sites/technews/TechyGateLanding";
-import NewYorkSignalLanding from "@/components/sites/technews/NewYorkSignalLanding";
+import LinkTechNewsLanding from "@/components/sites/linktechnews/LinkTechNewsLanding";
+import DbTechNewsLanding from "@/components/sites/dbtechnews/DbTechNewsLanding";
+import MagazineTechyLanding from "@/components/sites/magazinetechy/MagazineTechyLanding";
+import MagazineAirLanding from "@/components/sites/magazineair/MagazineAirLanding";
+import TechyGateLanding from "@/components/sites/techygate/TechyGateLanding";
+import NewYorkSignalLanding from "@/components/sites/newyorksignal/NewYorkSignalLanding";
 
 type TechNewsLandingComponent = typeof LinkTechNewsLanding;
 

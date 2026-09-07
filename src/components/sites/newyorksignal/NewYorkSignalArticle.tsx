@@ -14,7 +14,7 @@ import { ArticleShare } from "@/components/article/ArticleShare";
 import { ArticleImageGallery } from "@/components/article/ArticleImageGallery";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
-import { getTechNewsTheme, techNewsVars } from "./theme";
+import { getTechNewsTheme, techNewsVars } from "../technews-shared/theme";
 
 export default function NewYorkSignalArticle({
   domain,

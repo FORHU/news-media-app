@@ -8,14 +8,14 @@ import ContactEmailButton from "@/components/ContactEmailButton";
 import { getCoreCategories, HOME_CATEGORY_LABEL } from "@/config/categories";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { SearchDropdown } from "@/components/search/SearchDropdown";
-import { getTechNewsTheme, techNewsVars } from "./theme";
-import { Wordmark } from "./parts";
+import { getTechNewsTheme, techNewsVars } from "../technews-shared/theme";
+import { Wordmark } from "../technews-shared/parts";
 
 function categoryHref(categoryName: string) {
   return `/search?category=${encodeURIComponent(categoryName)}`;
 }
 
-export default function LinkTechNewsHeader({
+export default function TechyGateHeader({
   domain,
   onOpenNewsletter,
 }: {
@@ -78,7 +78,7 @@ export default function LinkTechNewsHeader({
               className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-[var(--tn-ink)] hover:text-[var(--tn-accent)] transition-colors"
               aria-label="Toggle navigation menu"
               aria-expanded={isMenuOpen}
-              aria-controls="technews-drawer"
+              aria-controls="techygate-drawer"
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -198,7 +198,7 @@ export default function LinkTechNewsHeader({
         onClick={() => setIsMenuOpen(false)}
       />
       <div
-        id="technews-drawer"
+        id="techygate-drawer"
         role="dialog"
         aria-label="Navigation menu"
         aria-modal="true"
