@@ -16,6 +16,12 @@ export function getSiteNameFromDomain(domain: string | null): string {
   if (d.includes('jejutime')) return "JejuTime";
   if (d.includes('skyblueprime')) return "Sky Blue Prime";
   if (d.includes('legalhyper')) return "LegalHyper";
+  if (d.includes('linktechnews')) return "LinkTechnews";
+  if (d.includes('dbtechnews')) return "DbTechnews";
+  if (d.includes('magazinetechy')) return "Magazine Techy";
+  if (d.includes('magazineair')) return "Magazine Air";
+  if (d.includes('techygate')) return "TechyGate";
+  if (d.includes('newyorksignal')) return "New York Signal";
   return "NewsIcons";
 }
 
@@ -29,6 +35,12 @@ export function getSiteIconFromDomain(domain: string | null): string {
   if (d.includes('jejutime')) return "/icons/jejutime.ico";
   if (d.includes('skyblueprime')) return "/icons/skyblueprime.ico";
   if (d.includes('legalhyper')) return "/icons/legalhyper.ico";
+  if (d.includes('linktechnews')) return "/icons/linktechnews.ico";
+  if (d.includes('dbtechnews')) return "/icons/dbtechnews.ico";
+  if (d.includes('magazinetechy')) return "/icons/magazinetechy.ico";
+  if (d.includes('magazineair')) return "/icons/magazineair.ico";
+  if (d.includes('techygate')) return "/icons/techygate.ico";
+  if (d.includes('newyorksignal')) return "/icons/newyorksignal.ico";
   return "/icons/newsicons.ico";
 }
 
@@ -42,6 +54,13 @@ export function getSiteLogoFromDomain(domain: string | null): string {
   if (d.includes('jejutime')) return "JEJUTIMELOGO.png";
   if (d.includes('skyblueprime')) return "NEWSICONSLOGO.png";
   if (d.includes('legalhyper')) return "LEGALHYPERLOGO.png";
+  // technews family — no dedicated logo assets on disk yet; reuse the default.
+  if (d.includes('linktechnews')) return "NEWSICONSLOGO.png";
+  if (d.includes('dbtechnews')) return "NEWSICONSLOGO.png";
+  if (d.includes('magazinetechy')) return "NEWSICONSLOGO.png";
+  if (d.includes('magazineair')) return "NEWSICONSLOGO.png";
+  if (d.includes('techygate')) return "NEWSICONSLOGO.png";
+  if (d.includes('newyorksignal')) return "NEWSICONSLOGO.png";
   return "NEWSICONSLOGO.png";
 }
 
@@ -55,6 +74,12 @@ export function getSiteDescriptionFromDomain(domain: string | null): string {
   if (d.includes('jejutime')) return "Timely news and in-depth reporting from across Jeju Island.";
   if (d.includes('skyblueprime')) return "Premium news, analysis, and stories — clear reporting for a connected world.";
   if (d.includes('legalhyper')) return "LegalHyper — independent journalism on the AI transforming the practice of law.";
+  if (d.includes('linktechnews')) return "The technology wire — every story worth the click, in one feed.";
+  if (d.includes('dbtechnews')) return "Infrastructure, data, and the systems that run everything else.";
+  if (d.includes('magazinetechy')) return "Long looks at the people and ideas shaping technology.";
+  if (d.includes('magazineair')) return "Technology, lightly held. Clear reporting with room to breathe.";
+  if (d.includes('techygate')) return "Your gateway to the day in technology.";
+  if (d.includes('newyorksignal')) return "Dispatches on technology from the city that never logs off.";
   return "Media & Content Hub for curated news, blogs, and insights.";
 }
 

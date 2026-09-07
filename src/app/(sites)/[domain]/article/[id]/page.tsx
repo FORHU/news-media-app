@@ -17,6 +17,21 @@ import { VoiceJejuArticle } from "@/components/sites/voicejeju/VoiceJejuArticle"
 import SkyBluePrimeArticle from "@/components/sites/skyblueprime/SkyBluePrimeArticle";
 import LavagueTechArticle from "@/components/sites/lavaguetech/LavagueTechArticle";
 import NewsIconsArticle from "@/components/sites/newsicons/NewsIconsArticle";
+import LinkTechNewsArticle from "@/components/sites/technews/LinkTechNewsArticle";
+import DbTechNewsArticle from "@/components/sites/technews/DbTechNewsArticle";
+import MagazineTechyArticle from "@/components/sites/technews/MagazineTechyArticle";
+import MagazineAirArticle from "@/components/sites/technews/MagazineAirArticle";
+import TechyGateArticle from "@/components/sites/technews/TechyGateArticle";
+import NewYorkSignalArticle from "@/components/sites/technews/NewYorkSignalArticle";
+
+const TECHNEWS_ARTICLES: Record<string, typeof LinkTechNewsArticle> = {
+  "linktechnews.com": LinkTechNewsArticle,
+  "dbtechnews.com": DbTechNewsArticle,
+  "magazinetechy.com": MagazineTechyArticle,
+  "magazineair.com": MagazineAirArticle,
+  "techygate.com": TechyGateArticle,
+  "newyorksignal.com": NewYorkSignalArticle,
+};
 import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain, getSiteDescriptionFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
 
@@ -302,6 +317,7 @@ export default async function ArticlePage({
   }, tenantId).catch(() => [] as Awaited<ReturnType<typeof articlesService.getArticleSummaries>>);
 
   const dehydratedState = dehydrate(queryClient);
+  const TechNewsArticle = TECHNEWS_ARTICLES[domain];
 
   return (
     <Hydrate state={dehydratedState}>
@@ -320,6 +336,8 @@ export default async function ArticlePage({
           <LavagueTechArticle articleId={canonicalSlug} initialOtherArticles={allArticles} />
         ) : domain === "newsicons.com" ? (
           <NewsIconsArticle articleId={canonicalSlug} initialOtherArticles={allArticles} />
+        ) : TechNewsArticle ? (
+          <TechNewsArticle domain={domain} articleId={canonicalSlug} initialOtherArticles={allArticles} />
         ) : (
           <ArticlePageClient articleId={canonicalSlug} initialOtherArticles={allArticles} domain={domain} />
         )}

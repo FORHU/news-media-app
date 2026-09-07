@@ -1,0 +1,418 @@
+"use client";
+
+import dynamic from "next/dynamic";
+import { StoryImage } from "@/components/StoryImage";
+import { TrendingUp, Clock, ChevronRight, ChevronLeft } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useHeroCarousel } from "@/hooks/useHeroCarousel";
+import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
+import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
+import { ADSTERRA_CONFIG } from "@/config/adsterra";
+import type { MediaStackArticle } from "@/lib/mediastack";
+import { getTechNewsTheme, techNewsVars } from "./theme";
+import { toFeedRows, excerpt, type FeedRow } from "./feed";
+import { FeedLink } from "./FeedLink";
+
+const AdBanner = dynamic(() => import("@/components/AdBanner").then((mod) => mod.AdBanner), {
+  ssr: true,
+  loading: () => (
+    <div className="h-[120px] animate-pulse bg-[var(--tn-accent-soft)] flex items-center justify-center text-[10px] text-[var(--tn-muted)] font-bold uppercase tracking-widest" />
+  ),
+});
+
+interface Props {
+  domain: string;
+  tenantId: string | null;
+  articles: Parameters<typeof toFeedRows>[0];
+  banners: { top: unknown[]; sidebar: unknown[]; footer: unknown[] };
+  mediastackArticles?: MediaStackArticle[];
+}
+
+export default function NewYorkSignalLanding({ domain, articles, banners, mediastackArticles = [] }: Props) {
+  const theme = getTechNewsTheme(domain);
+  const rows = toFeedRows(articles, mediastackArticles);
+
+  const sorted = rows;
+  const heroArticles = sorted.slice(0, 5);
+  const heroIds = new Set(heroArticles.map((a) => a.id));
+  const pool = sorted.filter((a) => !heroIds.has(a.id));
+
+  const pickArticles = (count: number, excludeIds: Set<string>) => {
+    const unique = pool.filter((a) => !excludeIds.has(a.id));
+    if (unique.length >= count) return unique.slice(0, count);
+    const remaining = count - unique.length;
+    return [...unique, ...pool.filter((a) => excludeIds.has(a.id)).slice(0, remaining)];
+  };
+
+  const usedIds = new Set<string>([...heroIds]);
+  const trendingArticles = pickArticles(10, usedIds);
+  trendingArticles.forEach((a) => usedIds.add(a.id));
+  const sidebarPicks = pickArticles(5, usedIds);
+  sidebarPicks.forEach((a) => usedIds.add(a.id));
+  const leftSidebarArticles = pickArticles(8, usedIds);
+  leftSidebarArticles.forEach((a) => usedIds.add(a.id));
+
+  const uniqueLatest = pool.filter((a) => !usedIds.has(a.id));
+  const allLatest = uniqueLatest.length > 0 ? uniqueLatest : pool;
+  const latestStories = allLatest.slice(0, 15);
+  latestStories.forEach((a) => usedIds.add(a.id));
+
+  const horizontalStrip = pickArticles(5, usedIds);
+  horizontalStrip.forEach((a) => usedIds.add(a.id));
+  const featuredArticles = pickArticles(4, usedIds);
+
+  const blogRows = rows.filter((a) => a.status === "blog").slice(0, 4);
+
+  const categoryMap = new Map<string, FeedRow[]>();
+  rows.forEach((a) => {
+    const catName = a.category?.categoryName;
+    if (!catName) return;
+    if (!categoryMap.has(catName)) categoryMap.set(catName, []);
+    categoryMap.get(catName)!.push(a);
+  });
+  const categoryBlocks = Array.from(categoryMap.entries())
+    .filter(([, items]) => items.length >= 2)
+    .sort((a, b) => b[1].length - a[1].length)
+    .slice(0, 4)
+    .map(([name, items]) => ({ name, articles: items.slice(0, 4) }));
+
+  const { index, direction, paginate, goTo } = useHeroCarousel(heroArticles.length);
+  const heroArticle = heroArticles[index];
+
+  const variants = {
+    enter: (dir: number) => ({ x: dir > 0 ? 50 : -50, opacity: 0 }),
+    center: { zIndex: 1, x: 0, opacity: 1 },
+    exit: (dir: number) => ({ zIndex: 0, x: dir < 0 ? 50 : -50, opacity: 0 }),
+  };
+
+  if (!theme) return null;
+  const adKeys = ADSTERRA_CONFIG[theme.key]?.banners;
+  const midFeedConfig = ADSTERRA_CONFIG[theme.key]?.midFeed;
+
+  if (rows.length === 0) {
+    return (
+      <div style={techNewsVars(theme)} className="min-h-[60vh] bg-[var(--tn-bg)] flex items-center justify-center px-4">
+        <div className="text-center">
+          <p className="text-xl font-serif font-bold text-[var(--tn-ink)] mb-2">The presses are warm.</p>
+          <p className="text-sm text-[var(--tn-muted)] mt-1">Check back shortly for today&apos;s dispatches.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      style={techNewsVars(theme)}
+      className="bg-[var(--tn-bg)] text-[var(--tn-ink)] font-sans relative min-h-screen"
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-4 space-y-4">
+        <AdBanner position="HOME_TOP" initialBanners={banners.top as never[]} />
+        {adKeys && (
+          <div className="w-full flex justify-center">
+            <div className="hidden sm:block">
+              <AdsterraBanner bannerKey={adKeys["728x90"] || adKeys["468x60"]} width={adKeys["728x90"] ? 728 : 468} height={adKeys["728x90"] ? 90 : 60} className="!my-0" />
+            </div>
+            <div className="block sm:hidden">
+              <AdsterraBanner bannerKey={adKeys["320x50"]} width={320} height={50} className="!my-0" />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-0 md:pt-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+          {/* Left rail — Latest */}
+          <aside className="hidden lg:block lg:col-span-2">
+            <div className="sticky top-24">
+              <h3 className="text-xs font-serif font-black uppercase tracking-[0.2em] mb-4 pb-3 border-b-2 border-[var(--tn-accent)] flex items-center gap-2">
+                <Clock size={14} className="text-[var(--tn-accent)]" /> Latest
+              </h3>
+              <div className="space-y-4">
+                {leftSidebarArticles.map((article) => (
+                  <FeedLink key={article.id} row={article} className="block group">
+                    <div className="relative aspect-[16/10] overflow-hidden mb-1.5 bg-[var(--tn-accent-soft)]">
+                      <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="180px" />
+                    </div>
+                    <span className="text-[8px] font-black text-[var(--tn-accent)] uppercase tracking-[0.15em] block mb-0.5">{article.category?.categoryName}</span>
+                    <h4 className="text-[11px] font-serif font-bold leading-tight group-hover:text-[var(--tn-accent)] transition-colors line-clamp-2">{article.title}</h4>
+                  </FeedLink>
+                ))}
+              </div>
+            </div>
+          </aside>
+
+          {/* Center */}
+          <div className="lg:col-span-7">
+            {heroArticle && (
+              <div className="mb-6 md:mb-8">
+                <div className="relative aspect-video lg:aspect-[21/9] overflow-hidden mb-3 bg-[var(--tn-accent-soft)] shadow-md">
+                  <AnimatePresence initial={false} custom={direction} mode="wait">
+                    <motion.div
+                      key={index}
+                      custom={direction}
+                      variants={variants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
+                      className="h-full w-full absolute inset-0"
+                    >
+                      <FeedLink row={heroArticle} className="block h-full">
+                        <StoryImage src={heroArticle.imageUrl} alt={heroArticle.title} fill className="object-cover" variant="hero" priority sizes="(max-width: 1024px) 100vw, 850px" />
+                      </FeedLink>
+                    </motion.div>
+                  </AnimatePresence>
+
+                  <div className="absolute top-4 left-4 bg-[var(--tn-accent)] text-[var(--tn-accent-ink)] text-[10px] font-black px-4 py-1.5 uppercase tracking-[0.2em] z-10">
+                    Front Page
+                  </div>
+                  <button type="button" onClick={() => paginate(-1)} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 bg-[var(--tn-bg)]/90 hover:bg-[var(--tn-bg)] text-[var(--tn-accent)] flex items-center justify-center shadow-md transition-colors" aria-label="Previous">
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <button type="button" onClick={() => paginate(1)} className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 bg-[var(--tn-bg)]/90 hover:bg-[var(--tn-bg)] text-[var(--tn-accent)] flex items-center justify-center shadow-md transition-colors" aria-label="Next">
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                  <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
+                    {heroArticles.map((_, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => goTo(i)}
+                        className={`h-1.5 transition-all duration-300 ${i === index ? "w-8 bg-[var(--tn-accent)]" : "w-3 bg-white/50 hover:bg-white/80"}`}
+                        aria-label={`Go to slide ${i + 1}`}
+                        aria-current={i === index ? "true" : undefined}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <FeedLink row={heroArticle} className="block max-w-4xl">
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-serif font-black leading-[1.1] mb-4 hover:text-[var(--tn-accent)] transition-colors tracking-tight">
+                    {heroArticle.title}
+                  </h2>
+                  <p className="text-[var(--tn-muted)] text-base lg:text-lg leading-relaxed line-clamp-3 mb-5">
+                    {excerpt(heroArticle.content, 220)}
+                  </p>
+                  <span className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.3em] text-[var(--tn-accent)] hover:text-[var(--tn-ink)] transition-colors">
+                    Read the dispatch <ChevronRight size={14} />
+                  </span>
+                </FeedLink>
+              </div>
+            )}
+
+            <div className="space-y-4 border-t border-[var(--tn-rule)] pt-8">
+              {latestStories.length > 0 && (
+                <article className="mb-8 group">
+                  <FeedLink row={latestStories[0]} className="flex flex-col sm:flex-row-reverse gap-5 items-center">
+                    <div className="relative w-full sm:w-1/2 aspect-[16/10] overflow-hidden shadow-md bg-[var(--tn-accent-soft)] shrink-0">
+                      <StoryImage src={latestStories[0].imageUrl} alt={latestStories[0].title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 1024px) 100vw, 500px" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] mb-2 inline-block px-3 py-1 bg-[var(--tn-accent)] text-[var(--tn-accent-ink)]">Featured</span>
+                      <h3 className="text-xl sm:text-2xl lg:text-3xl font-serif font-bold leading-tight mb-2 group-hover:text-[var(--tn-accent)] transition-colors tracking-tight">
+                        {latestStories[0].title}
+                      </h3>
+                      <p className="text-[var(--tn-muted)] text-sm lg:text-base line-clamp-3 leading-relaxed">
+                        {excerpt(latestStories[0].content, 180)}
+                      </p>
+                    </div>
+                  </FeedLink>
+                </article>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-7 mb-8">
+                {latestStories.slice(1, 10).map((article) => (
+                  <article key={article.id} className="group">
+                    <FeedLink row={article}>
+                      <div className="relative aspect-[16/10] overflow-hidden mb-2 bg-[var(--tn-accent-soft)]">
+                        <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 640px) 100vw, 300px" />
+                      </div>
+                      <span className="text-[9px] font-black text-[var(--tn-accent)] uppercase tracking-[0.2em] mb-0.5 block">{article.category?.categoryName}</span>
+                      <h4 className="text-sm font-serif font-bold leading-tight group-hover:text-[var(--tn-accent)] transition-colors line-clamp-2">{article.title}</h4>
+                    </FeedLink>
+                  </article>
+                ))}
+              </div>
+
+              {midFeedConfig && (
+                <div className="flex justify-center my-8 py-4 border-y border-[var(--tn-rule)] w-full">
+                  <AdsterraBanner bannerKey={midFeedConfig.key} width={midFeedConfig.width} height={midFeedConfig.height} className="!my-0" />
+                </div>
+              )}
+
+              <div className="space-y-4">
+                {latestStories.slice(10).map((article) => (
+                  <FeedLink key={article.id} row={article} className="flex flex-row gap-3 group items-start border-b border-[var(--tn-rule)] pb-4 last:border-0">
+                    <div className="relative w-24 sm:w-32 md:w-44 aspect-[16/10] overflow-hidden shrink-0 bg-[var(--tn-accent-soft)]">
+                      <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" sizes="200px" />
+                    </div>
+                    <div className="flex flex-col justify-center flex-1 min-w-0">
+                      <span className="text-[9px] font-black text-[var(--tn-accent)] uppercase tracking-[0.2em] mb-0.5 flex items-center gap-1.5">
+                        <span className="w-3 h-px bg-[var(--tn-accent)]" />
+                        {article.category?.categoryName}
+                      </span>
+                      <h3 className="text-[15px] font-serif font-bold leading-tight mb-0.5 group-hover:text-[var(--tn-accent)] transition-colors line-clamp-2">{article.title}</h3>
+                      <p className="text-xs text-[var(--tn-muted)] line-clamp-1 leading-relaxed">{excerpt(article.content, 120)}</p>
+                    </div>
+                  </FeedLink>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right rail */}
+          <aside className="lg:col-span-3">
+            <div className="bg-[var(--tn-ink)] text-white p-6 mb-6">
+              <h3 className="text-base font-serif font-black flex items-center gap-2 mb-6 uppercase tracking-widest border-b border-white/20 pb-4">
+                <TrendingUp size={18} className="text-[var(--tn-accent)]" /> Most Read
+              </h3>
+              <div className="space-y-6">
+                {trendingArticles.map((article, i) => (
+                  <FeedLink key={article.id} row={article} className="block group">
+                    <div className="flex gap-4">
+                      <span className="text-3xl font-serif font-black text-white/40 group-hover:text-[var(--tn-accent)] transition-colors shrink-0">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <div className="min-w-0">
+                        <span className="text-[9px] text-white/50 uppercase tracking-[0.2em] block mb-1">{article.category?.categoryName}</span>
+                        <h4 className="text-sm font-bold leading-snug group-hover:text-[var(--tn-accent)] line-clamp-2 transition-colors">{article.title}</h4>
+                      </div>
+                    </div>
+                  </FeedLink>
+                ))}
+              </div>
+            </div>
+
+            {adKeys?.["300x250"] && (
+              <div className="flex justify-center py-2 mb-6 border-b border-[var(--tn-rule)]">
+                <AdsterraBanner bannerKey={adKeys["300x250"]} width={300} height={250} className="!my-0" />
+              </div>
+            )}
+
+            {sidebarPicks.length > 0 && (
+              <div className="bg-[var(--tn-surface)] p-6 border border-[var(--tn-rule)] mb-6 shadow-sm">
+                <h3 className="text-base font-serif font-black flex items-center gap-2 mb-6 uppercase tracking-widest border-b border-[var(--tn-rule)] pb-4">
+                  Must Read <div className="w-2 h-2 bg-[var(--tn-accent)]" />
+                </h3>
+                <div className="space-y-6">
+                  {sidebarPicks.map((article) => (
+                    <FeedLink key={article.id} row={article} className="block group">
+                      <div className="relative aspect-video overflow-hidden bg-[var(--tn-accent-soft)] mb-3">
+                        <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                      </div>
+                      <span className="text-[9px] font-black text-[var(--tn-accent)] uppercase tracking-[0.2em] block mb-1">{article.category?.categoryName}</span>
+                      <h4 className="text-sm font-serif font-bold leading-tight group-hover:text-[var(--tn-accent)] transition-colors line-clamp-2">{article.title}</h4>
+                    </FeedLink>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="lg:sticky lg:top-24">
+              <AdBanner position="HOME_SIDEBAR" initialBanners={banners.sidebar as never[]} />
+            </div>
+          </aside>
+        </div>
+
+        {horizontalStrip.length > 0 && (
+          <section className="mt-10 pt-8 border-t border-[var(--tn-rule)]">
+            <div className="flex items-center gap-4 mb-6">
+              <h3 className="text-sm font-serif font-black uppercase tracking-[0.2em] whitespace-nowrap flex items-center gap-2">
+                <ChevronRight size={16} className="text-[var(--tn-accent)]" /> More Stories
+              </h3>
+              <div className="h-px flex-1 bg-[var(--tn-rule)]" />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-5">
+              {horizontalStrip.map((article) => (
+                <FeedLink key={article.id} row={article} className="group block">
+                  <div className="relative aspect-[16/10] overflow-hidden mb-2 bg-[var(--tn-accent-soft)]">
+                    <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 640px) 50vw, 200px" />
+                  </div>
+                  <span className="text-[8px] font-black text-[var(--tn-accent)] uppercase tracking-[0.15em] block mb-0.5">{article.category?.categoryName}</span>
+                  <h4 className="text-xs font-serif font-bold leading-tight group-hover:text-[var(--tn-accent)] transition-colors line-clamp-2">{article.title}</h4>
+                </FeedLink>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {featuredArticles.length > 0 && (
+          <section className="mt-14 md:mt-20 bg-[var(--tn-ink)] text-white p-8 md:p-12 lg:p-14 relative overflow-hidden">
+            <div className="flex items-center justify-between mb-8 relative z-10 border-b border-white/10 pb-6">
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-serif font-black uppercase tracking-[0.1em] flex items-center gap-3">
+                <TrendingUp size={22} className="text-[var(--tn-accent)]" />
+                Spotlight
+              </h3>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 relative z-10">
+              {featuredArticles.map((article, i) => (
+                <FeedLink key={article.id} row={article} className="group block">
+                  <div className="relative aspect-[16/10] overflow-hidden mb-4 bg-white/5">
+                    <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                    <span className="absolute bottom-3 left-3 text-4xl font-serif font-black text-white/40 group-hover:text-[var(--tn-accent)] transition-colors">0{i + 1}</span>
+                  </div>
+                  <span className="text-[10px] text-[var(--tn-accent)] font-black uppercase mb-2 block tracking-[0.3em]">{article.category?.categoryName}</span>
+                  <h4 className="text-base md:text-lg font-bold leading-tight group-hover:text-[var(--tn-accent)] transition-colors line-clamp-2">{article.title}</h4>
+                </FeedLink>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {blogRows.length > 0 && (
+          <section className="mt-10 pt-10 border-t border-[var(--tn-rule)]">
+            <h3 className="text-sm font-serif font-black uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
+              Notebook <ChevronRight size={16} className="text-[var(--tn-accent)]" />
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {blogRows.map((article) => (
+                <FeedLink key={article.id} row={article} className="block group border border-[var(--tn-rule)] p-3 hover:border-[var(--tn-ink)] transition-colors">
+                  <div className="relative w-full aspect-video overflow-hidden mb-3 bg-[var(--tn-accent-soft)]">
+                    <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" />
+                  </div>
+                  <h4 className="text-sm font-serif font-bold leading-snug group-hover:text-[var(--tn-accent)] line-clamp-2 mb-1">{article.title}</h4>
+                  <span className="text-[10px] font-bold text-[var(--tn-muted)] uppercase">Read column</span>
+                </FeedLink>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {categoryBlocks.length > 0 && (
+          <div className="mt-14 space-y-14">
+            {categoryBlocks.map((cat, ci) => (
+              <section key={cat.name} className={ci % 2 === 0 ? "" : "bg-[var(--tn-surface)] -mx-4 sm:-mx-6 px-4 sm:px-6 py-10 border-y border-[var(--tn-rule)]"}>
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="w-1 h-8 bg-[var(--tn-accent)]" />
+                  <h3 className="text-xl md:text-2xl font-serif font-black uppercase tracking-wide">{cat.name}</h3>
+                  <div className="h-px flex-1 bg-[var(--tn-rule)]" />
+                  <span className="text-[10px] font-black text-[var(--tn-muted)] uppercase tracking-widest">{cat.articles.length} Articles</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {cat.articles.map((article, ai) => (
+                    <FeedLink key={article.id} row={article} className="group block">
+                      <div className="relative aspect-[16/10] overflow-hidden mb-3 bg-[var(--tn-accent-soft)]">
+                        <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 640px) 100vw, 300px" />
+                        {ai === 0 && (
+                          <div className="absolute top-0 left-0 bg-[var(--tn-accent)] text-[var(--tn-accent-ink)] text-[8px] font-black px-2.5 py-1 uppercase tracking-widest">Top</div>
+                        )}
+                      </div>
+                      <span className="text-[9px] font-black text-[var(--tn-accent)] uppercase tracking-[0.15em] block mb-1">{cat.name}</span>
+                      <h4 className="text-sm font-serif font-bold leading-tight group-hover:text-[var(--tn-accent)] transition-colors line-clamp-2 mb-1">{article.title}</h4>
+                      <p className="text-xs text-[var(--tn-muted)] line-clamp-2 leading-relaxed">{excerpt(article.content, 120)}</p>
+                    </FeedLink>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-6 border-t border-[var(--tn-rule)] pt-4">
+          <AdsterraNativeBanner domain={domain} />
+        </div>
+      </main>
+    </div>
+  );
+}

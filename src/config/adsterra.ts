@@ -221,6 +221,38 @@ export const ADSTERRA_CONFIG: Record<string, AdsterraTenantConfig> = {
       height: 250,
     },
   },
+  // ── technews tenant family ──────────────────────────────────────────────
+  // TEMPORARY: every technews domain reuses SkyBluePrime's real Adsterra zone
+  // as a stand-in. Swap each for its own dedicated zone before real traffic.
+  ...Object.fromEntries(
+    [
+      "linktechnews",
+      "dbtechnews",
+      "magazinetechy",
+      "magazineair",
+      "techygate",
+      "newyorksignal",
+    ].map((key) => [
+      key,
+      {
+        socialBar: "",
+        native: {
+          containerId: "container-16691c726849d64dc9b1001004730ef1",
+          src: "https://pl29500719.effectivecpmnetwork.com/16691c726849d64dc9b1001004730ef1/invoke.js",
+        },
+        banners: {
+          "300x250": "33b465dee4c8998d42422ca3a14329a6",
+          "728x90": "",
+          "468x60": "66ab6e2809dc938b175474b4535c6de9",
+          "320x50": "f428a99acf351f72e9189c9141d176c8",
+          "160x600": "",
+          "160x300": "04e3f3a3edb146141b6e13a58245ef80",
+        },
+        midArticle: { key: "33b465dee4c8998d42422ca3a14329a6", width: 300, height: 250 },
+        midFeed: { key: "33b465dee4c8998d42422ca3a14329a6", width: 300, height: 250 },
+      } satisfies AdsterraTenantConfig,
+    ]),
+  ),
 };
 
 /**
