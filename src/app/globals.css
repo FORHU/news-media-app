@@ -320,3 +320,125 @@ body {
 .animate-shimmer {
   animation: shimmer 2s infinite linear;
 }
+
+/* ── technews tenant family ──────────────────────────────────────────────
+   One component skeleton per domain; each site is set apart by its palette
+   (runtime --tn-* custom properties) and by remapping the semantic font slots
+   here — --font-serif = display/headline, --font-sans = body/UI,
+   --font-mono = labels / eyebrows / data. Every pairing below is a distinct
+   typographic identity; no two domains share a display face. */
+
+/* LinkTechnews — grotesque newswire: Chivo + Inter + Space Mono */
+.site-theme-linktechnews-com {
+  font-family: var(--font-inter);
+  --font-sans: var(--font-inter);
+  --font-roboto: var(--font-inter);
+  --font-geist-sans: var(--font-inter);
+  --font-noto: var(--font-inter);
+  --font-mono: var(--font-space-mono);
+  --font-geist-mono: var(--font-space-mono);
+  --font-serif: var(--font-chivo);
+  --font-playfair: var(--font-chivo);
+  --font-baskerville: var(--font-chivo);
+  --font-garamond: var(--font-chivo);
+}
+
+/* DbTechnews — full monospace terminal: Space Mono everywhere */
+.site-theme-dbtechnews-com {
+  font-family: var(--font-space-mono);
+  --font-sans: var(--font-space-mono);
+  --font-roboto: var(--font-space-mono);
+  --font-geist-sans: var(--font-space-mono);
+  --font-noto: var(--font-space-mono);
+  --font-mono: var(--font-space-mono);
+  --font-geist-mono: var(--font-space-mono);
+  --font-serif: var(--font-space-mono);
+  --font-playfair: var(--font-space-mono);
+  --font-baskerville: var(--font-space-mono);
+  --font-garamond: var(--font-space-mono);
+}
+
+/* Magazine Techy — glossy feature serif: Playfair Display + Lora + Inter */
+.site-theme-magazinetechy-com {
+  font-family: var(--font-lora);
+  --font-sans: var(--font-lora);
+  --font-roboto: var(--font-lora);
+  --font-geist-sans: var(--font-lora);
+  --font-noto: var(--font-lora);
+  --font-mono: var(--font-inter);
+  --font-geist-mono: var(--font-inter);
+  --font-serif: var(--font-playfair);
+  --font-baskerville: var(--font-playfair);
+  --font-garamond: var(--font-playfair);
+}
+
+/* Magazine Air — airy didone: Bodoni Moda + EB Garamond + Montserrat */
+.site-theme-magazineair-com {
+  font-family: var(--font-eb-garamond);
+  --font-sans: var(--font-eb-garamond);
+  --font-roboto: var(--font-eb-garamond);
+  --font-geist-sans: var(--font-eb-garamond);
+  --font-noto: var(--font-eb-garamond);
+  --font-mono: var(--font-montserrat);
+  --font-geist-mono: var(--font-montserrat);
+  --font-serif: var(--font-bodoni-moda);
+  --font-playfair: var(--font-bodoni-moda);
+  --font-baskerville: var(--font-bodoni-moda);
+  --font-garamond: var(--font-bodoni-moda);
+}
+
+/* TechyGate — condensed portal: Oswald + Plus Jakarta Sans */
+.site-theme-techygate-com {
+  font-family: var(--font-plus-jakarta);
+  --font-sans: var(--font-plus-jakarta);
+  --font-roboto: var(--font-plus-jakarta);
+  --font-geist-sans: var(--font-plus-jakarta);
+  --font-noto: var(--font-plus-jakarta);
+  --font-mono: var(--font-oswald);
+  --font-geist-mono: var(--font-oswald);
+  --font-serif: var(--font-oswald);
+  --font-playfair: var(--font-oswald);
+  --font-baskerville: var(--font-oswald);
+  --font-garamond: var(--font-oswald);
+}
+
+/* New York Signal — classic broadsheet: Libre Baskerville + Lora + Space Mono */
+.site-theme-newyorksignal-com {
+  font-family: var(--font-lora);
+  --font-sans: var(--font-lora);
+  --font-roboto: var(--font-lora);
+  --font-geist-sans: var(--font-lora);
+  --font-noto: var(--font-lora);
+  --font-mono: var(--font-space-mono);
+  --font-geist-mono: var(--font-space-mono);
+  --font-serif: var(--font-baskerville);
+  --font-playfair: var(--font-baskerville);
+  --font-garamond: var(--font-baskerville);
+}
+
+@keyframes tn-caret {
+  0%, 45% { opacity: 1; }
+  50%, 95% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.animate-tn-caret {
+  animation: tn-caret 1.1s step-end infinite;
+}
+
+@keyframes tn-pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.9); opacity: 0.35; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-tn-pulse {
+  animation: tn-pulse 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-tn-caret,
+  .animate-tn-pulse {
+    animation: none;
+  }
+}

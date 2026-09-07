@@ -57,7 +57,13 @@ type SiteTheme =
   | "voicejeju"
   | "skyblueprime"
   | "lavaguetech"
-  | "legalhyper";
+  | "legalhyper"
+  | "linktechnews"
+  | "dbtechnews"
+  | "magazinetechy"
+  | "magazineair"
+  | "techygate"
+  | "newyorksignal";
 
 function normalizeShareUrl(input: string) {
   try {
@@ -463,6 +469,61 @@ export function ArticleShare({
           item: "rounded-none border-gray-100 hover:border-[#B08D3F] transition-all",
           copyBtn:
             "bg-[#0E1A2F] text-white hover:bg-[#0B1424] rounded-none border-none",
+        };
+      case "linktechnews":
+        return {
+          trigger:
+            "bg-[#3B39E4] hover:opacity-90 text-white rounded-[2px] px-8 py-2.5 transition-opacity font-mono text-[11px] font-bold uppercase tracking-[0.18em] border border-[#3B39E4]",
+          modal:
+            "sm:max-w-lg bg-white border-2 border-[#14161F] rounded-[2px] shadow-2xl",
+          header: "text-[#14161F] font-serif text-2xl font-black tracking-tight",
+          item: "rounded-[2px] border-[#E3E3EA] hover:border-[#3B39E4] transition-all",
+          copyBtn: "bg-[#14161F] text-white hover:opacity-90 rounded-[2px] border-none",
+        };
+      case "dbtechnews":
+        return {
+          trigger:
+            "bg-[#2F6FEB] hover:opacity-90 text-white rounded-[6px] px-8 py-2.5 transition-opacity font-mono text-[11px] font-bold uppercase tracking-[0.14em] border border-[#2F6FEB]",
+          modal: "sm:max-w-lg bg-white border-2 border-[#0C1A2B] rounded-[6px] shadow-2xl",
+          header: "text-[#0C1A2B] font-mono text-2xl font-bold tracking-tight",
+          item: "rounded-[6px] border-[#C6D1DD] hover:border-[#2F6FEB] transition-all",
+          copyBtn: "bg-[#0C1A2B] text-white hover:opacity-90 rounded-[6px] border-none",
+        };
+      case "magazinetechy":
+        return {
+          trigger:
+            "bg-[#D81E5B] hover:opacity-90 text-white rounded-none px-8 py-2.5 transition-opacity font-serif text-sm font-bold tracking-wide border border-[#D81E5B]",
+          modal: "sm:max-w-lg bg-white border-2 border-[#1C1512] rounded-none shadow-2xl",
+          header: "text-[#1C1512] font-serif text-2xl font-semibold tracking-tight",
+          item: "rounded-none border-[#EBE2D4] hover:border-[#D81E5B] transition-all",
+          copyBtn: "bg-[#1C1512] text-white hover:opacity-90 rounded-none border-none",
+        };
+      case "magazineair":
+        return {
+          trigger:
+            "bg-[#227D96] hover:opacity-90 text-white rounded-none px-8 py-2.5 transition-opacity text-[11px] font-medium uppercase tracking-[0.3em] border border-[#227D96]",
+          modal: "sm:max-w-lg bg-white border border-[#33434D] rounded-none shadow-2xl",
+          header: "text-[#33434D] font-serif text-2xl font-light tracking-[0.08em]",
+          item: "rounded-none border-[#E2ECEF] hover:border-[#227D96] transition-all",
+          copyBtn: "bg-[#33434D] text-white hover:opacity-90 rounded-none border-none",
+        };
+      case "techygate":
+        return {
+          trigger:
+            "bg-[#F1530A] hover:opacity-90 text-white rounded-none px-8 py-2.5 transition-opacity font-serif text-xs font-bold uppercase tracking-[0.16em] border border-[#F1530A]",
+          modal: "sm:max-w-lg bg-white border-2 border-[#0F0F0F] rounded-none shadow-2xl",
+          header: "text-[#0F0F0F] font-serif text-2xl font-bold uppercase tracking-tight",
+          item: "rounded-none border-[#E6E6E6] hover:border-[#F1530A] transition-all",
+          copyBtn: "bg-[#0F0F0F] text-white hover:opacity-90 rounded-none border-none",
+        };
+      case "newyorksignal":
+        return {
+          trigger:
+            "bg-[#7C231E] hover:opacity-90 text-white rounded-none px-8 py-2.5 transition-opacity font-mono text-[11px] font-bold uppercase tracking-[0.2em] border border-[#7C231E]",
+          modal: "sm:max-w-lg bg-white border-2 border-[#1A1613] rounded-none shadow-2xl",
+          header: "text-[#1A1613] font-serif text-2xl font-black tracking-tight",
+          item: "rounded-none border-[#E0D7C5] hover:border-[#7C231E] transition-all",
+          copyBtn: "bg-[#1A1613] text-white hover:opacity-90 rounded-none border-none",
         };
       case "newsicons":
       default:

@@ -24,6 +24,23 @@ import SkyBluePrimeLanding from "@/components/sites/skyblueprime/SkyBluePrimeLan
 import LavagueTechLanding from "@/components/sites/lavaguetech/LavagueTechLanding";
 import { LegalHyperLanding } from "@/components/sites/legalhyper/LegalHyperLanding";
 import { mapMediaStackToLegalHyperArticles } from "@/components/sites/legalhyper/mockArticles";
+import LinkTechNewsLanding from "@/components/sites/technews/LinkTechNewsLanding";
+import DbTechNewsLanding from "@/components/sites/technews/DbTechNewsLanding";
+import MagazineTechyLanding from "@/components/sites/technews/MagazineTechyLanding";
+import MagazineAirLanding from "@/components/sites/technews/MagazineAirLanding";
+import TechyGateLanding from "@/components/sites/technews/TechyGateLanding";
+import NewYorkSignalLanding from "@/components/sites/technews/NewYorkSignalLanding";
+
+type TechNewsLandingComponent = typeof LinkTechNewsLanding;
+
+const TECHNEWS_LANDINGS: Record<string, TechNewsLandingComponent> = {
+  "linktechnews.com": LinkTechNewsLanding,
+  "dbtechnews.com": DbTechNewsLanding,
+  "magazinetechy.com": MagazineTechyLanding,
+  "magazineair.com": MagazineAirLanding,
+  "techygate.com": TechyGateLanding,
+  "newyorksignal.com": NewYorkSignalLanding,
+};
 
 export const revalidate = 300;
 
@@ -164,6 +181,24 @@ export default async function Page({
     const legalhyperMediastack = await fetchMediaStackNews({ keywords: "legal", languages: "en", limit: 100 });
     const legalhyperArticles = mapMediaStackToLegalHyperArticles(legalhyperMediastack);
     return <LegalHyperLanding tenantId={tenantId} articles={legalhyperArticles} banners={banners} />;
+  }
+
+  const TechNewsLanding = TECHNEWS_LANDINGS[domain];
+  if (TechNewsLanding) {
+    const technewsMediastack = await fetchMediaStackNews({
+      categories: "technology",
+      languages: "en",
+      limit: 100,
+    });
+    return (
+      <TechNewsLanding
+        domain={domain}
+        tenantId={tenantId}
+        articles={articles}
+        banners={banners}
+        mediastackArticles={technewsMediastack}
+      />
+    );
   }
 
   if (domain === "lavaguetech.com") {

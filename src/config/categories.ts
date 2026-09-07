@@ -11,6 +11,20 @@ export function getHomeCategoryLabel(domain: string): string {
   return key ? HOME_LABELS_BY_DOMAIN[key] : HOME_CATEGORY_LABEL;
 }
 
+/** Standard technology newsroom category set, shared by the tech tenants. */
+const TECH_CATEGORIES = [
+  "Artificial Intelligence",
+  "Software Development",
+  "Consumer Tech",
+  "Cybersecurity",
+  "Startups",
+  "Big Tech",
+  "Tech Policy",
+  "Emerging Tech",
+  "Digital Culture",
+  "Enterprise & Cloud Infrastructure",
+];
+
 export const TENANT_CATEGORIES: Record<string, string[]> = {
   "jejutime.com": [
     "Jeju Today",
@@ -104,6 +118,13 @@ export const TENANT_CATEGORIES: Record<string, string[]> = {
     "Legal Geek Coverage",
     "Industry Analysis",
   ],
+  // technews tenant family — shared standard tech category set
+  "linktechnews.com": TECH_CATEGORIES,
+  "dbtechnews.com": TECH_CATEGORIES,
+  "magazinetechy.com": TECH_CATEGORIES,
+  "magazineair.com": TECH_CATEGORIES,
+  "techygate.com": TECH_CATEGORIES,
+  "newyorksignal.com": TECH_CATEGORIES,
 };
 
 export const CATEGORY_TRANSLATIONS: Record<string, string> = {

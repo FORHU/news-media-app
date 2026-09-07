@@ -6,6 +6,7 @@ import { NewsletterModal } from "@/components/newsLetterModal/NewsletterModal";
 import { AdsterraSocialBar } from "@/components/ads/AdsterraSocialBar";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
+import { isTechNewsDomain } from "@/components/sites/technews/theme";
 
 // Lazy load domain-specific components with SSR enabled
 const NewsIconsHeader = dynamic(() => import("./sites/newsicons/NewsIconsHeader"), { ssr: true });
@@ -24,6 +25,41 @@ const LavagueTechHeader = dynamic(() => import("./sites/lavaguetech/LavagueTechH
 const LavagueTechFooter = dynamic(() => import("./sites/lavaguetech/LavagueTechFooter"), { ssr: true });
 const LegalHyperHeader = dynamic<{ onOpenNewsletter?: () => void }>(() => import("@/components/sites/legalhyper/LegalHyperHeader").then(m => m.LegalHyperHeader), { ssr: true });
 const LegalHyperFooter = dynamic<{ onOpenNewsletter?: () => void }>(() => import("@/components/sites/legalhyper/LegalHyperFooter").then(m => m.LegalHyperFooter), { ssr: true });
+// technews tenant family — one per-domain component set each
+type TechNewsChromeProps = { domain: string; onOpenNewsletter?: () => void };
+const LinkTechNewsHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technews/LinkTechNewsHeader"), { ssr: true });
+const LinkTechNewsFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technews/LinkTechNewsFooter"), { ssr: true });
+const DbTechNewsHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technews/DbTechNewsHeader"), { ssr: true });
+const DbTechNewsFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technews/DbTechNewsFooter"), { ssr: true });
+const MagazineTechyHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technews/MagazineTechyHeader"), { ssr: true });
+const MagazineTechyFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technews/MagazineTechyFooter"), { ssr: true });
+const MagazineAirHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technews/MagazineAirHeader"), { ssr: true });
+const MagazineAirFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technews/MagazineAirFooter"), { ssr: true });
+const TechyGateHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technews/TechyGateHeader"), { ssr: true });
+const TechyGateFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technews/TechyGateFooter"), { ssr: true });
+const NewYorkSignalHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technews/NewYorkSignalHeader"), { ssr: true });
+const NewYorkSignalFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technews/NewYorkSignalFooter"), { ssr: true });
+
+const TECHNEWS_HEADERS: Record<string, React.ComponentType<TechNewsChromeProps>> = {
+  "linktechnews.com": LinkTechNewsHeader,
+  "dbtechnews.com": DbTechNewsHeader,
+  "magazinetechy.com": MagazineTechyHeader,
+  "magazineair.com": MagazineAirHeader,
+  "techygate.com": TechyGateHeader,
+  "newyorksignal.com": NewYorkSignalHeader,
+};
+const TECHNEWS_FOOTERS: Record<string, React.ComponentType<TechNewsChromeProps>> = {
+  "linktechnews.com": LinkTechNewsFooter,
+  "dbtechnews.com": DbTechNewsFooter,
+  "magazinetechy.com": MagazineTechyFooter,
+  "magazineair.com": MagazineAirFooter,
+  "techygate.com": TechyGateFooter,
+  "newyorksignal.com": NewYorkSignalFooter,
+};
+function technewsKey(domain: string): string {
+  const d = domain.toLowerCase().replace(/^www\./, "");
+  return Object.keys(TECHNEWS_HEADERS).find((k) => d.includes(k.replace(/\.com$/, ""))) ?? "linktechnews.com";
+}
 
 // Fallbacks
 const DefaultHeader = dynamic(() => import("./Header").then(m => m.Header), { ssr: true });
@@ -49,6 +85,7 @@ export function SiteShell({ children, domain }: SiteShellProps) {
     if (d.includes("skyblueprime")) return "skyblueprime";
     if (d.includes("lavaguetech")) return "lavaguetech";
     if (d.includes("legalhyper")) return "legalhyper";
+    if (isTechNewsDomain(d)) return "technews";
     return "default";
   }, [domain]);
 
@@ -62,6 +99,10 @@ export function SiteShell({ children, domain }: SiteShellProps) {
       case "skyblueprime": return <SkyBluePrimeHeader onOpenNewsletter={openNewsletter} />;
       case "lavaguetech": return <LavagueTechHeader onOpenNewsletter={openNewsletter} />;
       case "legalhyper": return <LegalHyperHeader onOpenNewsletter={openNewsletter} />;
+      case "technews": {
+        const H = TECHNEWS_HEADERS[technewsKey(domain)];
+        return <H domain={domain} onOpenNewsletter={openNewsletter} />;
+      }
       default: return <DefaultHeader onOpenNewsletter={openNewsletter} />;
     }
   };
@@ -76,6 +117,10 @@ export function SiteShell({ children, domain }: SiteShellProps) {
       case "skyblueprime": return <SkyBluePrimeFooter onOpenNewsletter={openNewsletter} />;
       case "lavaguetech": return <LavagueTechFooter onOpenNewsletter={openNewsletter} />;
       case "legalhyper": return <LegalHyperFooter onOpenNewsletter={openNewsletter} />;
+      case "technews": {
+        const F = TECHNEWS_FOOTERS[technewsKey(domain)];
+        return <F domain={domain} onOpenNewsletter={openNewsletter} />;
+      }
       default: return <DefaultFooter onOpenNewsletter={openNewsletter} />;
     }
   };
