@@ -15,13 +15,18 @@ interface StoryImageProps {
   sizes?: string;
   hideTitle?: boolean;
   variant?: "hero" | "featured" | "thumbnail";
+  /** Fires when the component falls back to the colored placeholder (no src, or
+   *  the real image failed to load) — lets a caller drop the article entirely
+   *  instead of leaving the placeholder visible. Does not affect rendering here. */
+  onFallback?: () => void;
 }
 
 export function StoryImage(props: StoryImageProps) {
-  const { src, alt, fill, width, height, className, priority, sizes, variant = "featured", hideTitle } = props;
+  const { src, alt, fill, width, height, className, priority, sizes, variant = "featured", hideTitle, onFallback } = props;
   const [imgSrc, setImgSrc] = useState<string | null>(src || null);
   const [error, setError] = useState(false);
   const isBlockedS3Origin = false;
+  const isFallback = !imgSrc || error || isBlockedS3Origin;
 
   useEffect(() => {
     // Resync imgSrc/error when the src prop changes (e.g. carousel swapping
@@ -30,6 +35,13 @@ export function StoryImage(props: StoryImageProps) {
     setImgSrc(src || null);
     setError(false);
   }, [src]);
+
+  useEffect(() => {
+    if (isFallback) onFallback?.();
+    // onFallback is expected to be a stable/id-guarded callback (e.g. adding to a
+    // Set) — omitted from deps so a caller passing an inline arrow doesn't matter.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFallback]);
 
   const color = useMemo(() => getFallbackColor(alt), [alt]);
 
@@ -55,7 +67,7 @@ export function StoryImage(props: StoryImageProps) {
     }
   }[variant];
 
-  if (!imgSrc || error || isBlockedS3Origin) {
+  if (isFallback) {
     return (
       <div 
         className={`${className} flex items-center justify-center ${config.padding} text-center leading-tight overflow-hidden`}
