@@ -1,4 +1,5 @@
 import sharp from "sharp";
+import { env } from "@/lib/env";
 
 const OPENAI_IMAGES_EDITS = "https://api.openai.com/v1/images/edits";
 const GPT_IMAGE_MINI_MODEL = "gpt-image-1-mini";
@@ -151,7 +152,7 @@ export async function editImageWithGptImageMini(
   pngBuffer: Buffer,
   prompt: string
 ): Promise<Buffer> {
-  const apiKey = process.env.OPENAI_API_KEY?.trim();
+  const apiKey = env.OPENAI_API_KEY;
   if (!apiKey) {
     throw new OpenAiImageError("OPENAI_API_KEY is not configured");
   }

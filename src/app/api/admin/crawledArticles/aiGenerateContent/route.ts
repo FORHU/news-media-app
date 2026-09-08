@@ -8,6 +8,7 @@ import { getOpenAiImageModel } from "@/lib/openaiImages";
 import { runOpenAiFeaturedImagePipeline } from "@/lib/featuredImagePipeline";
 import type { FeaturedImageGenerationLog } from "@/lib/featuredImageGeneration";
 import { sseBroadcaster } from "@/lib/sse";
+import { env } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // Allow up to 5 minutes on Vercel Pro/Enterprise
@@ -131,7 +132,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
     }
 
-    const baseUrl = (process.env.GENERATE_CONTENT_API || "").replace(/\/$/, "");
+    const baseUrl = env.GENERATE_CONTENT_API;
     if (!baseUrl) throw new Error("GENERATE_CONTENT_API is not configured");
 
     const rawArticle = await prisma.rawArticle.findUnique({

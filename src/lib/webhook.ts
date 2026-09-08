@@ -1,4 +1,5 @@
 import { createHmac } from "crypto";
+import { env } from "@/lib/env";
 
 export type WebhookCallbackPayload = {
   externalArticleId: string;
@@ -12,7 +13,7 @@ export async function sendWebhookCallback(
   payload: WebhookCallbackPayload
 ): Promise<{ success: boolean; error?: string }> {
   const body = JSON.stringify(payload);
-  const secret = process.env.EXTERNAL_API_WEBHOOK_SECRET ?? "";
+  const secret = env.EXTERNAL_API_WEBHOOK_SECRET ?? "";
   const signature = createHmac("sha256", secret).update(body).digest("hex");
 
   try {

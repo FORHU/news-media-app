@@ -1,7 +1,7 @@
 import { moderatorRepository } from "@/repositories/admin/moderator.repository";
 import { sendWebhookCallback } from "@/lib/webhook";
 import { revalidatePath } from "next/cache";
-import { uploadToS3 } from "@/lib/s3";
+import { deleteObjects, uploadToS3 } from "@/lib/s3";
 import { randomUUID } from "crypto";
 import { CATEGORY_TRANSLATIONS, TENANT_CATEGORIES } from "@/config/categories";
 
@@ -104,6 +104,15 @@ export const moderatorService = {
       existing.publishDate
     );
 
+    // Replaced the image — drop the previous S3 object if it was ours.
+    if (
+      resolvedImage !== undefined &&
+      existing.imageUrl &&
+      existing.imageUrl !== resolvedImage
+    ) {
+      await deleteObjects([existing.imageUrl]);
+    }
+
     await triggerRevalidation(existing.tenantId, id, updated.slug);
     return updated;
   },
@@ -113,6 +122,13 @@ export const moderatorService = {
     if (!existing) throw new ModeratorServiceError("Article not found", 404);
 
     await moderatorRepository.deleteArticle(id);
+
+    await deleteObjects(
+      [existing.imageUrl, ...(existing.imageUrls ?? [])].filter(
+        (u): u is string => Boolean(u)
+      )
+    );
+
     await triggerRevalidation(existing.tenantId, id, existing.slug);
   },
 

@@ -1,11 +1,12 @@
 import { Resend } from "resend";
 import { buildNewsletterOtpHtml } from "@/emails/newsletterOtpTemplate";
+import { requireEnv } from "@/lib/env";
 
 let resendInstance: Resend | null = null;
 
 function getResend() {
   if (!resendInstance) {
-    resendInstance = new Resend(process.env.RESEND_API_KEY || "re_dummy_key_for_build");
+    resendInstance = new Resend(requireEnv("RESEND_API_KEY"));
   }
   return resendInstance;
 }

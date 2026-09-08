@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db";
 import { generateUniqueArticleSlug } from "@/lib/slug";
 import { stripOriginalPostBlock } from "@/lib/tweetArticleDisplay";
 import { runOpenAiFeaturedImagePipeline } from "@/lib/featuredImagePipeline";
+import { deleteObjects } from "@/lib/s3";
+import { env } from "@/lib/env";
 
 const articleInclude = {
   category: true,
@@ -260,7 +262,7 @@ export async function regenerateGeneratedArticleText(
     throw new Error("Revision instructions are required to regenerate text.");
   }
   const revisionBlock = buildCurrentArticleRevisionBlock(article);
-  const baseUrl = (process.env.GENERATE_CONTENT_API || "").replace(/\/$/, "");
+  const baseUrl = env.GENERATE_CONTENT_API;
   if (!baseUrl) throw new Error("GENERATE_CONTENT_API is not configured");
 
   const session_id = await fetchAiSessionId(baseUrl);
@@ -482,9 +484,19 @@ export async function regenerateGeneratedArticleImage(
     );
   }
 
-  return prisma.contentArticle.update({
+  const previousImageUrl = article.imageUrl;
+
+  const updated = await prisma.contentArticle.update({
     where: { id: article.id },
     data: { imageUrl },
     include: articleInclude,
   });
+
+  // The old featured image is now unreferenced. Best-effort delete; a non-bucket
+  // URL (e.g. an original crawled image) resolves to no key and is skipped.
+  if (previousImageUrl && previousImageUrl !== imageUrl) {
+    await deleteObjects([previousImageUrl]);
+  }
+
+  return updated;
 }

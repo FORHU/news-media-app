@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { env } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
@@ -6,7 +7,7 @@ export async function POST(req: NextRequest) {
     try {
         const { filename, contentType } = await req.json();
 
-        const baseUrl = (process.env.GENERATE_CONTENT_API || "").replace(/\/$/, "");
+        const baseUrl = env.GENERATE_CONTENT_API;
         if (!baseUrl) throw new Error("GENERATE_CONTENT_API is not configured");
 
         const response = await fetch(`${baseUrl}/api/legal/document-upload-url`, {

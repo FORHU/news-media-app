@@ -4,6 +4,7 @@ import { generateUniqueArticleSlug } from "@/lib/slug";
 import { z } from "zod";
 import { resolveTenantIdFromRequest } from "@/lib/tenant";
 import { stripOriginalPostBlock } from "@/lib/tweetArticleDisplay";
+import { env } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -137,7 +138,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Tweet not found" }, { status: 404 });
     }
 
-    const baseUrl = (process.env.GENERATE_CONTENT_API || "").replace(/\/$/, "");
+    const baseUrl = env.GENERATE_CONTENT_API;
     if (!baseUrl) {
         console.error("AI Generate Error: GENERATE_CONTENT_API is not configured");
         return NextResponse.json({ error: "AI Service Configuration Error" }, { status: 500 });
@@ -177,7 +178,7 @@ export async function POST(req: NextRequest) {
     const logs: string[] = [];
 
     if (tweet.hasMedia && tweet.mediaType?.toLowerCase().includes("video")) {
-        const apifyToken = process.env.APIFY_API_TOKEN;
+        const apifyToken = env.APIFY_API_TOKEN;
         const videoUrlToTranscribe = tweet.mediaUrls.find(url => /\.(mp4|mov|m4v|webm|mkv|m3u8)(\?|$)/i.test(url)) || tweet.mediaUrls[0];
 
         if (apifyToken && videoUrlToTranscribe) {

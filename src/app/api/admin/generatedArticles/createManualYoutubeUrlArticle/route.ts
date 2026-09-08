@@ -5,6 +5,7 @@ import { z } from "zod";
 import { resolveTenantIdFromRequest } from "@/lib/tenant";
 import { stripOriginalPostBlock } from "@/lib/tweetArticleDisplay";
 import { sseBroadcaster } from "@/lib/sse";
+import { env } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -178,7 +179,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Selected category does not exist." }, { status: 400 });
     }
 
-    const baseUrl = (process.env.GENERATE_CONTENT_API || "").replace(/\/$/, "");
+    const baseUrl = env.GENERATE_CONTENT_API;
     if (!baseUrl) throw new Error("GENERATE_CONTENT_API is not configured");
 
     const sessionRes = await fetch(`${baseUrl}/session-id`);

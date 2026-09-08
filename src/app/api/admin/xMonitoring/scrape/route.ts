@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { XpozClient } from "@xpoz/xpoz";
 import { prisma } from "@/lib/db";
 import { resolveTenantIdFromRequest } from "@/lib/tenant";
+import { env } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
@@ -377,7 +378,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const xpozApiKey = process.env.XPOZ_API_KEY;
+  const xpozApiKey = env.XPOZ_API_KEY;
   if (!xpozApiKey) {
     return NextResponse.json(
       {
@@ -389,7 +390,7 @@ export async function POST(req: NextRequest) {
 
   const client = new XpozClient({
     apiKey: xpozApiKey,
-    serverUrl: process.env.XPOZ_SERVER_URL,
+    serverUrl: env.XPOZ_SERVER_URL,
   });
 
   try {
