@@ -1,7 +1,7 @@
 "use client"; // LegalHyper Landing — broadsheet homepage per "The Legal Review" design
 
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { StoryImage } from "@/components/StoryImage";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
@@ -96,12 +96,16 @@ function ImagePlaceholder({
   maxHeight,
   maxWidth = 720,
   smallThreshold = 512,
+  onFallback,
 }: {
   article: MockArticle;
   aspect: string;
   maxHeight?: string;
   maxWidth?: number;
   smallThreshold?: number;
+  /** Fires when there's no usable image (missing or failed to load) — lets the
+   *  caller drop the article instead of leaving an empty box on the page. */
+  onFallback?: () => void;
 }) {
   const [nat, setNat] = useState<{ w: number; h: number } | null>(null);
   const [failed, setFailed] = useState(false);
@@ -112,6 +116,11 @@ function ImagePlaceholder({
   // Small images keep their own aspect ratio (no crop); larger ones use the
   // design ratio and crop with object-cover.
   const boxAspect = isSmall && nat ? `${nat.w} / ${nat.h}` : aspect;
+
+  useEffect(() => {
+    if (!article.imageUrl || failed) onFallback?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [article.imageUrl, failed]);
 
   if (!article.imageUrl || failed) {
     return (
@@ -172,7 +181,18 @@ function getByCategory(articles: MockArticle[], name: string, n = 3) {
 }
 
 export function LegalHyperLanding({ articles, banners }: Props) {
-  if (articles.length === 0) {
+  // Some MediaStack thumbnails 404 or hotlink-block only once the browser
+  // actually requests them (the server-side filter can't catch that) — track
+  // those here so the article drops out entirely instead of showing a blank/
+  // colored placeholder box.
+  const [brokenImageIds, setBrokenImageIds] = useState<Set<string>>(new Set());
+  const handleImageUnavailable = useCallback((id: string) => {
+    setBrokenImageIds((prev) => (prev.has(id) ? prev : new Set(prev).add(id)));
+  }, []);
+
+  const workingArticles = articles.filter((a) => !!a.imageUrl && !brokenImageIds.has(a.id));
+
+  if (workingArticles.length === 0) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-4 font-chivo" style={{ background: PARCHMENT }}>
         <div className="text-center">
@@ -186,24 +206,40 @@ export function LegalHyperLanding({ articles, banners }: Props) {
   const tenantConfig = ADSTERRA_CONFIG.legalhyper;
   const adKeys = tenantConfig.banners;
 
-  const sorted = [...articles].sort((a, b) => {
+  const sorted = [...workingArticles].sort((a, b) => {
     if ((b.trendingScore ?? 0) !== (a.trendingScore ?? 0)) return (b.trendingScore ?? 0) - (a.trendingScore ?? 0);
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
   const lead = sorted[0];
-  const alsoThisMorning = sorted.slice(1, 3);
+  // 5 items (not 2) so the sidebar keeps pace with the hero column, which runs
+  // long whenever the lead headline wraps multiple lines — 2 items left visible
+  // empty space below the Legal Alert box on tall leads.
+  const alsoThisMorning = sorted.slice(1, 6);
   const usedIds = new Set([lead.id, ...alsoThisMorning.map((a) => a.id)]);
 
   const latestPool = sorted.filter((a) => !usedIds.has(a.id));
   const latest = latestPool.slice(0, 5);
   latest.forEach((a) => usedIds.add(a.id));
 
-  const mostRead = [...sorted].sort((a, b) => (b.trendingScore ?? 0) - (a.trendingScore ?? 0)).slice(0, 5);
+  // 8 items (not 5) — Most Read's numbered rows are compact, so 5 left the
+  // sidebar shorter than the image-led Legal News column beside it.
+  const mostRead = [...sorted].sort((a, b) => (b.trendingScore ?? 0) - (a.trendingScore ?? 0)).slice(0, 8);
 
   const categories = TENANT_CATEGORIES["legalhyper.com"] ?? [];
   const investigation = sorted.find((a) => a.category?.categoryName === "Legal Geek Coverage") ?? sorted[0];
   const investigationSeries = sorted.filter((a) => a.id !== investigation.id).slice(0, 3);
+
+  // Editor's Picks: large-card spotlight, pulled from whatever hasn't already
+  // surfaced in the hero/latest lists above so it reads as fresh content, not a repeat.
+  const editorsPicksPool = sorted.filter((a) => !usedIds.has(a.id));
+  const editorsPicks = (editorsPicksPool.length > 0 ? editorsPicksPool : sorted).slice(0, 3);
+  editorsPicks.forEach((a) => usedIds.add(a.id));
+
+  // Latest Filings ticker: pure recency (not trending-sorted), wire-service style.
+  const docket = [...workingArticles]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 8);
 
   return (
     <div className="font-chivo" style={{ background: PARCHMENT, color: "#1A1A16", minHeight: "100vh" }}>
@@ -238,7 +274,7 @@ export function LegalHyperLanding({ articles, banners }: Props) {
                 </h1>
               </ArticleLink>
               <ArticleLink article={lead} className="block mt-6">
-                <ImagePlaceholder article={lead} aspect="16/9" maxHeight="clamp(200px, 30vw, 340px)" />
+                <ImagePlaceholder article={lead} aspect="16/9" maxHeight="clamp(200px, 30vw, 340px)" onFallback={() => handleImageUnavailable(lead.id)} />
               </ArticleLink>
               {lead.content && (
                 <p className="font-garamond text-[19px] leading-[1.58] max-w-[58ch] mt-5" style={{ color: "#3B3B33" }}>
@@ -308,7 +344,7 @@ export function LegalHyperLanding({ articles, banners }: Props) {
               <article key={article.id} className="flex flex-wrap gap-6.5 py-7" style={{ borderBottom: `1px solid ${RULE}`, gap: 26 }}>
                 <ArticleLink article={article} className="shrink-0" style={{ flexBasis: 220, maxWidth: "100%" }}>
                   <div className="relative w-full aspect-[4/3] overflow-hidden bg-[#E3DECF]">
-                    <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" sizes="220px" />
+                    <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" sizes="220px" onFallback={() => handleImageUnavailable(article.id)} />
                   </div>
                 </ArticleLink>
                 <div className="flex-1 min-w-0" style={{ flexBasis: 280 }}>
@@ -392,7 +428,7 @@ export function LegalHyperLanding({ articles, banners }: Props) {
           </div>
           <div className="grid gap-x-11 gap-y-0" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
             {categories.map((category) => {
-              const items = getByCategory(articles, category, 3);
+              const items = getByCategory(workingArticles, category, 3);
               if (items.length === 0) return null;
               return (
                 <div key={category} className="pt-5 pb-8" style={{ borderTop: `1px solid ${INK}` }}>
@@ -414,6 +450,81 @@ export function LegalHyperLanding({ articles, banners }: Props) {
             })}
           </div>
         </section>
+
+        {/* Editor's Picks — large image cards, a heavier visual register than the
+            text-led Legal News / Featured Desks sections above. */}
+        {editorsPicks.length > 0 && (
+          <section className="pt-16 mt-14" style={{ borderTop: `3px double ${INK}` }}>
+            <div className="flex items-baseline justify-between gap-5 pb-5" style={{ borderBottom: `1px solid ${INK}` }}>
+              <h2 className="font-garamond font-semibold m-0" style={{ fontSize: 32, color: INK, letterSpacing: "0.02em" }}>
+                Editor&apos;s Picks
+              </h2>
+              <div className="text-[10.5px] uppercase" style={{ letterSpacing: "0.2em", color: "#7A7466" }}>
+                Hand-selected coverage
+              </div>
+            </div>
+            <div className="grid gap-9 pt-9" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}>
+              {editorsPicks.map((article) => (
+                <article key={article.id}>
+                  <ArticleLink article={article} className="block">
+                    <div className="relative w-full overflow-hidden" style={{ aspectRatio: "4/3", background: "#E3DECF" }}>
+                      <StoryImage src={article.imageUrl} alt={article.title} fill className="object-cover" sizes="(min-width: 1024px) 33vw, 100vw" onFallback={() => handleImageUnavailable(article.id)} />
+                    </div>
+                  </ArticleLink>
+                  <div className="mt-4">
+                    <Kicker>{article.category?.categoryName}</Kicker>
+                  </div>
+                  <ArticleLink article={article}>
+                    <h3 className="font-bodoni font-medium uppercase mt-2.5 mb-0" style={{ fontSize: 23, lineHeight: 1.2, color: INK }}>
+                      {article.title}
+                    </h3>
+                  </ArticleLink>
+                  {article.content && (
+                    <p className="font-garamond text-[15.5px] leading-[1.55] mt-2.5" style={{ color: "#4E4E45" }}>
+                      {article.content}
+                    </p>
+                  )}
+                  <div className="mt-3 text-[10.5px] uppercase" style={{ letterSpacing: "0.12em", color: "#7A7466" }}>
+                    {article.author} · {formatDate(article.createdAt)}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Latest Filings — a compact, horizontally scrolling wire-service ticker.
+            Deliberately plain-text (no images) so it reads as a different register
+            from every card/list section above it. */}
+        {docket.length > 0 && (
+          <section className="mt-14 py-6" style={{ borderTop: `1px solid ${INK}`, borderBottom: `1px solid ${INK}` }}>
+            <div className="flex items-center gap-7 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+              <span
+                className="shrink-0 text-[10px] font-bold uppercase px-3 py-1.5"
+                style={{ letterSpacing: "0.2em", color: PARCHMENT, background: MAROON }}
+              >
+                Latest Filings
+              </span>
+              {docket.map((article, i) => (
+                <ArticleLink
+                  key={article.id}
+                  article={article}
+                  className="shrink-0 flex items-center gap-3"
+                  style={i > 0 ? { borderLeft: `1px solid ${RULE}`, paddingLeft: 28 } : undefined}
+                >
+                  <span className="text-[10.5px] font-bold uppercase" style={{ letterSpacing: "0.1em", color: GOLD }}>
+                    {new Date(article.createdAt)
+                      .toLocaleDateString("en-US", { month: "short", day: "numeric" })
+                      .toUpperCase()}
+                  </span>
+                  <span className="font-garamond text-[15px] whitespace-nowrap" style={{ color: INK }}>
+                    {article.title}
+                  </span>
+                </ArticleLink>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Opinion & Analysis */}
         <section className="mt-14" style={{ background: "#EFEADC", borderTop: `1px solid ${RULE}`, borderBottom: `1px solid ${RULE}` }}>
@@ -465,7 +576,7 @@ export function LegalHyperLanding({ articles, banners }: Props) {
               <div className="flex-1 min-w-0" style={{ flexBasis: 540 }}>
                 <ArticleLink article={investigation}>
                   <div className="relative w-full overflow-hidden" style={{ aspectRatio: "3/2", background: "repeating-linear-gradient(135deg,#16223A 0 10px,#1C2A46 10px 20px)" }}>
-                    <StoryImage src={investigation.imageUrl} alt={investigation.title} fill className="object-cover" sizes="600px" />
+                    <StoryImage src={investigation.imageUrl} alt={investigation.title} fill className="object-cover" sizes="600px" onFallback={() => handleImageUnavailable(investigation.id)} />
                   </div>
                 </ArticleLink>
                 <h2 className="font-bodoni font-medium uppercase mt-7" style={{ fontSize: "clamp(26px,3.2vw,40px)", lineHeight: 1.12, color: "#F4F0E6" }}>

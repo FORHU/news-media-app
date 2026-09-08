@@ -35,9 +35,12 @@ const LEGALHYPER_DESKS = [
 
 // MediaStack's `keywords` param alone isn't strict enough to guarantee relevance —
 // this re-checks title/description against actual legal/law terms before an article
-// is allowed onto LegalHyper.
+// is allowed onto LegalHyper. Bare "legal" and "law"/"laws" are deliberately excluded:
+// they're common generic adjectives ("legal age", "legal sex", "legal weed",
+// "mother-in-law") with no connection to the legal industry, and let unrelated
+// articles slip through. Only unambiguous legal-industry terms/phrases count.
 const LEGAL_TERMS_RE =
-  /\b(legal|law|laws|lawyer|lawyers|attorney|attorneys|litigation|lawsuit|lawsuits|court|courts|judge|judges|judicial|legislation|legislature|regulator|regulators|regulatory|regulation|regulations|compliance|counsel|solicitor|solicitors|barrister|barristers|verdict|plaintiff|defendant|statute|statutes|paralegal|prosecutor|prosecutors|legislative)\b/i;
+  /\b(lawyer|lawyers|attorney|attorneys|litigation|litigator|litigators|lawsuit|lawsuits|courtroom|judge|judges|judicial|judiciary|legislation|legislature|legislative|legislator|legislators|regulator|regulators|regulatory|regulation|regulations|compliance|counsel|solicitor|solicitors|barrister|barristers|verdict|plaintiff|defendant|defendants|statute|statutes|paralegal|prosecutor|prosecutors|prosecution|indictment|acquittal|jurisprudence|legaltech|sue|sued|suing|law firm|law firms|law school|law schools|bar association|supreme court|appeals court|appellate court|class action|legal aid|legal action|legal battle|legal dispute|legal challenge|legal ruling|legal case|legal team|legal industry|legal profession|legal sector|legal department|legal counsel|legal fees|legal system|court ruling|court order)\b/i;
 
 function isLegalRelevant(item: MediaStackArticle): boolean {
   const haystack = `${item.title} ${item.description ?? ""}`;
