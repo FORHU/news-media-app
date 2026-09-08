@@ -5,6 +5,7 @@ import { z } from "zod";
 import { resolveTenantIdFromRequest } from "@/lib/tenant";
 import { revalidatePath } from "next/cache";
 import { sseBroadcaster } from "@/lib/sse";
+import { deleteObjects } from "@/lib/s3";
 
 async function revalidateArticle(tenantId: string, articleId: string, slug?: string | null) {
   try {
@@ -147,6 +148,15 @@ export async function DELETE(
     await prisma.contentArticle.delete({
       where: { id },
     });
+
+    // Best-effort cleanup of any S3 objects this article owned. Non-bucket URLs
+    // (external images) resolve to no key and are skipped.
+    await deleteObjects(
+      [existing.imageUrl, ...existing.imageUrls].filter(
+        (u): u is string => Boolean(u)
+      )
+    );
+
     sseBroadcaster.broadcast("articles:updated");
 
     return NextResponse.json({ success: true });

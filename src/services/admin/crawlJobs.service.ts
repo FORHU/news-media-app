@@ -1,6 +1,7 @@
 import { crawlJobsRepository } from "@/repositories/admin/crawlJobs.repository";
+import { env } from "@/lib/env";
 
-const CRAWL_STOP_API_URL = process.env.CRAWL_STOP_API_URL;
+const CRAWL_STOP_API_URL = env.CRAWL_STOP_API_URL;
 
 export class CrawlJobsServiceError extends Error {
   constructor(

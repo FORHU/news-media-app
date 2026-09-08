@@ -9,6 +9,7 @@ import {
 } from "@/lib/openaiImages";
 import { uploadPngBufferToSupabase } from "@/lib/supabaseArticleImageUpload";
 import type { FeaturedImageGenerationLog } from "@/lib/featuredImageGeneration";
+import { env } from "@/lib/env";
 
 export type RunOpenAiFeaturedImageParams = {
   tenantId: string;
@@ -27,7 +28,7 @@ export type RunOpenAiFeaturedImageParams = {
 export async function runOpenAiFeaturedImagePipeline(
   params: RunOpenAiFeaturedImageParams
 ): Promise<{ imageUrl: string | null; log: FeaturedImageGenerationLog }> {
-  if (!process.env.OPENAI_API_KEY?.trim()) {
+  if (!env.OPENAI_API_KEY) {
     throw new Error("OPENAI_API_KEY is not configured for image regeneration.");
   }
 

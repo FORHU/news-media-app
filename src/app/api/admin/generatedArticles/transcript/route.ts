@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { extractYoutubeId } from "@/lib/utils";
+import { env } from "@/lib/env";
 
 
 export async function POST(req: Request) {
@@ -10,7 +11,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "URL is required" }, { status: 400 });
         }
 
-        const apiKey = process.env.SUPADATA_API_KEY;
+        const apiKey = env.SUPADATA_API_KEY;
         if (!apiKey) {
             return NextResponse.json({ error: "SUPADATA_API_KEY is not configured" }, { status: 500 });
         }

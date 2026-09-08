@@ -4,8 +4,9 @@ import {
 } from "@/repositories/admin/crawledArticles.repository";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
 import { getValidImageSrc } from "@/lib/image-utils";
+import { env } from "@/lib/env";
 
-const CRAWL_API_URL = process.env.CRAWL_API_URL;
+const CRAWL_API_URL = env.CRAWL_API_URL;
 
 type CrawledArticlesDatePreset =
   | "All Time"

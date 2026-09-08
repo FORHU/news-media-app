@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminJwt, ADMIN_JWT_COOKIE } from "@/lib/auth";
 import { externalArticlesService, ExternalArticlesServiceError } from "@/services/admin/externalArticles.service";
+import { env } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "articleIds is required" }, { status: 400 });
     }
 
-    const baseUrl = (process.env.GENERATE_CONTENT_API ?? "").replace(/\/$/, "");
+    const baseUrl = env.GENERATE_CONTENT_API;
     if (!baseUrl) {
       return NextResponse.json({ error: "AI service not configured." }, { status: 500 });
     }

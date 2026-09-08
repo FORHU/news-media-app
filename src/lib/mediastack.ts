@@ -1,3 +1,5 @@
+import { env } from "@/lib/env";
+
 export interface MediaStackArticle {
   id: string;
   title: string;
@@ -153,7 +155,7 @@ export async function fetchMediaStackNews(params: {
   limit?: number;
   keywords?: string;
 }): Promise<MediaStackArticle[]> {
-  const apiKey = process.env.MEDIASTACK_API_KEY;
+  const apiKey = env.MEDIASTACK_API_KEY;
   if (!apiKey) {
     console.warn("[MediaStack] MEDIASTACK_API_KEY is not set");
     return [];

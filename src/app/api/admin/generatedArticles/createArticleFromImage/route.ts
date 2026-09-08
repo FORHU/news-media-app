@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { uploadToS3 } from "@/lib/s3";
+import { env } from "@/lib/env";
 import { generateUniqueArticleSlug } from "@/lib/slug";
 import { resolveTenantIdFromRequest } from "@/lib/tenant";
 import { sseBroadcaster } from "@/lib/sse";
@@ -101,7 +102,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Selected category does not exist." }, { status: 400 });
     }
 
-    const baseUrl = (process.env.GENERATE_CONTENT_API || "").replace(/\/$/, "");
+    const baseUrl = env.GENERATE_CONTENT_API;
     if (!baseUrl) throw new Error("GENERATE_CONTENT_API is not configured");
 
     // 2. Get FastAPI Session

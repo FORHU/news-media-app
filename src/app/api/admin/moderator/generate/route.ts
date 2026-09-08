@@ -5,6 +5,7 @@ import { verifyAdminJwt, ADMIN_JWT_COOKIE } from "@/lib/auth";
 import { uploadToS3 } from "@/lib/s3";
 import { generateUniqueArticleSlug } from "@/lib/slug";
 import { TENANT_CATEGORIES } from "@/config/categories";
+import { env } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -133,7 +134,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "title, content, and categoryName are required." }, { status: 400 });
     }
 
-    const baseUrl = (process.env.GENERATE_CONTENT_API || "").replace(/\/$/, "");
+    const baseUrl = env.GENERATE_CONTENT_API;
     if (!baseUrl) return NextResponse.json({ error: "AI service not configured." }, { status: 500 });
 
     // Upload image once, reuse the S3 URL across all 4 sites
