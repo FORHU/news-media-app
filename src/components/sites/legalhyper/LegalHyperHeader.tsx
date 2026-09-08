@@ -94,7 +94,7 @@ export function LegalHyperHeader({ onOpenNewsletter }: HeaderProps) {
               theme="legalhyper"
               inline
             />
-            <span className="opacity-80">Sign In</span>
+            <Link href="/admin/dashboard" className="opacity-80 hover:opacity-100 hover:text-[#C2A15A] transition-colors">Sign In</Link>
           </div>
         </div>
       </div>

@@ -43,6 +43,13 @@ function getTheme(domain: string): Theme {
   if (domain.includes('jejutime')) return jejuTimeTheme;
   if (domain.includes('voicejeju')) return voiceJejuTheme;
   if (domain.includes('skyblueprime')) return skyBluePrimeTheme;
+  if (domain.includes('legalhyper')) return legalHyperTheme;
+  if (domain.includes('linktechnews')) return linkTechNewsTheme;
+  if (domain.includes('dbtechnews')) return dbTechNewsTheme;
+  if (domain.includes('magazinetechy')) return magazineTechyTheme;
+  if (domain.includes('magazineair')) return magazineAirTheme;
+  if (domain.includes('techygate')) return techyGateTheme;
+  if (domain.includes('newyorksignal')) return newYorkSignalTheme;
   return newsIconsTheme;
 }
 
@@ -300,6 +307,245 @@ const skyBluePrimeTheme: Theme = {
   tagline: 'Secure Access',
   footerText: '© Sky Blue Prime News',
   siteName: 'Sky Blue Prime',
+};
+
+/* ── LegalHyper ── */
+const legalHyperTheme: Theme = {
+  bg: 'min-h-screen bg-[#F4F0E6] flex items-center justify-center px-4 py-12 relative overflow-y-auto',
+  card: 'bg-[#FBF9F3] border border-[#DCD5C2] border-t-4 border-t-[#0E1A2F] shadow-xl p-8 md:p-12 relative overflow-hidden rounded-none',
+  topBar: 'absolute top-0 left-0 w-full h-[3px] bg-[#B08D3F]',
+  logo: (
+    <div className="text-center mb-10 flex flex-col items-center">
+      <div className="flex items-end gap-[3px] mb-3" aria-hidden>
+        <span className="w-[3px] h-4 bg-[#B08D3F]" />
+        <span className="w-[3px] h-6 bg-[#0E1A2F]" />
+        <span className="w-[3px] h-4 bg-[#B08D3F]" />
+      </div>
+      <h1 className="font-bodoni text-4xl font-medium uppercase tracking-[0.06em] text-[#0E1A2F] leading-none">LegalHyper</h1>
+      <p className="text-[10px] font-garamond uppercase tracking-[0.34em] text-[#7A7466] mt-3">Editorial Administration</p>
+    </div>
+  ),
+  accent: '#0E1A2F',
+  accentCls: 'bg-[#0E1A2F]',
+  accentHover: 'hover:bg-[#16233d]',
+  inputFocus: 'focus:border-[#0E1A2F]',
+  inputBorder: 'border-[#DCD5C2] hover:border-[#c9c0a8]',
+  inputBgCls: 'bg-white',
+  inputRounded: 'rounded-none',
+  labelCls: 'text-[10px] font-bold text-[#0E1A2F] uppercase tracking-[0.28em]',
+  btnCls: 'w-full bg-[#0E1A2F] text-[#F4F0E6] py-4 font-bold text-[11px] uppercase tracking-[0.28em] hover:bg-[#16233d] disabled:opacity-60 transition-colors flex items-center justify-center gap-2 group relative overflow-hidden rounded-none',
+  errorCls: 'text-xs text-[#7A1F2B] bg-[#7A1F2B]/5 p-3 border border-[#7A1F2B]/20 font-bold flex items-center gap-2',
+  backCls: 'fixed top-6 left-6 sm:top-10 sm:left-10 flex items-center gap-3 text-[#7A7466] hover:text-[#0E1A2F] transition-all group z-10 font-bold uppercase tracking-[0.24em] text-[10px]',
+  backIconCls: 'transition-transform group-hover:-translate-x-1',
+  headingCls: 'text-2xl font-bodoni font-medium text-[#0E1A2F] tracking-tight mb-1',
+  subtextCls: 'text-sm text-[#7A7466]',
+  footerCls: 'text-center mt-8 text-[#7A7466] font-bold text-[10px] uppercase tracking-[0.28em]',
+  tagline: 'Editorial Sign-In',
+  footerText: '© LegalHyper · International Edition',
+  siteName: 'LegalHyper',
+};
+
+/* ── LinkTechnews ── */
+const linkTechNewsTheme: Theme = {
+  bg: 'min-h-screen bg-[#FBFBFD] flex items-center justify-center px-4 py-12 relative overflow-y-auto',
+  card: 'bg-white border border-[#E3E3EA] shadow-lg p-8 md:p-12 relative overflow-hidden rounded-[2px]',
+  topBar: 'absolute top-0 left-0 w-full h-1 bg-[#3B39E4]',
+  logo: (
+    <div className="text-center mb-10 flex flex-col items-center">
+      <div className="flex items-center font-serif text-3xl font-black tracking-tight text-[#14161F]">
+        <span className="text-[#3B39E4] mr-1">▸</span>LINK<span className="text-[#3B39E4]">TECH</span>NEWS
+      </div>
+      <p className="text-[10px] font-mono font-bold uppercase tracking-[0.28em] text-[#6B6F80] mt-3">▸ Admin Console</p>
+    </div>
+  ),
+  accent: '#3B39E4',
+  accentCls: 'bg-[#3B39E4]',
+  accentHover: 'hover:bg-[#2f2dc9]',
+  inputFocus: 'focus:border-[#3B39E4]',
+  inputBorder: 'border-[#E3E3EA] hover:border-[#d3d3dd]',
+  inputBgCls: 'bg-[#FBFBFD]',
+  inputRounded: 'rounded-[2px]',
+  labelCls: 'text-[10px] font-mono font-bold text-[#14161F] uppercase tracking-[0.22em]',
+  btnCls: 'w-full bg-[#3B39E4] text-white py-4 font-bold text-[11px] uppercase tracking-[0.22em] hover:bg-[#2f2dc9] disabled:opacity-60 transition-colors flex items-center justify-center gap-2 group relative overflow-hidden rounded-[2px]',
+  errorCls: 'text-xs text-red-600 bg-red-50 p-3 border border-red-200 font-bold flex items-center gap-2 rounded-[2px]',
+  backCls: 'fixed top-6 left-6 sm:top-10 sm:left-10 flex items-center gap-3 text-[#6B6F80] hover:text-[#3B39E4] transition-all group z-10 font-mono font-bold uppercase tracking-[0.2em] text-[10px]',
+  backIconCls: 'transition-transform group-hover:-translate-x-1',
+  headingCls: 'text-2xl font-serif font-black text-[#14161F] tracking-tight mb-1',
+  subtextCls: 'text-sm text-[#6B6F80]',
+  footerCls: 'text-center mt-8 text-[#6B6F80] font-mono font-bold text-[10px] uppercase tracking-[0.22em]',
+  tagline: 'Sign in to the Desk',
+  footerText: '© LinkTechnews — the technology wire',
+  siteName: 'LinkTechnews',
+};
+
+/* ── DbTechnews ── */
+const dbTechNewsTheme: Theme = {
+  bg: 'min-h-screen bg-[#E9EEF3] flex items-center justify-center px-4 py-12 relative overflow-y-auto font-mono',
+  card: 'bg-white border border-[#C6D1DD] shadow-lg p-8 md:p-12 relative overflow-hidden rounded-md',
+  topBar: 'absolute top-0 left-0 w-full h-1 bg-[#2F6FEB]',
+  logo: (
+    <div className="text-center mb-10 flex flex-col items-center">
+      <div className="flex items-baseline font-mono text-2xl font-bold tracking-tight text-[#0C1A2B]">
+        <span className="text-[#2F6FEB] mr-1">$</span>db.technews
+        <span className="ml-0.5 inline-block w-[0.5ch] h-[1em] bg-[#2F6FEB] animate-tn-caret" />
+      </div>
+      <p className="text-[10px] font-mono font-bold lowercase tracking-[0.12em] text-[#566575] mt-3">» admin — auth required</p>
+    </div>
+  ),
+  accent: '#2F6FEB',
+  accentCls: 'bg-[#2F6FEB]',
+  accentHover: 'hover:bg-[#245bd0]',
+  inputFocus: 'focus:border-[#2F6FEB]',
+  inputBorder: 'border-[#C6D1DD] hover:border-[#b2c0cf]',
+  inputBgCls: 'bg-[#F5F8FB]',
+  inputRounded: 'rounded-md',
+  labelCls: 'text-[10px] font-mono font-bold text-[#0C1A2B] lowercase tracking-[0.1em]',
+  btnCls: 'w-full bg-[#0C1A2B] text-white py-4 font-mono font-bold text-[11px] lowercase tracking-[0.12em] hover:bg-[#2F6FEB] disabled:opacity-60 transition-colors flex items-center justify-center gap-2 group relative overflow-hidden rounded-md',
+  errorCls: 'text-xs font-mono text-red-600 bg-red-50 p-3 border border-red-200 font-bold flex items-center gap-2 rounded-md',
+  backCls: 'fixed top-6 left-6 sm:top-10 sm:left-10 flex items-center gap-3 text-[#566575] hover:text-[#2F6FEB] transition-all group z-10 font-mono font-bold lowercase tracking-[0.1em] text-[10px]',
+  backIconCls: 'transition-transform group-hover:-translate-x-1',
+  headingCls: 'text-2xl font-mono font-bold text-[#0C1A2B] tracking-tight mb-1',
+  subtextCls: 'text-sm text-[#566575] font-mono',
+  footerCls: 'text-center mt-8 text-[#566575] font-mono font-bold text-[10px] lowercase tracking-[0.1em]',
+  tagline: '$ session --login',
+  footerText: '// dbtechnews — infrastructure & data',
+  siteName: 'DbTechnews',
+};
+
+/* ── Magazine Techy ── */
+const magazineTechyTheme: Theme = {
+  bg: 'min-h-screen bg-[#FBF6EF] flex items-center justify-center px-4 py-12 relative overflow-y-auto',
+  card: 'bg-white border border-[#EBE2D4] shadow-[0_20px_60px_-20px_rgba(28,21,18,0.2)] p-8 md:p-12 relative overflow-hidden rounded-none',
+  topBar: 'absolute top-0 left-0 w-full h-1 bg-[#D81E5B]',
+  logo: (
+    <div className="text-center mb-10 flex flex-col items-center">
+      <h1 className="font-serif text-4xl font-semibold tracking-[0.02em] text-[#1C1512]">Magazine<span className="italic text-[#D81E5B]"> Techy</span></h1>
+      <span className="h-px w-10 bg-[#D81E5B] mt-3" />
+      <p className="text-[11px] font-serif italic text-[#6E6257] mt-2">The Masthead · Administration</p>
+    </div>
+  ),
+  accent: '#D81E5B',
+  accentCls: 'bg-[#D81E5B]',
+  accentHover: 'hover:bg-[#c2154d]',
+  inputFocus: 'focus:border-[#D81E5B]',
+  inputBorder: 'border-[#EBE2D4] hover:border-[#ddd0bb]',
+  inputBgCls: 'bg-[#FBF6EF]',
+  inputRounded: 'rounded-none',
+  labelCls: 'text-[11px] font-serif italic text-[#1C1512] tracking-wide',
+  btnCls: 'w-full bg-[#1C1512] text-white py-4 font-serif text-sm tracking-[0.16em] uppercase hover:bg-[#D81E5B] disabled:opacity-60 transition-colors flex items-center justify-center gap-2 group relative overflow-hidden rounded-none',
+  errorCls: 'text-xs text-red-700 bg-red-50 p-3 border border-red-200 font-bold flex items-center gap-2',
+  backCls: 'fixed top-6 left-6 sm:top-10 sm:left-10 flex items-center gap-3 text-[#6E6257] hover:text-[#D81E5B] transition-all group z-10 font-serif italic tracking-wide text-[11px]',
+  backIconCls: 'transition-transform group-hover:-translate-x-1',
+  headingCls: 'text-2xl font-serif font-semibold text-[#1C1512] tracking-tight mb-1',
+  subtextCls: 'text-sm text-[#6E6257]',
+  footerCls: 'text-center mt-8 text-[#6E6257] font-serif italic text-[11px] tracking-wide',
+  tagline: 'Welcome back',
+  footerText: '© Magazine Techy — long looks at technology',
+  siteName: 'Magazine Techy',
+};
+
+/* ── Magazine Air ── */
+const magazineAirTheme: Theme = {
+  bg: 'min-h-screen bg-[#F3F8FA] flex items-center justify-center px-4 py-12 relative overflow-y-auto',
+  card: 'bg-white border border-[#E2ECEF] shadow-[0_24px_70px_-30px_rgba(51,67,77,0.25)] p-8 md:p-14 relative overflow-hidden rounded-none',
+  topBar: '',
+  logo: (
+    <div className="text-center mb-12 flex flex-col items-center">
+      <div className="flex items-center gap-3 font-serif font-light uppercase tracking-[0.42em] text-2xl text-[#33434D]">
+        MAGAZINE<span className="h-[1.1em] w-px bg-[#227D96]" /><span className="text-[#227D96]">AIR</span>
+      </div>
+      <p className="text-[10px] uppercase tracking-[0.34em] text-[#7B8990] mt-4">Administration</p>
+    </div>
+  ),
+  accent: '#227D96',
+  accentCls: 'bg-[#227D96]',
+  accentHover: 'hover:bg-[#1c6a80]',
+  inputFocus: 'focus:border-[#227D96]',
+  inputBorder: 'border-[#E2ECEF] hover:border-[#d0dfe3]',
+  inputBgCls: 'bg-white',
+  inputRounded: 'rounded-none',
+  labelCls: 'text-[10px] font-medium text-[#33434D] uppercase tracking-[0.32em]',
+  btnCls: 'w-full bg-[#227D96] text-white py-4 font-medium text-[11px] uppercase tracking-[0.32em] hover:bg-[#1c6a80] disabled:opacity-60 transition-colors flex items-center justify-center gap-2 group relative overflow-hidden rounded-none',
+  errorCls: 'text-xs text-red-700 bg-red-50 p-3 border border-red-200 font-medium flex items-center gap-2',
+  backCls: 'fixed top-6 left-6 sm:top-10 sm:left-10 flex items-center gap-3 text-[#7B8990] hover:text-[#227D96] transition-all group z-10 font-medium uppercase tracking-[0.28em] text-[10px]',
+  backIconCls: 'transition-transform group-hover:-translate-x-1',
+  headingCls: 'text-2xl font-serif font-light text-[#33434D] tracking-tight mb-1',
+  subtextCls: 'text-sm text-[#7B8990]',
+  footerCls: 'text-center mt-8 text-[#7B8990] font-medium text-[10px] uppercase tracking-[0.3em]',
+  tagline: 'Sign in',
+  footerText: '© Magazine Air',
+  siteName: 'Magazine Air',
+};
+
+/* ── TechyGate ── */
+const techyGateTheme: Theme = {
+  bg: 'min-h-screen bg-white flex items-center justify-center px-4 py-12 relative overflow-y-auto',
+  card: 'bg-white border-2 border-[#0F0F0F] shadow-[8px_8px_0_0_#0F0F0F] p-8 md:p-12 relative overflow-hidden rounded-none',
+  topBar: 'absolute top-0 left-0 w-full h-2 bg-[#F1530A]',
+  logo: (
+    <div className="text-center mb-10 flex flex-col items-center">
+      <div className="flex items-stretch font-serif text-3xl font-bold uppercase tracking-tight text-[#0F0F0F]">
+        <span className="mr-1.5 w-[3px] bg-[#F1530A]" />TECHY<span className="text-[#F1530A]">GATE</span><span className="ml-1.5 w-[3px] bg-[#F1530A]" />
+      </div>
+      <p className="text-[10px] font-serif font-bold uppercase tracking-[0.18em] text-white bg-[#0F0F0F] px-2.5 py-1 mt-3">Control Room</p>
+    </div>
+  ),
+  accent: '#F1530A',
+  accentCls: 'bg-[#F1530A]',
+  accentHover: 'hover:bg-[#d84809]',
+  inputFocus: 'focus:border-[#F1530A]',
+  inputBorder: 'border-[#0F0F0F] hover:border-[#0F0F0F]',
+  inputBgCls: 'bg-white',
+  inputRounded: 'rounded-none',
+  labelCls: 'text-[11px] font-serif font-bold text-[#0F0F0F] uppercase tracking-[0.14em]',
+  btnCls: 'w-full bg-[#0F0F0F] text-white py-4 font-serif font-bold text-sm uppercase tracking-[0.2em] hover:bg-[#F1530A] disabled:opacity-60 transition-colors flex items-center justify-center gap-2 group relative overflow-hidden rounded-none',
+  errorCls: 'text-xs text-red-700 bg-red-50 p-3 border-2 border-red-300 font-bold flex items-center gap-2',
+  backCls: 'fixed top-6 left-6 sm:top-10 sm:left-10 flex items-center gap-3 text-[#5E5E5E] hover:text-[#F1530A] transition-all group z-10 font-serif font-bold uppercase tracking-[0.16em] text-[10px]',
+  backIconCls: 'transition-transform group-hover:-translate-x-1',
+  headingCls: 'text-2xl font-serif font-bold text-[#0F0F0F] uppercase tracking-tight mb-1',
+  subtextCls: 'text-sm text-[#5E5E5E]',
+  footerCls: 'text-center mt-8 text-[#5E5E5E] font-serif font-bold text-[10px] uppercase tracking-[0.18em]',
+  tagline: 'Operator Sign-In',
+  footerText: '© TechyGate — your gateway to tech',
+  siteName: 'TechyGate',
+};
+
+/* ── New York Signal ── */
+const newYorkSignalTheme: Theme = {
+  bg: 'min-h-screen bg-[#F4F0E6] flex items-center justify-center px-4 py-12 relative overflow-y-auto',
+  card: 'bg-[#FBF9F3] border border-[#E0D7C5] border-t-[3px] border-t-[#1A1613] shadow-lg p-8 md:p-12 relative overflow-hidden rounded-none',
+  topBar: '',
+  logo: (
+    <div className="text-center mb-10 flex flex-col items-center">
+      <div className="flex items-center gap-2 font-serif text-3xl font-black tracking-tight text-[#1A1613]">
+        <span aria-hidden className="flex items-end gap-[2px] pb-[0.18em]">
+          <span className="w-[3px] h-[0.35em] bg-[#7C231E]" />
+          <span className="w-[3px] h-[0.55em] bg-[#7C231E]" />
+          <span className="w-[3px] h-[0.8em] bg-[#7C231E]" />
+        </span>
+        The New York Signal
+      </div>
+      <p className="text-[10px] font-mono font-bold uppercase tracking-[0.24em] text-[#6A6153] mt-3">Newsroom Administration</p>
+    </div>
+  ),
+  accent: '#7C231E',
+  accentCls: 'bg-[#7C231E]',
+  accentHover: 'hover:bg-[#661c18]',
+  inputFocus: 'focus:border-[#7C231E]',
+  inputBorder: 'border-[#E0D7C5] hover:border-[#d2c6ab]',
+  inputBgCls: 'bg-white',
+  inputRounded: 'rounded-none',
+  labelCls: 'text-[10px] font-mono font-bold text-[#1A1613] uppercase tracking-[0.22em]',
+  btnCls: 'w-full bg-[#1A1613] text-[#F4F0E6] py-4 font-serif font-bold text-sm uppercase tracking-[0.2em] hover:bg-[#7C231E] disabled:opacity-60 transition-colors flex items-center justify-center gap-2 group relative overflow-hidden rounded-none',
+  errorCls: 'text-xs text-[#7C231E] bg-[#7C231E]/5 p-3 border border-[#7C231E]/20 font-bold flex items-center gap-2',
+  backCls: 'fixed top-6 left-6 sm:top-10 sm:left-10 flex items-center gap-3 text-[#6A6153] hover:text-[#7C231E] transition-all group z-10 font-mono font-bold uppercase tracking-[0.2em] text-[10px]',
+  backIconCls: 'transition-transform group-hover:-translate-x-1',
+  headingCls: 'text-2xl font-serif font-black text-[#1A1613] tracking-tight mb-1',
+  subtextCls: 'text-sm text-[#6A6153]',
+  footerCls: 'text-center mt-8 text-[#6A6153] font-mono font-bold text-[10px] uppercase tracking-[0.22em]',
+  tagline: 'Subscriber Desk Sign-In',
+  footerText: '© The New York Signal',
+  siteName: 'New York Signal',
 };
 
 /* ─── Shared form logic ─── */
