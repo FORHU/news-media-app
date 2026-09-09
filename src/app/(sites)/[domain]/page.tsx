@@ -133,7 +133,7 @@ export default async function Page({
 
   const [articles, banners] = await Promise.all([
     tenantId
-      ? articlesService.getArticles({ limit: 60, status: "published" }, tenantId)
+      ? articlesService.getArticles({ limit: 60, status: "published", requireImage: true }, tenantId)
       : Promise.resolve([]),
     tenantId
       ? bannersService.getAllBannersForTenant(tenantId).catch(() => emptyBanners)

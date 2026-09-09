@@ -18,6 +18,7 @@ export const articlesService = {
     category?: string | null;
     status?: string | null;
     onlySummary?: boolean;
+    requireImage?: boolean;
   }, tenantId?: string | null) => {
     const rawLimit = params.limit ?? 50;
     const safeLimit = Math.min(rawLimit || 50, 1000); // Increased limit for sitemaps/etc
@@ -29,6 +30,7 @@ export const articlesService = {
       status: params.status ?? null,
       tenantId: tenantId ?? undefined,
       onlySummary: params.onlySummary,
+      requireImage: params.requireImage,
     });
   }),
 

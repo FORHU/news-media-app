@@ -116,12 +116,13 @@ async function SearchContent({
           search: searchQuery,
           category: categoryParam,
           status: "published",
+          requireImage: true,
         },
         tenantId
       )
       : Promise.resolve([]),
     tenantId
-      ? articlesService.getArticles({ limit: 10, status: "published" }, tenantId)
+      ? articlesService.getArticles({ limit: 10, status: "published", requireImage: true }, tenantId)
       : Promise.resolve([]),
     tenantId
       ? bannersService
