@@ -76,7 +76,9 @@ export async function generateStaticParams() {
   }
 }
 
-import { cleanOgDescription, getRequestBaseUrl, buildOgImageUrl } from "@/lib/metadata";
+import { cleanOgDescription, getRequestBaseUrl, buildOgImageUrl, toAbsoluteUrl } from "@/lib/metadata";
+import { JsonLd } from "@/components/JsonLd";
+import { baseUrlForDomain, buildBreadcrumbLd, buildNewsArticleLd } from "@/lib/structuredData";
 
 export async function generateMetadata({
   params,
@@ -287,9 +289,10 @@ export default async function ArticlePage({
 
   // Fetch article — separated from redirect() so Next.js's internal redirect
   // error is never accidentally swallowed by this catch block.
+  let article: Awaited<ReturnType<typeof articlesService.getArticleBySlugOrId>>;
   let canonicalSlug: string;
   try {
-    const article = await articlesService.getArticleBySlugOrId(articleId, tenantId);
+    article = await articlesService.getArticleBySlugOrId(articleId, tenantId);
     canonicalSlug = article.slug ?? article.id;
     queryClient.setQueryData(["article", canonicalSlug], article);
   } catch (error: unknown) {
@@ -319,8 +322,41 @@ export default async function ArticlePage({
   const dehydratedState = dehydrate(queryClient);
   const TechNewsArticle = TECHNEWS_ARTICLES[domain];
 
+  // NewsArticle JSON-LD — built here where the article row and domain are in
+  // scope. Covers every domain (runs before design routing). Base URL is
+  // derived from the domain param (not headers()) to keep this page static.
+  const baseUrl = baseUrlForDomain(domain);
+  const canonicalUrl = `${baseUrl.replace(/\/$/, "")}/article/${encodeURIComponent(canonicalSlug)}`;
+  const ldImageUrls = Array.from(
+    new Set(
+      [article.imageUrl, ...(Array.isArray(article.imageUrls) ? article.imageUrls : [])]
+        .filter((u): u is string => typeof u === "string" && u.trim().length > 0)
+        .map((u) => toAbsoluteUrl(u.trim(), baseUrl))
+    )
+  );
+  const articleHeadline = (article.title?.trim() || getSiteDescriptionFromDomain(domain)).slice(0, 110);
+  const newsArticleLd = buildNewsArticleLd({
+    domain,
+    baseUrl,
+    article,
+    description: cleanOgDescription(
+      article.content ?? getSiteDescriptionFromDomain(domain),
+      160
+    ),
+    canonicalUrl,
+    imageUrls: ldImageUrls,
+  });
+  const breadcrumbLd = buildBreadcrumbLd({
+    domain,
+    baseUrl,
+    headline: articleHeadline,
+    canonicalUrl,
+    section: article.category?.categoryName ?? null,
+  });
+
   return (
     <Hydrate state={dehydratedState}>
+      <JsonLd data={[newsArticleLd, breadcrumbLd]} />
       <Suspense fallback={<div className="min-h-[60vh] bg-white" />}>
         {domain === "jejujapan.com" ? (
           <JejuJapanArticle articleId={canonicalSlug} initialOtherArticles={allArticles} />

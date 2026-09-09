@@ -23,8 +23,37 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
         userAgent: ["facebookexternalhit", "Facebot", "Twitterbot", "LinkedInBot", "Slackbot", "WhatsApp", "TelegramBot", "Googlebot", "Bingbot"],
         allow: "/",
       },
+      {
+        // AI search / answer engines — explicitly allowed so the sites are
+        // eligible to be cited in AI results (GEO). Flip to `disallow: "/"`
+        // per-agent to opt out of a specific crawler.
+        userAgent: [
+          "GPTBot",
+          "OAI-SearchBot",
+          "ChatGPT-User",
+          "PerplexityBot",
+          "Perplexity-User",
+          "ClaudeBot",
+          "Claude-User",
+          "Claude-SearchBot",
+          "anthropic-ai",
+          "Google-Extended",
+          "Applebot",
+          "Applebot-Extended",
+          "Amazonbot",
+          "Bytespider",
+          "Meta-ExternalAgent",
+          "Meta-ExternalFetcher",
+          "cohere-ai",
+          "DuckAssistBot",
+          "YouBot",
+          "CCBot",
+        ],
+        allow: "/",
+        disallow: ["/admin", "/admin/*", "/api/*"],
+      },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: [`${baseUrl}/sitemap.xml`, `${baseUrl}/news-sitemap.xml`],
     host: baseUrl,
   };
 }
