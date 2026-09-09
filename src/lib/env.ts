@@ -43,7 +43,10 @@ const optionalUrl = () =>
 
 const schema = z.object({
   // --- Object storage (S3 / CloudFront) ---
-  AWS_REGION: optionalStr().transform((v) => v ?? "us-east-1"),
+  // No default: the whole stack is single-region. A missing value should fail
+  // loudly via requireEnv(), not silently fall back to us-east-1 and produce a
+  // cryptic S3 "PermanentRedirect".
+  AWS_REGION: optionalStr(),
   AWS_S3_BUCKET: optionalStr(),
   // Both the AWS-native name and the app-prefixed names used in .env / compose.
   APP_AWS_ACCESS_KEY_ID: optionalStr(),

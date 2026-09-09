@@ -15,7 +15,7 @@ function getS3Client() {
         const secretAccessKey = env.APP_AWS_SECRET_ACCESS_KEY;
 
         s3ClientInstance = new S3Client({
-            region: env.AWS_REGION,
+            region: requireEnv("AWS_REGION"),
             // When static keys aren't provided, omit `credentials` entirely so the
             // AWS SDK's default provider chain applies (EC2/ECS instance role,
             // shared config, web identity, etc.) — this is how production runs
@@ -66,7 +66,7 @@ export function buildPublicUrl(key: string): string {
     if (env.CLOUDFRONT_URL) {
         return `${env.CLOUDFRONT_URL}/${key}`;
     }
-    return `https://${bucketName}.s3.${env.AWS_REGION}.amazonaws.com/${key}`;
+    return `https://${bucketName}.s3.${requireEnv("AWS_REGION")}.amazonaws.com/${key}`;
 }
 
 /**
@@ -76,7 +76,7 @@ export function buildPublicUrl(key: string): string {
 export function keyFromPublicUrl(url: string): string | null {
     const bases = [
         env.CLOUDFRONT_URL,
-        env.AWS_S3_BUCKET
+        env.AWS_S3_BUCKET && env.AWS_REGION
             ? `https://${env.AWS_S3_BUCKET}.s3.${env.AWS_REGION}.amazonaws.com`
             : undefined,
     ].filter(Boolean) as string[];
