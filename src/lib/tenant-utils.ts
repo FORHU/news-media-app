@@ -54,13 +54,13 @@ export function getSiteLogoFromDomain(domain: string | null): string {
   if (d.includes('jejutime')) return "JEJUTIMELOGO.png";
   if (d.includes('skyblueprime')) return "NEWSICONSLOGO.png";
   if (d.includes('legalhyper')) return "LEGALHYPERLOGO.png";
-  // technews family — no dedicated logo assets on disk yet; reuse the default.
-  if (d.includes('linktechnews')) return "NEWSICONSLOGO.png";
-  if (d.includes('dbtechnews')) return "NEWSICONSLOGO.png";
-  if (d.includes('magazinetechy')) return "NEWSICONSLOGO.png";
-  if (d.includes('magazineair')) return "NEWSICONSLOGO.png";
-  if (d.includes('techygate')) return "NEWSICONSLOGO.png";
-  if (d.includes('newyorksignal')) return "NEWSICONSLOGO.png";
+  // technews family — theme-derived wordmark PNGs in /public/Logo.
+  if (d.includes('linktechnews')) return "LINKTECHNEWS.png";
+  if (d.includes('dbtechnews')) return "DBTECHNEWS.png";
+  if (d.includes('magazinetechy')) return "MAGAZINETECHY.png";
+  if (d.includes('magazineair')) return "MAGAZINEAIR.png";
+  if (d.includes('techygate')) return "TECHYGATE.png";
+  if (d.includes('newyorksignal')) return "NEWYORKSIGNAL.png";
   return "NEWSICONSLOGO.png";
 }
 
@@ -81,6 +81,40 @@ export function getSiteDescriptionFromDomain(domain: string | null): string {
   if (d.includes('techygate')) return "Your gateway to the day in technology.";
   if (d.includes('newyorksignal')) return "Dispatches on technology from the city that never logs off.";
   return "Media & Content Hub for curated news, blogs, and insights.";
+}
+
+/**
+ * Official brand profiles per domain, emitted as schema.org `sameAs` so search
+ * and AI engines can disambiguate the publisher entity. Fill each array in as
+ * the accounts exist, e.g.
+ *   linktechnews: ["https://x.com/linktechnews",
+ *                  "https://www.linkedin.com/company/linktechnews"]
+ * An empty array simply omits `sameAs` from the markup.
+ */
+const SITE_SAME_AS: Record<string, string[]> = {
+  newsicons: [],
+  lavaguetech: [],
+  voicejeju: [],
+  jejujapan: [],
+  jejuqq: [],
+  jejutime: [],
+  skyblueprime: [],
+  legalhyper: [],
+  linktechnews: [],
+  dbtechnews: [],
+  magazinetechy: [],
+  magazineair: [],
+  techygate: [],
+  newyorksignal: [],
+};
+
+export function getSiteSameAsFromDomain(domain: string | null): string[] {
+  if (!domain) return [];
+  const d = domain.toLowerCase();
+  for (const [key, urls] of Object.entries(SITE_SAME_AS)) {
+    if (d.includes(key)) return urls;
+  }
+  return [];
 }
 
 /** Jeju site domains default to keeping the crawled thumbnail; others default to OpenAI image remix. */

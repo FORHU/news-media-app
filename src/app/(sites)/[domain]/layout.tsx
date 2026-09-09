@@ -18,6 +18,8 @@ export async function generateStaticParams() {
 
 import { getRequestBaseUrl, buildOgImageUrl } from "@/lib/metadata";
 import { getSiteDescriptionFromDomain } from "@/lib/tenant";
+import { JsonLd } from "@/components/JsonLd";
+import { baseUrlForDomain, buildOrganizationLd, buildWebSiteLd } from "@/lib/structuredData";
 
 export async function generateMetadata({ params }: { params: Promise<{ domain: string }> }): Promise<Metadata> {
   const { domain } = await params;
@@ -65,6 +67,11 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
     },
     alternates: {
       canonical: "/",
+      types: {
+        "application/rss+xml": [
+          { url: `${baseUrl}/feed.xml`, title: `${siteName} — RSS` },
+        ],
+      },
     },
   };
 }
@@ -77,9 +84,16 @@ export default async function SiteLayout({
   params: Promise<{ domain: string }>;
 }) {
   const { domain } = await params;
+  const baseUrl = baseUrlForDomain(domain);
 
   return (
     <div className={`site-theme-${domain.replace(".", "-")}`}>
+      <JsonLd
+        data={[
+          buildOrganizationLd(domain, baseUrl),
+          buildWebSiteLd(domain, baseUrl),
+        ]}
+      />
       <SiteShell domain={domain}>
         {children}
       </SiteShell>
