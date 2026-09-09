@@ -1,8 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
 import dynamic from "next/dynamic";
 import { StoryImage } from "@/components/StoryImage";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
@@ -11,6 +8,8 @@ import { getCoreCategories, normalizeCategoryKey } from "@/config/categories";
 import type { MediaStackArticle } from "@/lib/mediastack";
 import { getTechNewsTheme, techNewsVars, type TechNewsTheme } from "../technews-shared/theme";
 import { SectionLabel, SourceChip } from "../technews-shared/parts";
+import { toFeedRows, excerpt, type FeedRow } from "../technews-shared/feed";
+import { FeedLink } from "../technews-shared/FeedLink";
 
 const AdBanner = dynamic(() => import("@/components/AdBanner").then((m) => m.AdBanner), {
   ssr: true,
@@ -19,50 +18,12 @@ const AdBanner = dynamic(() => import("@/components/AdBanner").then((m) => m.AdB
   ),
 });
 
-interface ArticleRow {
-  id: string;
-  slug?: string | null;
-  title: string;
-  content?: string | null;
-  imageUrl?: string | null;
-  createdAt: string | Date;
-  trendingScore?: number | null;
-  isHeadline?: boolean | null;
-  category?: { categoryName?: string | null } | null;
-}
-
 interface Props {
   domain: string;
   tenantId: string | null;
-  articles: ArticleRow[];
+  articles: Parameters<typeof toFeedRows>[0];
   banners: { top: unknown[]; sidebar: unknown[]; footer: unknown[] };
   mediastackArticles?: MediaStackArticle[];
-}
-
-function articleHref(a: { slug?: string | null; id: string }) {
-  return `/article/${a.slug || a.id}`;
-}
-
-function excerpt(text: string | null | undefined, max = 120) {
-  if (!text) return "";
-  const plain = text.replace(/<[^>]+>/g, "").trim();
-  return plain.length > max ? `${plain.slice(0, max)}…` : plain;
-}
-
-function isMs(a: ArticleRow | MediaStackArticle): a is MediaStackArticle {
-  return "url" in a && "source" in a && !("slug" in a);
-}
-
-function cleanImage(url: string | null | undefined): string | null {
-  if (!url) return null;
-  if (
-    url.includes("googleusercontent.com") ||
-    url.includes("gstatic.com") ||
-    url.includes("news.google.com") ||
-    url.includes("google.com/s2/favicons")
-  )
-    return null;
-  return url;
 }
 
 function timeLabel(iso: string): string {
@@ -71,82 +32,35 @@ function timeLabel(iso: string): string {
   return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
 }
 
-function ExternalThumb({
-  src,
-  alt,
-  label,
-  sizes,
-  className,
-}: {
-  src: string;
-  alt: string;
-  label: string;
-  sizes: string;
-  className?: string;
-}) {
-  const [failed, setFailed] = useState(false);
-  if (failed) {
-    return (
-      <div className="w-full h-full bg-[var(--tn-accent-soft)] flex items-center justify-center">
-        <span className="text-[var(--tn-muted)] text-[10px] font-bold uppercase px-2 text-center font-mono">
-          {label}
-        </span>
-      </div>
-    );
-  }
-  return (
-    <Image src={src} alt={alt} fill sizes={sizes} className={className} onError={() => setFailed(true)} />
-  );
-}
-
 function HeadlineCard({
   theme,
-  article,
+  row,
   imgSizes,
   titleClass = "text-[16px]",
 }: {
   theme: TechNewsTheme;
-  article: ArticleRow | MediaStackArticle;
+  row: FeedRow;
   imgSizes: string;
   titleClass?: string;
 }) {
-  const external = isMs(article);
-  const imgSrc = external ? article.image : article.imageUrl;
-  const label = external ? article.source : article.category?.categoryName ?? "News";
-  const body = (
-    <>
+  const label = row.external ? row.source : row.category?.categoryName ?? "News";
+  const desc = excerpt(row.content, 100);
+  return (
+    <FeedLink row={row} className="group block border-b border-[var(--tn-rule)] pb-6 last:border-0">
       <div
         className="relative aspect-[3/2] w-full mb-3 bg-[var(--tn-accent-soft)] overflow-hidden"
         style={{ borderRadius: "var(--tn-radius)" }}
       >
-        {external ? (
-          imgSrc ? (
-            <ExternalThumb
-              src={imgSrc}
-              alt={article.title}
-              label={label}
-              sizes={imgSizes}
-              className="object-cover group-hover:scale-105 transition-transform duration-500"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <span className="text-[var(--tn-muted)] text-[10px] font-bold uppercase px-2 text-center font-mono">
-                {label}
-              </span>
-            </div>
-          )
-        ) : (
-          <StoryImage
-            src={imgSrc}
-            alt={article.title}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
-            sizes={imgSizes}
-          />
-        )}
+        <StoryImage
+          src={row.imageUrl}
+          alt={row.title}
+          fill
+          className="object-cover group-hover:scale-105 transition-transform duration-500"
+          sizes={imgSizes}
+        />
       </div>
-      {external && theme.sourceChips ? (
-        <SourceChip source={article.sourceDomain || article.source} className="mb-1" />
+      {row.external && theme.sourceChips ? (
+        <SourceChip source={row.source ?? ""} className="mb-1" />
       ) : (
         <span className="block font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--tn-muted)] mb-1">
           {label}
@@ -155,26 +69,14 @@ function HeadlineCard({
       <h3
         className={`font-serif font-bold text-[var(--tn-ink)] leading-tight group-hover:text-[var(--tn-accent)] transition-colors ${titleClass}`}
       >
-        {article.title}
+        {row.title}
       </h3>
-    </>
-  );
-  return external ? (
-    <a
-      href={article.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group block border-b border-[var(--tn-rule)] pb-6 last:border-0"
-    >
-      {body}
-    </a>
-  ) : (
-    <Link
-      href={articleHref(article)}
-      className="group block border-b border-[var(--tn-rule)] pb-6 last:border-0"
-    >
-      {body}
-    </Link>
+      {desc && (
+        <p className="text-[13px] text-[var(--tn-muted)] leading-snug line-clamp-2 mt-1.5">
+          {desc}
+        </p>
+      )}
+    </FeedLink>
   );
 }
 
@@ -185,50 +87,39 @@ export default function LinkTechNewsLanding({ domain, articles, banners, mediast
     categories.map((c) => [normalizeCategoryKey(c), c.trim()]),
   );
 
-  const sorted = [...articles].sort((a, b) => {
-    const ah = a.isHeadline ? 1 : 0;
-    const bh = b.isHeadline ? 1 : 0;
-    if (bh !== ah) return bh - ah;
-    if ((b.trendingScore ?? 0) !== (a.trendingScore ?? 0)) {
-      return (b.trendingScore ?? 0) - (a.trendingScore ?? 0);
-    }
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
+  // Unified pool: DB articles (when editors have published) always rank first,
+  // then the MediaStack "technology" feed fills every remaining slot — so the
+  // page never collapses to an empty homepage before DB content exists.
+  const rows = toFeedRows(articles, mediastackArticles);
+  const pool = rows.filter((r) => r.imageUrl !== null || !r.external);
 
-  const hero = sorted[0];
-  const dbSecondary = sorted.slice(1, 6);
-  const dbTrending = sorted.slice(6, 11);
-  const dbCenter = sorted.slice(11, 16);
+  // Fixed slot boundaries into `pool` — hero, then each section in turn, with
+  // whatever's left over feeding the category blocks below.
+  const HERO_END = 1;
+  const CENTER_END = HERO_END + 5;
+  const SECONDARY_END = CENTER_END + 5;
+  const TRENDING_END = SECONDARY_END + 5;
+  const FEED_END = TRENDING_END + 8;
+  const DIGEST_END = FEED_END + 18;
 
-  const msWithImage = mediastackArticles.filter((a) => cleanImage(a.image) !== null);
-  const msNoImageOk = mediastackArticles; // rail can show headline-only
-  const railItems = msNoImageOk.slice(0, 22);
-  const msDigest = msWithImage.slice(8, 26);
-  const msFeed = msWithImage.slice(0, 8);
+  const hero = pool[0] ?? null;
+  const centerRows = pool.slice(HERO_END, CENTER_END);
+  const secondary = pool.slice(CENTER_END, SECONDARY_END);
+  const trending = pool.slice(SECONDARY_END, TRENDING_END);
+  const feedGrid = pool.slice(TRENDING_END, FEED_END);
+  const digestList = pool.slice(FEED_END, DIGEST_END);
+  const remainder = pool.slice(DIGEST_END);
 
-  const msFallback = msWithImage.slice(26);
-  let fb = 0;
-  const secondary: (ArticleRow | MediaStackArticle)[] = [...dbSecondary];
-  while (secondary.length < 5 && fb < msFallback.length) secondary.push(msFallback[fb++]);
-  const trending: (ArticleRow | MediaStackArticle)[] = [...dbTrending];
-  while (trending.length < 5 && fb < msFallback.length) trending.push(msFallback[fb++]);
-  const centerRows: (ArticleRow | MediaStackArticle)[] = [...dbCenter];
-  while (centerRows.length < 5 && fb < msFallback.length) centerRows.push(msFallback[fb++]);
+  // Left rail — freshest headlines ticker, independent of the pool above (a
+  // "latest" ticker legitimately overlaps with the main grid on real news sites).
+  const railItems = mediastackArticles.slice(0, 22);
 
-  const usedIds = new Set([
-    hero?.id,
-    ...dbSecondary.map((a) => a.id),
-    ...dbTrending.map((a) => a.id),
-    ...dbCenter.map((a) => a.id),
-  ]);
-
-  const groupedMap = new Map<string, ArticleRow[]>();
-  for (const a of sorted) {
-    if (usedIds.has(a.id)) continue;
-    const raw = a.category?.categoryName || "Uncategorized";
+  const groupedMap = new Map<string, FeedRow[]>();
+  for (const r of remainder) {
+    const raw = r.category?.categoryName || "Technology";
     const cat = canonicalCategoryMap.get(normalizeCategoryKey(raw)) ?? raw;
     if (!groupedMap.has(cat)) groupedMap.set(cat, []);
-    groupedMap.get(cat)!.push(a);
+    groupedMap.get(cat)!.push(r);
   }
   const grouped = Array.from(groupedMap.entries()).map(([name, items]) => ({ name, items }));
 
@@ -307,11 +198,11 @@ export default function LinkTechNewsLanding({ domain, articles, banners, mediast
                 <SectionLabel theme={theme} className="mb-4">
                   {hero.category?.categoryName ?? "Lead Story"}
                 </SectionLabel>
-                <Link href={articleHref(hero)} className="group block mb-4">
+                <FeedLink row={hero} className="group block mb-4">
                   <h1 className="font-serif text-4xl sm:text-5xl lg:text-[3.1rem] font-black leading-[1.04] tracking-tight text-[var(--tn-ink)] group-hover:text-[var(--tn-accent)] transition-colors">
                     {hero.title}
                   </h1>
-                </Link>
+                </FeedLink>
                 <p className="text-lg text-[var(--tn-muted)] max-w-2xl mb-5 leading-relaxed">
                   {excerpt(hero.content, 190)}
                 </p>
@@ -319,7 +210,7 @@ export default function LinkTechNewsLanding({ domain, articles, banners, mediast
                   className="w-full relative aspect-[16/9] bg-[var(--tn-accent-soft)] overflow-hidden mb-6"
                   style={{ borderRadius: "var(--tn-radius)" }}
                 >
-                  <Link href={articleHref(hero)} className="group block w-full h-full">
+                  <FeedLink row={hero} className="group block w-full h-full">
                     <StoryImage
                       src={hero.imageUrl}
                       alt={hero.title}
@@ -328,7 +219,7 @@ export default function LinkTechNewsLanding({ domain, articles, banners, mediast
                       sizes="(max-width: 1024px) 100vw, 50vw"
                       priority
                     />
-                  </Link>
+                  </FeedLink>
                 </div>
 
                 {ad && (
@@ -349,84 +240,43 @@ export default function LinkTechNewsLanding({ domain, articles, banners, mediast
 
                 {centerRows.length > 0 && (
                   <div className="w-full flex flex-col divide-y divide-[var(--tn-rule)] border-t border-[var(--tn-rule)]">
-                    {centerRows.map((article) => {
-                      const external = isMs(article);
-                      const imgSrc = external ? article.image : article.imageUrl;
-                      const label = external
-                        ? article.source
-                        : article.category?.categoryName ?? "News";
-                      const desc = external ? article.description : excerpt(article.content, 100);
-                      const rowBody = (
-                        <>
-                          <div
-                            className="relative w-[150px] h-[100px] shrink-0 bg-[var(--tn-accent-soft)] overflow-hidden"
-                            style={{ borderRadius: "var(--tn-radius)" }}
-                          >
-                            {external ? (
-                              imgSrc ? (
-                                <ExternalThumb
-                                  src={imgSrc}
-                                  alt={article.title}
-                                  label={label}
-                                  sizes="150px"
-                                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                  <span className="text-[var(--tn-muted)] text-[10px] font-bold uppercase px-2 text-center font-mono">
-                                    {label}
-                                  </span>
-                                </div>
-                              )
-                            ) : (
-                              <StoryImage
-                                src={imgSrc}
-                                alt={article.title}
-                                fill
-                                className="object-cover group-hover:scale-105 transition-transform duration-500"
-                                sizes="150px"
-                              />
-                            )}
-                          </div>
-                          <div className="flex flex-col gap-1.5 min-w-0 justify-center">
-                            {external && theme!.sourceChips ? (
-                              <SourceChip source={article.sourceDomain || article.source} />
-                            ) : (
-                              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--tn-muted)]">
-                                {label}
-                              </span>
-                            )}
-                            <h3 className="font-serif text-[17px] font-bold text-[var(--tn-ink)] leading-snug group-hover:text-[var(--tn-accent)] transition-colors line-clamp-2">
-                              {article.title}
-                            </h3>
-                            {desc && (
-                              <p className="text-[13px] text-[var(--tn-muted)] leading-snug line-clamp-2">
-                                {desc}
-                              </p>
-                            )}
-                          </div>
-                        </>
-                      );
-                      return external ? (
-                        <a
-                          key={article.id}
-                          href={article.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="group flex gap-5 items-center py-5 hover:bg-[var(--tn-accent-soft)]/40 transition-colors"
+                    {centerRows.map((row) => (
+                      <FeedLink
+                        key={row.id}
+                        row={row}
+                        className="group flex gap-5 items-center py-5 hover:bg-[var(--tn-accent-soft)]/40 transition-colors"
+                      >
+                        <div
+                          className="relative w-[150px] h-[100px] shrink-0 bg-[var(--tn-accent-soft)] overflow-hidden"
+                          style={{ borderRadius: "var(--tn-radius)" }}
                         >
-                          {rowBody}
-                        </a>
-                      ) : (
-                        <Link
-                          key={article.id}
-                          href={articleHref(article)}
-                          className="group flex gap-5 items-center py-5 hover:bg-[var(--tn-accent-soft)]/40 transition-colors"
-                        >
-                          {rowBody}
-                        </Link>
-                      );
-                    })}
+                          <StoryImage
+                            src={row.imageUrl}
+                            alt={row.title}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            sizes="150px"
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1.5 min-w-0 flex-1 justify-center">
+                          {row.external && theme!.sourceChips ? (
+                            <SourceChip source={row.source ?? ""} />
+                          ) : (
+                            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--tn-muted)]">
+                              {row.category?.categoryName ?? "News"}
+                            </span>
+                          )}
+                          <h3 className="font-serif text-[17px] font-bold text-[var(--tn-ink)] leading-snug group-hover:text-[var(--tn-accent)] transition-colors line-clamp-2">
+                            {row.title}
+                          </h3>
+                          {row.content && (
+                            <p className="text-[13px] text-[var(--tn-muted)] leading-snug line-clamp-2">
+                              {excerpt(row.content, 100)}
+                            </p>
+                          )}
+                        </div>
+                      </FeedLink>
+                    ))}
                   </div>
                 )}
               </article>
@@ -445,47 +295,40 @@ export default function LinkTechNewsLanding({ domain, articles, banners, mediast
             <div className="border-t-2 border-[var(--tn-ink)] pt-3 mb-5">
               <SectionLabel theme={theme}>Most Read</SectionLabel>
             </div>
-            <ol className="flex flex-col">
-              {trending.map((article, i) => {
-                const external = isMs(article);
-                const label = external
-                  ? article.source
-                  : article.category?.categoryName ?? "News";
-                const inner = (
-                  <>
-                    <span className="font-mono text-[22px] font-black leading-none w-8 shrink-0 text-[var(--tn-rule)] group-hover:text-[var(--tn-accent)] transition-colors tabular-nums">
+            <ol className="flex flex-col gap-5">
+              {trending.map((row, i) => (
+                <FeedLink
+                  key={row.id}
+                  row={row}
+                  className={`group flex flex-col gap-2.5 ${
+                    i > 0 ? "pt-5 border-t border-[var(--tn-rule)]" : ""
+                  }`}
+                >
+                  <div
+                    className="relative aspect-[16/9] w-full bg-[var(--tn-accent-soft)] overflow-hidden"
+                    style={{ borderRadius: "var(--tn-radius)" }}
+                  >
+                    <StoryImage
+                      src={row.imageUrl}
+                      alt={row.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      sizes="(max-width: 1024px) 50vw, 300px"
+                    />
+                    <span className="absolute top-2 left-2 flex items-center justify-center w-7 h-7 bg-[var(--tn-ink)] text-[var(--tn-bg)] font-mono text-[13px] font-black tabular-nums">
                       {i + 1}
                     </span>
-                    <div className="min-w-0">
-                      <span className="block font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--tn-muted)] mb-1">
-                        {label}
-                      </span>
-                      <h4 className="font-serif text-[15px] font-bold text-[var(--tn-ink)] leading-tight group-hover:text-[var(--tn-accent)] transition-colors line-clamp-3">
-                        {article.title}
-                      </h4>
-                    </div>
-                  </>
-                );
-                return external ? (
-                  <a
-                    key={article.id}
-                    href={article.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex gap-3 items-start border-b border-[var(--tn-rule)] py-4 last:border-0"
-                  >
-                    {inner}
-                  </a>
-                ) : (
-                  <Link
-                    key={article.id}
-                    href={articleHref(article)}
-                    className="group flex gap-3 items-start border-b border-[var(--tn-rule)] py-4 last:border-0"
-                  >
-                    {inner}
-                  </Link>
-                );
-              })}
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--tn-muted)] mb-1">
+                      {row.external ? row.source : row.category?.categoryName ?? "News"}
+                    </span>
+                    <h4 className="font-serif text-[15px] font-bold text-[var(--tn-ink)] leading-snug group-hover:text-[var(--tn-accent)] transition-colors line-clamp-2">
+                      {row.title}
+                    </h4>
+                  </div>
+                </FeedLink>
+              ))}
             </ol>
             {ad?.["300x250"] && (
               <div className="mt-8 flex justify-center border-t border-[var(--tn-rule)] pt-6">
@@ -502,11 +345,11 @@ export default function LinkTechNewsLanding({ domain, articles, banners, mediast
               <SectionLabel theme={theme}>More Headlines</SectionLabel>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-x-8 gap-y-6">
-              {secondary.map((article) => (
+              {secondary.map((row) => (
                 <HeadlineCard
-                  key={article.id}
+                  key={row.id}
                   theme={theme}
-                  article={article}
+                  row={row}
                   imgSizes="(max-width: 1024px) 50vw, 20vw"
                 />
               ))}
@@ -531,7 +374,7 @@ export default function LinkTechNewsLanding({ domain, articles, banners, mediast
                   className="lg:col-span-7 relative aspect-[16/9] lg:aspect-auto lg:h-[400px] overflow-hidden bg-[var(--tn-accent-soft)] group"
                   style={{ borderRadius: "var(--tn-radius)" }}
                 >
-                  <Link href={articleHref(lead)} className="block w-full h-full">
+                  <FeedLink row={lead} className="block w-full h-full">
                     <StoryImage
                       src={lead.imageUrl}
                       fill
@@ -539,31 +382,31 @@ export default function LinkTechNewsLanding({ domain, articles, banners, mediast
                       alt={lead.title}
                       sizes="(max-width: 1024px) 100vw, 58vw"
                     />
-                  </Link>
+                  </FeedLink>
                 </div>
                 <div className="lg:col-span-5 flex flex-col justify-center">
                   <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--tn-muted)] mb-3">
                     {lead.category?.categoryName}
                   </span>
-                  <Link href={articleHref(lead)} className="block mb-3 group">
+                  <FeedLink row={lead} className="block mb-3 group">
                     <h3 className="font-serif text-3xl lg:text-[2.3rem] font-black leading-[1.06] tracking-tight text-[var(--tn-ink)] group-hover:text-[var(--tn-accent)] transition-colors">
                       {lead.title}
                     </h3>
-                  </Link>
+                  </FeedLink>
                   <p className="text-base text-[var(--tn-muted)] mb-4 leading-relaxed">
                     {excerpt(lead.content, 180)}
                   </p>
                   <span className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--tn-ink)]">
-                    By {theme.byline}
+                    {lead.external ? `Via ${lead.source}` : `By ${theme.byline}`}
                   </span>
                 </div>
               </div>
               {rest.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-6 border-t border-[var(--tn-rule)] pt-6">
-                  {rest.map((article) => (
-                    <Link
-                      href={articleHref(article)}
-                      key={article.id}
+                  {rest.map((row) => (
+                    <FeedLink
+                      row={row}
+                      key={row.id}
                       className="group flex gap-3 items-start"
                     >
                       <div
@@ -571,8 +414,8 @@ export default function LinkTechNewsLanding({ domain, articles, banners, mediast
                         style={{ borderRadius: "var(--tn-radius)" }}
                       >
                         <StoryImage
-                          src={article.imageUrl}
-                          alt={article.title}
+                          src={row.imageUrl}
+                          alt={row.title}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-500"
                           sizes="76px"
@@ -580,13 +423,13 @@ export default function LinkTechNewsLanding({ domain, articles, banners, mediast
                       </div>
                       <div className="flex-1 min-w-0">
                         <span className="block font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-[var(--tn-muted)] mb-1 leading-none">
-                          {article.category?.categoryName}
+                          {row.category?.categoryName}
                         </span>
                         <h4 className="font-serif text-[14px] font-bold text-[var(--tn-ink)] leading-snug group-hover:text-[var(--tn-accent)] transition-colors line-clamp-3">
-                          {article.title}
+                          {row.title}
                         </h4>
                       </div>
-                    </Link>
+                    </FeedLink>
                   ))}
                 </div>
               )}
@@ -595,63 +438,59 @@ export default function LinkTechNewsLanding({ domain, articles, banners, mediast
         })}
 
         {/* From the Feed — mediastack grid */}
-        {msFeed.length > 0 && (
+        {feedGrid.length > 0 && (
           <section className="mt-14">
             <div className="border-t-4 border-[var(--tn-accent)] pt-3 mb-8">
               <SectionLabel theme={theme}>From the Feed</SectionLabel>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {msFeed.map((item) => (
-                <a
-                  key={item.id}
-                  href={item.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+              {feedGrid.map((row) => (
+                <FeedLink
+                  key={row.id}
+                  row={row}
                   className="group flex flex-col bg-[var(--tn-surface)] border border-[var(--tn-rule)] hover:border-[var(--tn-accent)] transition-colors"
                   style={{ borderRadius: "var(--tn-radius)" }}
                 >
                   <div className="relative aspect-[16/9] bg-[var(--tn-accent-soft)] overflow-hidden">
-                    {item.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <span className="text-[var(--tn-muted)] text-[10px] font-bold uppercase px-2 text-center font-mono">
-                          {item.source}
-                        </span>
-                      </div>
-                    )}
+                    <StoryImage
+                      src={row.imageUrl}
+                      alt={row.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      sizes="(max-width: 640px) 100vw, 25vw"
+                    />
                   </div>
                   <div className="p-4 flex flex-col gap-2 flex-1">
-                    {theme.sourceChips ? (
-                      <SourceChip source={item.sourceDomain || item.source} />
+                    {row.external && theme.sourceChips ? (
+                      <SourceChip source={row.source ?? ""} />
                     ) : (
                       <span className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--tn-muted)]">
-                        {item.source}
+                        {row.external ? row.source : row.category?.categoryName}
                       </span>
                     )}
                     <h3 className="font-serif text-[15px] font-bold text-[var(--tn-ink)] leading-snug group-hover:text-[var(--tn-accent)] transition-colors line-clamp-3 flex-1">
-                      {item.title}
+                      {row.title}
                     </h3>
+                    {row.content && (
+                      <p className="text-[12px] text-[var(--tn-muted)] leading-snug line-clamp-2">
+                        {excerpt(row.content, 110)}
+                      </p>
+                    )}
                     <span className="font-mono text-[10px] text-[var(--tn-muted)]">
-                      {new Date(item.publishedAt).toLocaleDateString("en-US", {
+                      {new Date(row.createdAt).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                       })}
                     </span>
                   </div>
-                </a>
+                </FeedLink>
               ))}
             </div>
           </section>
         )}
 
         {/* Digest — dense 2-col list */}
-        {msDigest.length > 0 && (
+        {digestList.length > 0 && (
           <section className="mt-14">
             <div className="border-t-4 border-[var(--tn-ink)] pt-3 mb-8">
               <SectionLabel theme={theme}>The Digest</SectionLabel>
@@ -660,46 +499,42 @@ export default function LinkTechNewsLanding({ domain, articles, banners, mediast
               className="grid grid-cols-1 lg:grid-cols-2 bg-[var(--tn-surface)] border border-[var(--tn-rule)] divide-y lg:divide-y-0 lg:divide-x divide-[var(--tn-rule)]"
               style={{ borderRadius: "var(--tn-radius)" }}
             >
-              {[msDigest.slice(0, Math.ceil(msDigest.length / 2)), msDigest.slice(Math.ceil(msDigest.length / 2))].map(
+              {[digestList.slice(0, Math.ceil(digestList.length / 2)), digestList.slice(Math.ceil(digestList.length / 2))].map(
                 (col, ci) => (
                   <div key={ci} className="flex flex-col divide-y divide-[var(--tn-rule)]">
-                    {col.map((item) => (
-                      <a
-                        key={item.id}
-                        href={item.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                    {col.map((row) => (
+                      <FeedLink
+                        key={row.id}
+                        row={row}
                         className="group flex gap-3 items-center p-4 hover:bg-[var(--tn-accent-soft)]/50 transition-colors"
                       >
-                        <div className="w-[76px] h-[56px] shrink-0 bg-[var(--tn-accent-soft)] overflow-hidden">
-                          {item.image ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={item.image}
-                              alt={item.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <span className="text-[var(--tn-muted)] text-[9px] font-bold uppercase text-center px-1 font-mono">
-                                {item.source}
-                              </span>
-                            </div>
-                          )}
+                        <div className="relative w-[76px] h-[56px] shrink-0 bg-[var(--tn-accent-soft)] overflow-hidden">
+                          <StoryImage
+                            src={row.imageUrl}
+                            alt={row.title}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            sizes="76px"
+                          />
                         </div>
-                        <div className="min-w-0 flex flex-col gap-0.5">
+                        <div className="min-w-0 flex-1 flex flex-col gap-0.5">
                           <span className="font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-[var(--tn-muted)] truncate">
-                            {(item.sourceDomain || item.source).replace(/^www\./, "")} ·{" "}
-                            {new Date(item.publishedAt).toLocaleDateString("en-US", {
+                            {(row.source ?? row.category?.categoryName ?? "").toString()} ·{" "}
+                            {new Date(row.createdAt).toLocaleDateString("en-US", {
                               month: "short",
                               day: "numeric",
                             })}
                           </span>
                           <h4 className="font-serif text-[13px] font-bold text-[var(--tn-ink)] leading-snug group-hover:text-[var(--tn-accent)] transition-colors line-clamp-2">
-                            {item.title}
+                            {row.title}
                           </h4>
+                          {row.content && (
+                            <p className="text-[11px] text-[var(--tn-muted)] leading-snug line-clamp-1">
+                              {excerpt(row.content, 90)}
+                            </p>
+                          )}
                         </div>
-                      </a>
+                      </FeedLink>
                     ))}
                   </div>
                 ),
