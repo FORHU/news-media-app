@@ -109,6 +109,7 @@ model ContentArticle {
   rawTweetId        String?                 @unique @map("raw_tweets_id")
   rawVideoId        String?                 @unique @map("raw_youtube_id")
   rawSourceUploadId String?                 @unique @map("raw_source_uploads_id")
+  generalPublishId  String?                 @map("general_publish_id")
   title             String
   slug              String?                 @unique
   publishDate       DateTime?               @map("publish_date")
@@ -130,10 +131,13 @@ model ContentArticle {
   rawVideo          RawVideo?               @relation(fields: [rawVideoId], references: [id])
   tenant              Tenant                     @relation(fields: [tenantId], references: [id])
   user                User                       @relation(fields: [usersId], references: [id])
+  generalPublish      GeneralPublish?            @relation(fields: [generalPublishId], references: [id], onDelete: Cascade)
   transformations     ContentTransformation[]
   externalSubmission  ExternalArticleSubmission?
 
+  @@unique([generalPublishId, tenantId])
   @@index([tenantId])
+  @@index([generalPublishId])
   @@map("content_articles")
 }
 
@@ -353,4 +357,23 @@ model ExternalArticleSubmission {
 
   @@index([externalArticleId])
   @@map("external_article_submissions")
+}
+
+// One admin action ("General Publish") fans out into one ContentArticle per
+// target tenant (every active tenant except the 4 Jeju sites). Deleting this
+// row cascades to delete every ContentArticle it created (see the FK on
+// ContentArticle.generalPublishId) — edit/unpublish still loop over the
+// children explicitly since those are field updates, not deletes.
+model GeneralPublish {
+  id         String           @id @default(cuid())
+  title      String
+  content    String
+  imageUrl   String?          @map("image_url")
+  category   String
+  isHeadline Boolean          @default(false) @map("is_headline")
+  createdAt  DateTime         @default(now()) @map("created_at")
+  updatedAt  DateTime         @updatedAt @map("updated_at")
+  articles   ContentArticle[]
+
+  @@map("general_publishes")
 }

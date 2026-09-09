@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Article, CrawledArticlesResponse, CrawlJobsResponse } from "./types";
+import type { Article, CrawledArticlesResponse, CrawlJobsResponse, GeneralPublishesResponse } from "./types";
 import type { Banner } from "@/repositories/banners.repository";
 
 const articlesParamsSchema = z.object({
@@ -424,6 +424,122 @@ export const articlesApi = {
       throw new Error(error.error || "Failed to upload image via proxy");
     }
     return res.json();
+  },
+
+  // ─── General Publish (cross-tenant broadcast) ─────────────────────────────
+
+  async getGeneralPublishes(params: {
+    q?: string;
+    page: number;
+    limit: number;
+    category?: string;
+    status?: string;
+  }): Promise<GeneralPublishesResponse> {
+    const searchParams = new URLSearchParams();
+    if (params.q) searchParams.append("q", params.q);
+    if (params.category) searchParams.append("category", params.category);
+    if (params.status) searchParams.append("status", params.status);
+    searchParams.append("page", params.page.toString());
+    searchParams.append("limit", params.limit.toString());
+
+    const res = await fetch(`/api/admin/generalPublish?${searchParams.toString()}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error("Failed to fetch general publishes");
+    return res.json();
+  },
+
+  async createGeneralManualArticle(params: {
+    title: string;
+    content: string;
+    category: string;
+    imageUrl?: string;
+    isHeadline?: boolean;
+    publish?: boolean;
+  }): Promise<unknown> {
+    const res = await fetch("/api/admin/generalPublish", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(params),
+    });
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(typeof error.error === "string" ? error.error : "Failed to create broadcast article.");
+    }
+
+    return res.json();
+  },
+
+  async createGeneralArticleFromUpload(params: {
+    category: string;
+    topic?: string;
+    prompt?: string;
+    language?: string;
+    extractedText?: string;
+    s3ImageUrl?: string;
+    materialImages?: string[];
+  }): Promise<unknown> {
+    const res = await fetch("/api/admin/generalPublish/createFromUpload", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(params),
+    });
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(
+        typeof error.error === "string" ? error.error : "Failed to create broadcast article from upload."
+      );
+    }
+
+    return res.json();
+  },
+
+  async updateGeneralPublish(
+    id: string,
+    data: {
+      title?: string;
+      content?: string;
+      category?: string;
+      imageUrl?: string | null;
+      isHeadline?: boolean;
+      publish?: boolean;
+    }
+  ): Promise<unknown> {
+    const res = await fetch(`/api/admin/generalPublish/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to update broadcast");
+    }
+    return res.json();
+  },
+
+  async unpublishGeneralPublish(id: string): Promise<unknown> {
+    const res = await fetch(`/api/admin/generalPublish/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ publish: false }),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to unpublish broadcast");
+    }
+    return res.json();
+  },
+
+  async deleteGeneralPublish(id: string): Promise<void> {
+    const res = await fetch(`/api/admin/generalPublish/${id}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to delete broadcast");
+    }
   },
 
 };
