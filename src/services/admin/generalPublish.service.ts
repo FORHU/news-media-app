@@ -71,6 +71,10 @@ export const generalPublishService = {
       content: params.content.trim(),
       category: params.category.trim(),
       imageUrl: params.imageUrl || null,
+      // Manual entries get independently-worded text per tenant (same image
+      // everywhere); AI-generate broadcasts skip this — they already produce
+      // one AI-authored piece meant to be shared as-is.
+      paraphrasePerTenant: true,
       isHeadline: params.isHeadline,
       publish: params.publish,
     });
