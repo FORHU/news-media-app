@@ -84,3 +84,36 @@ export interface AdminUser {
 }
 
 export type Tenant = Prisma.TenantGetPayload<object>;
+
+export interface GeneralPublishTarget {
+  contentArticleId: string;
+  tenantId: string;
+  domain: string;
+  siteName: string;
+  status: string;
+}
+
+export interface GeneralPublishBroadcast {
+  id: string;
+  title: string;
+  content: string;
+  imageUrl: string | null;
+  category: string;
+  isHeadline: boolean;
+  createdAt: string;
+  updatedAt: string;
+  status: string;
+  targetCount: number;
+  publishedCount: number;
+  targets: GeneralPublishTarget[];
+}
+
+export interface GeneralPublishesResponse {
+  broadcasts: GeneralPublishBroadcast[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}

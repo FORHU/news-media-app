@@ -13,7 +13,8 @@ import {
     Users,
     Image as ImageIcon,
     Globe2,
-    Facebook
+    Facebook,
+    Rss
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -52,6 +53,7 @@ export default function AdminSidebar({
     const menuItems = [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/admin/dashboard' },
         { id: 'generated', label: 'Generated Articles', icon: FileText, href: '/admin/dashboard/generated' },
+        { id: 'general', label: 'General Publish', icon: Rss, href: '/admin/dashboard/general' },
         { id: 'external', label: 'External Submissions', icon: Globe2, href: '/admin/dashboard/external' },
         { id: 'facebook', label: 'Facebook Publishing', icon: Facebook, href: '/admin/dashboard/facebook' },
         {
