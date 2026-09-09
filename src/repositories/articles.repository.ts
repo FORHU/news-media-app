@@ -64,11 +64,17 @@ export const articlesRepository = {
     status?: string | null;
     tenantId?: string;
     onlySummary?: boolean;
+    requireImage?: boolean;
   }): Promise<Article[]> {
-    const { limit, search, category, status, tenantId, onlySummary } = params;
+    const { limit, search, category, status, tenantId, onlySummary, requireImage } = params;
 
     const and: Prisma.ContentArticleWhereInput[] = [];
     if (tenantId) and.push({ tenantId });
+
+    if (requireImage) {
+      and.push({ imageUrl: { not: null } });
+      and.push({ imageUrl: { not: "" } });
+    }
 
     if (search) {
       and.push({

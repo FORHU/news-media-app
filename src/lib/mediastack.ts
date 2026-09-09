@@ -246,7 +246,10 @@ export async function fetchMediaStackNews(params: {
       })
     );
 
-    return enriched;
+    // Articles that still have no usable image after enrichment aren't
+    // displayable as a card without falling back to a placeholder box — drop
+    // them here so every caller gets image-guaranteed articles by default.
+    return enriched.filter((article) => article.image !== null);
   } catch (err) {
     console.error("[MediaStack] Fetch failed:", err);
     return [];
