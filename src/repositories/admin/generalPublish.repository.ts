@@ -2,6 +2,8 @@ import { prisma } from "@/lib/db";
 import { Prisma } from "@/generated/prisma";
 import { generateUniqueArticleSlug } from "@/lib/slug";
 import { categoriesRepository } from "@/repositories/categories.repository";
+import { env } from "@/lib/env";
+import { getAiSessionId, paraphraseArticle } from "@/lib/generateContentApi";
 
 // Every active tenant except these 4 is a broadcast target — computed fresh on
 // every call so a newly added tenant is automatically included.
@@ -13,6 +15,7 @@ export type BroadcastOutcome = {
   success: boolean;
   contentArticleId?: string;
   error?: string;
+  paraphrased?: boolean;
 };
 
 export type CreateBroadcastParams = {
@@ -22,6 +25,11 @@ export type CreateBroadcastParams = {
   imageUrl?: string | null;
   isHeadline?: boolean;
   publish?: boolean;
+  /** Manual-entry broadcasts ask the AI service to rewrite title+content
+   *  independently per tenant (same image everywhere) instead of publishing
+   *  identical text to every site. AI-generate broadcasts leave this off —
+   *  they already produce one AI-authored piece shared as-is. */
+  paraphrasePerTenant?: boolean;
 };
 
 export type UpdateBroadcastParams = {
@@ -126,7 +134,7 @@ export const generalPublishRepository = {
   async createBroadcast(
     params: CreateBroadcastParams
   ): Promise<{ generalPublishId: string; outcomes: BroadcastOutcome[] }> {
-    const { title, content, category, imageUrl, isHeadline, publish } = params;
+    const { title, content, category, imageUrl, isHeadline, publish, paraphrasePerTenant } = params;
     const targets = await this.getTargetTenants();
 
     const generalPublish = await prisma.generalPublish.create({
@@ -139,11 +147,44 @@ export const generalPublishRepository = {
       },
     });
 
+    // One AI session, reused for every tenant's paraphrase call — mirrors how
+    // createFromUpload reuses a single session_id across multiple /chat calls
+    // in one request. If the AI service can't be reached at all, every tenant
+    // just falls back to the original text rather than failing the batch.
+    let paraphraseSessionId: string | null = null;
+    if (paraphrasePerTenant) {
+      try {
+        paraphraseSessionId = await getAiSessionId(env.GENERATE_CONTENT_API ?? "");
+      } catch (err) {
+        console.error("[generalPublish] Could not start AI session for paraphrasing — every tenant will get the original text:", err);
+      }
+    }
+
     const outcomes: BroadcastOutcome[] = [];
     const publishDate = new Date();
 
     for (const tenant of targets) {
       try {
+        let tenantTitle = title;
+        let tenantContent = content;
+        let paraphrased = false;
+
+        if (paraphraseSessionId) {
+          try {
+            const rewritten = await paraphraseArticle({
+              baseUrl: env.GENERATE_CONTENT_API ?? "",
+              sessionId: paraphraseSessionId,
+              title,
+              content,
+            });
+            tenantTitle = rewritten.title;
+            tenantContent = rewritten.content;
+            paraphrased = true;
+          } catch (err) {
+            console.error(`[generalPublish] Paraphrase failed for ${tenant.domain}, using original text:`, err);
+          }
+        }
+
         const categoryRow = await categoriesRepository.createOrGetCategoryByName(category, tenant.id);
 
         // User is tenant-scoped (@@unique([tenantId, email])) — must resolve
@@ -158,7 +199,7 @@ export const generalPublishRepository = {
           continue;
         }
 
-        const slug = await generateUniqueArticleSlug(prisma, title, publishDate);
+        const slug = await generateUniqueArticleSlug(prisma, tenantTitle, publishDate);
 
         const article = await prisma.contentArticle.create({
           data: {
@@ -166,9 +207,9 @@ export const generalPublishRepository = {
             usersId: user.id,
             categoryId: categoryRow.id,
             generalPublishId: generalPublish.id,
-            title,
+            title: tenantTitle,
             slug,
-            content,
+            content: tenantContent,
             imageUrl: imageUrl || null,
             status: publish ? "published" : "pending",
             publishDate,
@@ -178,7 +219,13 @@ export const generalPublishRepository = {
           select: { id: true },
         });
 
-        outcomes.push({ tenantId: tenant.id, domain: tenant.domain, success: true, contentArticleId: article.id });
+        outcomes.push({
+          tenantId: tenant.id,
+          domain: tenant.domain,
+          success: true,
+          contentArticleId: article.id,
+          ...(paraphrasePerTenant ? { paraphrased } : {}),
+        });
       } catch (err) {
         outcomes.push({
           tenantId: tenant.id,
