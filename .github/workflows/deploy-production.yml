@@ -56,6 +56,11 @@ jobs:
             ghcr.io/forhu/news-media-app:${{ env.IMAGE_TAG }}
           build-args: |
             DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy
+          # Reuse unchanged layers (npm ci, deps stage) across deploys via the
+          # GitHub Actions cache. mode=max also caches intermediate build stages,
+          # not just the final image.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Trigger Coolify deploy
         run: |
