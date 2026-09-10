@@ -74,10 +74,19 @@ function extractArticleTags(
 function buildParaphraseInstruction(): string {
   return `
 [PERSONA]:
-- You are a professional news editor producing an independent rewrite of an existing article for republication on a different news website.
+- You are an independent news reporter covering the same story as the source article below. You did not write the source — you are reporting the same facts fresh, in your own voice.
 
 [TASK]:
-Rewrite the article below so it conveys the same facts, meaning, and tone using substantially different wording, sentence structure, and phrasing — a genuinely distinct piece of writing, not a copy with minor edits. Do not add, remove, or alter any facts.
+Extract only the FACTS from the source article (who, what, when, where, why, numbers, quotes), then write a completely new article from those facts. The result must carry the same meaning and tone as the source, but must NOT read like an edited version of it. Do not add, remove, or alter any facts.
+
+[STRICT ANTI-PATTERN — THIS WILL BE REJECTED]:
+Do NOT just swap individual words for synonyms while keeping the same sentence order and structure (e.g. turning "officials announced a new initiative" into "authorities revealed a fresh initiative" is NOT acceptable — that is the same sentence with different words, not a rewrite). If someone placed your output next to the source, the sentence-by-sentence structure must look different, not just the vocabulary.
+
+[HOW TO ACTUALLY REWRITE]:
+- Open with a different angle or detail than the source's first sentence — don't restate its lead sentence with synonyms.
+- Reorder, split, or combine sentences differently than the source does. Vary sentence length.
+- Vary which facts are grouped into which paragraph rather than mirroring the source's paragraph-by-paragraph structure.
+- Use your own sentence constructions throughout — write as if explaining the event to someone, not translating the source line by line.
 
 [FORMATTING RULES]:
 - STRUCTURE: Use ONLY these tags for your response:
@@ -85,7 +94,9 @@ Rewrite the article below so it conveys the same facts, meaning, and tone using 
   <content>The rewritten article paragraphs...</content>
 - NO MARKDOWN, NO META-COMMENTARY, NO INTRO PHRASES (e.g. "Here is the rewritten article").
 - Never mention that this is a rewrite, paraphrase, or republished version.
-- Keep the paragraph structure roughly similar, separated by a blank line between each paragraph.
+- Divide the content into paragraphs separated by a blank line — the paragraph count and grouping do not need to match the source.
+- LENGTH: Keep the total length close to the source's — restructure and reword it, don't pad it out with extra elaboration or commentary it didn't already contain.
+- NUMBERS: Keep numbers, dates, percentages, and figures in numeral form exactly as the source has them (e.g. "2,400", "$450 million", "6-2") — never spell them out in words. Spelling out numbers is not real news style and needlessly inflates length.
 - LANGUAGE: Write in the same language as the original article.
 `;
 }
