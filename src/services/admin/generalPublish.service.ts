@@ -70,7 +70,7 @@ export const generalPublishService = {
       title: params.title.trim(),
       content: params.content.trim(),
       category: params.category.trim(),
-      imageUrl: params.imageUrl || null,
+      imageUrls: params.imageUrls,
       // Manual entries get independently-worded text per tenant (same image
       // everywhere); AI-generate broadcasts skip this — they already produce
       // one AI-authored piece meant to be shared as-is.
