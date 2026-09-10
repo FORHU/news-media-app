@@ -1,14 +1,12 @@
-import { headers } from "next/headers";
 import { articlesService } from "@/services/articles.service";
 import {
-  normalizeHostToDomain,
-  resolveTenantIdFromDomain,
   getSiteNameFromDomain,
   getSiteDescriptionFromDomain,
 } from "@/lib/tenant";
 import { cleanOgDescription } from "@/lib/metadata";
+import { resolveSiteFromRequest } from "@/lib/siteRequest";
 
-// Per-domain RSS 2.0 feed. Host-driven like sitemap.ts / robots.ts.
+// Per-domain RSS 2.0 feed. Domain resolved from the DB, not the raw Host.
 export const dynamic = "force-dynamic";
 
 const xmlEscape = (s: string) =>
@@ -19,15 +17,15 @@ const xmlEscape = (s: string) =>
     .replace(/"/g, "&quot;");
 
 export async function GET() {
-  const headersList = await headers();
-  const host = headersList.get("host") || "newsicons.com";
-  const domain = normalizeHostToDomain(host) || "newsicons.com";
-  const protocol = host.includes("localhost") ? "http" : "https";
-  const baseUrl = `${protocol}://${host}`;
+  const { domain, baseUrl, tenantId, isLocal } = await resolveSiteFromRequest();
+
+  // Unknown Host — don't emit a feed branded with a domain we don't control.
+  if (!tenantId && !isLocal) {
+    return new Response("Not found", { status: 404 });
+  }
 
   const siteName = getSiteNameFromDomain(domain);
   const siteDesc = getSiteDescriptionFromDomain(domain);
-  const tenantId = await resolveTenantIdFromDomain(domain);
 
   const articles = tenantId
     ? await articlesService.getArticles({ limit: 50, status: "published" }, tenantId)
@@ -66,6 +64,7 @@ export async function GET() {
     <language>en</language>
     <lastBuildDate>${lastBuild}</lastBuildDate>
     <atom:link href="${xmlEscape(`${baseUrl}/feed.xml`)}" rel="self" type="application/rss+xml"/>
+    <atom:link href="https://pubsubhubbub.appspot.com/" rel="hub"/>
 ${items}
   </channel>
 </rss>`;

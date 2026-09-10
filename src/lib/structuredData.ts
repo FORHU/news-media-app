@@ -24,6 +24,13 @@ type Json = Record<string, unknown>;
 const stripTrailingSlash = (url: string): string =>
   url.endsWith("/") ? url.slice(0, -1) : url;
 
+/** ISO-8601 string for a valid date input, or null — never throws. */
+function toIsoOrNull(value: Date | string | number | null | undefined): string | null {
+  if (value == null) return null;
+  const d = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
 /**
  * Production base URL for a tenant domain, derived purely from the route param
  * so callers stay statically renderable (no `headers()` / dynamic opt-in).
@@ -107,10 +114,7 @@ export function buildWebSiteLd(domain: string, baseUrl: string): Json {
 export function buildNewsArticleLd(params: {
   domain: string;
   baseUrl: string;
-  article: Pick<
-    Article,
-    "title" | "publishDate" | "createdAt" | "updatedAt" | "category"
-  >;
+  article: Pick<Article, "title" | "publishDate" | "createdAt" | "category">;
   /** Pre-cleaned summary — pass the cleanOgDescription() result. */
   description: string;
   /** Absolute canonical URL of the article page. */
@@ -123,8 +127,7 @@ export function buildNewsArticleLd(params: {
   const base = stripTrailingSlash(baseUrl);
   const siteName = getSiteNameFromDomain(domain);
 
-  const published = article.publishDate ?? article.createdAt ?? new Date();
-  const modified = article.updatedAt ?? published;
+  const publishedIso = toIsoOrNull(article.publishDate ?? article.createdAt);
 
   const ld: Json = {
     "@context": "https://schema.org",
@@ -134,13 +137,19 @@ export function buildNewsArticleLd(params: {
     description,
     url: canonicalUrl,
     mainEntityOfPage: { "@type": "WebPage", "@id": canonicalUrl },
-    datePublished: new Date(published).toISOString(),
-    dateModified: new Date(modified).toISOString(),
     // No byline data in the DB — attribute to the publication itself.
     author: organisationRef(domain, baseUrl),
     publisher: organisationRef(domain, baseUrl),
     isPartOf: { "@id": `${base}/#website` },
   };
+
+  if (publishedIso) {
+    ld.datePublished = publishedIso;
+    // `dateModified` intentionally omitted: ContentArticle.updatedAt is bumped
+    // by unrelated writes (e.g. view-count increments), so echoing it would
+    // report every article as "modified today" — a false freshness signal.
+    // Google falls back to datePublished when dateModified is absent.
+  }
 
   if (imageUrls.length > 0) ld.image = imageUrls;
 

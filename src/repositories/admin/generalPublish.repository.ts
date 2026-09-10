@@ -14,6 +14,7 @@ export type BroadcastOutcome = {
   domain: string;
   success: boolean;
   contentArticleId?: string;
+  slug?: string | null;
   error?: string;
   paraphrased?: boolean;
 };
@@ -224,6 +225,7 @@ export const generalPublishRepository = {
           domain: tenant.domain,
           success: true,
           contentArticleId: article.id,
+          slug,
           ...(paraphrasePerTenant ? { paraphrased } : {}),
         });
       } catch (err) {
@@ -293,7 +295,7 @@ export const generalPublishRepository = {
         const updated = await prisma.contentArticle.update({
           where: { id: child.id },
           data: updateData,
-          select: { id: true },
+          select: { id: true, slug: true },
         });
 
         outcomes.push({
@@ -301,6 +303,7 @@ export const generalPublishRepository = {
           domain: child.tenant.domain,
           success: true,
           contentArticleId: updated.id,
+          slug: updated.slug,
         });
       } catch (err) {
         outcomes.push({

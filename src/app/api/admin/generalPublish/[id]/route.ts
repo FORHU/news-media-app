@@ -5,6 +5,7 @@ import { generalPublishRepository } from "@/repositories/admin/generalPublish.re
 import { updateGeneralPublishSchema } from "@/lib/validation/generalPublish";
 import { sseBroadcaster } from "@/lib/sse";
 import { deleteObjects } from "@/lib/s3";
+import { notifySearchEngines, articlePingUrls } from "@/lib/searchPing";
 import type { BroadcastOutcome } from "@/repositories/admin/generalPublish.repository";
 
 export const dynamic = "force-dynamic";
@@ -46,6 +47,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     revalidateForOutcomes(outcomes);
     sseBroadcaster.broadcast("articles:updated");
+
+    // Nudge external indexers when this edit published the broadcast.
+    if (result.data.publish) {
+      notifySearchEngines(
+        outcomes.flatMap((o) =>
+          o.success
+            ? [{ domain: o.domain, urls: articlePingUrls(o.domain, o.slug ?? o.contentArticleId ?? "") }]
+            : []
+        )
+      );
+    }
 
     return NextResponse.json({ outcomes });
   } catch (error: unknown) {

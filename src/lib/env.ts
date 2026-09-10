@@ -68,6 +68,14 @@ const schema = z.object({
   /** HMAC shared secret for the inbound external-article webhook. */
   EXTERNAL_API_WEBHOOK_SECRET: optionalStr(),
 
+  // --- Search-engine indexing hints ---
+  /**
+   * IndexNow key (NOT a secret — it is served publicly at /indexnow-key.txt).
+   * When set, publishing an article pings IndexNow (Bing, Yandex, …). Leave
+   * unset in local/dev to disable the pings.
+   */
+  INDEXNOW_KEY: optionalStr(),
+
   // --- Other integrations ---
   RESEND_API_KEY: optionalStr(),
   YOUTUBE_API_V3_KEY: optionalStr(),

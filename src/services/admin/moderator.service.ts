@@ -1,5 +1,6 @@
 import { moderatorRepository } from "@/repositories/admin/moderator.repository";
 import { sendWebhookCallback } from "@/lib/webhook";
+import { notifySearchEngines, articlePingUrls } from "@/lib/searchPing";
 import { revalidatePath } from "next/cache";
 import { deleteObjects, uploadToS3 } from "@/lib/s3";
 import { randomUUID } from "crypto";
@@ -139,6 +140,7 @@ export const moderatorService = {
     );
 
     const articles = await moderatorRepository.findPublishedArticles(articleIds);
+    const pingEntries: Array<{ domain: string; urls: string[] }> = [];
     for (const article of articles) {
       const domain = article.tenant?.domain;
       if (!domain) continue;
@@ -148,6 +150,11 @@ export const moderatorService = {
         if (article.slug) revalidatePath(`/${domain}/article/${article.slug}`, "page");
         console.log(`[moderator/publish] 🔄 Revalidated | domain: ${domain} | id: ${article.id}`);
       } catch { /* non-fatal */ }
+
+      pingEntries.push({
+        domain,
+        urls: articlePingUrls(domain, article.slug ?? article.id),
+      });
 
       const sub = article.externalSubmission;
       if (article.sourceType === "EXTERNAL" && sub?.callbackUrl) {
@@ -160,6 +167,9 @@ export const moderatorService = {
         await moderatorRepository.updateExternalSubmissionCallback(sub.id, result.success ? "sent" : "failed");
       }
     }
+
+    // Nudge external indexers (IndexNow / WebSub) — fire-and-forget.
+    notifySearchEngines(pingEntries);
 
     return count;
   },
