@@ -6,8 +6,15 @@ import { z } from "zod";
 import { resolveTenantIdFromRequest } from "@/lib/tenant";
 import { revalidatePath } from "next/cache";
 import { sseBroadcaster } from "@/lib/sse";
+import { notifySearchEngines, articlePingUrls } from "@/lib/searchPing";
 
-async function revalidateArticle(tenantId: string, articleId: string, slug?: string | null) {
+// Revalidates the affected pages and returns the tenant's domain (or null) so
+// the caller can also ping external indexers.
+async function revalidateArticle(
+  tenantId: string,
+  articleId: string,
+  slug?: string | null
+): Promise<string | null> {
   try {
     const tenant = await prisma.tenant.findUnique({
       where: { id: tenantId },
@@ -26,10 +33,12 @@ async function revalidateArticle(tenantId: string, articleId: string, slug?: str
         revalidatePath(`/${domain}/article/${slug}`, "page");
       }
       console.log(`[Revalidate] Triggered for domain: ${domain}, article: ${articleId}`);
+      return domain;
     }
   } catch (error) {
     console.error("[Revalidate] Error:", error);
   }
+  return null;
 }
 
 export const dynamic = "force-dynamic";
@@ -78,8 +87,15 @@ export async function POST(
     });
     
     // Trigger on-demand revalidation
-    await revalidateArticle(tenantId, id, article?.slug);
+    const domain = await revalidateArticle(tenantId, id, article?.slug);
     sseBroadcaster.broadcast("articles:updated");
+
+    // Nudge external indexers (IndexNow / WebSub) — fire-and-forget.
+    if (domain) {
+      notifySearchEngines([
+        { domain, urls: articlePingUrls(domain, article?.slug ?? id) },
+      ]);
+    }
 
     return NextResponse.json({ success: true, message: "Article published successfully" });
   } catch (error) {
@@ -192,8 +208,15 @@ export async function PATCH(
     });
 
     // Trigger on-demand revalidation
-    await revalidateArticle(tenantId, id, updated.slug);
+    const domain = await revalidateArticle(tenantId, id, updated.slug);
     sseBroadcaster.broadcast("articles:updated");
+
+    // Only ping external indexers when this PATCH actually published the article.
+    if (domain && updated.status === "published") {
+      notifySearchEngines([
+        { domain, urls: articlePingUrls(domain, updated.slug ?? updated.id) },
+      ]);
+    }
 
     return NextResponse.json(updated);
   } catch (error: unknown) {

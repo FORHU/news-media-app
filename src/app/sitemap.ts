@@ -1,21 +1,16 @@
 import type { MetadataRoute } from "next";
-import { headers } from "next/headers";
 
-// sitemap uses headers() to detect the current domain — must be dynamic.
+// sitemap builds URLs from the resolved tenant domain — must be dynamic.
 export const dynamic = 'force-dynamic';
 import { articlesService } from "@/services/articles.service";
-import { normalizeHostToDomain, resolveTenantIdFromDomain } from "@/lib/tenant";
+import { resolveSiteFromRequest } from "@/lib/siteRequest";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const headersList = await headers();
-  const host = headersList.get("host") || "newsicons.com";
-  const domain = normalizeHostToDomain(host) || "newsicons.com";
-  
-  // Use https by default in production, http for localhost
-  const protocol = host.includes("localhost") ? "http" : "https";
-  const baseUrl = `${protocol}://${host}`;
+  const { baseUrl, tenantId, isLocal } = await resolveSiteFromRequest();
 
-  const tenantId = await resolveTenantIdFromDomain(domain);
+  // Unknown Host: emit nothing rather than a sitemap pointing at a host we
+  // don't control (cache-poisoning guard).
+  if (!tenantId && !isLocal) return [];
 
   // Fetch articles specific to this domain/tenant
   const articles = tenantId
@@ -51,4 +46,3 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [...staticPages, ...articlePages];
 }
-

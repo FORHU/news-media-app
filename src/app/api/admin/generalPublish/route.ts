@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { generalPublishService } from "@/services/admin/generalPublish.service";
 import { generalPublishesQuerySchema, createManualGeneralPublishSchema } from "@/lib/validation/generalPublish";
 import { sseBroadcaster } from "@/lib/sse";
+import { notifySearchEngines, articlePingUrls } from "@/lib/searchPing";
 
 // Tenant-agnostic by design — this fans out across an explicit target-tenant
 // list (every active tenant except the 4 Jeju sites), not the caller's own
@@ -51,6 +52,17 @@ export async function POST(req: NextRequest) {
 
     const created = await generalPublishService.createManualBroadcast(parsed.data);
     sseBroadcaster.broadcast("articles:updated");
+
+    // Nudge external indexers when this broadcast went out published.
+    if (parsed.data.publish) {
+      notifySearchEngines(
+        created.outcomes.flatMap((o) =>
+          o.success
+            ? [{ domain: o.domain, urls: articlePingUrls(o.domain, o.slug ?? o.contentArticleId ?? "") }]
+            : []
+        )
+      );
+    }
 
     return NextResponse.json(created, { status: 201 });
   } catch (error) {

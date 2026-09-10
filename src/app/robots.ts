@@ -1,16 +1,18 @@
 import type { MetadataRoute } from "next";
-import { headers } from "next/headers";
+import { resolveSiteFromRequest } from "@/lib/siteRequest";
 
-// robots() uses headers() to build the sitemap URL — must be force-dynamic.
+// robots() builds URLs from the resolved tenant domain — must be dynamic.
 export const dynamic = 'force-dynamic';
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
-  const headersList = await headers();
-  const host = headersList.get("host") || "newsicons.com";
-  
-  // Use https by default in production, http for localhost
-  const protocol = host.includes("localhost") ? "http" : "https";
-  const baseUrl = `${protocol}://${host}`;
+  const { baseUrl, tenantId, isLocal } = await resolveSiteFromRequest();
+
+  // Unknown Host (not one of our tenants, not local dev): return a minimal
+  // deny-all instead of a crawlable robots.txt that could be cache-poisoned
+  // and served for a real domain.
+  if (!tenantId && !isLocal) {
+    return { rules: [{ userAgent: "*", disallow: "/" }] };
+  }
 
   return {
     rules: [
@@ -57,4 +59,3 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
     host: baseUrl,
   };
 }
-

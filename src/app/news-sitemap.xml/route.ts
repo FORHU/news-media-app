@@ -1,13 +1,9 @@
-import { headers } from "next/headers";
 import { articlesService } from "@/services/articles.service";
-import {
-  normalizeHostToDomain,
-  resolveTenantIdFromDomain,
-  getSiteNameFromDomain,
-} from "@/lib/tenant";
+import { getSiteNameFromDomain } from "@/lib/tenant";
+import { resolveSiteFromRequest } from "@/lib/siteRequest";
 
 // Google News sitemap — only articles from the last 48h, per Google's spec.
-// Host-driven like sitemap.ts / robots.ts. Submit as a separate sitemap in GSC.
+// Domain resolved from the DB, not the raw Host. Submit separately in GSC.
 export const dynamic = "force-dynamic";
 
 const NEWS_WINDOW_MS = 1000 * 60 * 60 * 48;
@@ -20,14 +16,15 @@ const xmlEscape = (s: string) =>
     .replace(/"/g, "&quot;");
 
 export async function GET() {
-  const headersList = await headers();
-  const host = headersList.get("host") || "newsicons.com";
-  const domain = normalizeHostToDomain(host) || "newsicons.com";
-  const protocol = host.includes("localhost") ? "http" : "https";
-  const baseUrl = `${protocol}://${host}`;
+  const { domain, baseUrl, tenantId, isLocal } = await resolveSiteFromRequest();
+
+  // Unknown Host — don't emit a news sitemap for a domain we don't control.
+  if (!tenantId && !isLocal) {
+    return new Response("Not found", { status: 404 });
+  }
+
   const publicationName = getSiteNameFromDomain(domain);
 
-  const tenantId = await resolveTenantIdFromDomain(domain);
   const articles = tenantId
     ? await articlesService.getArticles({ limit: 200, status: "published" }, tenantId)
     : [];
