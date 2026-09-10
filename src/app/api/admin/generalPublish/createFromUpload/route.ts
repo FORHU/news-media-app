@@ -4,6 +4,7 @@ import { sseBroadcaster } from "@/lib/sse";
 import { env } from "@/lib/env";
 import { generalPublishRepository } from "@/repositories/admin/generalPublish.repository";
 import { createGeneralPublishFromUploadSchema } from "@/lib/validation/generalPublish";
+import { approveChatSession } from "@/lib/generateContentApi";
 
 // Tenant-agnostic by design (see ../route.ts). Adapted from
 // src/app/api/admin/generatedArticles/createFromUpload/route.ts: same AI-call
@@ -224,6 +225,8 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${l
       if (!content || content.length < 50) {
         throw new Error("AI returned incomplete article. Please refine your materials and try again.");
       }
+
+      await approveChatSession(baseUrl, session_id);
 
       const { generalPublishId, outcomes } = await generalPublishRepository.createBroadcast({
         title,

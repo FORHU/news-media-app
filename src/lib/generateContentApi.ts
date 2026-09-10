@@ -20,6 +20,39 @@ export async function getAiSessionId(baseUrl: string): Promise<string> {
   return data.session_id;
 }
 
+/**
+ * Completes the documented session-id → chat → approve flow. /approve only
+ * applies when /chat triggered a pending function/tool call needing human
+ * sign-off (the HITL endpoints — /set-hitl, /hitl-status — govern this); a
+ * plain text-generation session usually has nothing pending, and the service
+ * reports that as 400 "No pending function call for this session." — that
+ * specific response is expected, not an error, so it's swallowed silently.
+ * Any other failure is logged, not thrown, since the article text is already
+ * in hand from /chat and /approve returns a plain status string (bookkeeping),
+ * not content.
+ */
+export async function approveChatSession(
+  baseUrl: string,
+  sessionId: string,
+  comments = "Auto-approved by news-media-app"
+): Promise<void> {
+  try {
+    const res = await fetch(`${baseUrl}/approve`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: sessionId, decision: "approved", comments }),
+    });
+    if (!res.ok) {
+      const errorData: { detail?: unknown } = await res.json().catch(() => ({}));
+      const detail = typeof errorData?.detail === "string" ? errorData.detail : null;
+      if (detail?.includes("No pending function call")) return;
+      throw new Error(detail || `AI approve error (${res.status})`);
+    }
+  } catch (err) {
+    console.error("[generateContentApi] /approve failed (continuing with the generated content):", err);
+  }
+}
+
 function extractArticleTags(
   responseText: string | null | undefined,
   fallbackTitle: string,
@@ -108,6 +141,8 @@ ${buildParaphraseInstruction()}
     if (!result.content || result.content.length < 30) {
       throw new Error("AI returned an incomplete paraphrase");
     }
+
+    await approveChatSession(baseUrl, sessionId);
 
     return result;
   } catch (err) {

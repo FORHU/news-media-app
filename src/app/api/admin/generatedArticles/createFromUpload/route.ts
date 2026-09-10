@@ -8,6 +8,7 @@ import { uploadToS3 } from "@/lib/s3";
 import { sseBroadcaster } from "@/lib/sse";
 import { SourceType } from "@/generated/prisma/client";
 import { env } from "@/lib/env";
+import { approveChatSession } from "@/lib/generateContentApi";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -329,6 +330,8 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${l
       if (!content || content.length < 50) {
         throw new Error("AI returned incomplete article. Please refine your materials and try again.");
       }
+
+      await approveChatSession(baseUrl, session_id);
 
       // 3) Save content_articles linked to raw_source_uploads (schema-aligned)
       const user =
