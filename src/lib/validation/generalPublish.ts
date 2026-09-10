@@ -26,7 +26,9 @@ export const createManualGeneralPublishSchema = z.object({
   title: z.string().min(1, "Title is required"),
   content: z.string().min(1, "Article content is required"),
   category: z.string().min(1, "Category is required"),
-  imageUrl: z.string().url().optional().or(z.literal("")),
+  // First entry is the featured image, shared verbatim across every target
+  // tenant along with the rest of the array.
+  imageUrls: z.array(z.string().url()).optional().default([]),
   isHeadline: z.boolean().optional(),
   publish: z.boolean().optional(),
 });
