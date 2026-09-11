@@ -80,6 +80,21 @@ export function Wordmark({
         </span>
       );
 
+    case "rule": {
+      const mainHalf = main.trim();
+      const accentHalf = (accent ?? "").trim();
+      return (
+        <span
+          className={`inline-block pb-1 border-b border-[var(--tn-accent)] font-serif uppercase tracking-[0.06em] text-[var(--tn-ink)] ${className}`}
+        >
+          {pre}
+          {mainHalf}
+          {accentHalf && <span className="italic lowercase">{accentHalf}</span>}
+          {post}
+        </span>
+      );
+    }
+
     case "underline":
       return (
         <span
@@ -170,6 +185,15 @@ export function SectionLabel({
       return (
         <span
           className={`inline-block bg-[var(--tn-ink)] px-2.5 py-1 font-serif text-[12px] font-bold uppercase tracking-[0.14em] text-[var(--tn-bg)] leading-none ${className}`}
+        >
+          {children}
+        </span>
+      );
+
+    case "ruleAccent":
+      return (
+        <span
+          className={`inline-block pb-2.5 border-b border-[var(--tn-accent)] text-[11px] font-bold uppercase tracking-[0.2em] text-[#8A6226] ${className}`}
         >
           {children}
         </span>

@@ -23,6 +23,7 @@ import MagazineTechyArticle from "@/components/sites/magazinetechy/MagazineTechy
 import MagazineAirArticle from "@/components/sites/magazineair/MagazineAirArticle";
 import TechyGateArticle from "@/components/sites/techygate/TechyGateArticle";
 import NewYorkSignalArticle from "@/components/sites/newyorksignal/NewYorkSignalArticle";
+import TechnikPostArticle from "@/components/sites/technikpost/TechnikPostArticle";
 import TechOggiArticle from "@/components/sites/techoggi/TechOggiArticle";
 
 const TECHNEWS_ARTICLES: Record<string, typeof LinkTechNewsArticle> = {
@@ -32,6 +33,7 @@ const TECHNEWS_ARTICLES: Record<string, typeof LinkTechNewsArticle> = {
   "magazineair.com": MagazineAirArticle,
   "techygate.com": TechyGateArticle,
   "newyorksignal.com": NewYorkSignalArticle,
+  "technikpost.de": TechnikPostArticle,
   "techoggi.com": TechOggiArticle,
 };
 import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain, getSiteDescriptionFromDomain } from "@/lib/tenant";
