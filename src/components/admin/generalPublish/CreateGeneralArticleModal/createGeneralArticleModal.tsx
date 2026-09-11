@@ -37,6 +37,7 @@ import {
     ManualArticleImage
 } from "@/components/admin/generatedContent/CreateArticleModal/ManualGenerationTab";
 import GeneralCategorySelect from "@/components/admin/generalPublish/GeneralCategorySelect";
+import { ManualArticleImages } from "@/components/admin/generalPublish/ManualArticleImages";
 import FeaturedImageChoiceSection from "@/components/admin/shared/FeaturedImageChoiceSection";
 
 type CreateArticleTab = "ai" | "manual";
@@ -86,7 +87,7 @@ export default function CreateGeneralArticleModal({
     const [manualTitle, setManualTitle] = React.useState("");
     const [manualContent, setManualContent] = React.useState("");
     const [manualCategory, setManualCategory] = React.useState("");
-    const [manualImageFile, setManualImageFile] = React.useState<File | null>(null);
+    const [manualImageFiles, setManualImageFiles] = React.useState<File[]>([]);
     const [manualIsHeadline, setManualIsHeadline] = React.useState(false);
     const [manualFieldErrors, setManualFieldErrors] = React.useState<{
         title?: string;
@@ -112,7 +113,7 @@ export default function CreateGeneralArticleModal({
         setManualTitle("");
         setManualContent("");
         setManualCategory("");
-        setManualImageFile(null);
+        setManualImageFiles([]);
         setManualIsHeadline(false);
         setManualFieldErrors({});
         setManualError(null);
@@ -288,14 +289,12 @@ export default function CreateGeneralArticleModal({
         }
     };
 
-    const handleManualImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            setManualImageFile(e.target.files[0]);
-        }
+    const handleManualImagesAdded = (newFiles: File[]) => {
+        setManualImageFiles(prev => [...prev, ...newFiles]);
     };
 
-    const removeManualImage = () => {
-        setManualImageFile(null);
+    const removeManualImage = (index: number) => {
+        setManualImageFiles(prev => prev.filter((_, i) => i !== index));
     };
 
     const handleManualCreate = async (publish: boolean) => {
@@ -313,16 +312,15 @@ export default function CreateGeneralArticleModal({
 
         setIsSubmittingManual(true);
         try {
-            let uploadedImageUrl: string | undefined;
-            if (manualImageFile) {
-                uploadedImageUrl = await uploadImageToS3(manualImageFile);
-            }
+            const uploadedImageUrls = manualImageFiles.length > 0
+                ? await Promise.all(manualImageFiles.map(uploadImageToS3))
+                : [];
 
             await articlesApi.createGeneralManualArticle({
                 title: manualTitle.trim(),
                 content: manualContent.trim(),
                 category: manualCategory,
-                imageUrl: uploadedImageUrl,
+                imageUrls: uploadedImageUrls,
                 isHeadline: manualIsHeadline,
                 publish,
             });
@@ -543,10 +541,10 @@ export default function CreateGeneralArticleModal({
                                         )}
                                     </div>
 
-                                    <ManualArticleImage
-                                        imageFile={manualImageFile}
-                                        handleImageChange={handleManualImageChange}
-                                        removeImage={removeManualImage}
+                                    <ManualArticleImages
+                                        imageFiles={manualImageFiles}
+                                        onFilesAdded={handleManualImagesAdded}
+                                        onRemove={removeManualImage}
                                     />
 
                                     <div className="space-y-4">

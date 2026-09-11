@@ -431,6 +431,21 @@ body {
   --font-garamond: var(--font-cormorant);
 }
 
+/* Tech Oggi — rounded modern-digital: Arima headlines + Mulish body + Roboto accents */
+.site-theme-techoggi-com {
+  font-family: var(--font-mulish);
+  --font-sans: var(--font-mulish);
+  --font-roboto: var(--font-mulish);
+  --font-geist-sans: var(--font-mulish);
+  --font-noto: var(--font-mulish);
+  --font-mono: var(--font-roboto);
+  --font-geist-mono: var(--font-roboto);
+  --font-serif: var(--font-arima);
+  --font-playfair: var(--font-arima);
+  --font-baskerville: var(--font-arima);
+  --font-garamond: var(--font-arima);
+}
+
 @keyframes tn-caret {
   0%, 45% { opacity: 1; }
   50%, 95% { opacity: 0; }

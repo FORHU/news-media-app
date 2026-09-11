@@ -232,7 +232,7 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${l
         title,
         content,
         category,
-        imageUrl: resolvedImageUrl || null,
+        imageUrls: resolvedImageUrl ? [resolvedImageUrl] : [],
         publish: false,
       });
 

@@ -453,7 +453,7 @@ export const articlesApi = {
     title: string;
     content: string;
     category: string;
-    imageUrl?: string;
+    imageUrls?: string[];
     isHeadline?: boolean;
     publish?: boolean;
   }): Promise<unknown> {

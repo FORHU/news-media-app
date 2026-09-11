@@ -3,7 +3,7 @@ import type { TechNewsTheme } from "./theme";
 
 /**
  * Presentational primitives shared by every technews domain. The variant switch
- * on `theme.wordmarkStyle` / `theme.labelStyle` is what keeps the six sites
+ * on `theme.wordmarkStyle` / `theme.labelStyle` is what keeps each site
  * recognisably different while the page skeleton stays identical.
  */
 
@@ -95,6 +95,21 @@ export function Wordmark({
       );
     }
 
+    case "underline":
+      return (
+        <span
+          className={`inline-flex flex-col items-start gap-1 font-sans font-black tracking-tight text-[var(--tn-ink)] ${className}`}
+        >
+          <span>
+            {pre}
+            {main}
+            {accent && <span className="text-[var(--tn-accent)]">{accent}</span>}
+            {post}
+          </span>
+          <span className="h-[4px] w-full rounded-full bg-[var(--tn-accent)]" aria-hidden />
+        </span>
+      );
+
     case "broadsheet":
     default:
       return (
@@ -180,6 +195,16 @@ export function SectionLabel({
         <span
           className={`inline-block pb-2.5 border-b border-[var(--tn-accent)] text-[11px] font-bold uppercase tracking-[0.2em] text-[#8A6226] ${className}`}
         >
+          {children}
+        </span>
+      );
+
+    case "pillDot":
+      return (
+        <span
+          className={`inline-flex items-center gap-2 rounded-full bg-[var(--tn-accent-soft)] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--tn-ink)] ${className}`}
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--tn-accent)]" aria-hidden />
           {children}
         </span>
       );

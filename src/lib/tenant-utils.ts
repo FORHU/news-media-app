@@ -23,6 +23,7 @@ export function getSiteNameFromDomain(domain: string | null): string {
   if (d.includes('techygate')) return "TechyGate";
   if (d.includes('newyorksignal')) return "New York Signal";
   if (d.includes('technikpost')) return "TechnikPost";
+  if (d.includes('techoggi')) return "Tech Oggi";
   return "NewsIcons";
 }
 
@@ -43,6 +44,7 @@ export function getSiteIconFromDomain(domain: string | null): string {
   if (d.includes('techygate')) return "/icons/techygate.ico";
   if (d.includes('newyorksignal')) return "/icons/newyorksignal.ico";
   if (d.includes('technikpost')) return "/icons/technikpost.ico";
+  if (d.includes('techoggi')) return "/icons/techoggi.ico";
   return "/icons/newsicons.ico";
 }
 
@@ -64,6 +66,7 @@ export function getSiteLogoFromDomain(domain: string | null): string {
   if (d.includes('techygate')) return "TECHYGATE.png";
   if (d.includes('newyorksignal')) return "NEWYORKSIGNAL.png";
   if (d.includes('technikpost')) return "TECHNIKPOST.png";
+  if (d.includes('techoggi')) return "TECHOGGI.png";
   return "NEWSICONSLOGO.png";
 }
 
@@ -84,6 +87,7 @@ export function getSiteDescriptionFromDomain(domain: string | null): string {
   if (d.includes('techygate')) return "Your gateway to the day in technology.";
   if (d.includes('newyorksignal')) return "Dispatches on technology from the city that never logs off.";
   if (d.includes('technikpost')) return "Technik, Netzpolitik und Wirtschaft — täglich aus Berlin, Brüssel und dem Silicon Valley.";
+  if (d.includes('techoggi')) return "La tecnologia, oggi — le notizie essenziali della giornata, in sintesi.";
   return "Media & Content Hub for curated news, blogs, and insights.";
 }
 
@@ -111,6 +115,7 @@ const SITE_SAME_AS: Record<string, string[]> = {
   techygate: [],
   newyorksignal: [],
   technikpost: [],
+  techoggi: [],
 };
 
 export function getSiteSameAsFromDomain(domain: string | null): string[] {

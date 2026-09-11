@@ -23,7 +23,9 @@ export type CreateBroadcastParams = {
   title: string;
   content: string;
   category: string;
-  imageUrl?: string | null;
+  /** First entry is the featured image (ContentArticle.imageUrl); the full
+   *  array is stored on both GeneralPublish and every per-tenant row. */
+  imageUrls?: string[];
   isHeadline?: boolean;
   publish?: boolean;
   /** Manual-entry broadcasts ask the AI service to rewrite title+content
@@ -135,14 +137,17 @@ export const generalPublishRepository = {
   async createBroadcast(
     params: CreateBroadcastParams
   ): Promise<{ generalPublishId: string; outcomes: BroadcastOutcome[] }> {
-    const { title, content, category, imageUrl, isHeadline, publish, paraphrasePerTenant } = params;
+    const { title, content, category, isHeadline, publish, paraphrasePerTenant } = params;
+    const imageUrls = params.imageUrls ?? [];
+    const primaryImageUrl = imageUrls[0] ?? null;
     const targets = await this.getTargetTenants();
 
     const generalPublish = await prisma.generalPublish.create({
       data: {
         title,
         content,
-        imageUrl: imageUrl || null,
+        imageUrl: primaryImageUrl,
+        imageUrls,
         category,
         isHeadline: isHeadline ?? false,
       },
@@ -211,7 +216,8 @@ export const generalPublishRepository = {
             title: tenantTitle,
             slug,
             content: tenantContent,
-            imageUrl: imageUrl || null,
+            imageUrl: primaryImageUrl,
+            imageUrls,
             status: publish ? "published" : "pending",
             publishDate,
             sourceType: "MANUAL",
