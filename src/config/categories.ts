@@ -4,6 +4,7 @@ const HOME_LABELS_BY_DOMAIN: Record<string, string> = {
   "jejuqq.com": "最新消息",
   "jejujapan.com": "最新ニュース",
   "voicejeju.com": "최신 뉴스",
+  "techoggi.com": "Ultime Notizie",
 };
 
 export function getHomeCategoryLabel(domain: string): string {
@@ -23,6 +24,21 @@ const TECH_CATEGORIES = [
   "Emerging Tech",
   "Digital Culture",
   "Enterprise & Cloud Infrastructure",
+];
+
+/** Same tech newsroom taxonomy as TECH_CATEGORIES, in Italian — TechOggi is an
+ *  Italian-language site ("Tech Oggi" = "Tech Today"). */
+const TECH_CATEGORIES_IT = [
+  "Intelligenza Artificiale",
+  "Sviluppo Software",
+  "Tecnologia di Consumo",
+  "Sicurezza Informatica",
+  "Startup",
+  "Grandi Aziende Tech",
+  "Politiche Tecnologiche",
+  "Tecnologie Emergenti",
+  "Cultura Digitale",
+  "Impresa e Infrastruttura Cloud",
 ];
 
 export const TENANT_CATEGORIES: Record<string, string[]> = {
@@ -125,6 +141,7 @@ export const TENANT_CATEGORIES: Record<string, string[]> = {
   "magazineair.com": TECH_CATEGORIES,
   "techygate.com": TECH_CATEGORIES,
   "newyorksignal.com": TECH_CATEGORIES,
+  "techoggi.com": TECH_CATEGORIES_IT,
 };
 
 export const CATEGORY_TRANSLATIONS: Record<string, string> = {
@@ -163,6 +180,18 @@ export const CATEGORY_TRANSLATIONS: Record<string, string> = {
   "自然・アウトドア": "Nature & Outdoors",
   "ビザ・入国情報": "Visa & Entry Info",
   "ローカルビジネス・生活": "Local Business & Living",
+
+  // Italian (TechOggi)
+  "Intelligenza Artificiale": "Artificial Intelligence",
+  "Sviluppo Software": "Software Development",
+  "Tecnologia di Consumo": "Consumer Tech",
+  "Sicurezza Informatica": "Cybersecurity",
+  "Startup": "Startups",
+  "Grandi Aziende Tech": "Big Tech",
+  "Politiche Tecnologiche": "Tech Policy",
+  "Tecnologie Emergenti": "Emerging Tech",
+  "Cultura Digitale": "Digital Culture",
+  "Impresa e Infrastruttura Cloud": "Enterprise & Cloud Infrastructure",
 };
 
 export function getCategoryLabel(categoryName: string): string {

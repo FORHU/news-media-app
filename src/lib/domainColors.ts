@@ -112,6 +112,14 @@ export const DOMAIN_COLORS: Record<string, DomainColor> = {
     hoverBgClass: "hover:bg-[#661c18]",
     ringClass: "focus:ring-[#7C231E]/20",
   },
+  "techoggi.com": {
+    hex: "#0EA968",
+    bgClass: "bg-[#0EA968]",
+    textClass: "text-[#0EA968]",
+    borderClass: "border-[#0EA968]",
+    hoverBgClass: "hover:bg-[#0C8C55]",
+    ringClass: "focus:ring-[#0EA968]/20",
+  },
 };
 
 export function getDomainColor(domain: string = ""): DomainColor {
@@ -129,6 +137,7 @@ export function getDomainColor(domain: string = ""): DomainColor {
   if (normalized.includes("magazineair")) return DOMAIN_COLORS["magazineair.com"];
   if (normalized.includes("techygate")) return DOMAIN_COLORS["techygate.com"];
   if (normalized.includes("newyorksignal")) return DOMAIN_COLORS["newyorksignal.com"];
+  if (normalized.includes("techoggi")) return DOMAIN_COLORS["techoggi.com"];
 
   // Default to NewsIcons
   return DOMAIN_COLORS["newsicons.com"];

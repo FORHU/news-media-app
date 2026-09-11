@@ -30,6 +30,7 @@ import MagazineTechyLanding from "@/components/sites/magazinetechy/MagazineTechy
 import MagazineAirLanding from "@/components/sites/magazineair/MagazineAirLanding";
 import TechyGateLanding from "@/components/sites/techygate/TechyGateLanding";
 import NewYorkSignalLanding from "@/components/sites/newyorksignal/NewYorkSignalLanding";
+import TechOggiLanding from "@/components/sites/techoggi/TechOggiLanding";
 
 type TechNewsLandingComponent = typeof LinkTechNewsLanding;
 
@@ -40,6 +41,7 @@ const TECHNEWS_LANDINGS: Record<string, TechNewsLandingComponent> = {
   "magazineair.com": MagazineAirLanding,
   "techygate.com": TechyGateLanding,
   "newyorksignal.com": NewYorkSignalLanding,
+  "techoggi.com": TechOggiLanding,
 };
 
 export const revalidate = 300;
@@ -185,11 +187,14 @@ export default async function Page({
 
   const TechNewsLanding = TECHNEWS_LANDINGS[domain];
   if (TechNewsLanding) {
-    const technewsMediastack = await fetchMediaStackNews({
-      categories: "technology",
-      languages: "en",
-      limit: 100,
-    });
+    // TechOggi is Italian-language ("Tech Oggi" = "Tech Today"). Mediastack's
+    // "technology" category filter returns zero results combined with
+    // languages=it — its Italian sources are all bucketed under "general",
+    // not categorized — so techoggi searches by keyword instead, same
+    // technique legalhyper.com already uses for its niche topic below.
+    const technewsMediastack = domain === "techoggi.com"
+      ? await fetchMediaStackNews({ keywords: "tecnologia", languages: "it", limit: 100 })
+      : await fetchMediaStackNews({ categories: "technology", languages: "en", limit: 100 });
     return (
       <TechNewsLanding
         domain={domain}
