@@ -39,6 +39,8 @@ const TechyGateHeader = dynamic<TechNewsChromeProps>(() => import("@/components/
 const TechyGateFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/techygate/TechyGateFooter"), { ssr: true });
 const NewYorkSignalHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/newyorksignal/NewYorkSignalHeader"), { ssr: true });
 const NewYorkSignalFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/newyorksignal/NewYorkSignalFooter"), { ssr: true });
+const TechnikPostHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technikpost/TechnikPostHeader"), { ssr: true });
+const TechnikPostFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technikpost/TechnikPostFooter"), { ssr: true });
 
 const TECHNEWS_HEADERS: Record<string, React.ComponentType<TechNewsChromeProps>> = {
   "linktechnews.com": LinkTechNewsHeader,
@@ -47,6 +49,7 @@ const TECHNEWS_HEADERS: Record<string, React.ComponentType<TechNewsChromeProps>>
   "magazineair.com": MagazineAirHeader,
   "techygate.com": TechyGateHeader,
   "newyorksignal.com": NewYorkSignalHeader,
+  "technikpost.de": TechnikPostHeader,
 };
 const TECHNEWS_FOOTERS: Record<string, React.ComponentType<TechNewsChromeProps>> = {
   "linktechnews.com": LinkTechNewsFooter,
@@ -55,10 +58,11 @@ const TECHNEWS_FOOTERS: Record<string, React.ComponentType<TechNewsChromeProps>>
   "magazineair.com": MagazineAirFooter,
   "techygate.com": TechyGateFooter,
   "newyorksignal.com": NewYorkSignalFooter,
+  "technikpost.de": TechnikPostFooter,
 };
 function technewsKey(domain: string): string {
   const d = domain.toLowerCase().replace(/^www\./, "");
-  return Object.keys(TECHNEWS_HEADERS).find((k) => d.includes(k.replace(/\.com$/, ""))) ?? "linktechnews.com";
+  return Object.keys(TECHNEWS_HEADERS).find((k) => d.includes(k.replace(/\.(com|de)$/, ""))) ?? "linktechnews.com";
 }
 
 // Fallbacks

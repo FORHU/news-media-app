@@ -30,6 +30,7 @@ import MagazineTechyLanding from "@/components/sites/magazinetechy/MagazineTechy
 import MagazineAirLanding from "@/components/sites/magazineair/MagazineAirLanding";
 import TechyGateLanding from "@/components/sites/techygate/TechyGateLanding";
 import NewYorkSignalLanding from "@/components/sites/newyorksignal/NewYorkSignalLanding";
+import TechnikPostLanding from "@/components/sites/technikpost/TechnikPostLanding";
 
 type TechNewsLandingComponent = typeof LinkTechNewsLanding;
 
@@ -40,6 +41,7 @@ const TECHNEWS_LANDINGS: Record<string, TechNewsLandingComponent> = {
   "magazineair.com": MagazineAirLanding,
   "techygate.com": TechyGateLanding,
   "newyorksignal.com": NewYorkSignalLanding,
+  "technikpost.de": TechnikPostLanding,
 };
 
 export const revalidate = 300;

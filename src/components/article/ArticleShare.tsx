@@ -63,7 +63,8 @@ type SiteTheme =
   | "magazinetechy"
   | "magazineair"
   | "techygate"
-  | "newyorksignal";
+  | "newyorksignal"
+  | "technikpost";
 
 function normalizeShareUrl(input: string) {
   try {
@@ -524,6 +525,15 @@ export function ArticleShare({
           header: "text-[#1A1613] font-serif text-2xl font-black tracking-tight",
           item: "rounded-none border-[#E0D7C5] hover:border-[#7C231E] transition-all",
           copyBtn: "bg-[#1A1613] text-white hover:opacity-90 rounded-none border-none",
+        };
+      case "technikpost":
+        return {
+          trigger:
+            "bg-[#B68235] hover:opacity-90 text-white rounded px-8 py-2.5 transition-opacity font-serif text-[13px] font-semibold uppercase tracking-[0.14em] border border-[#B68235]",
+          modal: "sm:max-w-lg bg-[#FAF9F7] border border-[#DCD8D2] rounded shadow-2xl",
+          header: "text-[#201F1D] font-serif text-2xl font-semibold tracking-tight",
+          item: "rounded border-[#DCD8D2] hover:border-[#B68235] transition-all",
+          copyBtn: "bg-[#201F1D] text-white hover:opacity-90 rounded border-none",
         };
       case "newsicons":
       default:

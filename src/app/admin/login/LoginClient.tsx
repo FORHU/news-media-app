@@ -50,6 +50,7 @@ function getTheme(domain: string): Theme {
   if (domain.includes('magazineair')) return magazineAirTheme;
   if (domain.includes('techygate')) return techyGateTheme;
   if (domain.includes('newyorksignal')) return newYorkSignalTheme;
+  if (domain.includes('technikpost')) return technikPostTheme;
   return newsIconsTheme;
 }
 
@@ -546,6 +547,39 @@ const newYorkSignalTheme: Theme = {
   tagline: 'Subscriber Desk Sign-In',
   footerText: '© The New York Signal',
   siteName: 'New York Signal',
+};
+
+/* ── TechnikPost ── */
+const technikPostTheme: Theme = {
+  bg: 'min-h-screen bg-[#F3F2F2] flex items-center justify-center px-4 py-12 relative overflow-y-auto',
+  card: 'bg-[#FAF9F7] border border-[#DCD8D2] shadow-lg p-8 md:p-12 relative overflow-hidden rounded',
+  topBar: 'absolute top-0 left-0 w-full h-[3px] bg-[#B68235]',
+  logo: (
+    <div className="text-center mb-10 flex flex-col items-center">
+      <div className="inline-block pb-1.5 border-b border-[#B68235] font-serif text-3xl uppercase tracking-[0.06em] text-[#201F1D]">
+        TECHNIK<span className="italic lowercase">Post</span>
+      </div>
+      <p className="text-[10px] font-serif uppercase tracking-[0.28em] text-[#8A6226] mt-3">Redaktions-Administration</p>
+    </div>
+  ),
+  accent: '#B68235',
+  accentCls: 'bg-[#B68235]',
+  accentHover: 'hover:bg-[#96692a]',
+  inputFocus: 'focus:border-[#B68235]',
+  inputBorder: 'border-[#DCD8D2] hover:border-[#c9c2b6]',
+  inputBgCls: 'bg-white',
+  inputRounded: 'rounded',
+  labelCls: 'text-[10px] font-bold text-[#201F1D] uppercase tracking-[0.24em]',
+  btnCls: 'w-full bg-[#201F1D] text-[#FAF9F7] py-4 font-serif font-semibold text-sm uppercase tracking-[0.2em] hover:bg-[#B68235] disabled:opacity-60 transition-colors flex items-center justify-center gap-2 group relative overflow-hidden rounded',
+  errorCls: 'text-xs text-[#8A6226] bg-[#B68235]/5 p-3 border border-[#B68235]/20 font-bold flex items-center gap-2 rounded',
+  backCls: 'fixed top-6 left-6 sm:top-10 sm:left-10 flex items-center gap-3 text-[#6E6862] hover:text-[#B68235] transition-all group z-10 font-serif font-semibold uppercase tracking-[0.2em] text-[10px]',
+  backIconCls: 'transition-transform group-hover:-translate-x-1',
+  headingCls: 'text-2xl font-serif font-semibold text-[#201F1D] tracking-tight mb-1',
+  subtextCls: 'text-sm text-[#6E6862]',
+  footerCls: 'text-center mt-8 text-[#6E6862] font-serif font-semibold text-[10px] uppercase tracking-[0.24em]',
+  tagline: 'Redaktionelle Anmeldung',
+  footerText: '© TechnikPost',
+  siteName: 'TechnikPost',
 };
 
 /* ─── Shared form logic ─── */

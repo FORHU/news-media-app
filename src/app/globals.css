@@ -416,6 +416,21 @@ body {
   --font-garamond: var(--font-baskerville);
 }
 
+/* TechnikPost — editorial: Cormorant Garamond + Lora */
+.site-theme-technikpost-de {
+  font-family: var(--font-lora);
+  --font-sans: var(--font-lora);
+  --font-roboto: var(--font-lora);
+  --font-geist-sans: var(--font-lora);
+  --font-noto: var(--font-lora);
+  --font-mono: var(--font-lora);
+  --font-geist-mono: var(--font-lora);
+  --font-serif: var(--font-cormorant);
+  --font-playfair: var(--font-cormorant);
+  --font-baskerville: var(--font-cormorant);
+  --font-garamond: var(--font-cormorant);
+}
+
 @keyframes tn-caret {
   0%, 45% { opacity: 1; }
   50%, 95% { opacity: 0; }

@@ -3,8 +3,8 @@ import type { CSSProperties } from "react";
 /**
  * Shared theme system for the "technews" tenant family.
  *
- * Six domains (LinkTechnews, DbTechnews, MagazineTechy, MagazineAir, TechyGate,
- * NewYorkSignal) share the same page skeleton and differ only by the values in
+ * Seven domains (LinkTechnews, DbTechnews, MagazineTechy, MagazineAir, TechyGate,
+ * NewYorkSignal, TechnikPost) share the same page skeleton and differ only by the values in
  * this file: palette, wordmark rendering, section-label rendering, and a single
  * signature motif. Fonts are swapped per domain in globals.css via the
  * `.site-theme-<domain>-com` blocks, which remap the semantic `--font-serif` /
@@ -30,7 +30,8 @@ export type WordmarkStyle =
   | "feature" //   Magazine Techy  (serif caps, hairline rule under)
   | "hairline" //  MAGAZINE / AIR  (thin letterspaced, stacked)
   | "gate" //     |TECHYGATE|      (condensed heavy between two bars)
-  | "broadsheet"; // The New York Signal (serif caps + signal ticks)
+  | "broadsheet" //  The New York Signal (serif caps + signal ticks)
+  | "rule"; //     TECHNIK Post     (serif caps + italic lowercase half, on an accent rule)
 
 export type LabelStyle =
   | "monoArrow" //   ▸ SECTION
@@ -38,7 +39,8 @@ export type LabelStyle =
   | "serifRule" //   Section  (small serif, hairline over)
   | "ruleOver" //    ─────  SECTION  (letterspaced, rule above)
   | "solidBlock" //  ███ SECTION (condensed, filled)
-  | "ticks"; //      ╎╎╎ SECTION (signal ticks + rule)
+  | "ticks" //       ╎╎╎ SECTION (signal ticks + rule)
+  | "ruleAccent"; //  SECTION ───  (letterspaced, deepened accent, rule under)
 
 export interface TechNewsTheme {
   /** short key, e.g. "linktechnews" — matches the globals.css `.site-theme-<key>-com` block */
@@ -199,6 +201,27 @@ const THEMES: TechNewsTheme[] = [
     accentInk: "#FFFFFF",
     rule: "#E0D7C5",
     muted: "#6A6153",
+  },
+  {
+    key: "technikpost",
+    domain: "technikpost.de",
+    name: "TechnikPost",
+    wordmark: { pre: "", main: "TECHNIK", accent: "POST", post: "" },
+    wordmarkStyle: "rule",
+    labelStyle: "ruleAccent",
+    tagline: "Technik, Netzpolitik und Wirtschaft — täglich aus Berlin, Brüssel und dem Silicon Valley.",
+    byline: "TECHNIKPOST",
+    railLabel: "Live Wire",
+    sourceChips: true,
+    radius: "4px",
+    ink: "#201F1D",
+    bg: "#F3F2F2",
+    surface: "#FAF9F7",
+    accent: "#B68235",
+    accentSoft: "#EFE3CE",
+    accentInk: "#FFFFFF",
+    rule: "#DCD8D2",
+    muted: "#6E6862",
   },
 ];
 

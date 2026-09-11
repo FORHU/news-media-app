@@ -125,6 +125,7 @@ export const TENANT_CATEGORIES: Record<string, string[]> = {
   "magazineair.com": TECH_CATEGORIES,
   "techygate.com": TECH_CATEGORIES,
   "newyorksignal.com": TECH_CATEGORIES,
+  "technikpost.de": TECH_CATEGORIES,
 };
 
 export const CATEGORY_TRANSLATIONS: Record<string, string> = {
