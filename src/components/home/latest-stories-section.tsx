@@ -118,6 +118,12 @@ export function LatestStoriesSection({
               {categoryName ?? (searchQuery ? "Search Results" : "Latest Updates")}
             </h2>
           </div>
+        ) : domain.includes('technikpost') ? (
+          <div className="w-full pb-2 border-b border-[#B68235]">
+            <h2 className="font-serif text-[15px] uppercase tracking-[0.1em] text-[#201F1D]">
+              {categoryName ?? (searchQuery ? "Search Results" : "Latest Stories")}
+            </h2>
+          </div>
         ) : (
           <h2 className={`text-2xl font-bold text-gray-900 ${domain.includes('voicejeju') ? 'font-voltaire uppercase tracking-tight text-3xl' : 'font-serif'}`}>
             Latest Stories
@@ -207,6 +213,24 @@ export function LatestStoriesSection({
               Clear Filters
             </button>
           </div>
+        ) : domain.includes("technikpost") ? (
+          <div className="py-24 text-center border-y border-[#DCD8D2]">
+            <p className="text-3xl font-serif text-[#201F1D] mb-3">
+              No articles found
+            </p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#6E6862] mb-8">
+              Try adjusting your filters or search terms
+            </p>
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={clearSearch}
+                className="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.25em] text-white bg-[#201F1D] px-6 py-3 hover:bg-[#B68235] transition-all"
+              >
+                Clear All Filters
+              </button>
+            )}
+          </div>
         ) : (
           <div className="text-center py-16">
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -237,9 +261,43 @@ export function LatestStoriesSection({
             const isSkyBluePrime = domain.includes('skyblueprime');
             const isJejuJapan = domain.includes('jejujapan');
             const isJejuTime = domain.includes('jejutime');
+            const isTechnikPost = domain.includes('technikpost');
             return latestStories.map((article, index) => (
             <Fragment key={article.id}>
-              {isJejuTime ? (
+              {isTechnikPost ? (
+                <ArticleLink
+                  articleIdentifier={article.slug ?? article.id}
+                  href={`/article/${article.slug ?? article.id}`}
+                  className="group cursor-pointer flex flex-row gap-5 py-5 border-b border-[#DCD8D2] hover:bg-[#EFE3CE]/30 transition-colors"
+                >
+                  <div className="relative w-28 sm:w-36 h-20 sm:h-24 overflow-hidden flex-shrink-0 bg-[#EFE3CE]">
+                    <StoryImage
+                      src={article.imageUrl}
+                      alt={article.title}
+                      fill
+                      sizes="(max-width: 640px) 112px, 144px"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      variant="thumbnail"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    {normalizeCategoryName(article.category?.categoryName) && (
+                      <span className="block text-[9px] font-bold text-[#8A6226] uppercase tracking-[0.2em] mb-1.5">
+                        {normalizeCategoryName(article.category?.categoryName)}
+                      </span>
+                    )}
+                    <h3 className="text-[17px] font-serif text-[#201F1D] mb-2 leading-tight line-clamp-2 group-hover:text-[#B68235] transition-colors">
+                      {article.title}
+                    </h3>
+                    <p className="text-[13px] text-[#6E6862] line-clamp-2 leading-relaxed">
+                      {truncateContent(article.content)}
+                    </p>
+                    <span className="block mt-2 text-[9px] font-bold text-[#6E6862] uppercase tracking-[0.2em]">
+                      {formatDate(article.createdAt)}
+                    </span>
+                  </div>
+                </ArticleLink>
+              ) : isJejuTime ? (
                 <ArticleLink
                   articleIdentifier={article.slug ?? article.id}
                   href={`/article/${article.slug ?? article.id}`}
