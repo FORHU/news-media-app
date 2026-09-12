@@ -281,8 +281,10 @@ export default async function SearchLayout({
     );
   }
 
+  const isTechnikPost = domain.toLowerCase().includes("technikpost");
+
   return (
-    <div className={isSkyBluePrime ? "bg-white min-h-screen" : "bg-white"}>
+    <div className={isSkyBluePrime ? "bg-white min-h-screen" : isTechnikPost ? "bg-[#F3F2F2] min-h-screen" : "bg-white"}>
       <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
         {/* Floating Left Gutter Skyscraper (160x600) */}
         {showSkyscrapers && adKeys?.["160x600"] && (

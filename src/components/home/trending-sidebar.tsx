@@ -37,6 +37,43 @@ export function TrendingSidebar({ articles, domain }: TrendingSidebarProps) {
   const isVoiceJeju = domain.includes('voicejeju');
   const isJejuJapan = domain.includes('jejujapan');
   const isJejuQQ = domain.includes('jejuqq');
+  const isTechnikPost = domain.includes('technikpost');
+
+  if (isTechnikPost) {
+    return (
+      <aside id="trending-stories" className="lg:col-span-1 scroll-mt-24">
+        <div className="sticky top-24">
+          <div className="pb-2 mb-6 border-b border-[#B68235]">
+            <h2 className="font-serif text-[15px] uppercase tracking-[0.1em] text-[#201F1D]">Trending Stories</h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            {sortedArticles.map((article, index) => (
+              <ArticleLink
+                key={article.id}
+                articleIdentifier={article.slug ?? article.id}
+                href={`/article/${article.slug ?? article.id}`}
+                className="group cursor-pointer flex gap-3 border-b border-[#DCD8D2] pb-5 last:border-0 last:pb-0"
+              >
+                <span className="font-serif text-[18px] text-[#B68235]/60 group-hover:text-[#B68235] transition-colors tabular-nums shrink-0 leading-none pt-0.5">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <div className="flex-1 min-w-0">
+                  {normalizeCategoryName(article.category?.categoryName) && (
+                    <span className="block text-[9px] font-bold uppercase tracking-[0.2em] text-[#8A6226] mb-1">
+                      {normalizeCategoryName(article.category?.categoryName)}
+                    </span>
+                  )}
+                  <h3 className="text-[15px] font-serif text-[#201F1D] leading-tight line-clamp-2 group-hover:text-[#B68235] transition-colors">
+                    {article.title}
+                  </h3>
+                </div>
+              </ArticleLink>
+            ))}
+          </div>
+        </div>
+      </aside>
+    );
+  }
 
   if (isSkyBluePrime) {
     return (

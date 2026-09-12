@@ -27,6 +27,7 @@ export function FilterStatusBar({
   const isSkyBluePrime = domain.includes("skyblueprime");
   const isJejuJapan = domain.includes("jejujapan");
   const isJejuQQ = domain.includes("jejuqq");
+  const isTechnikPost = domain.includes("technikpost");
 
   const clearAllFilters = () => {
     router.push("/search");
@@ -228,6 +229,56 @@ export function FilterStatusBar({
               Clear All
             </button>
           )}
+        </div>
+      </div>
+    );
+  }
+
+  if (isTechnikPost) {
+    if (!searchQuery && !categoryName) return null;
+
+    return (
+      <div className="mb-6 pb-4 border-b border-[#B68235]">
+        <div className="flex items-start justify-between flex-wrap gap-3">
+          <div className="min-w-0">
+            <span className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#8A6226] block mb-1.5">
+              Results For
+            </span>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+              {categoryLabel && (
+                <button
+                  type="button"
+                  onClick={clearCategoryOnly}
+                  aria-label="Remove category filter"
+                  className="flex items-center gap-2 text-[20px] font-serif text-[#201F1D] hover:text-[#B68235] transition-colors group leading-tight"
+                >
+                  {categoryLabel}
+                  <X className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity text-[#B68235] flex-shrink-0" />
+                </button>
+              )}
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={clearSearchOnly}
+                  aria-label="Remove search filter"
+                  className="flex items-center gap-2 text-[20px] font-serif text-[#201F1D] hover:text-[#B68235] transition-colors group leading-tight"
+                >
+                  &ldquo;{searchQuery}&rdquo;
+                  <X className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity text-[#B68235] flex-shrink-0" />
+                </button>
+              )}
+            </div>
+            <span className="text-[10px] font-bold text-[#6E6862] uppercase tracking-[0.2em] mt-1.5 block">
+              {resultCount} {resultCount === 1 ? "article" : "articles"}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={clearAllFilters}
+            className="flex-shrink-0 mt-1 text-[9px] font-bold uppercase tracking-[0.25em] text-[#6E6862] hover:text-[#B68235] transition-colors"
+          >
+            Clear All
+          </button>
         </div>
       </div>
     );

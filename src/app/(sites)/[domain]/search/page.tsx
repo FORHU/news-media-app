@@ -18,13 +18,37 @@ import { LegalHyperSearch } from "@/components/sites/legalhyper/LegalHyperSearch
 import { mapMediaStackToLegalHyperArticles } from "@/components/sites/legalhyper/mockArticles";
 import { fetchMediaStackNews } from "@/lib/mediastack";
 
-export async function generateMetadata({ params }: { params: Promise<{ domain: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ domain: string }>;
+  searchParams: Promise<{ search?: string; category?: string }>;
+}): Promise<Metadata> {
   const { domain } = await params;
+  const { search: searchQuery, category: categoryParam } = await searchParams;
   const siteName = getSiteNameFromDomain(domain);
   const baseUrl = await getRequestBaseUrl(domain);
   const logoPath = `/Logo/${getSiteLogoFromDomain(domain)}`;
   const logoUrl = `${baseUrl}${logoPath}`;
   const { absolute: ogImageAbsolute } = buildOgImageUrl(logoUrl, baseUrl);
+
+  // Empty result pages (e.g. a category with no published articles yet) are
+  // thin, crawlable via nav links, and get flagged as soft 404s in Search
+  // Console. Keep them out of the index while still letting Google follow
+  // the links on the page. LegalHyper sources live from MediaStack, not this
+  // DB, so it's never thin in the same way — skip the check for it.
+  let hasResults = true;
+  if (domain !== "legalhyper.com") {
+    const tenantId = await resolveTenantIdFromDomain(domain);
+    const results = tenantId
+      ? await articlesService.getArticles(
+          { limit: 1, search: searchQuery, category: categoryParam, status: "published", requireImage: true },
+          tenantId
+        )
+      : [];
+    hasResults = results.length > 0;
+  }
 
   return {
     title: "Search",
@@ -32,6 +56,7 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
     icons: {
       icon: getSiteIconFromDomain(domain),
     },
+    ...(hasResults ? {} : { robots: { index: false, follow: true } }),
     openGraph: {
       title: "Search",
       description: `Search results for ${siteName}`,
@@ -162,6 +187,7 @@ async function SearchContent({
   const isJejuQQ = domain.toLowerCase().includes("jejuqq");
   const isJejuTime = domain.toLowerCase().includes("jejutime");
   const isLavagueTech = domain.toLowerCase().includes("lavaguetech");
+  const isTechnikPost = domain.toLowerCase().includes("technikpost");
 
   const activeCategory = categoryParam ? decodeURIComponent(categoryParam) : null;
   const heroLabel = activeCategory ?? (searchQuery ? `"${searchQuery}"` : "전체 기사");
@@ -895,6 +921,14 @@ async function SearchContent({
         <div className="border-t-[6px] border-sky-950 pt-3 mb-6">
           <h1 className="text-[11px] font-black uppercase tracking-widest text-white bg-sky-950 inline-block px-3 py-1.5 leading-none">
             {sbpLabel}
+          </h1>
+        </div>
+      )}
+
+      {isTechnikPost && (
+        <div className="mb-6 pb-3 border-b border-[#B68235]">
+          <h1 className="font-serif text-2xl sm:text-3xl text-[#201F1D] leading-tight">
+            {activeCategory ?? (searchQuery ? `"${searchQuery}"` : "All Stories")}
           </h1>
         </div>
       )}
