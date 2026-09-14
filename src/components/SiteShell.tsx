@@ -26,7 +26,7 @@ const LavagueTechFooter = dynamic(() => import("./sites/lavaguetech/LavagueTechF
 const LegalHyperHeader = dynamic<{ onOpenNewsletter?: () => void }>(() => import("@/components/sites/legalhyper/LegalHyperHeader").then(m => m.LegalHyperHeader), { ssr: true });
 const LegalHyperFooter = dynamic<{ onOpenNewsletter?: () => void }>(() => import("@/components/sites/legalhyper/LegalHyperFooter").then(m => m.LegalHyperFooter), { ssr: true });
 // technews tenant family — one per-domain component set each
-type TechNewsChromeProps = { domain: string; onOpenNewsletter?: () => void };
+type TechNewsChromeProps = { domain: string; onOpenNewsletter?: () => void; categories?: string[] };
 const LinkTechNewsHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/linktechnews/LinkTechNewsHeader"), { ssr: true });
 const LinkTechNewsFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/linktechnews/LinkTechNewsFooter"), { ssr: true });
 const DbTechNewsHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/dbtechnews/DbTechNewsHeader"), { ssr: true });
@@ -41,6 +41,8 @@ const NewYorkSignalHeader = dynamic<TechNewsChromeProps>(() => import("@/compone
 const NewYorkSignalFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/newyorksignal/NewYorkSignalFooter"), { ssr: true });
 const TechnikPostHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technikpost/TechnikPostHeader"), { ssr: true });
 const TechnikPostFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/technikpost/TechnikPostFooter"), { ssr: true });
+const TechOggiHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/techoggi/TechOggiHeader"), { ssr: true });
+const TechOggiFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/techoggi/TechOggiFooter"), { ssr: true });
 const TechHoyHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/techhoy/TechHoyHeader"), { ssr: true });
 const TechHoyFooter = dynamic<TechNewsChromeProps>(() => import("@/components/sites/techhoy/TechHoyFooter"), { ssr: true });
 
@@ -52,6 +54,7 @@ const TECHNEWS_HEADERS: Record<string, React.ComponentType<TechNewsChromeProps>>
   "techygate.com": TechyGateHeader,
   "newyorksignal.com": NewYorkSignalHeader,
   "technikpost.de": TechnikPostHeader,
+  "techoggi.com": TechOggiHeader,
   "techhoy.com": TechHoyHeader,
 };
 const TECHNEWS_FOOTERS: Record<string, React.ComponentType<TechNewsChromeProps>> = {
@@ -62,6 +65,7 @@ const TECHNEWS_FOOTERS: Record<string, React.ComponentType<TechNewsChromeProps>>
   "techygate.com": TechyGateFooter,
   "newyorksignal.com": NewYorkSignalFooter,
   "technikpost.de": TechnikPostFooter,
+  "techoggi.com": TechOggiFooter,
   "techhoy.com": TechHoyFooter,
 };
 function technewsKey(domain: string): string {
@@ -76,9 +80,13 @@ const DefaultFooter = dynamic(() => import("./Footer").then(m => m.Footer), { ss
 interface SiteShellProps {
   children: React.ReactNode;
   domain: string;
+  /** techoggi.com only: its real-time, MediaStack-classified category list
+   *  (computed server-side in layout.tsx), overriding the static
+   *  getCoreCategories(domain) list its Header/Footer otherwise fall back to. */
+  categories?: string[];
 }
 
-export function SiteShell({ children, domain }: SiteShellProps) {
+export function SiteShell({ children, domain, categories }: SiteShellProps) {
   const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
   const openNewsletter = () => setIsNewsletterOpen(true);
   const closeNewsletter = () => setIsNewsletterOpen(false);
@@ -109,7 +117,7 @@ export function SiteShell({ children, domain }: SiteShellProps) {
       case "legalhyper": return <LegalHyperHeader onOpenNewsletter={openNewsletter} />;
       case "technews": {
         const H = TECHNEWS_HEADERS[technewsKey(domain)];
-        return <H domain={domain} onOpenNewsletter={openNewsletter} />;
+        return <H domain={domain} onOpenNewsletter={openNewsletter} categories={categories} />;
       }
       default: return <DefaultHeader onOpenNewsletter={openNewsletter} />;
     }
@@ -127,7 +135,7 @@ export function SiteShell({ children, domain }: SiteShellProps) {
       case "legalhyper": return <LegalHyperFooter onOpenNewsletter={openNewsletter} />;
       case "technews": {
         const F = TECHNEWS_FOOTERS[technewsKey(domain)];
-        return <F domain={domain} onOpenNewsletter={openNewsletter} />;
+        return <F domain={domain} onOpenNewsletter={openNewsletter} categories={categories} />;
       }
       default: return <DefaultFooter onOpenNewsletter={openNewsletter} />;
     }

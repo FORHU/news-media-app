@@ -28,8 +28,12 @@ const TECH_CATEGORIES = [
 ];
 
 /** Same tech newsroom taxonomy as TECH_CATEGORIES, in Italian — TechOggi is an
- *  Italian-language site ("Tech Oggi" = "Tech Today"). */
-const TECH_CATEGORIES_IT = [
+ *  Italian-language site ("Tech Oggi" = "Tech Today"). Exported so TechOggi's
+ *  keyword classifier (src/components/sites/techoggi/categorize.ts) can
+ *  derive its nav/grouping categories straight from this canonical label set,
+ *  since MediaStack's own `category` tag is always "general" for Italian
+ *  results and can't be used for real categorization. */
+export const TECH_CATEGORIES_IT = [
   "Intelligenza Artificiale",
   "Sviluppo Software",
   "Tecnologia di Consumo",

@@ -51,6 +51,7 @@ function getTheme(domain: string): Theme {
   if (domain.includes('techygate')) return techyGateTheme;
   if (domain.includes('newyorksignal')) return newYorkSignalTheme;
   if (domain.includes('technikpost')) return technikPostTheme;
+  if (domain.includes('techoggi')) return techOggiTheme;
   if (domain.includes('techhoy')) return techHoyTheme;
   return newsIconsTheme;
 }
@@ -583,6 +584,37 @@ const technikPostTheme: Theme = {
   siteName: 'TechnikPost',
 };
 
+/* ── TechOggi ── */
+const techOggiTheme: Theme = {
+  bg: 'min-h-screen bg-[#F6FBF8] flex items-center justify-center px-4 py-12 relative overflow-y-auto',
+  card: 'bg-white border border-[#DCEAE1] shadow-xl p-8 md:p-12 relative overflow-hidden rounded-2xl',
+  topBar: 'absolute top-0 left-0 w-full h-1.5 bg-[#0EA968]',
+  logo: (
+    <div className="text-center mb-10 flex flex-col items-center">
+      <div className="font-sans text-3xl font-black tracking-tight text-[#12241C]">
+        Tech<span className="text-[#0EA968] underline decoration-2 underline-offset-4">Oggi</span>
+      </div>
+      <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#5B6E63] mt-3">Portale Amministrativo</p>
+    </div>
+  ),
+  accent: '#0EA968',
+  accentCls: 'bg-[#0EA968]',
+  accentHover: 'hover:bg-[#0C8C55]',
+  inputFocus: 'focus:border-[#0EA968]',
+  inputBorder: 'border-[#DCEAE1] hover:border-[#c3ddd0]',
+  inputBgCls: 'bg-[#F6FBF8]',
+  inputRounded: 'rounded-xl',
+  labelCls: 'text-[10px] font-bold text-[#12241C] uppercase tracking-[0.25em]',
+  btnCls: 'w-full bg-[#0EA968] text-white py-4 rounded-xl font-bold text-[11px] uppercase tracking-[0.25em] hover:bg-[#0C8C55] disabled:opacity-60 transition-all shadow-lg shadow-[#0EA968]/20 hover:-translate-y-0.5 flex items-center justify-center gap-2 group relative overflow-hidden',
+  errorCls: 'text-xs text-red-600 bg-red-50 p-4 rounded-xl border border-red-100 font-bold flex items-center gap-3',
+  backCls: 'fixed top-6 left-6 sm:top-10 sm:left-10 flex items-center gap-3 text-[#5B6E63] hover:text-[#0EA968] transition-all group z-10 font-bold uppercase tracking-[0.25em] text-[10px]',
+  backIconCls: 'transition-transform group-hover:-translate-x-1',
+  headingCls: 'text-2xl font-black text-[#12241C] tracking-tight mb-1',
+  subtextCls: 'text-sm text-[#5B6E63]',
+  footerCls: 'text-center mt-8 text-[#5B6E63] font-bold text-[10px] uppercase tracking-[0.25em]',
+  tagline: 'Bentornato',
+  footerText: '© Tech Oggi — la tecnologia, oggi',
+  siteName: 'Tech Oggi',
 /* ── TechHoy ── */
 const techHoyTheme: Theme = {
   bg: 'min-h-screen bg-[#F6F3EC] flex items-center justify-center px-4 py-12 relative overflow-y-auto',

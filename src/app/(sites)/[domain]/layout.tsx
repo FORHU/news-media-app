@@ -20,6 +20,7 @@ import { getRequestBaseUrl, buildOgImageUrl } from "@/lib/metadata";
 import { getSiteDescriptionFromDomain } from "@/lib/tenant";
 import { JsonLd } from "@/components/JsonLd";
 import { baseUrlForDomain, buildOrganizationLd, buildWebSiteLd } from "@/lib/structuredData";
+import { getTechOggiNavCategories } from "@/components/sites/techoggi/categorize";
 
 export async function generateMetadata({ params }: { params: Promise<{ domain: string }> }): Promise<Metadata> {
   const { domain } = await params;
@@ -85,6 +86,10 @@ export default async function SiteLayout({
 }) {
   const { domain } = await params;
   const baseUrl = baseUrlForDomain(domain);
+  // techoggi.com's category nav is classified from its live MediaStack feed
+  // (MediaStack tags every Italian result "general", so a fixed list would
+  // link to empty categories) — see getTechOggiNavCategories for why.
+  const categories = domain === "techoggi.com" ? await getTechOggiNavCategories() : undefined;
 
   return (
     <div className={`site-theme-${domain.replace(".", "-")}`}>
@@ -94,7 +99,7 @@ export default async function SiteLayout({
           buildWebSiteLd(domain, baseUrl),
         ]}
       />
-      <SiteShell domain={domain}>
+      <SiteShell domain={domain} categories={categories}>
         {children}
       </SiteShell>
     </div>

@@ -1,15 +1,29 @@
 "use client";
 
+import { useCallback, useState } from "react";
 import dynamic from "next/dynamic";
 import { StoryImage } from "@/components/StoryImage";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { ADSTERRA_CONFIG } from "@/config/adsterra";
-import { getCoreCategories, normalizeCategoryKey } from "@/config/categories";
 import type { MediaStackArticle } from "@/lib/mediastack";
 import { getTechNewsTheme, techNewsVars } from "../technews-shared/theme";
 import { SectionLabel } from "../technews-shared/parts";
 import { toFeedRows, excerpt, type FeedRow } from "../technews-shared/feed";
 import { FeedLink } from "../technews-shared/FeedLink";
+import { classifyTechOggiCategory } from "./categorize";
+
+/**
+ * MediaStack tags every Italian result "general", so a row's own
+ * category.categoryName is only trustworthy for DB-authored articles (where
+ * an editor picked a real TECH_CATEGORIES_IT value); external rows get
+ * classified from their title/content instead. Always resolves to a real
+ * label — never "general" — so it's safe for both the hero badge and the
+ * category-grouped sections below.
+ */
+function rowCategory(row: FeedRow): string {
+  if (!row.external && row.category?.categoryName) return row.category.categoryName;
+  return classifyTechOggiCategory(row.title, row.content) ?? "Tecnologia";
+}
 
 const AdBanner = dynamic(() => import("@/components/AdBanner").then((m) => m.AdBanner), {
   ssr: true,
@@ -42,12 +56,18 @@ function Card({
   aspect = "aspect-[4/3]",
   titleClass = "text-[15px]",
   showExcerpt = true,
+  onImageUnavailable,
 }: {
   row: FeedRow;
   imgSizes: string;
   aspect?: string;
   titleClass?: string;
   showExcerpt?: boolean;
+  /** MediaStack thumbnails sometimes 404 or hotlink-block only once the
+   *  browser actually requests them — the server-side fetch filter can't
+   *  catch that. Fires so the caller can drop this row instead of leaving a
+   *  colored placeholder box on the page. */
+  onImageUnavailable?: (id: string) => void;
 }) {
   const label = row.external ? row.source : row.category?.categoryName ?? "Notizie";
   return (
@@ -62,6 +82,7 @@ function Card({
           fill
           className="object-cover group-hover:scale-105 transition-transform duration-500"
           sizes={imgSizes}
+          onFallback={() => onImageUnavailable?.(row.id)}
         />
       </div>
       <div className="p-4 flex flex-col gap-2 flex-1">
@@ -86,15 +107,20 @@ function Card({
 
 export default function TechOggiLanding({ domain, articles, banners, mediastackArticles = [] }: Props) {
   const theme = getTechNewsTheme(domain);
-  const categories = getCoreCategories(domain);
-  const canonicalCategoryMap = new Map(
-    categories.map((c) => [normalizeCategoryKey(c), c.trim()]),
-  );
+
+  // Some MediaStack thumbnails 404 or hotlink-block only once the browser
+  // actually requests them (the server-side fetch filter in mediastack.ts
+  // can't catch that) — track those here so the row drops out entirely
+  // instead of showing StoryImage's colored placeholder box.
+  const [brokenImageIds, setBrokenImageIds] = useState<Set<string>>(new Set());
+  const handleImageUnavailable = useCallback((id: string) => {
+    setBrokenImageIds((prev) => (prev.has(id) ? prev : new Set(prev).add(id)));
+  }, []);
 
   // Same clean data plumbing every technews sibling shares: DB articles rank
   // first, MediaStack fills the rest, image-bearing rows only for card slots.
   const rows = toFeedRows(articles, mediastackArticles);
-  const pool = rows.filter((r) => r.imageUrl !== null || !r.external);
+  const pool = rows.filter((r) => (r.imageUrl !== null || !r.external) && !brokenImageIds.has(r.id));
 
   const HERO_END = 1;
   const TOP_STORIES_END = HERO_END + 5;
@@ -112,8 +138,7 @@ export default function TechOggiLanding({ domain, articles, banners, mediastackA
 
   const groupedMap = new Map<string, FeedRow[]>();
   for (const r of remainder) {
-    const raw = r.category?.categoryName || "Tecnologia";
-    const cat = canonicalCategoryMap.get(normalizeCategoryKey(raw)) ?? raw;
+    const cat = rowCategory(r);
     if (!groupedMap.has(cat)) groupedMap.set(cat, []);
     groupedMap.get(cat)!.push(r);
   }
@@ -158,12 +183,13 @@ export default function TechOggiLanding({ domain, articles, banners, mediastackA
                       priority
                       className="object-cover group-hover:scale-105 transition-transform duration-700"
                       sizes="(max-width: 1024px) 100vw, 66vw"
+                      onFallback={() => handleImageUnavailable(hero.id)}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
                       <span className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-sm px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-white mb-3">
                         <span className="w-1.5 h-1.5 rounded-full bg-[var(--tn-accent)]" aria-hidden />
-                        {hero.category?.categoryName ?? "Notizia Principale"}
+                        {rowCategory(hero)}
                       </span>
                       <h1 className="font-sans text-2xl sm:text-4xl font-black text-white leading-[1.08] tracking-tight max-w-2xl">
                         {hero.title}
@@ -187,7 +213,7 @@ export default function TechOggiLanding({ domain, articles, banners, mediastackA
                 <SectionLabel theme={theme} className="mb-5">Notizie Principali</SectionLabel>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   {topStories.map((row) => (
-                    <Card key={row.id} row={row} imgSizes="(max-width: 1024px) 50vw, 33vw" />
+                    <Card key={row.id} row={row} imgSizes="(max-width: 1024px) 50vw, 33vw" onImageUnavailable={handleImageUnavailable} />
                   ))}
                 </div>
               </section>
@@ -211,6 +237,7 @@ export default function TechOggiLanding({ domain, articles, banners, mediastackA
                       aspect="aspect-square"
                       titleClass="text-[13px]"
                       showExcerpt={false}
+                      onImageUnavailable={handleImageUnavailable}
                     />
                   ))}
                 </div>
@@ -243,6 +270,7 @@ export default function TechOggiLanding({ domain, articles, banners, mediastackA
                           fill
                           className="object-cover"
                           sizes="56px"
+                          onFallback={() => handleImageUnavailable(row.id)}
                         />
                       </div>
                       <h4 className="flex-1 min-w-0 font-sans text-[13px] font-bold text-[var(--tn-ink)] leading-snug group-hover:text-[var(--tn-accent)] transition-colors line-clamp-2">
@@ -297,7 +325,7 @@ export default function TechOggiLanding({ domain, articles, banners, mediastackA
               <SectionLabel theme={theme} className="mb-5">{group.name}</SectionLabel>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 {items.map((row) => (
-                  <Card key={row.id} row={row} imgSizes="(max-width: 1024px) 50vw, 25vw" />
+                  <Card key={row.id} row={row} imgSizes="(max-width: 1024px) 50vw, 25vw" onImageUnavailable={handleImageUnavailable} />
                 ))}
               </div>
             </section>
