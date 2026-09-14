@@ -26,7 +26,18 @@ export const generalPublishService = {
       status: params.status,
     };
 
-    const { data, count } = await generalPublishRepository.fetchGeneralPublishes(repositoryParams);
+    const [{ data, count }, targetTenants] = await Promise.all([
+      generalPublishRepository.fetchGeneralPublishes(repositoryParams),
+      // Live count of every current broadcast target (active tenants minus
+      // Jeju) — NOT row.articles.length, which is frozen at however many
+      // tenants existed when that particular broadcast was created. Using the
+      // live count means every card's "X/Y sites" denominator grows the
+      // moment a new tenant is added, instead of staying stuck at whatever Y
+      // was on day one (e.g. an old broadcast correctly reads "11/14" once 3
+      // more tenants have joined, showing it hasn't reached them yet).
+      generalPublishRepository.getTargetTenants(),
+    ]);
+    const liveTargetCount = targetTenants.length;
 
     const broadcasts = data.map((row) => {
       const publishedCount = row.articles.filter((a) => a.status === "published").length;
@@ -40,7 +51,7 @@ export const generalPublishService = {
         createdAt: row.createdAt.toISOString(),
         updatedAt: row.updatedAt.toISOString(),
         status: publishedCount > 0 ? "published" : "pending",
-        targetCount: row.articles.length,
+        targetCount: liveTargetCount,
         publishedCount,
         targets: row.articles.map((a) => ({
           contentArticleId: a.id,
