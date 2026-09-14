@@ -615,6 +615,8 @@ const techOggiTheme: Theme = {
   tagline: 'Bentornato',
   footerText: '© Tech Oggi — la tecnologia, oggi',
   siteName: 'Tech Oggi',
+};
+
 /* ── TechHoy ── */
 const techHoyTheme: Theme = {
   bg: 'min-h-screen bg-[#F6F3EC] flex items-center justify-center px-4 py-12 relative overflow-y-auto',
