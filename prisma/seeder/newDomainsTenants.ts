@@ -16,6 +16,13 @@ const tenants = [
     // .de domain — German-language site.
     defaultLanguage: "de",
   },
+  {
+    slug: "techhoy",
+    domain: "techhoy.com",
+    siteName: "TechHoy",
+    // "Tech Hoy" = "Tech Today" in Spanish — Spanish-language site.
+    defaultLanguage: "es",
+  },
 ];
 
 export async function seedNewDomainsTenants(prisma: PrismaClient) {

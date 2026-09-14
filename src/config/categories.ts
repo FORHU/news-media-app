@@ -5,6 +5,7 @@ const HOME_LABELS_BY_DOMAIN: Record<string, string> = {
   "jejujapan.com": "最新ニュース",
   "voicejeju.com": "최신 뉴스",
   "techoggi.com": "Ultime Notizie",
+  "techhoy.com": "Últimas Noticias",
 };
 
 export function getHomeCategoryLabel(domain: string): string {
@@ -39,6 +40,21 @@ const TECH_CATEGORIES_IT = [
   "Tecnologie Emergenti",
   "Cultura Digitale",
   "Impresa e Infrastruttura Cloud",
+];
+
+/** Same tech newsroom taxonomy as TECH_CATEGORIES, in Spanish — TechHoy is a
+ *  Spanish-language site. */
+const TECH_CATEGORIES_ES = [
+  "Inteligencia Artificial",
+  "Desarrollo de Software",
+  "Tecnología de Consumo",
+  "Ciberseguridad",
+  "Startups",
+  "Grandes Tecnológicas",
+  "Política Tecnológica",
+  "Tecnologías Emergentes",
+  "Cultura Digital",
+  "Empresa e Infraestructura Cloud",
 ];
 
 export const TENANT_CATEGORIES: Record<string, string[]> = {
@@ -143,6 +159,7 @@ export const TENANT_CATEGORIES: Record<string, string[]> = {
   "newyorksignal.com": TECH_CATEGORIES,
   "technikpost.de": TECH_CATEGORIES,
   "techoggi.com": TECH_CATEGORIES_IT,
+  "techhoy.com": TECH_CATEGORIES_ES,
 };
 
 export const CATEGORY_TRANSLATIONS: Record<string, string> = {

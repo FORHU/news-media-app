@@ -32,6 +32,7 @@ import TechyGateLanding from "@/components/sites/techygate/TechyGateLanding";
 import NewYorkSignalLanding from "@/components/sites/newyorksignal/NewYorkSignalLanding";
 import TechnikPostLanding from "@/components/sites/technikpost/TechnikPostLanding";
 import TechOggiLanding from "@/components/sites/techoggi/TechOggiLanding";
+import TechHoyLanding from "@/components/sites/techhoy/TechHoyLanding";
 
 type TechNewsLandingComponent = typeof LinkTechNewsLanding;
 
@@ -44,6 +45,7 @@ const TECHNEWS_LANDINGS: Record<string, TechNewsLandingComponent> = {
   "newyorksignal.com": NewYorkSignalLanding,
   "technikpost.de": TechnikPostLanding,
   "techoggi.com": TechOggiLanding,
+  "techhoy.com": TechHoyLanding,
 };
 
 export const revalidate = 300;
@@ -196,7 +198,9 @@ export default async function Page({
     // technique legalhyper.com already uses for its niche topic below.
     const technewsMediastack = domain === "techoggi.com"
       ? await fetchMediaStackNews({ keywords: "tecnologia", languages: "it", limit: 100 })
-      : await fetchMediaStackNews({ categories: "technology", languages: "en", limit: 100 });
+      : domain === "techhoy.com"
+        ? await fetchMediaStackNews({ categories: "technology", languages: "es", limit: 100 })
+        : await fetchMediaStackNews({ categories: "technology", languages: "en", limit: 100 });
     return (
       <TechNewsLanding
         domain={domain}

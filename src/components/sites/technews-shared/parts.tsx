@@ -110,6 +110,22 @@ export function Wordmark({
         </span>
       );
 
+    case "flag":
+      return (
+        <span
+          className={`inline-flex items-baseline font-serif font-black tracking-tight text-[var(--tn-ink)] ${className}`}
+        >
+          {pre && <span className="text-[var(--tn-accent)]">{pre}</span>}
+          {main}
+          {accent && (
+            <span className="bg-[var(--tn-accent)] text-[var(--tn-accent-ink)] px-1.5 ml-[2px]">
+              {accent}
+            </span>
+          )}
+          {post}
+        </span>
+      );
+
     case "broadsheet":
     default:
       return (
@@ -205,6 +221,16 @@ export function SectionLabel({
           className={`inline-flex items-center gap-2 rounded-full bg-[var(--tn-accent-soft)] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--tn-ink)] ${className}`}
         >
           <span className="w-1.5 h-1.5 rounded-full bg-[var(--tn-accent)]" aria-hidden />
+          {children}
+        </span>
+      );
+
+    case "pulseRule":
+      return (
+        <span
+          className={`inline-flex items-center gap-2 pb-2 border-b-2 border-[var(--tn-ink)] font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--tn-ink)] ${className}`}
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--tn-accent)] animate-tn-pulse" aria-hidden />
           {children}
         </span>
       );

@@ -65,7 +65,8 @@ type SiteTheme =
   | "techygate"
   | "newyorksignal"
   | "technikpost"
-  | "techoggi";
+  | "techoggi"
+  | "techhoy";
 
 function normalizeShareUrl(input: string) {
   try {

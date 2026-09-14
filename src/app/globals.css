@@ -44,6 +44,9 @@ html {
   --font-oswald: var(--font-oswald);
   --font-chivo: var(--font-chivo);
   --font-bodoni: var(--font-bodoni-moda);
+  --font-archivo: var(--font-archivo);
+  --font-source-serif: var(--font-source-serif);
+  --font-ibm-plex-mono: var(--font-ibm-plex-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -444,6 +447,21 @@ body {
   --font-playfair: var(--font-arima);
   --font-baskerville: var(--font-arima);
   --font-garamond: var(--font-arima);
+}
+
+/* TechHoy — dense daily wire: Source Serif 4 body + Archivo headlines/wordmark + IBM Plex Mono labels */
+.site-theme-techhoy-com {
+  font-family: var(--font-source-serif);
+  --font-sans: var(--font-source-serif);
+  --font-roboto: var(--font-source-serif);
+  --font-geist-sans: var(--font-source-serif);
+  --font-noto: var(--font-source-serif);
+  --font-mono: var(--font-ibm-plex-mono);
+  --font-geist-mono: var(--font-ibm-plex-mono);
+  --font-serif: var(--font-archivo);
+  --font-playfair: var(--font-archivo);
+  --font-baskerville: var(--font-archivo);
+  --font-garamond: var(--font-archivo);
 }
 
 @keyframes tn-caret {

@@ -128,6 +128,14 @@ export const DOMAIN_COLORS: Record<string, DomainColor> = {
     hoverBgClass: "hover:bg-[#0C8C55]",
     ringClass: "focus:ring-[#0EA968]/20",
   },
+  "techhoy.com": {
+    hex: "#B3261E",
+    bgClass: "bg-[#B3261E]",
+    textClass: "text-[#B3261E]",
+    borderClass: "border-[#B3261E]",
+    hoverBgClass: "hover:bg-[#8f1e18]",
+    ringClass: "focus:ring-[#B3261E]/20",
+  },
 };
 
 export function getDomainColor(domain: string = ""): DomainColor {
@@ -147,6 +155,7 @@ export function getDomainColor(domain: string = ""): DomainColor {
   if (normalized.includes("newyorksignal")) return DOMAIN_COLORS["newyorksignal.com"];
   if (normalized.includes("technikpost")) return DOMAIN_COLORS["technikpost.de"];
   if (normalized.includes("techoggi")) return DOMAIN_COLORS["techoggi.com"];
+  if (normalized.includes("techhoy")) return DOMAIN_COLORS["techhoy.com"];
 
   // Default to NewsIcons
   return DOMAIN_COLORS["newsicons.com"];

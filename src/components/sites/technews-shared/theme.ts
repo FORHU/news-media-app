@@ -3,8 +3,8 @@ import type { CSSProperties } from "react";
 /**
  * Shared theme system for the "technews" tenant family.
  *
- * Eight domains (LinkTechnews, DbTechnews, MagazineTechy, MagazineAir, TechyGate,
- * NewYorkSignal, TechnikPost, TechOggi) share the same page skeleton and differ
+ * Nine domains (LinkTechnews, DbTechnews, MagazineTechy, MagazineAir, TechyGate,
+ * NewYorkSignal, TechnikPost, TechOggi, TechHoy) share the same page skeleton and differ
  * only by the values in this file: palette, wordmark rendering, section-label
  * rendering, and a single signature motif. Fonts are swapped per domain in
  * globals.css via the
@@ -17,12 +17,24 @@ import type { CSSProperties } from "react";
  * `feed.ts`, `parts.tsx`, and `FeedLink.tsx`.
  *
  * To bring a new domain online:
- *   1. Add its palette + knobs to TECHNEWS_THEMES below.
- *   2. Add it to TECHNEWS_ACTIVE_DOMAINS (this is the route-level on switch).
- *   3. Add a `.site-theme-<key>-com` font block to globals.css.
- *   4. Add name/icon/logo/description branches to tenant-utils.ts,
- *      a DOMAIN_COLORS entry, an ADSTERRA_CONFIG entry, a categories.ts entry,
- *      and the domain to next.config.ts allowedDevOrigins.
+ *   1. Add its palette + knobs to THEMES below (new WordmarkStyle/LabelStyle
+ *      cases in parts.tsx too, if it needs a motif none of the others use).
+ *   2. Copy a sibling's `sites/<key>/<Name>Header|Footer|Landing|Article.tsx`
+ *      into a new `sites/<newKey>/` folder and rename the identifiers.
+ *   3. Wire the new components into the route-level maps: TECHNEWS_HEADERS /
+ *      TECHNEWS_FOOTERS in SiteShell.tsx, TECHNEWS_LANDINGS in
+ *      app/(sites)/[domain]/page.tsx, and TECHNEWS_ARTICLES in
+ *      app/(sites)/[domain]/article/[id]/page.tsx.
+ *   4. Add a `.site-theme-<key>-com` font block to globals.css (plus any new
+ *      next/font imports it needs in app/layout.tsx).
+ *   5. Add name/icon/logo/description branches to tenant-utils.ts, a
+ *      DOMAIN_COLORS entry in domainColors.ts, the key to the shared-zone
+ *      list in config/adsterra.ts, a categories.ts entry (own-language
+ *      TECH_CATEGORIES_<LANG> array if it's not English), the domain to
+ *      next.config.ts allowedDevOrigins, and a tenant row to
+ *      prisma/seeder/newDomainsTenants.ts.
+ *   6. If the site isn't English-language, add its own MediaStack `languages`
+ *      branch next to techoggi's in app/(sites)/[domain]/page.tsx.
  */
 
 export type WordmarkStyle =
@@ -33,7 +45,8 @@ export type WordmarkStyle =
   | "gate" //     |TECHYGATE|      (condensed heavy between two bars)
   | "broadsheet" // The New York Signal (serif caps + signal ticks)
   | "rule" //      TECHNIK Post     (serif caps + italic lowercase half, on an accent rule)
-  | "underline"; // TechOggi        (rounded sans + thick accent underline bar)
+  | "underline" // TechOggi        (rounded sans + thick accent underline bar)
+  | "flag"; //     ¡TECH[HOY]      (accent mark + solid accent-filled block)
 
 export type LabelStyle =
   | "monoArrow" //   ▸ SECTION
@@ -43,7 +56,8 @@ export type LabelStyle =
   | "solidBlock" //  ███ SECTION (condensed, filled)
   | "ticks" //       ╎╎╎ SECTION (signal ticks + rule)
   | "ruleAccent" //  SECTION ───  (letterspaced, deepened accent, rule under)
-  | "pillDot"; //    ● Section  (accent dot in a soft rounded pill)
+  | "pillDot" //     ● Section  (accent dot in a soft rounded pill)
+  | "pulseRule"; //  ● SECTION ══  (pulsing accent dot, heavy ink rule under)
 
 export interface TechNewsTheme {
   /** short key, e.g. "linktechnews" — matches the globals.css `.site-theme-<key>-com` block */
@@ -246,6 +260,27 @@ const THEMES: TechNewsTheme[] = [
     accentInk: "#FFFFFF",
     rule: "#DCEAE1",
     muted: "#5B6E63",
+  },
+  {
+    key: "techhoy",
+    domain: "techhoy.com",
+    name: "TechHoy",
+    wordmark: { pre: "¡", main: "TECH", accent: "HOY", post: "" },
+    wordmarkStyle: "flag",
+    labelStyle: "pulseRule",
+    tagline: "La tecnología del día, en español.",
+    byline: "TECHHOY",
+    railLabel: "El Minuto",
+    sourceChips: true,
+    radius: "0px",
+    ink: "#14120E",
+    bg: "#F6F3EC",
+    surface: "#FFFFFF",
+    accent: "#B3261E",
+    accentSoft: "#F1DFDA",
+    accentInk: "#FFFFFF",
+    rule: "#DED6C6",
+    muted: "#6A6252",
   },
 ];
 
