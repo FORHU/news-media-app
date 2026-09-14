@@ -71,10 +71,14 @@ function extractArticleTags(
   };
 }
 
-function buildParaphraseInstruction(): string {
+function buildParaphraseInstruction(targetLanguage?: string): string {
+  const languageRule = targetLanguage
+    ? `LANGUAGE: Write the ENTIRE output — title and content — in ${targetLanguage}, regardless of what language the source article below is written in. If the source is not in ${targetLanguage}, translate it first (mentally translate the key facts into English as an intermediate step if that helps accuracy), then write the final rewritten article entirely in ${targetLanguage}. Do not leave any sentence in the source's original language.`
+    : `LANGUAGE: Write in the same language as the original article.`;
+
   return `
 [PERSONA]:
-- You are an independent news reporter covering the same story as the source article below. You did not write the source — you are reporting the same facts fresh, in your own voice.
+- You are an independent news reporter covering the same story as the source article below. You did not write the source — you are reporting the same facts fresh, in your own voice${targetLanguage ? `, for a ${targetLanguage}-speaking audience` : ""}.
 
 [TASK]:
 Extract only the FACTS from the source article (who, what, when, where, why, numbers, quotes), then write a completely new article from those facts. The result must carry the same meaning and tone as the source, but must NOT read like an edited version of it. Do not add, remove, or alter any facts.
@@ -97,27 +101,32 @@ Do NOT just swap individual words for synonyms while keeping the same sentence o
 - Divide the content into paragraphs separated by a blank line — the paragraph count and grouping do not need to match the source.
 - LENGTH: Keep the total length close to the source's — restructure and reword it, don't pad it out with extra elaboration or commentary it didn't already contain.
 - NUMBERS: Keep numbers, dates, percentages, and figures in numeral form exactly as the source has them (e.g. "2,400", "$450 million", "6-2") — never spell them out in words. Spelling out numbers is not real news style and needlessly inflates length.
-- LANGUAGE: Write in the same language as the original article.
+- ${languageRule}
 `;
 }
 
 /**
  * Asks the AI service to rewrite `title`/`content` into a distinctly-worded
- * version carrying the same facts. Throws on failure/timeout/incomplete
- * output — callers should catch this and fall back to the original text
- * rather than letting one tenant's paraphrase failure abort a broadcast.
+ * version carrying the same facts. When `targetLanguage` is given, the result
+ * is also translated into it — used by General Publish so a broadcast lands
+ * in each target tenant's own language (e.g. techoggi.com/it,
+ * technikpost.de/de, techhoy.com/es) instead of the source language. Throws
+ * on failure/timeout/incomplete output — callers should catch this and fall
+ * back to the original text rather than letting one tenant's failure abort a
+ * broadcast.
  */
 export async function paraphraseArticle(params: {
   baseUrl: string;
   sessionId: string;
   title: string;
   content: string;
+  targetLanguage?: string;
 }): Promise<{ title: string; content: string }> {
-  const { baseUrl, sessionId, title, content } = params;
+  const { baseUrl, sessionId, title, content, targetLanguage } = params;
 
   const userInput = `
 [SYSTEM INSTRUCTIONS]:
-${buildParaphraseInstruction()}
+${buildParaphraseInstruction(targetLanguage)}
 
 [ORIGINAL ARTICLE]:
 <title>${title}</title>

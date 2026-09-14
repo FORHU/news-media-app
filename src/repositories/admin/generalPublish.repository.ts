@@ -9,6 +9,20 @@ import { getAiSessionId, paraphraseArticle } from "@/lib/generateContentApi";
 // every call so a newly added tenant is automatically included.
 const EXCLUDED_JEJU_DOMAINS = ["voicejeju.com", "jejutime.com", "jejuqq.com", "jejujapan.com"];
 
+// Display names for Tenant.defaultLanguage codes, used to instruct the AI
+// service when a broadcast needs translating for a non-English target tenant
+// (e.g. techoggi.com/it, technikpost.de/de, techhoy.com/es). Tenants whose
+// code isn't listed here are treated as English and never translated.
+const LANGUAGE_NAMES: Record<string, string> = {
+  it: "Italian",
+  de: "German",
+  es: "Spanish",
+  fr: "French",
+  ko: "Korean",
+  ja: "Japanese",
+  zh: "Chinese",
+};
+
 export type BroadcastOutcome = {
   tenantId: string;
   domain: string;
@@ -17,6 +31,8 @@ export type BroadcastOutcome = {
   slug?: string | null;
   error?: string;
   paraphrased?: boolean;
+  /** Set when this tenant's copy was translated (its defaultLanguage isn't English). */
+  translatedTo?: string;
 };
 
 export type CreateBroadcastParams = {
@@ -30,8 +46,11 @@ export type CreateBroadcastParams = {
   publish?: boolean;
   /** Manual-entry broadcasts ask the AI service to rewrite title+content
    *  independently per tenant (same image everywhere) instead of publishing
-   *  identical text to every site. AI-generate broadcasts leave this off —
-   *  they already produce one AI-authored piece shared as-is. */
+   *  identical English-reading text to every site. AI-generate broadcasts
+   *  leave this off — they already produce one AI-authored piece shared as-is.
+   *  Either way, a target tenant whose defaultLanguage isn't English (e.g.
+   *  techoggi.com/it, technikpost.de/de, techhoy.com/es) always gets its copy
+   *  translated into that language, regardless of this flag. */
   paraphrasePerTenant?: boolean;
 };
 
@@ -56,7 +75,7 @@ export const generalPublishRepository = {
   async getTargetTenants() {
     return prisma.tenant.findMany({
       where: { isActive: true, domain: { notIn: EXCLUDED_JEJU_DOMAINS } },
-      select: { id: true, domain: true },
+      select: { id: true, domain: true, defaultLanguage: true },
     });
   },
 
@@ -153,16 +172,24 @@ export const generalPublishRepository = {
       },
     });
 
-    // One AI session, reused for every tenant's paraphrase call — mirrors how
-    // createFromUpload reuses a single session_id across multiple /chat calls
-    // in one request. If the AI service can't be reached at all, every tenant
-    // just falls back to the original text rather than failing the batch.
+    // Non-English target tenants (techoggi.com/it, technikpost.de/de,
+    // techhoy.com/es, ...) must always get the article in their own language,
+    // regardless of the paraphrasePerTenant toggle — that toggle only governs
+    // whether English-reading tenants get independently-reworded text.
+    const needsTranslation = (lang: string | null) => !!lang && lang in LANGUAGE_NAMES;
+
+    // One AI session, reused for every tenant's rewrite/translate call —
+    // mirrors how createFromUpload reuses a single session_id across multiple
+    // /chat calls in one request. If the AI service can't be reached at all,
+    // every tenant just falls back to the original text rather than failing
+    // the batch (non-English tenants will get English text as a degraded
+    // fallback in that case).
     let paraphraseSessionId: string | null = null;
-    if (paraphrasePerTenant) {
+    if (paraphrasePerTenant || targets.some((t) => needsTranslation(t.defaultLanguage))) {
       try {
         paraphraseSessionId = await getAiSessionId(env.GENERATE_CONTENT_API ?? "");
       } catch (err) {
-        console.error("[generalPublish] Could not start AI session for paraphrasing — every tenant will get the original text:", err);
+        console.error("[generalPublish] Could not start AI session for paraphrasing/translation — every tenant will get the original text:", err);
       }
     }
 
@@ -174,20 +201,27 @@ export const generalPublishRepository = {
         let tenantTitle = title;
         let tenantContent = content;
         let paraphrased = false;
+        const targetLanguage = needsTranslation(tenant.defaultLanguage)
+          ? LANGUAGE_NAMES[tenant.defaultLanguage as string]
+          : undefined;
 
-        if (paraphraseSessionId) {
+        if (paraphraseSessionId && (paraphrasePerTenant || targetLanguage)) {
           try {
             const rewritten = await paraphraseArticle({
               baseUrl: env.GENERATE_CONTENT_API ?? "",
               sessionId: paraphraseSessionId,
               title,
               content,
+              targetLanguage,
             });
             tenantTitle = rewritten.title;
             tenantContent = rewritten.content;
             paraphrased = true;
           } catch (err) {
-            console.error(`[generalPublish] Paraphrase failed for ${tenant.domain}, using original text:`, err);
+            console.error(
+              `[generalPublish] ${targetLanguage ? `Translation to ${targetLanguage}` : "Paraphrase"} failed for ${tenant.domain}, using original text:`,
+              err
+            );
           }
         }
 
@@ -232,7 +266,8 @@ export const generalPublishRepository = {
           success: true,
           contentArticleId: article.id,
           slug,
-          ...(paraphrasePerTenant ? { paraphrased } : {}),
+          ...(paraphrasePerTenant || targetLanguage ? { paraphrased } : {}),
+          ...(targetLanguage ? { translatedTo: targetLanguage } : {}),
         });
       } catch (err) {
         outcomes.push({
