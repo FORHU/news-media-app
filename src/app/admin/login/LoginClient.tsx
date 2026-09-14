@@ -52,6 +52,7 @@ function getTheme(domain: string): Theme {
   if (domain.includes('newyorksignal')) return newYorkSignalTheme;
   if (domain.includes('technikpost')) return technikPostTheme;
   if (domain.includes('techoggi')) return techOggiTheme;
+  if (domain.includes('techhoy')) return techHoyTheme;
   return newsIconsTheme;
 }
 
@@ -614,6 +615,38 @@ const techOggiTheme: Theme = {
   tagline: 'Bentornato',
   footerText: '© Tech Oggi — la tecnologia, oggi',
   siteName: 'Tech Oggi',
+/* ── TechHoy ── */
+const techHoyTheme: Theme = {
+  bg: 'min-h-screen bg-[#F6F3EC] flex items-center justify-center px-4 py-12 relative overflow-y-auto',
+  card: 'bg-white border border-[#DED6C6] shadow-lg p-8 md:p-12 relative overflow-hidden rounded-none',
+  topBar: 'absolute top-0 left-0 w-full h-[4px] bg-[#B3261E]',
+  logo: (
+    <div className="text-center mb-10 flex flex-col items-center">
+      <div className="inline-flex items-baseline font-serif text-3xl font-black tracking-tight text-[#14120E]">
+        <span className="text-[#B3261E]">¡</span>TECH
+        <span className="bg-[#B3261E] text-white px-1.5 ml-[2px]">HOY</span>
+      </div>
+      <p className="text-[10px] font-mono font-bold uppercase tracking-[0.24em] text-[#6A6252] mt-3">Panel de Redacción</p>
+    </div>
+  ),
+  accent: '#B3261E',
+  accentCls: 'bg-[#B3261E]',
+  accentHover: 'hover:bg-[#8f1e18]',
+  inputFocus: 'focus:border-[#B3261E]',
+  inputBorder: 'border-[#DED6C6] hover:border-[#c9bfa8]',
+  inputBgCls: 'bg-white',
+  inputRounded: 'rounded-none',
+  labelCls: 'text-[10px] font-mono font-bold text-[#14120E] uppercase tracking-[0.22em]',
+  btnCls: 'w-full bg-[#14120E] text-[#F6F3EC] py-4 font-mono font-bold text-sm uppercase tracking-[0.2em] hover:bg-[#B3261E] disabled:opacity-60 transition-colors flex items-center justify-center gap-2 group relative overflow-hidden rounded-none',
+  errorCls: 'text-xs text-[#B3261E] bg-[#B3261E]/5 p-3 border border-[#B3261E]/20 font-bold flex items-center gap-2',
+  backCls: 'fixed top-6 left-6 sm:top-10 sm:left-10 flex items-center gap-3 text-[#6A6252] hover:text-[#B3261E] transition-all group z-10 font-mono font-bold uppercase tracking-[0.2em] text-[10px]',
+  backIconCls: 'transition-transform group-hover:-translate-x-1',
+  headingCls: 'text-2xl font-serif font-black text-[#14120E] tracking-tight mb-1',
+  subtextCls: 'text-sm text-[#6A6252]',
+  footerCls: 'text-center mt-8 text-[#6A6252] font-mono font-bold text-[10px] uppercase tracking-[0.22em]',
+  tagline: 'Acceso a Redacción',
+  footerText: '© TechHoy',
+  siteName: 'TechHoy',
 };
 
 /* ─── Shared form logic ─── */
