@@ -23,7 +23,7 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   // Expose source maps in production builds — fixes Lighthouse "Missing source maps" audit
   productionBrowserSourceMaps: true,
-  allowedDevOrigins: ["newsicons.com", "lavaguetech.com", "voicejeju.com", "jejuqq.com", "jejujapan.com", "jejutime.com", "skyblueprime.com", "legalhyper.com", "linktechnews.com", "dbtechnews.com", "magazinetechy.com", "magazineair.com", "techygate.com", "newyorksignal.com", "technikpost.de", "techoggi.com"],
+  allowedDevOrigins: ["newsicons.com", "lavaguetech.com", "voicejeju.com", "jejuqq.com", "jejujapan.com", "jejutime.com", "skyblueprime.com", "legalhyper.com", "linktechnews.com", "dbtechnews.com", "magazinetechy.com", "magazineair.com", "techygate.com", "newyorksignal.com", "technikpost.de", "techoggi.com", "techhoy.com"],
   // Turbopack on Windows can panic (os error 80) when creating junctions into native/Prisma deps.
   serverExternalPackages: [
     "pg",

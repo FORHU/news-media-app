@@ -24,6 +24,7 @@ export function getSiteNameFromDomain(domain: string | null): string {
   if (d.includes('newyorksignal')) return "New York Signal";
   if (d.includes('technikpost')) return "TechnikPost";
   if (d.includes('techoggi')) return "Tech Oggi";
+  if (d.includes('techhoy')) return "TechHoy";
   return "NewsIcons";
 }
 
@@ -45,6 +46,7 @@ export function getSiteIconFromDomain(domain: string | null): string {
   if (d.includes('newyorksignal')) return "/icons/newyorksignal.ico";
   if (d.includes('technikpost')) return "/icons/technikpost.ico";
   if (d.includes('techoggi')) return "/icons/techoggi.ico";
+  if (d.includes('techhoy')) return "/icons/techhoy.ico";
   return "/icons/newsicons.ico";
 }
 
@@ -67,6 +69,7 @@ export function getSiteLogoFromDomain(domain: string | null): string {
   if (d.includes('newyorksignal')) return "NEWYORKSIGNAL.png";
   if (d.includes('technikpost')) return "TECHNIKPOST.png";
   if (d.includes('techoggi')) return "TECHOGGI.png";
+  if (d.includes('techhoy')) return "TECHHOY.png";
   return "NEWSICONSLOGO.png";
 }
 
@@ -88,6 +91,7 @@ export function getSiteDescriptionFromDomain(domain: string | null): string {
   if (d.includes('newyorksignal')) return "Dispatches on technology from the city that never logs off.";
   if (d.includes('technikpost')) return "Technik, Netzpolitik und Wirtschaft — täglich aus Berlin, Brüssel und dem Silicon Valley.";
   if (d.includes('techoggi')) return "La tecnologia, oggi — le notizie essenziali della giornata, in sintesi.";
+  if (d.includes('techhoy')) return "La tecnología del día, en español.";
   return "Media & Content Hub for curated news, blogs, and insights.";
 }
 
@@ -116,6 +120,7 @@ const SITE_SAME_AS: Record<string, string[]> = {
   newyorksignal: [],
   technikpost: [],
   techoggi: [],
+  techhoy: [],
 };
 
 export function getSiteSameAsFromDomain(domain: string | null): string[] {

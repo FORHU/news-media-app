@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Playfair_Display, Roboto, Noto_Serif_JP, EB_Garamond, Libre_Baskerville, Space_Mono, Plus_Jakarta_Sans, Arima, Mulish, Voltaire, Inter, Montserrat, Lora, Oswald, Chivo, Bodoni_Moda, Cormorant_Garamond } from "next/font/google";
+import { Geist, Geist_Mono, Playfair_Display, Roboto, Noto_Serif_JP, EB_Garamond, Libre_Baskerville, Space_Mono, Plus_Jakarta_Sans, Arima, Mulish, Voltaire, Inter, Montserrat, Lora, Oswald, Chivo, Bodoni_Moda, Cormorant_Garamond, Archivo, Source_Serif_4, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { DEFAULT_OG_IMAGE, SITE_URL } from "@/config/site";
@@ -120,6 +120,24 @@ const cormorantGaramond = Cormorant_Garamond({
   weight: ["400", "500", "600", "700"],
 });
 
+const archivo = Archivo({
+  variable: "--font-archivo",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+});
+
+const sourceSerif4 = Source_Serif_4({
+  variable: "--font-source-serif",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "900"],
+});
+
+const ibmPlexMono = IBM_Plex_Mono({
+  variable: "--font-ibm-plex-mono",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
 
 export async function generateMetadata(): Promise<Metadata> {
   const headersList = await headers();
@@ -182,7 +200,7 @@ export default async function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: `(function(){var _o=window.open.bind(window);window.open=function(u,n,s){if(typeof u==='string'&&u.indexOf('facebook.com')!==-1){return _o(u,n,s);}return null;};})();` }} />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${roboto.variable} ${notoSerifJP.variable} ${ebGaramond.variable} ${libreBaskerville.variable} ${spaceMono.variable} ${plusJakartaSans.variable} ${arima.variable} ${mulish.variable} ${voltaire.variable} ${inter.variable} ${montserrat.variable} ${lora.variable} ${oswald.variable} ${chivo.variable} ${bodoniModa.variable} ${cormorantGaramond.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${roboto.variable} ${notoSerifJP.variable} ${ebGaramond.variable} ${libreBaskerville.variable} ${spaceMono.variable} ${plusJakartaSans.variable} ${arima.variable} ${mulish.variable} ${voltaire.variable} ${inter.variable} ${montserrat.variable} ${lora.variable} ${oswald.variable} ${chivo.variable} ${bodoniModa.variable} ${cormorantGaramond.variable} ${archivo.variable} ${sourceSerif4.variable} ${ibmPlexMono.variable} antialiased`}
       >
         <Providers>{children}</Providers>
       </body>
