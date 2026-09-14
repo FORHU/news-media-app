@@ -152,25 +152,17 @@ export const generalPublishRepository = {
    * generates each slug and creates its row in the same iteration, since
    * generateUniqueArticleSlug only sees already-committed rows — batching slug
    * generation ahead of the inserts would make every candidate collide.
+   *
+   * Shared by createBroadcast (all current targets, brand-new parent row) and
+   * syncNewTenants (only the tenants missing from an existing broadcast).
    */
-  async createBroadcast(
-    params: CreateBroadcastParams
-  ): Promise<{ generalPublishId: string; outcomes: BroadcastOutcome[] }> {
-    const { title, content, category, isHeadline, publish, paraphrasePerTenant } = params;
-    const imageUrls = params.imageUrls ?? [];
-    const primaryImageUrl = imageUrls[0] ?? null;
-    const targets = await this.getTargetTenants();
-
-    const generalPublish = await prisma.generalPublish.create({
-      data: {
-        title,
-        content,
-        imageUrl: primaryImageUrl,
-        imageUrls,
-        category,
-        isHeadline: isHeadline ?? false,
-      },
-    });
+  async fanOutToTenants(
+    generalPublish: { id: string; title: string; content: string; imageUrl: string | null; imageUrls: string[]; category: string; isHeadline: boolean },
+    tenants: { id: string; domain: string; defaultLanguage: string | null }[],
+    opts: { paraphrasePerTenant?: boolean; publish?: boolean }
+  ): Promise<BroadcastOutcome[]> {
+    const { title, content, category, imageUrl: primaryImageUrl, imageUrls, isHeadline } = generalPublish;
+    const { paraphrasePerTenant, publish } = opts;
 
     // Non-English target tenants (techoggi.com/it, technikpost.de/de,
     // techhoy.com/es, ...) must always get the article in their own language,
@@ -185,7 +177,7 @@ export const generalPublishRepository = {
     // the batch (non-English tenants will get English text as a degraded
     // fallback in that case).
     let paraphraseSessionId: string | null = null;
-    if (paraphrasePerTenant || targets.some((t) => needsTranslation(t.defaultLanguage))) {
+    if (paraphrasePerTenant || tenants.some((t) => needsTranslation(t.defaultLanguage))) {
       try {
         paraphraseSessionId = await getAiSessionId(env.GENERATE_CONTENT_API ?? "");
       } catch (err) {
@@ -196,7 +188,7 @@ export const generalPublishRepository = {
     const outcomes: BroadcastOutcome[] = [];
     const publishDate = new Date();
 
-    for (const tenant of targets) {
+    for (const tenant of tenants) {
       try {
         let tenantTitle = title;
         let tenantContent = content;
@@ -279,7 +271,65 @@ export const generalPublishRepository = {
       }
     }
 
+    return outcomes;
+  },
+
+  async createBroadcast(
+    params: CreateBroadcastParams
+  ): Promise<{ generalPublishId: string; outcomes: BroadcastOutcome[] }> {
+    const { title, content, category, isHeadline, publish, paraphrasePerTenant } = params;
+    const imageUrls = params.imageUrls ?? [];
+    const primaryImageUrl = imageUrls[0] ?? null;
+    const targets = await this.getTargetTenants();
+
+    const generalPublish = await prisma.generalPublish.create({
+      data: {
+        title,
+        content,
+        imageUrl: primaryImageUrl,
+        imageUrls,
+        category,
+        isHeadline: isHeadline ?? false,
+      },
+    });
+
+    const outcomes = await this.fanOutToTenants(generalPublish, targets, { paraphrasePerTenant, publish });
+
     return { generalPublishId: generalPublish.id, outcomes };
+  },
+
+  /**
+   * Creates this broadcast's article for any active target tenant that was
+   * added after it was originally published (the "Update New Tenants"
+   * action) — without touching the tenants it already reached. New copies
+   * inherit the broadcast's current overall publish state: live if it's
+   * published anywhere already, pending otherwise.
+   */
+  async syncNewTenants(id: string): Promise<{ outcomes: BroadcastOutcome[]; addedCount: number; publish: boolean }> {
+    const existing = await prisma.generalPublish.findUnique({
+      where: { id },
+      include: { articles: { select: { tenantId: true, status: true } } },
+    });
+    if (!existing) {
+      throw new Error("Broadcast not found");
+    }
+
+    const targets = await this.getTargetTenants();
+    const existingTenantIds = new Set(existing.articles.map((a) => a.tenantId));
+    const missingTenants = targets.filter((t) => !existingTenantIds.has(t.id));
+
+    const publish = existing.articles.some((a) => a.status === "published");
+
+    if (missingTenants.length === 0) {
+      return { outcomes: [], addedCount: 0, publish };
+    }
+
+    const outcomes = await this.fanOutToTenants(existing, missingTenants, {
+      paraphrasePerTenant: true,
+      publish,
+    });
+
+    return { outcomes, addedCount: missingTenants.length, publish };
   },
 
   async updateBroadcast(id: string, params: UpdateBroadcastParams): Promise<BroadcastOutcome[]> {

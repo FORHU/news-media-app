@@ -99,6 +99,10 @@ export const generalPublishService = {
     return generalPublishRepository.updateBroadcast(id, { publish: false });
   },
 
+  async syncNewTenants(id: string) {
+    return generalPublishRepository.syncNewTenants(id);
+  },
+
   async deleteBroadcast(id: string) {
     return generalPublishRepository.deleteBroadcast(id);
   },

@@ -542,6 +542,18 @@ export const articlesApi = {
     }
   },
 
+  /** Publishes this broadcast to any active tenant added since it first went out. */
+  async syncGeneralPublishNewTenants(id: string): Promise<{ outcomes: unknown[]; addedCount: number }> {
+    const res = await fetch(`/api/admin/generalPublish/${id}/sync-new-tenants`, {
+      method: "POST",
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to update new tenants");
+    }
+    return res.json();
+  },
+
 };
 
 export const bannersApi = {

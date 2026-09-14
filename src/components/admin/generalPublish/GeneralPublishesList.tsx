@@ -10,6 +10,7 @@ import {
     EyeOff,
     Trash2,
     Globe2,
+    RefreshCw,
 } from 'lucide-react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import Pagination from '@/components/admin/pagination';
@@ -37,6 +38,11 @@ interface GeneralPublishCardProps {
 
 export function GeneralPublishCard({ broadcast, variants }: GeneralPublishCardProps) {
     const isPublished = broadcast.publishedCount > 0;
+    // targetCount is the LIVE count of every current broadcast target; targets
+    // is the (frozen) list of tenants this broadcast actually created a copy
+    // for. A gap between them means a tenant was added after this broadcast
+    // first went out and still needs its own copy.
+    const missingTenantCount = broadcast.targetCount - broadcast.targets.length;
 
     const [isEditorModalOpen, setIsEditorModalOpen] = React.useState(false);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = React.useState(false);
@@ -44,7 +50,22 @@ export function GeneralPublishCard({ broadcast, variants }: GeneralPublishCardPr
     const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
     const [isDeleting, setIsDeleting] = React.useState(false);
     const [isDeletedLocally, setIsDeletedLocally] = React.useState(false);
+    const [isSyncing, setIsSyncing] = React.useState(false);
     const queryClient = useQueryClient();
+
+    const handleSyncNewTenants = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsSyncing(true);
+        try {
+            await articlesApi.syncGeneralPublishNewTenants(broadcast.id);
+            queryClient.invalidateQueries({ queryKey: ['generalPublishes'] });
+        } catch (error) {
+            console.error('Failed to update new tenants:', error);
+            alert('Failed to publish to the new sites. Please try again.');
+        } finally {
+            setIsSyncing(false);
+        }
+    };
 
     const handleUnpublishClick = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -178,6 +199,22 @@ export function GeneralPublishCard({ broadcast, variants }: GeneralPublishCardPr
                     <Rss className={`w-4 h-4 transition-colors ${isPublished ? 'text-gray-400 group-hover/review:text-gray-900' : ''}`} />
                     {isPublished ? 'Edit' : 'Review'}
                 </button>
+
+                {missingTenantCount > 0 ? (
+                    <button
+                        type="button"
+                        onClick={handleSyncNewTenants}
+                        disabled={isSyncing}
+                        className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all group/sync disabled:opacity-50"
+                    >
+                        {isSyncing ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                            <RefreshCw className="w-4 h-4 text-blue-400 group-hover/sync:text-blue-600 transition-colors" />
+                        )}
+                        Update {missingTenantCount} New {missingTenantCount === 1 ? 'Site' : 'Sites'}
+                    </button>
+                ) : null}
 
                 {isPublished ? (
                     <button
