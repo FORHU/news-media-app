@@ -147,11 +147,24 @@ export const generalPublishRepository = {
   },
 
   /**
-   * Sequential, not parallel — mirrors facebookPublishing.service.ts's fan-out
+   * DB writes stay sequential — mirrors facebookPublishing.service.ts's fan-out
    * pattern: never aborts the whole batch on one tenant's failure, and (critically)
    * generates each slug and creates its row in the same iteration, since
    * generateUniqueArticleSlug only sees already-committed rows — batching slug
    * generation ahead of the inserts would make every candidate collide.
+   *
+   * The AI paraphrase/translate calls, however, run in PARALLEL (one per
+   * tenant, phase 1 below) rather than sequentially — with up to 14 target
+   * tenants and each call taking up to several seconds, doing them one at a
+   * time could push total request time well past Cloudflare's ~100s edge
+   * timeout, which both looks like a failure to the admin (524, even though
+   * the broadcast actually completes server-side) and — far worse — was
+   * observed to make literally every tenant's AI call fail/timeout, silently
+   * falling back to identical, unformatted raw text on every site. Each
+   * tenant gets its own session id rather than sharing one, since the AI
+   * service's /chat endpoint is a conversational session and firing
+   * concurrent requests at the same session id risks cross-request
+   * interference.
    *
    * Shared by createBroadcast (all current targets, brand-new parent row) and
    * syncNewTenants (only the tenants missing from an existing broadcast).
@@ -170,52 +183,54 @@ export const generalPublishRepository = {
     // whether English-reading tenants get independently-reworded text.
     const needsTranslation = (lang: string | null) => !!lang && lang in LANGUAGE_NAMES;
 
-    // One AI session, reused for every tenant's rewrite/translate call —
-    // mirrors how createFromUpload reuses a single session_id across multiple
-    // /chat calls in one request. If the AI service can't be reached at all,
-    // every tenant just falls back to the original text rather than failing
-    // the batch (non-English tenants will get English text as a degraded
-    // fallback in that case).
-    let paraphraseSessionId: string | null = null;
-    if (paraphrasePerTenant || tenants.some((t) => needsTranslation(t.defaultLanguage))) {
-      try {
-        paraphraseSessionId = await getAiSessionId(env.GENERATE_CONTENT_API ?? "");
-      } catch (err) {
-        console.error("[generalPublish] Could not start AI session for paraphrasing/translation — every tenant will get the original text:", err);
-      }
-    }
+    type Localized = { title: string; content: string; paraphrased: boolean; targetLanguage?: string };
+
+    // Phase 1 — resolve every tenant's (possibly rewritten/translated) text
+    // concurrently. Each tenant that doesn't need paraphrasing or translation
+    // resolves instantly with the original text; failures fall back to the
+    // original text too, exactly as before, just isolated per tenant instead
+    // of shared through one session/loop.
+    const localizedEntries = await Promise.all(
+      tenants.map(async (tenant): Promise<[string, Localized]> => {
+        const targetLanguage = needsTranslation(tenant.defaultLanguage)
+          ? LANGUAGE_NAMES[tenant.defaultLanguage as string]
+          : undefined;
+
+        if (!paraphrasePerTenant && !targetLanguage) {
+          return [tenant.id, { title, content, paraphrased: false, targetLanguage }];
+        }
+
+        try {
+          const sessionId = await getAiSessionId(env.GENERATE_CONTENT_API ?? "");
+          const rewritten = await paraphraseArticle({
+            baseUrl: env.GENERATE_CONTENT_API ?? "",
+            sessionId,
+            title,
+            content,
+            targetLanguage,
+          });
+          return [tenant.id, { title: rewritten.title, content: rewritten.content, paraphrased: true, targetLanguage }];
+        } catch (err) {
+          console.error(
+            `[generalPublish] ${targetLanguage ? `Translation to ${targetLanguage}` : "Paraphrase"} failed for ${tenant.domain}, using original text:`,
+            err
+          );
+          return [tenant.id, { title, content, paraphrased: false, targetLanguage }];
+        }
+      })
+    );
+    const localizedByTenant = new Map(localizedEntries);
 
     const outcomes: BroadcastOutcome[] = [];
     const publishDate = new Date();
 
     for (const tenant of tenants) {
       try {
-        let tenantTitle = title;
-        let tenantContent = content;
-        let paraphrased = false;
-        const targetLanguage = needsTranslation(tenant.defaultLanguage)
-          ? LANGUAGE_NAMES[tenant.defaultLanguage as string]
-          : undefined;
-
-        if (paraphraseSessionId && (paraphrasePerTenant || targetLanguage)) {
-          try {
-            const rewritten = await paraphraseArticle({
-              baseUrl: env.GENERATE_CONTENT_API ?? "",
-              sessionId: paraphraseSessionId,
-              title,
-              content,
-              targetLanguage,
-            });
-            tenantTitle = rewritten.title;
-            tenantContent = rewritten.content;
-            paraphrased = true;
-          } catch (err) {
-            console.error(
-              `[generalPublish] ${targetLanguage ? `Translation to ${targetLanguage}` : "Paraphrase"} failed for ${tenant.domain}, using original text:`,
-              err
-            );
-          }
-        }
+        const localized = localizedByTenant.get(tenant.id)!;
+        const tenantTitle = localized.title;
+        const tenantContent = localized.content;
+        const paraphrased = localized.paraphrased;
+        const targetLanguage = localized.targetLanguage;
 
         const categoryRow = await categoriesRepository.createOrGetCategoryByName(category, tenant.id);
 
