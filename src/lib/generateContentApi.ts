@@ -11,13 +11,24 @@
 const TAG_REGEX = (tag: string) =>
   new RegExp(`(?:\\*+)?<${tag}>(?:\\*+)?([\\s\\S]*?)(?:\\*+)?</${tag}>(?:\\*+)?`, "i");
 
+/**
+ * Bounded to 15s — this had no timeout at all before, so a hanging AI service
+ * could stall the whole request indefinitely instead of failing fast into the
+ * caller's original-text fallback.
+ */
 export async function getAiSessionId(baseUrl: string): Promise<string> {
-  const res = await fetch(`${baseUrl}/session-id`);
-  if (!res.ok) {
-    throw new Error(`Could not connect to AI service (session-id) - Status: ${res.status}`);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15_000);
+  try {
+    const res = await fetch(`${baseUrl}/session-id`, { signal: controller.signal });
+    if (!res.ok) {
+      throw new Error(`Could not connect to AI service (session-id) - Status: ${res.status}`);
+    }
+    const data = await res.json();
+    return data.session_id;
+  } finally {
+    clearTimeout(timeout);
   }
-  const data = await res.json();
-  return data.session_id;
 }
 
 /**
