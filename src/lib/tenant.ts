@@ -1,11 +1,13 @@
 import { cache } from "react";
 import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { 
-  getSiteNameFromDomain, 
-  getSiteIconFromDomain, 
-  getSiteLogoFromDomain, 
-  getSiteDescriptionFromDomain 
+import {
+  getSiteNameFromDomain,
+  getSiteIconFromDomain,
+  getSiteLogoFromDomain,
+  getSiteDescriptionFromDomain,
+  getSiteLanguageFromDomain,
+  getSiteLocaleFromDomain
 } from "./tenant-utils";
 
 const TENANT_DOMAIN_COOKIE = "tenant_domain";
@@ -95,6 +97,8 @@ export {
   getSiteNameFromDomain,
   getSiteIconFromDomain,
   getSiteLogoFromDomain,
-  getSiteDescriptionFromDomain
+  getSiteDescriptionFromDomain,
+  getSiteLanguageFromDomain,
+  getSiteLocaleFromDomain
 };
 

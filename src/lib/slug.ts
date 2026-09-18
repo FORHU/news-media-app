@@ -46,11 +46,30 @@ function normalizeWords(title: string): string[] {
     });
 }
 
-function pickSlugWords(title: string, minWords = 3, maxWords = 5): string[] {
+/**
+ * Word count is not a fair budget across scripts: English titles split into
+ * many short whitespace-separated words, while Korean packs more meaning per
+ * word and Japanese/Chinese often have no spaces at all (so a "word" here can
+ * be an entire uncut clause). A fixed word cap was truncating Korean titles
+ * mid-clause — dropping the actual news hook — while barely touching
+ * Japanese/Chinese ones. A character budget normalizes for that: it keeps at
+ * least `minWords` words no matter what (so a title with one giant unspaced
+ * token still gets a slug), then adds further words only while they fit.
+ */
+function pickSlugWords(title: string, minWords = 3, maxChars = 60): string[] {
   const words = normalizeWords(title);
   const preferred = words.filter((word) => !STOP_WORDS.has(word));
   const pool = preferred.length >= minWords ? preferred : words;
-  return pool.slice(0, maxWords);
+
+  const selected: string[] = [];
+  let length = 0;
+  for (const word of pool) {
+    const nextLength = length + (selected.length > 0 ? 1 : 0) + word.length;
+    if (selected.length >= minWords && nextLength > maxChars) break;
+    selected.push(word);
+    length = nextLength;
+  }
+  return selected;
 }
 
 function buildBaseSlug(title: string, date: Date): string {

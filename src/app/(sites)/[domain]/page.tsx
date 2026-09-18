@@ -9,7 +9,7 @@ import { TrendingProductsSection } from "@/components/home/trending-products-sec
 import { AdBanner } from "@/components/AdBanner";
 import { articlesService } from "@/services/articles.service";
 import { bannersService } from "@/services/banners.service";
-import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain, getSiteDescriptionFromDomain } from "@/lib/tenant";
+import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain, getSiteDescriptionFromDomain, getSiteLocaleFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
 import { fetchRssFeed } from "@/lib/rss";
 import { fetchMediaStackNews, filterMediaStackWithinHours } from "@/lib/mediastack";
@@ -102,6 +102,7 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
       description: getSiteDescriptionFromDomain(domain),
       url: baseUrl,
       type: "website",
+      locale: getSiteLocaleFromDomain(domain),
       images: [
         {
           url: ogImageAbsolute, // Absolute PNG first for Messenger

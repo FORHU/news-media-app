@@ -4,6 +4,7 @@ import {
   getSiteLogoFromDomain,
   getSiteDescriptionFromDomain,
   getSiteSameAsFromDomain,
+  getSiteLanguageFromDomain,
 } from "@/lib/tenant-utils";
 
 /**
@@ -77,6 +78,7 @@ export function buildOrganizationLd(domain: string, baseUrl: string): Json {
     name: getSiteNameFromDomain(domain),
     url: `${base}/`,
     description: getSiteDescriptionFromDomain(domain),
+    inLanguage: getSiteLanguageFromDomain(domain),
     logo: {
       "@type": "ImageObject",
       url: siteLogoUrl(domain, baseUrl),
@@ -98,6 +100,7 @@ export function buildWebSiteLd(domain: string, baseUrl: string): Json {
     name: getSiteNameFromDomain(domain),
     url: `${base}/`,
     description: getSiteDescriptionFromDomain(domain),
+    inLanguage: getSiteLanguageFromDomain(domain),
     publisher: { "@id": `${base}/#organization` },
     potentialAction: {
       "@type": "SearchAction",
@@ -136,6 +139,7 @@ export function buildNewsArticleLd(params: {
     headline: (article.title?.trim() || siteName).slice(0, 110),
     description,
     url: canonicalUrl,
+    inLanguage: getSiteLanguageFromDomain(domain),
     mainEntityOfPage: { "@type": "WebPage", "@id": canonicalUrl },
     // No byline data in the DB — attribute to the publication itself.
     author: organisationRef(domain, baseUrl),

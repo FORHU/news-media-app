@@ -6,6 +6,7 @@ const HOME_LABELS_BY_DOMAIN: Record<string, string> = {
   "voicejeju.com": "최신 뉴스",
   "techoggi.com": "Ultime Notizie",
   "techhoy.com": "Últimas Noticias",
+  "technikpost.de": "Neueste Nachrichten",
 };
 
 export function getHomeCategoryLabel(domain: string): string {

@@ -96,6 +96,43 @@ export function getSiteDescriptionFromDomain(domain: string | null): string {
 }
 
 /**
+ * Content language per domain — drives `<html lang>`, the News sitemap's
+ * `<news:language>`, `openGraph.locale`, and JSON-LD `inLanguage`. Keyed by
+ * the same domain markers as the rest of this file. Most tenants are English;
+ * the Jeju-language sites and the technews family's localized members (Italian,
+ * Spanish, German) are the exceptions.
+ */
+const SITE_LANGUAGE: Record<string, { lang: string; ogLocale: string }> = {
+  jejuqq: { lang: "zh-CN", ogLocale: "zh_CN" },
+  jejujapan: { lang: "ja", ogLocale: "ja_JP" },
+  voicejeju: { lang: "ko", ogLocale: "ko_KR" },
+  techoggi: { lang: "it", ogLocale: "it_IT" },
+  techhoy: { lang: "es", ogLocale: "es_ES" },
+  technikpost: { lang: "de", ogLocale: "de_DE" },
+};
+
+const DEFAULT_SITE_LANGUAGE = { lang: "en", ogLocale: "en_US" } as const;
+
+function siteLanguageEntry(domain: string | null): { lang: string; ogLocale: string } {
+  if (!domain) return DEFAULT_SITE_LANGUAGE;
+  const d = domain.toLowerCase();
+  for (const [key, entry] of Object.entries(SITE_LANGUAGE)) {
+    if (d.includes(key)) return entry;
+  }
+  return DEFAULT_SITE_LANGUAGE;
+}
+
+/** BCP-47 language code for `<html lang>`, News sitemap, and JSON-LD `inLanguage`. */
+export function getSiteLanguageFromDomain(domain: string | null): string {
+  return siteLanguageEntry(domain).lang;
+}
+
+/** Underscore-region locale for `openGraph.locale` (e.g. "es_ES"). */
+export function getSiteLocaleFromDomain(domain: string | null): string {
+  return siteLanguageEntry(domain).ogLocale;
+}
+
+/**
  * Official brand profiles per domain, emitted as schema.org `sameAs` so search
  * and AI engines can disambiguate the publisher entity. Fill each array in as
  * the accounts exist, e.g.

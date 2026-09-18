@@ -1,5 +1,5 @@
 import { SiteShell } from "@/components/SiteShell";
-import { getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain } from "@/lib/tenant";
+import { getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain, getSiteLocaleFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
 import { Metadata } from "next";
 
@@ -52,6 +52,7 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
       description: description,
       siteName: siteName,
       url: baseUrl,
+      locale: getSiteLocaleFromDomain(domain),
       images: [
         {
           url: ogImageAbsolute,
