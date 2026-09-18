@@ -8,7 +8,7 @@ import { bannersService } from "@/services/banners.service";
 import { TrendingSidebar } from "@/components/home/trending-sidebar";
 import { CategoryFilterSidebar } from "@/components/home/category-filter-sidebar";
 import { AdBanner } from "@/components/AdBanner";
-import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain } from "@/lib/tenant";
+import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain, getSiteLocaleFromDomain } from "@/lib/tenant";
 import { getRequestBaseUrl, buildOgImageUrl } from "@/lib/metadata";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
@@ -63,6 +63,7 @@ export async function generateMetadata({
       url: "/search",
       type: "website",
       siteName: siteName,
+      locale: getSiteLocaleFromDomain(domain),
       images: [
         {
           url: ogImageAbsolute,

@@ -1,5 +1,5 @@
 import { articlesService } from "@/services/articles.service";
-import { getSiteNameFromDomain } from "@/lib/tenant";
+import { getSiteNameFromDomain, getSiteLanguageFromDomain } from "@/lib/tenant";
 import { resolveSiteFromRequest } from "@/lib/siteRequest";
 
 // Google News sitemap — only articles from the last 48h, per Google's spec.
@@ -24,6 +24,7 @@ export async function GET() {
   }
 
   const publicationName = getSiteNameFromDomain(domain);
+  const language = getSiteLanguageFromDomain(domain);
 
   const articles = tenantId
     ? await articlesService.getArticles({ limit: 200, status: "published" }, tenantId)
@@ -35,6 +36,15 @@ export async function GET() {
     return Number.isFinite(t) && now - t <= NEWS_WINDOW_MS;
   });
 
+  // The sitemap-news schema requires at least one <url> under <urlset> — an
+  // empty wrapper (no article published in the last 48h) is invalid XML per
+  // that schema and gets flagged in Search Console as "Missing XML tag".
+  // Serving 404 when there's nothing to report is the honest response, same
+  // as the unresolved-tenant case above.
+  if (recent.length === 0) {
+    return new Response("Not found", { status: 404 });
+  }
+
   const urls = recent
     .map((a) => {
       const slug = a.slug ?? a.id;
@@ -45,7 +55,7 @@ export async function GET() {
     <news:news>
       <news:publication>
         <news:name>${xmlEscape(publicationName)}</news:name>
-        <news:language>en</news:language>
+        <news:language>${xmlEscape(language)}</news:language>
       </news:publication>
       <news:publication_date>${pubDate}</news:publication_date>
       <news:title>${xmlEscape(a.title ?? "Untitled")}</news:title>

@@ -4,7 +4,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { DEFAULT_OG_IMAGE, SITE_URL } from "@/config/site";
 import { headers } from "next/headers";
-import { normalizeHostToDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteDescriptionFromDomain } from "@/lib/tenant";
+import { normalizeHostToDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteDescriptionFromDomain, getSiteLanguageFromDomain, getSiteLocaleFromDomain } from "@/lib/tenant";
 
 export const dynamic = 'force-dynamic';
 
@@ -169,6 +169,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: siteDescription,
       url: "/",
       siteName: siteName,
+      locale: getSiteLocaleFromDomain(domain),
       images: [
         {
           url: DEFAULT_OG_IMAGE,
@@ -193,8 +194,12 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = await headers();
+  const domain = normalizeHostToDomain(headersList.get("host"));
+  const lang = getSiteLanguageFromDomain(domain);
+
   return (
-    <html lang="en">
+    <html lang={lang}>
       <head>
         {/* Block ad network popunders/popups while preserving legitimate window.open usage */}
         <script dangerouslySetInnerHTML={{ __html: `(function(){var _o=window.open.bind(window);window.open=function(u,n,s){if(typeof u==='string'&&u.indexOf('facebook.com')!==-1){return _o(u,n,s);}return null;};})();` }} />

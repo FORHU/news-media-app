@@ -38,7 +38,7 @@ const TECHNEWS_ARTICLES: Record<string, typeof LinkTechNewsArticle> = {
   "techoggi.com": TechOggiArticle,
   "techhoy.com": TechHoyArticle,
 };
-import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain, getSiteDescriptionFromDomain } from "@/lib/tenant";
+import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain, getSiteDescriptionFromDomain, getSiteLocaleFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
 
 // Pre-render the top 20 articles per domain at build time (SSG).
@@ -136,6 +136,7 @@ export async function generateMetadata({
         url: articleUrl,
         type: "article",
         siteName,
+        locale: getSiteLocaleFromDomain(domain),
         images: ogImages,
       },
       twitter: {
@@ -216,6 +217,7 @@ export async function generateMetadata({
         url: articleUrl,
         type: "article",
         siteName,
+        locale: getSiteLocaleFromDomain(domain),
         images: ogImages,
       },
       twitter: {
@@ -261,6 +263,7 @@ export async function generateMetadata({
         url: articleUrl,
         type: "article",
         siteName,
+        locale: getSiteLocaleFromDomain(domain),
         images: ogImages,
       },
       twitter: {
