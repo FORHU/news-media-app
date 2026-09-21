@@ -346,19 +346,19 @@ body {
   --font-garamond: var(--font-chivo);
 }
 
-/* DbTechnews — full monospace terminal: Space Mono everywhere */
+/* DbTechnews — clean article sans (MSN-style body copy): Roboto everywhere */
 .site-theme-dbtechnews-com {
-  font-family: var(--font-space-mono);
-  --font-sans: var(--font-space-mono);
-  --font-roboto: var(--font-space-mono);
-  --font-geist-sans: var(--font-space-mono);
-  --font-noto: var(--font-space-mono);
-  --font-mono: var(--font-space-mono);
-  --font-geist-mono: var(--font-space-mono);
-  --font-serif: var(--font-space-mono);
-  --font-playfair: var(--font-space-mono);
-  --font-baskerville: var(--font-space-mono);
-  --font-garamond: var(--font-space-mono);
+  font-family: var(--font-roboto);
+  --font-sans: var(--font-roboto);
+  --font-roboto: var(--font-roboto);
+  --font-geist-sans: var(--font-roboto);
+  --font-noto: var(--font-roboto);
+  --font-mono: var(--font-roboto);
+  --font-geist-mono: var(--font-roboto);
+  --font-serif: var(--font-roboto);
+  --font-playfair: var(--font-roboto);
+  --font-baskerville: var(--font-roboto);
+  --font-garamond: var(--font-roboto);
 }
 
 /* Magazine Techy — glossy feature serif: Playfair Display + Lora + Inter */
@@ -375,19 +375,19 @@ body {
   --font-garamond: var(--font-playfair);
 }
 
-/* Magazine Air — airy didone: Bodoni Moda + EB Garamond + Montserrat */
+/* Magazine Air — Guardian-style pairing: PT Serif headlines + Inter body */
 .site-theme-magazineair-com {
-  font-family: var(--font-eb-garamond);
-  --font-sans: var(--font-eb-garamond);
-  --font-roboto: var(--font-eb-garamond);
-  --font-geist-sans: var(--font-eb-garamond);
-  --font-noto: var(--font-eb-garamond);
+  font-family: var(--font-inter);
+  --font-sans: var(--font-inter);
+  --font-roboto: var(--font-inter);
+  --font-geist-sans: var(--font-inter);
+  --font-noto: var(--font-inter);
   --font-mono: var(--font-montserrat);
   --font-geist-mono: var(--font-montserrat);
-  --font-serif: var(--font-bodoni-moda);
-  --font-playfair: var(--font-bodoni-moda);
-  --font-baskerville: var(--font-bodoni-moda);
-  --font-garamond: var(--font-bodoni-moda);
+  --font-serif: var(--font-pt-serif);
+  --font-playfair: var(--font-pt-serif);
+  --font-baskerville: var(--font-pt-serif);
+  --font-garamond: var(--font-pt-serif);
 }
 
 /* TechyGate — condensed portal: Oswald + Plus Jakarta Sans */
