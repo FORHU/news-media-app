@@ -61,13 +61,22 @@ jobs:
       # Reuse the Next.js compiler cache between runs so unchanged routes aren't
       # recompiled from scratch. `next build` also type-checks the project, so
       # there is no separate `tsc --noEmit` step.
+      #
+      # cache-v2: a run cancelled mid-build (this workflow cancels in-progress
+      # runs on a new push to the same ref) can be killed while Turbopack is
+      # writing to .next/cache, leaving a corrupted font-module cache entry
+      # ("next/font/google queries have exactly one entry" build failures).
+      # Once saved, restore-keys (which ignore the sha) keep reusing that
+      # corrupted cache on every subsequent run — and since the build then
+      # fails, a good cache never gets saved to replace it. Bumping this
+      # suffix forces a clean cache; bump again if this recurs.
       - name: Cache Next.js build
         uses: actions/cache@v4
         with:
           path: .next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          key: ${{ runner.os }}-nextjs-v2-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-
+            ${{ runner.os }}-nextjs-v2-${{ hashFiles('package-lock.json') }}-
 
       - name: Build
         run: npm run build
