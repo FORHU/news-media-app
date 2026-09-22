@@ -50,12 +50,26 @@ export { TENANT_DOMAIN_COOKIE };
 
 // Global cache to store tenant ID resolution across requests (react cache only works within one request)
 const tenantIdCache: Record<string, string | null> = {};
+const tenantByIdCache: Record<string, { domain: string; siteName: string } | null> = {};
+
+// Retry once after a short delay — absorbs a single transient DB blip (e.g. a
+// cold connection) instead of surfacing it as a 500 to a crawler like
+// Googlebot mid-sitemap-fetch.
+async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (err) {
+    console.warn("[tenant] DB call failed, retrying once:", err);
+    await new Promise((r) => setTimeout(r, 150));
+    return fn();
+  }
+}
 
 export const resolveTenantIdFromDomain = cache(async (domain: string): Promise<string | null> => {
   if (!domain) return null;
 
   const normalized = domain.trim().toLowerCase();
-  
+
   // Check global cache first
   if (normalized in tenantIdCache) {
     return tenantIdCache[normalized];
@@ -70,10 +84,9 @@ export const resolveTenantIdFromDomain = cache(async (domain: string): Promise<s
 
   let resolvedId: string | null = null;
   for (const d of candidates) {
-    const tenant = await prisma.tenant.findUnique({
-      where: { domain: d },
-      select: { id: true },
-    });
+    const tenant = await withRetry(() =>
+      prisma.tenant.findUnique({ where: { domain: d }, select: { id: true } })
+    );
     if (tenant?.id) {
       resolvedId = tenant.id;
       break;
@@ -87,10 +100,20 @@ export const resolveTenantIdFromDomain = cache(async (domain: string): Promise<s
 
 export const getTenantById = cache(async (tenantId: string) => {
   if (!tenantId) return null;
-  return await prisma.tenant.findUnique({
-    where: { id: tenantId },
-    select: { domain: true, siteName: true },
-  });
+
+  if (tenantId in tenantByIdCache) {
+    return tenantByIdCache[tenantId];
+  }
+
+  const tenant = await withRetry(() =>
+    prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { domain: true, siteName: true },
+    })
+  );
+
+  tenantByIdCache[tenantId] = tenant;
+  return tenant;
 });
 
 export {
