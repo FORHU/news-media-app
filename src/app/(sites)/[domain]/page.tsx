@@ -192,15 +192,20 @@ export default async function Page({
 
   const TechNewsLanding = TECHNEWS_LANDINGS[domain];
   if (TechNewsLanding) {
-    // TechOggi is Italian-language ("Tech Oggi" = "Tech Today"). Mediastack's
-    // "technology" category filter returns zero results combined with
-    // languages=it — its Italian sources are all bucketed under "general",
-    // not categorized — so techoggi searches by keyword instead, same
-    // technique legalhyper.com already uses for its niche topic below.
+    // TechOggi (Italian) and TechHoy (Spanish) both hit the same MediaStack
+    // limitation: the "technology" category filter is populated almost
+    // entirely from English-language sources, so combined with a non-English
+    // `languages` filter it returns either zero results (Italian) or a thin,
+    // stale trickle from a single source (Spanish — ~291 total matches, the
+    // newest over a week old, so it could never out-rank a site's own recent
+    // articles on the homepage). Searching by keyword instead — same
+    // technique legalhyper.com already uses for its niche topic below — pulls
+    // from MediaStack's full non-English index and returns dense, same-day
+    // results.
     const technewsMediastack = domain === "techoggi.com"
       ? await fetchMediaStackNews({ keywords: "tecnologia", languages: "it", limit: 100 })
       : domain === "techhoy.com"
-        ? await fetchMediaStackNews({ categories: "technology", languages: "es", limit: 100 })
+        ? await fetchMediaStackNews({ keywords: "tecnologia", languages: "es", limit: 100 })
         : await fetchMediaStackNews({ categories: "technology", languages: "en", limit: 100 });
     return (
       <TechNewsLanding

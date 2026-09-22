@@ -176,17 +176,34 @@ export async function fetchMediaStackNews(params: {
   // so keep an eye on this if the plan lapses.
   const url = `https://api.mediastack.com/v1/news?${query.toString()}`;
 
-  try {
-    const res = await fetch(url, {
-      next: { revalidate: 86400 }, // cache for 24 hours
-    });
+  const attempt = async (init: RequestInit): Promise<{ json: MediaStackResponse } | null> => {
+    const res = await fetch(url, init).catch(() => null);
+    if (!res || !res.ok) return null;
+    return { json: (await res.json()) as MediaStackResponse };
+  };
 
-    if (!res.ok) {
-      console.error(`[MediaStack] HTTP ${res.status}`);
+  // A transient MediaStack failure (rate limit, hiccup, etc.) must not get
+  // cached for 24h — that would blank out a tenant's whole feed for a full
+  // day. Try the normal 24h-cached request first; if it comes back empty or
+  // errored, retry once bypassing the cache so a bad response can't stick.
+  let result = await attempt({ next: { revalidate: 86400 } });
+  if (!result || result.json.error || (result.json.data?.length ?? 0) === 0) {
+    console.error(
+      !result
+        ? "[MediaStack] request failed, retrying uncached"
+        : result.json.error
+          ? `[MediaStack] API error, retrying uncached: ${result.json.error.message}`
+          : "[MediaStack] empty response, retrying uncached",
+    );
+    result = await attempt({ cache: "no-store" });
+  }
+
+  try {
+    if (!result) {
+      console.error("[MediaStack] Fetch failed after retry");
       return [];
     }
-
-    const json: MediaStackResponse = await res.json();
+    const { json } = result;
 
     if (json.error) {
       console.error("[MediaStack] API error:", json.error.message);
