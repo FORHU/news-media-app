@@ -88,9 +88,50 @@ jobs:
       github.ref == 'refs/heads/main' &&
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
-      - name: Ping Coolify deploy webhook
+      # Coolify's deploy endpoint queues the deployment and hands back a
+      # deployment_uuid; the trigger request succeeding only means Coolify
+      # *accepted* the job, not that the deploy itself worked. Poll
+      # /api/v1/deployments/{uuid} so this job's pass/fail reflects what
+      # actually happened on Coolify, not just whether the ping landed.
+      - name: Trigger Coolify deploy and wait for result
         run: |
-          curl -fsS -X POST "${{ secrets.COOLIFY_WEBHOOK_URL }}" \
-            -H "Authorization: Bearer ${{ secrets.COOLIFY_WEBHOOK_TOKEN }}"
+          set -euo pipefail
+
+          response=$(curl -fsS -X POST "${{ secrets.COOLIFY_WEBHOOK_URL }}" \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_WEBHOOK_TOKEN }}")
+          echo "Trigger response: $response"
+
+          deployment_uuid=$(echo "$response" | jq -r '.deployments[0].deployment_uuid // .deployment_uuid // empty')
+          if [ -z "$deployment_uuid" ]; then
+            echo "::warning::Could not find a deployment_uuid in Coolify's response — skipping status poll. The trigger was accepted, but this job can't confirm the deploy itself succeeded."
+            exit 0
+          fi
+          echo "Polling deployment $deployment_uuid ..."
+
+          # The deploy endpoint's own host doubles as the API base.
+          api_base=$(echo "${{ secrets.COOLIFY_WEBHOOK_URL }}" | sed -E 's#^(https?://[^/]+).*#\1#')
+
+          for i in $(seq 1 60); do
+            status_json=$(curl -fsS "$api_base/api/v1/deployments/$deployment_uuid" \
+              -H "Authorization: Bearer ${{ secrets.COOLIFY_WEBHOOK_TOKEN }}")
+            status=$(echo "$status_json" | jq -r '.status // empty')
+            echo "  [$i/60] status=$status"
+
+            case "$status" in
+              finished)
+                echo "Coolify deployment finished successfully."
+                exit 0
+                ;;
+              failed|cancelled*)
+                echo "::error::Coolify deployment failed (status=$status)."
+                echo "$status_json"
+                exit 1
+                ;;
+            esac
+            sleep 10
+          done
+
+          echo "::error::Timed out after 10 minutes waiting for Coolify deployment $deployment_uuid to finish."
+          exit 1
