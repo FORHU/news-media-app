@@ -99,19 +99,24 @@ function sortRows(rows: FeedRow[]): FeedRow[] {
 }
 
 /**
- * Merge DB articles (first) with the MediaStack feed. DB rows always rank ahead
- * of external rows of the same score. `requireImage` drops external rows without
- * a usable image (keeps grids from looking broken).
+ * Merge DB articles with the MediaStack feed, interleaved by recency (an
+ * editor's `isHeadline` pin, or a `trendingScore`, still floats a row to the
+ * top — MediaStack rows never carry either, so they only win on freshness).
+ * Sites with a handful of published articles used to have DB rows fill the
+ * whole hero + top-slots cluster before a single external row could appear,
+ * which made the homepage look like nothing but self-published content.
+ * `requireImage` drops external rows without a usable image (keeps grids from
+ * looking broken).
  */
 export function toFeedRows(
   articles: DbArticleish[],
   mediastack: MediaStackArticle[] = [],
   opts: { requireImage?: boolean } = {},
 ): FeedRow[] {
-  const db = sortRows(articles.map(fromDb));
+  const db = articles.map(fromDb);
   let ms = mediastack.map(fromMediaStack);
   if (opts.requireImage) ms = ms.filter((r) => r.imageUrl !== null);
-  return [...db, ...ms];
+  return sortRows([...db, ...ms]);
 }
 
 export function excerpt(text: string | null | undefined, max = 160): string {
