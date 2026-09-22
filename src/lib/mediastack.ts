@@ -79,7 +79,11 @@ function looksLikeImageUrl(url: string): boolean {
 async function fetchOgImageDirect(articleUrl: string): Promise<string | null> {
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 4000);
+    // Was 4000ms — too tight for smaller/overseas publisher sites (e.g. the
+    // regional Italian sources techoggi.com pulls from), where TTFB alone can
+    // exceed 4s from some hosting regions, aborting a scrape that would
+    // otherwise have succeeded.
+    const timer = setTimeout(() => controller.abort(), 8000);
     const res = await fetch(articleUrl, {
       signal: controller.signal,
       next: { revalidate: 86400 },
@@ -154,6 +158,17 @@ export async function fetchMediaStackNews(params: {
   sources?: string;
   limit?: number;
   keywords?: string;
+  /** Drop articles that end up with no usable image after enrichment.
+   *  Defaults to true (existing behavior) — set false for callers that only
+   *  need headline/text (e.g. a ticker) so they aren't starved by scrape
+   *  failures on sources that never send back an `image` in the first place. */
+  requireImage?: boolean;
+  /** How many of the top candidates get the rate-limited Microlink fallback
+   *  when the free direct scrape fails. Defaults to 6. Raise for sources that
+   *  disproportionately need it (e.g. techoggi.com, where MediaStack's
+   *  Italian results never carry a direct `image`, so every article depends
+   *  entirely on scraping succeeding). */
+  microlinkLimit?: number;
 }): Promise<MediaStackArticle[]> {
   const apiKey = env.MEDIASTACK_API_KEY;
   if (!apiKey) {
@@ -255,7 +270,7 @@ export async function fetchMediaStackNews(params: {
           !isLikelyLowResThumb(img);
         if (usable) return article;
 
-        const better = await fetchOgImage(article.url, { allowMicrolink: i < 6 });
+        const better = await fetchOgImage(article.url, { allowMicrolink: i < (params.microlinkLimit ?? 6) });
         if (better) return { ...article, image: better };
         // No upgrade found: keep a real (if small) thumbnail, but drop a
         // non-image URL so Next's optimizer doesn't choke on it.
@@ -265,8 +280,11 @@ export async function fetchMediaStackNews(params: {
 
     // Articles that still have no usable image after enrichment aren't
     // displayable as a card without falling back to a placeholder box — drop
-    // them here so every caller gets image-guaranteed articles by default.
-    return enriched.filter((article) => article.image !== null);
+    // them here so every caller gets image-guaranteed articles by default,
+    // unless the caller opted out (e.g. a text-only ticker).
+    return params.requireImage === false
+      ? enriched
+      : enriched.filter((article) => article.image !== null);
   } catch (err) {
     console.error("[MediaStack] Fetch failed:", err);
     return [];

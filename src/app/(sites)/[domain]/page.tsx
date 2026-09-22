@@ -203,7 +203,20 @@ export default async function Page({
     // from MediaStack's full non-English index and returns dense, same-day
     // results.
     const technewsMediastack = domain === "techoggi.com"
-      ? await fetchMediaStackNews({ keywords: "tecnologia", languages: "it", limit: 100 })
+      ? await fetchMediaStackNews({
+          keywords: "tecnologia",
+          languages: "it",
+          limit: 100,
+          // MediaStack's Italian results never carry a direct `image` (unlike
+          // ~45% of Spanish/English results), so techoggi is fully dependent
+          // on the og:image scrape succeeding for every single article.
+          // Don't drop text-only-safe rows (the ticker) just because the
+          // scrape failed, and give more candidates a shot at the paid
+          // Microlink fallback since the free scrape alone was clearing out
+          // ~99% of articles here.
+          requireImage: false,
+          microlinkLimit: 15,
+        })
       : domain === "techhoy.com"
         ? await fetchMediaStackNews({ keywords: "tecnologia", languages: "es", limit: 100 })
         : await fetchMediaStackNews({ categories: "technology", languages: "en", limit: 100 });
