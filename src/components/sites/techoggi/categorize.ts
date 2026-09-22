@@ -76,7 +76,15 @@ export function classifyTechOggiCategory(title: string, content: string): string
  * feed is temporarily empty), so the nav is never blank either.
  */
 export async function getTechOggiNavCategories(): Promise<string[]> {
-  const articles = await fetchMediaStackNews({ keywords: "tecnologia", languages: "it", limit: 100 });
+  // Classification only reads title/description — it never needs an image —
+  // so don't let a failed og:image scrape (common for these Italian sources)
+  // silently remove an article before it even gets classified.
+  const articles = await fetchMediaStackNews({
+    keywords: "tecnologia",
+    languages: "it",
+    limit: 100,
+    requireImage: false,
+  });
   const present = new Set<string>();
   for (const a of articles) {
     const category = classifyTechOggiCategory(a.title, a.description ?? "");

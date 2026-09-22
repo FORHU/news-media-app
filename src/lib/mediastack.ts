@@ -98,7 +98,10 @@ async function fetchOgImageDirect(articleUrl: string): Promise<string | null> {
       },
     });
     clearTimeout(timer);
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.warn(`[MediaStack] og:image scrape HTTP ${res.status} for ${articleUrl}`);
+      return null;
+    }
     // Only need the <head>; cap the body read so we don't download whole pages.
     const html = (await res.text()).slice(0, 60000);
     const m =
@@ -109,8 +112,14 @@ async function fetchOgImageDirect(articleUrl: string): Promise<string | null> {
     if (img && img.startsWith("http") && !isGenericPlaceholder(img) && !isLikelyLowResThumb(img)) {
       return img;
     }
+    console.warn(`[MediaStack] og:image scrape found no usable tag for ${articleUrl}`);
     return null;
-  } catch {
+  } catch (err) {
+    // AbortError (timeout) vs a network-level failure (DNS, connection reset,
+    // TLS, egress block) look identical from the caller's side otherwise —
+    // this is the one place that can tell them apart.
+    const reason = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+    console.warn(`[MediaStack] og:image scrape failed for ${articleUrl}: ${reason}`);
     return null;
   }
 }
@@ -282,6 +291,12 @@ export async function fetchMediaStackNews(params: {
     // displayable as a card without falling back to a placeholder box — drop
     // them here so every caller gets image-guaranteed articles by default,
     // unless the caller opted out (e.g. a text-only ticker).
+    const withImage = enriched.filter((article) => article.image !== null).length;
+    console.log(
+      `[MediaStack] ${params.languages ?? "en"}/${params.keywords ?? params.categories}: ` +
+        `${withImage}/${enriched.length} articles got a usable image`,
+    );
+
     return params.requireImage === false
       ? enriched
       : enriched.filter((article) => article.image !== null);
