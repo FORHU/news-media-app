@@ -114,9 +114,21 @@ jobs:
           api_base=$(echo "${{ secrets.COOLIFY_WEBHOOK_URL }}" | sed -E 's#^(https?://[^/]+).*#\1#')
 
           for i in $(seq 1 60); do
-            status_json=$(curl -fsS "$api_base/api/v1/deployments/$deployment_uuid" \
-              -H "Authorization: Bearer ${{ secrets.COOLIFY_WEBHOOK_TOKEN }}")
-            status=$(echo "$status_json" | jq -r '.status // empty')
+            http_code=$(curl -sS -o /tmp/coolify_status.json -w '%{http_code}' \
+              "$api_base/api/v1/deployments/$deployment_uuid" \
+              -H "Authorization: Bearer ${{ secrets.COOLIFY_WEBHOOK_TOKEN }}" || echo "000")
+
+            if [ "$http_code" = "403" ]; then
+              echo "::warning::Coolify rejected the status read with 403 — COOLIFY_WEBHOOK_TOKEN likely only has 'deploy' permission, not 'read'. Grant it read access in Coolify > Keys & Tokens to enable status polling. The trigger itself was accepted; this job can't confirm the deploy's outcome without that permission, so treating it as unconfirmed rather than failed."
+              exit 0
+            fi
+            if [ "$http_code" != "200" ]; then
+              echo "  [$i/60] unexpected HTTP $http_code while polling — retrying"
+              sleep 10
+              continue
+            fi
+
+            status=$(jq -r '.status // empty' /tmp/coolify_status.json)
             echo "  [$i/60] status=$status"
 
             case "$status" in
@@ -126,7 +138,7 @@ jobs:
                 ;;
               failed|cancelled*)
                 echo "::error::Coolify deployment failed (status=$status)."
-                echo "$status_json"
+                cat /tmp/coolify_status.json
                 exit 1
                 ;;
             esac
