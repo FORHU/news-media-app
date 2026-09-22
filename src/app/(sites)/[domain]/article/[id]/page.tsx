@@ -64,11 +64,13 @@ export async function generateStaticParams() {
           { limit: 20, status: "published" },
           tenant.id
         );
-        return articles.flatMap((article) => [
-          // Pre-render both slug and ID URLs for instant loads on either format
-          ...(article.slug ? [{ domain: tenant.domain, id: article.slug }] : []),
-          { domain: tenant.domain, id: article.id },
-        ]);
+        // Pre-render only the canonical (slug) URL — the id URL still works
+        // at runtime via ISR, but isn't worth pre-building or exposing to
+        // crawlers since it just canonicalizes back to the slug anyway.
+        return articles.map((article) => ({
+          domain: tenant.domain,
+          id: article.slug ?? article.id,
+        }));
       })
     );
 
