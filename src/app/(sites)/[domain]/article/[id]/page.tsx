@@ -17,6 +17,7 @@ import { VoiceJejuArticle } from "@/components/sites/voicejeju/VoiceJejuArticle"
 import SkyBluePrimeArticle from "@/components/sites/skyblueprime/SkyBluePrimeArticle";
 import LavagueTechArticle from "@/components/sites/lavaguetech/LavagueTechArticle";
 import NewsIconsArticle from "@/components/sites/newsicons/NewsIconsArticle";
+import LegalHyperArticle from "@/components/sites/legalhyper/LegalHyperArticle";
 import LinkTechNewsArticle from "@/components/sites/linktechnews/LinkTechNewsArticle";
 import DbTechNewsArticle from "@/components/sites/dbtechnews/DbTechNewsArticle";
 import MagazineTechyArticle from "@/components/sites/magazinetechy/MagazineTechyArticle";
@@ -383,6 +384,8 @@ export default async function ArticlePage({
           <LavagueTechArticle articleId={canonicalSlug} initialOtherArticles={allArticles} />
         ) : domain === "newsicons.com" ? (
           <NewsIconsArticle articleId={canonicalSlug} initialOtherArticles={allArticles} />
+        ) : domain === "legalhyper.com" ? (
+          <LegalHyperArticle articleId={canonicalSlug} initialOtherArticles={allArticles} />
         ) : TechNewsArticle ? (
           <TechNewsArticle domain={domain} articleId={canonicalSlug} initialOtherArticles={allArticles} />
         ) : (
