@@ -207,9 +207,14 @@ export default async function Page({
           keywords: "tecnologia",
           languages: "it",
           limit: 100,
-          // MediaStack's Italian results never carry a direct `image` (unlike
-          // ~45% of Spanish/English results), so techoggi is fully dependent
-          // on the og:image scrape succeeding for every single article.
+          // 99/100 unfiltered results come from zazoom.it, a generic
+          // aggregator, not a real publisher — it supplies no direct image
+          // (0/100) and hammering one domain ~100x in a single burst is what
+          // was getting the scrape rate-limited/blocked in production.
+          // Excluding it spreads requests across ~17 real Italian tech
+          // publishers (hdblog, ilfattoquotidiano, webnews, ...) and already
+          // yields images for ~27% directly from the API.
+          sources: "-zazoom",
           // Don't drop text-only-safe rows (the ticker) just because the
           // scrape failed, and give more candidates a shot at the paid
           // Microlink fallback since the free scrape alone was clearing out

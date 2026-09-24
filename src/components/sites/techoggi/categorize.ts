@@ -78,12 +78,18 @@ export function classifyTechOggiCategory(title: string, content: string): string
 export async function getTechOggiNavCategories(): Promise<string[]> {
   // Classification only reads title/description — it never needs an image —
   // so don't let a failed og:image scrape (common for these Italian sources)
-  // silently remove an article before it even gets classified.
+  // silently remove an article before it even gets classified. Also exclude
+  // zazoom.it (a generic aggregator that dominates unfiltered Italian
+  // results — see page.tsx) to keep this in sync with the homepage's query.
   const articles = await fetchMediaStackNews({
     keywords: "tecnologia",
     languages: "it",
     limit: 100,
+    sources: "-zazoom",
     requireImage: false,
+    // Matches page.tsx's call exactly so Next's request memoization can
+    // dedupe the two (layout + page both call this on every homepage load).
+    microlinkLimit: 15,
   });
   const present = new Set<string>();
   for (const a of articles) {
