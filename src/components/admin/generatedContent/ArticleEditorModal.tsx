@@ -300,8 +300,18 @@ export default function ArticleEditorModal({
         regenerateTextMutation.isPending || regenerateImageMutation.isPending;
     const isBusy = saveMutation.isPending || isUploadingImage || isRegenerating;
 
+    // A ref flips synchronously, so a double-click can't slip a second request
+    // through before the disabled state re-renders.
+    const saveInFlight = React.useRef(false);
     const handleSave = (publish: boolean) => {
-        if (validate()) saveMutation.mutate(publish);
+        if (saveInFlight.current || isBusy) return;
+        if (!validate()) return;
+        saveInFlight.current = true;
+        saveMutation.mutate(publish, {
+            onSettled: () => {
+                saveInFlight.current = false;
+            },
+        });
     };
 
     const handleCopy = () => {
@@ -754,7 +764,25 @@ export default function ArticleEditorModal({
                                     </a>
                                 ) : null}
                             </div>
-                            <div className="flex flex-col sm:flex-row gap-2 lg:shrink-0">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 lg:shrink-0">
+                                {/* The banner at the top of the body scrolls out of view; echo the result here, next to the buttons. */}
+                                {successMsg ? (
+                                    <span
+                                        role="status"
+                                        className="flex items-center gap-1.5 text-sm font-bold text-emerald-600"
+                                    >
+                                        <Check className="w-4 h-4" />
+                                        {successMsg}
+                                    </span>
+                                ) : error ? (
+                                    <span
+                                        role="alert"
+                                        className="flex items-center gap-1.5 text-sm font-bold text-red-600"
+                                    >
+                                        <AlertCircle className="w-4 h-4" />
+                                        Save failed
+                                    </span>
+                                ) : null}
                                 <Button
                                     type="button"
                                     variant="ghost"
