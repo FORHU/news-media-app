@@ -6,8 +6,13 @@ import { resolveTenantIdFromRequest } from "@/lib/tenant";
 import { revalidatePath } from "next/cache";
 import { sseBroadcaster } from "@/lib/sse";
 import { deleteObjects } from "@/lib/s3";
+import { notifySearchEngines, articlePingUrls } from "@/lib/searchPing";
 
-async function revalidateArticle(tenantId: string, articleId: string, slug?: string | null) {
+async function revalidateArticle(
+  tenantId: string,
+  articleId: string,
+  slug?: string | null
+): Promise<string | null> {
   try {
     const tenant = await prisma.tenant.findUnique({
       where: { id: tenantId },
@@ -26,10 +31,12 @@ async function revalidateArticle(tenantId: string, articleId: string, slug?: str
         revalidatePath(`/${domain}/article/${slug}`);
       }
       console.log(`[Revalidate] Triggered for domain: ${domain}, article: ${articleId}`);
+      return domain;
     }
   } catch (error) {
     console.error("[Revalidate] Error:", error);
   }
+  return null;
 }
 
 export const dynamic = "force-dynamic";
@@ -84,9 +91,12 @@ export async function PATCH(
       }
     }
 
-    // Regenerate slug only if title changes
+    // Regenerate the slug only if the title changes AND the article isn't
+    // published yet. A published article's slug is its indexed URL; changing it
+    // would 404 the old URL (there is no slug history/redirect) and drop its
+    // ranking, so a live article keeps its URL when retitled.
     let newSlug = existing.slug;
-    if (title && title !== existing.title) {
+    if (title && title !== existing.title && existing.status !== "published") {
       const publishDate = existing.publishDate ?? new Date();
       newSlug = await generateUniqueArticleSlug(prisma, title, publishDate);
     }
@@ -116,8 +126,14 @@ export async function PATCH(
     });
 
     // Trigger on-demand revalidation
-    await revalidateArticle(tenantId, id, updated.slug);
+    const domain = await revalidateArticle(tenantId, id, updated.slug);
     sseBroadcaster.broadcast("articles:updated");
+
+    // Tell indexers a live article changed (Google itself only learns via the
+    // sitemap lastmod, which follows updatedAt).
+    if (domain && updated.status === "published") {
+      notifySearchEngines([{ domain, urls: articlePingUrls(domain, updated.slug ?? id) }]);
+    }
 
     return NextResponse.json(updated);
   } catch (error: unknown) {

@@ -19,6 +19,11 @@ function revalidateForOutcomes(outcomes: BroadcastOutcome[]) {
       if (outcome.contentArticleId) {
         revalidatePath(`/${outcome.domain}/article/${outcome.contentArticleId}`, "page");
       }
+      // The live/canonical URL is the slug one — clear it too, or it can stay
+      // stale until the hourly regeneration.
+      if (outcome.slug) {
+        revalidatePath(`/${outcome.domain}/article/${outcome.slug}`, "page");
+      }
     } catch (error) {
       console.error("[Revalidate] Error:", error);
     }
@@ -48,16 +53,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     revalidateForOutcomes(outcomes);
     sseBroadcaster.broadcast("articles:updated");
 
-    // Nudge external indexers when this edit published the broadcast.
-    if (result.data.publish) {
-      notifySearchEngines(
-        outcomes.flatMap((o) =>
-          o.success
-            ? [{ domain: o.domain, urls: articlePingUrls(o.domain, o.slug ?? o.contentArticleId ?? "") }]
-            : []
-        )
-      );
-    }
+    // Nudge external indexers for every copy that is live after this edit —
+    // not only when the edit itself published — so text-only edits are pinged.
+    notifySearchEngines(
+      outcomes.flatMap((o) =>
+        o.success && o.status === "published"
+          ? [{ domain: o.domain, urls: articlePingUrls(o.domain, o.slug ?? o.contentArticleId ?? "") }]
+          : []
+      )
+    );
 
     return NextResponse.json({ outcomes });
   } catch (error: unknown) {

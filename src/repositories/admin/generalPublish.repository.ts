@@ -36,6 +36,8 @@ export type BroadcastOutcome = {
   translatedTo?: string;
   /** Paraphrase/translation failed, so this copy was saved as pending instead of published. */
   savedAsDraft?: boolean;
+  /** Set by updateBroadcast: the copy's status after the edit. */
+  status?: string;
 };
 
 export type CreateBroadcastParams = {
@@ -418,7 +420,10 @@ export const generalPublishRepository = {
           updateData.categoryId = categoryRow.id;
         }
 
-        if (title !== undefined && title !== child.title) {
+        // Only re-slug copies that aren't live yet. A published copy's slug is
+        // its indexed URL; changing it would 404 the old URL (no slug history)
+        // and drop its ranking, so live copies keep their URL when retitled.
+        if (title !== undefined && title !== child.title && child.status !== "published") {
           updateData.slug = await generateUniqueArticleSlug(prisma, title, child.publishDate ?? new Date());
         }
 
@@ -446,6 +451,7 @@ export const generalPublishRepository = {
           success: true,
           contentArticleId: updated.id,
           slug: updated.slug,
+          status: (updateData.status as string | undefined) ?? child.status,
         });
       } catch (err) {
         outcomes.push({
