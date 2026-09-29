@@ -76,7 +76,7 @@ export function getSiteLogoFromDomain(domain: string | null): string {
 export function getSiteDescriptionFromDomain(domain: string | null): string {
   if (!domain) return "Media & Content Hub for curated news, blogs, and insights.";
   const d = domain.toLowerCase();
-  if (d.includes('lavaguetech')) return "The next wave of technology news — sharp insights, bold perspectives.";
+  if (d.includes('lavaguetech')) return "La prochaine vague de l'actualité technologique — analyses incisives, points de vue audacieux.";
   if (d.includes('voicejeju')) return "Your voice for Jeju news, culture, and community insights.";
   if (d.includes('jejujapan')) return "The latest news and insights about Jeju from a Japanese perspective.";
   if (d.includes('jejuqq')) return "Connecting the Jeju community with real-time news and updates.";
@@ -99,10 +99,11 @@ export function getSiteDescriptionFromDomain(domain: string | null): string {
  * Content language per domain — drives `<html lang>`, the News sitemap's
  * `<news:language>`, `openGraph.locale`, and JSON-LD `inLanguage`. Keyed by
  * the same domain markers as the rest of this file. Most tenants are English;
- * the Jeju-language sites and the technews family's localized members (Italian,
- * Spanish, German) are the exceptions.
+ * the Jeju-language sites, lavaguetech (French), and the technews family's
+ * localized members (Italian, Spanish, German) are the exceptions.
  */
 const SITE_LANGUAGE: Record<string, { lang: string; ogLocale: string }> = {
+  lavaguetech: { lang: "fr", ogLocale: "fr_FR" },
   jejuqq: { lang: "zh-CN", ogLocale: "zh_CN" },
   jejujapan: { lang: "ja", ogLocale: "ja_JP" },
   voicejeju: { lang: "ko", ogLocale: "ko_KR" },

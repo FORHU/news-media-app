@@ -41,6 +41,11 @@ export const generalPublishService = {
 
     const broadcasts = data.map((row) => {
       const publishedCount = row.articles.filter((a) => a.status === "published").length;
+      const newTenantCount = generalPublishRepository.newTenantsSince(
+        targetTenants,
+        row,
+        new Set(row.articles.map((a) => a.tenantId))
+      ).length;
       return {
         id: row.id,
         title: row.title,
@@ -52,6 +57,7 @@ export const generalPublishService = {
         updatedAt: row.updatedAt.toISOString(),
         status: publishedCount > 0 ? "published" : "pending",
         targetCount: liveTargetCount,
+        newTenantCount,
         publishedCount,
         targets: row.articles.map((a) => ({
           contentArticleId: a.id,
@@ -82,10 +88,10 @@ export const generalPublishService = {
       content: params.content.trim(),
       category: params.category.trim(),
       imageUrls: params.imageUrls,
-      // Manual entries get independently-worded text per tenant (same image
-      // everywhere); AI-generate broadcasts skip this — they already produce
-      // one AI-authored piece meant to be shared as-is.
-      paraphrasePerTenant: true,
+      targetTenantIds: params.targetTenantIds,
+      // paraphrasePerTenant is left to the repository default: text is reworded
+      // per tenant (angle-aware) whenever the broadcast reaches more than one
+      // site, and published as authored when it targets a single site.
       isHeadline: params.isHeadline,
       publish: params.publish,
     });

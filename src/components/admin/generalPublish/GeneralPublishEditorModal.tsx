@@ -145,7 +145,7 @@ export default function GeneralPublishEditorModal({
                                 Edit Broadcast
                             </DialogTitle>
                             <DialogDescription className="text-gray-400 font-medium">
-                                Changes apply to all {broadcast.targetCount} target sites.
+                                Changes apply to all {broadcast.targets.length} sites this was published to.
                             </DialogDescription>
                         </div>
                     </div>

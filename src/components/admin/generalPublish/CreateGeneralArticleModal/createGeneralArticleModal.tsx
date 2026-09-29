@@ -39,6 +39,7 @@ import {
 import GeneralCategorySelect from "@/components/admin/generalPublish/GeneralCategorySelect";
 import { ManualArticleImages } from "@/components/admin/generalPublish/ManualArticleImages";
 import FeaturedImageChoiceSection from "@/components/admin/shared/FeaturedImageChoiceSection";
+import TargetSitesSelect from "@/components/admin/generalPublish/TargetSitesSelect";
 
 type CreateArticleTab = "ai" | "manual";
 
@@ -74,10 +75,12 @@ export default function CreateGeneralArticleModal({
     const [imageFile, setImageFile] = React.useState<File | null>(null);
     const [generateNewImage, setGenerateNewImage] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
+    const [targetTenantIds, setTargetTenantIds] = React.useState<string[]>([]);
     const [fieldErrors, setFieldErrors] = React.useState<{
         category?: string;
         topic?: string;
         materials?: string;
+        targets?: string;
     }>({});
     const [isProcessingFiles, setIsProcessingFiles] = React.useState(false);
     const [, setUploadProgress] = React.useState<number | null>(null);
@@ -93,6 +96,7 @@ export default function CreateGeneralArticleModal({
         title?: string;
         content?: string;
         category?: string;
+        targets?: string;
     }>({});
     const [manualError, setManualError] = React.useState<string | null>(null);
     const [isSubmittingManual, setIsSubmittingManual] = React.useState(false);
@@ -107,6 +111,7 @@ export default function CreateGeneralArticleModal({
         setError(null);
         setIsProcessingFiles(false);
         setSelectedCategory("");
+        setTargetTenantIds([]);
         setLanguage("English");
         setGenerateNewImage(false);
         setActiveTab("ai");
@@ -234,6 +239,10 @@ export default function CreateGeneralArticleModal({
             newErrors.topic = "Generation prompt is required";
         }
 
+        if (targetTenantIds.length === 0) {
+            newErrors.targets = "Select at least one site";
+        }
+
         if (!pastedText.trim() && files.length === 0) {
             newErrors.materials = "Please provide at least one source (pasted content or document)";
         }
@@ -278,6 +287,7 @@ export default function CreateGeneralArticleModal({
                 language,
                 prompt: buildLanguageDirective(language),
                 materialImages,
+                targetTenantIds,
             });
 
             queryClient.invalidateQueries({ queryKey: ['generalPublishes'] });
@@ -304,6 +314,7 @@ export default function CreateGeneralArticleModal({
         if (!manualTitle.trim()) newErrors.title = "Title is required";
         if (!manualContent.trim()) newErrors.content = "Article content is required";
         if (!manualCategory) newErrors.category = "Please select a category";
+        if (targetTenantIds.length === 0) newErrors.targets = "Select at least one site";
 
         if (Object.keys(newErrors).length > 0) {
             setManualFieldErrors(newErrors);
@@ -323,6 +334,7 @@ export default function CreateGeneralArticleModal({
                 imageUrls: uploadedImageUrls,
                 isHeadline: manualIsHeadline,
                 publish,
+                targetTenantIds,
             });
 
             queryClient.invalidateQueries({ queryKey: ['generalPublishes'] });
@@ -358,7 +370,7 @@ export default function CreateGeneralArticleModal({
                         <div className="relative text-center space-y-2">
                             <h3 className="text-2xl font-black text-gray-900 tracking-tight">Broadcasting Your Article</h3>
                             <p className="text-sm font-medium text-gray-600 max-w-md">
-                                We are generating the article, then publishing it to every eligible site. This can take a moment.
+                                We are generating the article, then publishing it to the selected sites. This can take a moment.
                             </p>
                         </div>
 
@@ -398,8 +410,8 @@ export default function CreateGeneralArticleModal({
                                     </DialogTitle>
                                     <DialogDescription className="text-gray-400 font-medium">
                                         {activeTab === "ai"
-                                            ? "Publishes to every eligible site at once, aside from the Jeju sites."
-                                            : "Write once, publish everywhere — aside from the Jeju sites."}
+                                            ? "Generate once, then publish to the sites you select."
+                                            : "Write once, publish to the sites you select."}
                                     </DialogDescription>
                                 </div>
                             </div>
@@ -511,6 +523,16 @@ export default function CreateGeneralArticleModal({
                                         </Select>
                                     </div>
                                 </div>
+
+                                <TargetSitesSelect
+                                    value={targetTenantIds}
+                                    onChange={(ids) => {
+                                        setTargetTenantIds(ids);
+                                        setFieldErrors(prev => ({ ...prev, targets: undefined }));
+                                    }}
+                                    error={fieldErrors.targets}
+                                    disabled={isModalBusy}
+                                />
                             </div>
                                 </>
                             ) : (
@@ -614,6 +636,16 @@ export default function CreateGeneralArticleModal({
                                                 </button>
                                             </div>
                                         </div>
+
+                                        <TargetSitesSelect
+                                            value={targetTenantIds}
+                                            onChange={(ids) => {
+                                                setTargetTenantIds(ids);
+                                                if (manualFieldErrors.targets) setManualFieldErrors(prev => ({ ...prev, targets: undefined }));
+                                            }}
+                                            error={manualFieldErrors.targets}
+                                            disabled={isModalBusy}
+                                        />
                                     </div>
                                 </>
                             )}
@@ -678,7 +710,11 @@ export default function CreateGeneralArticleModal({
                                         ) : (
                                             <div className="flex items-center gap-2">
                                                 <Send className="w-4 h-4" />
-                                                <span>Publish to All Sites</span>
+                                                <span>
+                                                    {targetTenantIds.length > 0
+                                                        ? `Publish to ${targetTenantIds.length} site${targetTenantIds.length === 1 ? "" : "s"}`
+                                                        : "Publish"}
+                                                </span>
                                             </div>
                                         )}
                                     </Button>

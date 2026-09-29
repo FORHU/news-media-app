@@ -82,7 +82,11 @@ function extractArticleTags(
   };
 }
 
-function buildParaphraseInstruction(targetLanguage?: string): string {
+function buildParaphraseInstruction(targetLanguage?: string, beat?: string): string {
+  const angleRule = beat
+    ? `\n[PUBLICATION ANGLE]:\n- You are writing for a publication focused on ${beat}. Choose the lead, emphasis, and framing that suit this audience, and give the headline this angle. Use only facts from the source — the angle changes emphasis and framing, never the facts.\n`
+    : "";
+
   const languageRule = targetLanguage
     ? `LANGUAGE: Write the ENTIRE output — title and content — in ${targetLanguage}, regardless of what language the source article below is written in. If the source is not in ${targetLanguage}, translate it first (mentally translate the key facts into English as an intermediate step if that helps accuracy), then write the final rewritten article entirely in ${targetLanguage}. Do not leave any sentence in the source's original language.`
     : `LANGUAGE: Write in the same language as the original article.`;
@@ -93,7 +97,7 @@ function buildParaphraseInstruction(targetLanguage?: string): string {
 
 [TASK]:
 Extract only the FACTS from the source article (who, what, when, where, why, numbers, quotes), then write a completely new article from those facts. The result must carry the same meaning and tone as the source, but must NOT read like an edited version of it. Do not add, remove, or alter any facts.
-
+${angleRule}
 [STRICT ANTI-PATTERN — THIS WILL BE REJECTED]:
 Do NOT just swap individual words for synonyms while keeping the same sentence order and structure (e.g. turning "officials announced a new initiative" into "authorities revealed a fresh initiative" is NOT acceptable — that is the same sentence with different words, not a rewrite). If someone placed your output next to the source, the sentence-by-sentence structure must look different, not just the vocabulary.
 
@@ -132,12 +136,14 @@ export async function paraphraseArticle(params: {
   title: string;
   content: string;
   targetLanguage?: string;
+  /** Tenant's editorial beat — reframes the rewrite for that site's audience. */
+  beat?: string;
 }): Promise<{ title: string; content: string }> {
-  const { baseUrl, sessionId, title, content, targetLanguage } = params;
+  const { baseUrl, sessionId, title, content, targetLanguage, beat } = params;
 
   const userInput = `
 [SYSTEM INSTRUCTIONS]:
-${buildParaphraseInstruction(targetLanguage)}
+${buildParaphraseInstruction(targetLanguage, beat)}
 
 [ORIGINAL ARTICLE]:
 <title>${title}</title>

@@ -38,11 +38,9 @@ interface GeneralPublishCardProps {
 
 export function GeneralPublishCard({ broadcast, variants }: GeneralPublishCardProps) {
     const isPublished = broadcast.publishedCount > 0;
-    // targetCount is the LIVE count of every current broadcast target; targets
-    // is the (frozen) list of tenants this broadcast actually created a copy
-    // for. A gap between them means a tenant was added after this broadcast
-    // first went out and still needs its own copy.
-    const missingTenantCount = broadcast.targetCount - broadcast.targets.length;
+    // Only sites created AFTER this broadcast count as "new". A site the
+    // broadcast simply wasn't sent to (targeted publish) is not offered.
+    const missingTenantCount = broadcast.newTenantCount;
 
     const [isEditorModalOpen, setIsEditorModalOpen] = React.useState(false);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = React.useState(false);
