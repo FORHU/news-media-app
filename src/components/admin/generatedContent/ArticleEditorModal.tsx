@@ -227,7 +227,9 @@ export default function ArticleEditorModal({
                 categoryId,
                 youtubeUrl: youtubeUrl.trim() || null,
                 imageUrl: finalImageUrl || null,
-                publish,
+                // Only send publish=true. Sending false would flip a live article
+                // back to "pending" on every plain Save; unpublishing has its own action.
+                publish: publish ? true : undefined,
                 isHeadline,
             });
         },

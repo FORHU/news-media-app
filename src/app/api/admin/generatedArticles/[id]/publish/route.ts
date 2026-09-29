@@ -158,9 +158,10 @@ export async function PATCH(
       }
     }
 
-    // Regenerate slug only if title actually changed
+    // Regenerate slug only if the title changed AND the article isn't published:
+    // a live article's slug is its indexed URL and there is no redirect history.
     let newSlug = existing.slug;
-    if (title && title !== existing.title) {
+    if (title && title !== existing.title && existing.status !== "published") {
       const publishDate = existing.publishDate ?? new Date();
       newSlug = await generateUniqueArticleSlug(prisma, title, publishDate);
     }
@@ -211,7 +212,7 @@ export async function PATCH(
     const domain = await revalidateArticle(tenantId, id, updated.slug);
     sseBroadcaster.broadcast("articles:updated");
 
-    // Only ping external indexers when this PATCH actually published the article.
+    // Ping external indexers whenever the article is live after this edit.
     if (domain && updated.status === "published") {
       notifySearchEngines([
         { domain, urls: articlePingUrls(domain, updated.slug ?? updated.id) },
