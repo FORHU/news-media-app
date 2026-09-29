@@ -26,6 +26,8 @@ const stripTrailingSlash = (url: string): string =>
   url.endsWith("/") ? url.slice(0, -1) : url;
 
 /** ISO-8601 string for a valid date input, or null — never throws. */
+const DATE_MODIFIED_MIN_GAP_MS = 60 * 60 * 1000;
+
 function toIsoOrNull(value: Date | string | number | null | undefined): string | null {
   if (value == null) return null;
   const d = value instanceof Date ? value : new Date(value);
@@ -117,7 +119,7 @@ export function buildWebSiteLd(domain: string, baseUrl: string): Json {
 export function buildNewsArticleLd(params: {
   domain: string;
   baseUrl: string;
-  article: Pick<Article, "title" | "publishDate" | "createdAt" | "category">;
+  article: Pick<Article, "title" | "publishDate" | "createdAt" | "updatedAt" | "category">;
   /** Pre-cleaned summary — pass the cleanOgDescription() result. */
   description: string;
   /** Absolute canonical URL of the article page. */
@@ -149,10 +151,18 @@ export function buildNewsArticleLd(params: {
 
   if (publishedIso) {
     ld.datePublished = publishedIso;
-    // `dateModified` intentionally omitted: ContentArticle.updatedAt is bumped
-    // by unrelated writes (e.g. view-count increments), so echoing it would
-    // report every article as "modified today" — a false freshness signal.
-    // Google falls back to datePublished when dateModified is absent.
+
+    // updatedAt now only moves on real edits (view counts are written with raw
+    // SQL, see articlesRepository.incrementViewCount). Emit dateModified only
+    // when it is meaningfully later than publication, so creation-time writes
+    // (slug/status/image updates right after publish) don't read as edits.
+    const modifiedIso = toIsoOrNull(article.updatedAt);
+    if (
+      modifiedIso &&
+      new Date(modifiedIso).getTime() - new Date(publishedIso).getTime() > DATE_MODIFIED_MIN_GAP_MS
+    ) {
+      ld.dateModified = modifiedIso;
+    }
   }
 
   if (imageUrls.length > 0) ld.image = imageUrls;

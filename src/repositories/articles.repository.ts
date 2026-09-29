@@ -175,10 +175,10 @@ export const articlesRepository = {
     const article = await this.findBySlugOrId(id);
     if (!article) return;
 
-    await prisma.contentArticle.update({
-      where: { id: article.id },
-      data: { viewCount: { increment: 1 } },
-    });
+    // Raw SQL on purpose: a Prisma update() would refresh the @updatedAt column
+    // on every page view, making it (and the sitemap lastmod / JSON-LD
+    // dateModified derived from it) mean "last viewed" instead of "last edited".
+    await prisma.$executeRaw`UPDATE "content_articles" SET "view_count" = COALESCE("view_count", 0) + 1 WHERE "id" = ${article.id}`;
   },
 };
 

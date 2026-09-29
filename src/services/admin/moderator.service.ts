@@ -101,7 +101,11 @@ export const moderatorService = {
     const updated = await moderatorRepository.updateArticle(
       id,
       updateData,
-      body.title !== undefined && body.title !== existing.title ? body.title : undefined,
+      // A published article's slug is its indexed URL — keep it when the title
+      // changes so the URL doesn't 404 and lose its ranking.
+      body.title !== undefined && body.title !== existing.title && existing.status !== "published"
+        ? body.title
+        : undefined,
       existing.publishDate
     );
 
