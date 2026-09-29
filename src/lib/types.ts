@@ -104,6 +104,8 @@ export interface GeneralPublishBroadcast {
   updatedAt: string;
   status: string;
   targetCount: number;
+  /** Sites created after this broadcast that it hasn't reached yet. */
+  newTenantCount: number;
   publishedCount: number;
   targets: GeneralPublishTarget[];
 }

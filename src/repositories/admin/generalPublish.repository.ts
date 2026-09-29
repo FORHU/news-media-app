@@ -4,6 +4,7 @@ import { generateUniqueArticleSlug } from "@/lib/slug";
 import { categoriesRepository } from "@/repositories/categories.repository";
 import { env } from "@/lib/env";
 import { getAiSessionId, paraphraseArticle } from "@/lib/generateContentApi";
+import { getTenantBeat } from "@/lib/tenantBeats";
 
 // Every active tenant except these 4 is a broadcast target — computed fresh on
 // every call so a newly added tenant is automatically included.
@@ -33,9 +34,13 @@ export type BroadcastOutcome = {
   paraphrased?: boolean;
   /** Set when this tenant's copy was translated (its defaultLanguage isn't English). */
   translatedTo?: string;
+  /** Paraphrase/translation failed, so this copy was saved as pending instead of published. */
+  savedAsDraft?: boolean;
 };
 
 export type CreateBroadcastParams = {
+  /** Restrict the broadcast to these tenants. Omitted = every eligible tenant. */
+  targetTenantIds?: string[];
   title: string;
   content: string;
   category: string;
@@ -72,11 +77,30 @@ export type FetchGeneralPublishesParams = {
 };
 
 export const generalPublishRepository = {
-  async getTargetTenants() {
+  async getTargetTenants(onlyTenantIds?: string[]) {
     return prisma.tenant.findMany({
-      where: { isActive: true, domain: { notIn: EXCLUDED_JEJU_DOMAINS } },
-      select: { id: true, domain: true, defaultLanguage: true },
+      where: {
+        isActive: true,
+        domain: { notIn: EXCLUDED_JEJU_DOMAINS },
+        ...(onlyTenantIds ? { id: { in: onlyTenantIds } } : {}),
+      },
+      select: { id: true, domain: true, defaultLanguage: true, createdAt: true },
     });
+  },
+
+  /**
+   * Target tenants a broadcast hasn't reached AND that were created after the
+   * broadcast — i.e. genuinely new sites. Broadcasts don't store their chosen
+   * targets, so "tenant created after the broadcast" is the signal that
+   * separates "added later" from "deliberately left out" when a story was sent
+   * to only some sites.
+   */
+  newTenantsSince<T extends { id: string; createdAt: Date }>(
+    targets: T[],
+    broadcast: { createdAt: Date },
+    reachedTenantIds: Set<string>
+  ): T[] {
+    return targets.filter((t) => !reachedTenantIds.has(t.id) && t.createdAt > broadcast.createdAt);
   },
 
   async fetchGeneralPublishes(params: FetchGeneralPublishesParams) {
@@ -183,7 +207,10 @@ export const generalPublishRepository = {
     // whether English-reading tenants get independently-reworded text.
     const needsTranslation = (lang: string | null) => !!lang && lang in LANGUAGE_NAMES;
 
-    type Localized = { title: string; content: string; paraphrased: boolean; targetLanguage?: string };
+    // `failed` = a paraphrase/translation was required but the AI call failed, so
+    // the text is the untouched original. That copy is saved as pending (never
+    // published) so identical text doesn't go live on several domains.
+    type Localized = { title: string; content: string; paraphrased: boolean; targetLanguage?: string; failed?: boolean };
 
     // Phase 1 — resolve every tenant's (possibly rewritten/translated) text
     // concurrently. Each tenant that doesn't need paraphrasing or translation
@@ -208,14 +235,15 @@ export const generalPublishRepository = {
             title,
             content,
             targetLanguage,
+            beat: getTenantBeat(tenant.domain),
           });
           return [tenant.id, { title: rewritten.title, content: rewritten.content, paraphrased: true, targetLanguage }];
         } catch (err) {
           console.error(
-            `[generalPublish] ${targetLanguage ? `Translation to ${targetLanguage}` : "Paraphrase"} failed for ${tenant.domain}, using original text:`,
+            `[generalPublish] ${targetLanguage ? `Translation to ${targetLanguage}` : "Paraphrase"} failed for ${tenant.domain}, saving original text as pending:`,
             err
           );
-          return [tenant.id, { title, content, paraphrased: false, targetLanguage }];
+          return [tenant.id, { title, content, paraphrased: false, targetLanguage, failed: true }];
         }
       })
     );
@@ -259,7 +287,7 @@ export const generalPublishRepository = {
             content: tenantContent,
             imageUrl: primaryImageUrl,
             imageUrls,
-            status: publish ? "published" : "pending",
+            status: publish && !localized.failed ? "published" : "pending",
             publishDate,
             sourceType: "MANUAL",
             isHeadline: isHeadline ?? false,
@@ -273,6 +301,7 @@ export const generalPublishRepository = {
           success: true,
           contentArticleId: article.id,
           slug,
+          ...(localized.failed ? { savedAsDraft: true } : {}),
           ...(paraphrasePerTenant || targetLanguage ? { paraphrased } : {}),
           ...(targetLanguage ? { translatedTo: targetLanguage } : {}),
         });
@@ -292,10 +321,17 @@ export const generalPublishRepository = {
   async createBroadcast(
     params: CreateBroadcastParams
   ): Promise<{ generalPublishId: string; outcomes: BroadcastOutcome[] }> {
-    const { title, content, category, isHeadline, publish, paraphrasePerTenant } = params;
+    const { title, content, category, isHeadline, publish, targetTenantIds } = params;
     const imageUrls = params.imageUrls ?? [];
     const primaryImageUrl = imageUrls[0] ?? null;
-    const targets = await this.getTargetTenants();
+    const targets = await this.getTargetTenants(targetTenantIds);
+    if (targets.length === 0) {
+      throw new Error("No eligible target sites selected.");
+    }
+    // Same text on more than one domain is duplicate content, so paraphrase
+    // (angle-aware) whenever the broadcast reaches multiple sites, unless the
+    // caller explicitly opted out.
+    const paraphrasePerTenant = params.paraphrasePerTenant ?? targets.length > 1;
 
     const generalPublish = await prisma.generalPublish.create({
       data: {
@@ -331,7 +367,7 @@ export const generalPublishRepository = {
 
     const targets = await this.getTargetTenants();
     const existingTenantIds = new Set(existing.articles.map((a) => a.tenantId));
-    const missingTenants = targets.filter((t) => !existingTenantIds.has(t.id));
+    const missingTenants = this.newTenantsSince(targets, existing, existingTenantIds);
 
     const publish = existing.articles.some((a) => a.status === "published");
 

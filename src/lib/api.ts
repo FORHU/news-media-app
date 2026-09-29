@@ -456,6 +456,7 @@ export const articlesApi = {
     imageUrls?: string[];
     isHeadline?: boolean;
     publish?: boolean;
+    targetTenantIds?: string[];
   }): Promise<unknown> {
     const res = await fetch("/api/admin/generalPublish", {
       method: "POST",
@@ -479,6 +480,7 @@ export const articlesApi = {
     extractedText?: string;
     s3ImageUrl?: string;
     materialImages?: string[];
+    targetTenantIds?: string[];
   }): Promise<unknown> {
     const res = await fetch("/api/admin/generalPublish/createFromUpload", {
       method: "POST",
@@ -493,6 +495,12 @@ export const articlesApi = {
       );
     }
 
+    return res.json();
+  },
+
+  async getGeneralPublishTargets(): Promise<{ targets: { id: string; domain: string; siteName: string }[] }> {
+    const res = await fetch("/api/admin/generalPublish/targets", { cache: "no-store" });
+    if (!res.ok) throw new Error("Failed to load target sites");
     return res.json();
   },
 

@@ -31,6 +31,8 @@ export const createManualGeneralPublishSchema = z.object({
   imageUrls: z.array(z.string().url()).optional().default([]),
   isHeadline: z.boolean().optional(),
   publish: z.boolean().optional(),
+  // Sites to publish to. Omitted = every eligible site (legacy behavior).
+  targetTenantIds: z.array(z.string().min(1)).min(1, "Select at least one site").optional(),
 });
 
 export type CreateManualGeneralPublishInput = z.infer<typeof createManualGeneralPublishSchema>;
@@ -44,6 +46,7 @@ export const createGeneralPublishFromUploadSchema = z.object({
   extractedText: z.string().optional().default(""),
   s3ImageUrl: z.string().optional().or(z.literal("")).default(""),
   materialImages: z.array(z.string()).optional().default([]),
+  targetTenantIds: z.array(z.string().min(1)).min(1, "Select at least one site").optional(),
 });
 
 /** API: edit an existing broadcast (cascades to every per-tenant copy) */

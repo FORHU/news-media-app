@@ -233,6 +233,7 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${l
         content,
         category,
         imageUrls: resolvedImageUrl ? [resolvedImageUrl] : [],
+        targetTenantIds: parsed.data.targetTenantIds,
         publish: false,
       });
 
