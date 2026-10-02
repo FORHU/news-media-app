@@ -33,6 +33,7 @@ import NewYorkSignalLanding from "@/components/sites/newyorksignal/NewYorkSignal
 import TechnikPostLanding from "@/components/sites/technikpost/TechnikPostLanding";
 import TechOggiLanding from "@/components/sites/techoggi/TechOggiLanding";
 import TechHoyLanding from "@/components/sites/techhoy/TechHoyLanding";
+import { fetchDomainMediaStackFeed } from "@/lib/mediastack-feeds";
 
 type TechNewsLandingComponent = typeof LinkTechNewsLanding;
 
@@ -154,11 +155,7 @@ export default async function Page({
     // older than 5 days — sections with too little recent volume just render fewer
     // items (NewsIconsLanding already guards each section on array length) instead
     // of backfilling with stale articles.
-    const mediastackArticlesRaw = await fetchMediaStackNews({
-      categories: "technology",
-      languages: "en",
-      limit: 100,
-    });
+    const mediastackArticlesRaw = (await fetchDomainMediaStackFeed(domain)) ?? [];
     const mediastackArticles = filterMediaStackWithinHours(mediastackArticlesRaw, 24 * 5);
     return <NewsIconsLanding tenantId={tenantId} articles={articles} banners={banners} mediastackArticles={mediastackArticles} />;
   }
@@ -180,7 +177,7 @@ export default async function Page({
   }
 
   if (domain === "skyblueprime.com") {
-    const sbpMediastack = await fetchMediaStackNews({ categories: "technology", languages: "en", limit: 100 });
+    const sbpMediastack = (await fetchDomainMediaStackFeed(domain)) ?? [];
     return <SkyBluePrimeLanding tenantId={tenantId} articles={articles} banners={banners} mediastackArticles={sbpMediastack} />;
   }
 
@@ -192,39 +189,7 @@ export default async function Page({
 
   const TechNewsLanding = TECHNEWS_LANDINGS[domain];
   if (TechNewsLanding) {
-    // TechOggi (Italian) and TechHoy (Spanish) both hit the same MediaStack
-    // limitation: the "technology" category filter is populated almost
-    // entirely from English-language sources, so combined with a non-English
-    // `languages` filter it returns either zero results (Italian) or a thin,
-    // stale trickle from a single source (Spanish — ~291 total matches, the
-    // newest over a week old, so it could never out-rank a site's own recent
-    // articles on the homepage). Searching by keyword instead — same
-    // technique legalhyper.com already uses for its niche topic below — pulls
-    // from MediaStack's full non-English index and returns dense, same-day
-    // results.
-    const technewsMediastack = domain === "techoggi.com"
-      ? await fetchMediaStackNews({
-          keywords: "tecnologia",
-          languages: "it",
-          limit: 100,
-          // 99/100 unfiltered results come from zazoom.it, a generic
-          // aggregator, not a real publisher — it supplies no direct image
-          // (0/100) and hammering one domain ~100x in a single burst is what
-          // was getting the scrape rate-limited/blocked in production.
-          // Excluding it spreads requests across ~17 real Italian tech
-          // publishers (hdblog, ilfattoquotidiano, webnews, ...) and already
-          // yields images for ~27% directly from the API.
-          sources: "-zazoom",
-          // Don't drop text-only-safe rows (the ticker) just because the
-          // scrape failed, and give more candidates a shot at the paid
-          // Microlink fallback since the free scrape alone was clearing out
-          // ~99% of articles here.
-          requireImage: false,
-          microlinkLimit: 15,
-        })
-      : domain === "techhoy.com"
-        ? await fetchMediaStackNews({ keywords: "tecnologia", languages: "es", limit: 100 })
-        : await fetchMediaStackNews({ categories: "technology", languages: "en", limit: 100 });
+    const technewsMediastack = (await fetchDomainMediaStackFeed(domain)) ?? [];
     return (
       <TechNewsLanding
         domain={domain}
@@ -245,7 +210,7 @@ export default async function Page({
         fetchRssFeed("https://www.phonandroid.com/feed", "PhonAndroid", 12),
         fetchRssFeed("https://www.clubic.com/feed/rss/", "Clubic", 10),
       ]),
-      fetchMediaStackNews({ categories: "technology", limit: 50 }),
+      fetchDomainMediaStackFeed(domain).then((feed) => feed ?? []),
     ]);
     const ltRssArticles = ltRssFeeds
       .flat()

@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, Fragment } from "react";
+import type React from "react";
 import { useRouter } from "next/navigation";
 import { Calendar, Clock } from "lucide-react";
-import { ArticleLink } from "@/components/home/ArticleLink";
-import type { Article } from "@/lib/types";
+import { ArticleLink as InternalArticleLink } from "@/components/home/ArticleLink";
+import type { StoryItem } from "@/components/home/story-item";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
 import { getDomainColor } from "@/lib/domainColors";
 import { ClientPagination } from "@/components/home/ClientPagination";
@@ -13,12 +14,39 @@ import { ADSTERRA_CONFIG } from "@/config/adsterra";
 
 
 interface LatestStoriesSectionProps {
-  articles: Article[];
+  articles: StoryItem[];
   error: string;
   searchQuery: string | null;
   categoryName?: string | null;
   isLoading?: boolean;
   domain: string;
+}
+
+function StoryLink({
+  externalUrl,
+  articleIdentifier,
+  href,
+  className,
+  children,
+}: {
+  externalUrl?: string;
+  articleIdentifier: string;
+  href: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  if (externalUrl) {
+    return (
+      <a href={externalUrl} target="_blank" rel="noopener noreferrer" className={className}>
+        {children}
+      </a>
+    );
+  }
+  return (
+    <InternalArticleLink articleIdentifier={articleIdentifier} href={href} className={className}>
+      {children}
+    </InternalArticleLink>
+  );
 }
 
 function formatDate(date: Date | string) {
@@ -265,7 +293,7 @@ export function LatestStoriesSection({
             return latestStories.map((article, index) => (
             <Fragment key={article.id}>
               {isTechnikPost ? (
-                <ArticleLink
+                <StoryLink externalUrl={article.externalUrl}
                   articleIdentifier={article.slug ?? article.id}
                   href={`/article/${article.slug ?? article.id}`}
                   className="group cursor-pointer flex flex-row gap-5 py-5 border-b border-[#DCD8D2] hover:bg-[#EFE3CE]/30 transition-colors"
@@ -296,9 +324,9 @@ export function LatestStoriesSection({
                       {formatDate(article.createdAt)}
                     </span>
                   </div>
-                </ArticleLink>
+                </StoryLink>
               ) : isJejuTime ? (
-                <ArticleLink
+                <StoryLink externalUrl={article.externalUrl}
                   articleIdentifier={article.slug ?? article.id}
                   href={`/article/${article.slug ?? article.id}`}
                   className="group cursor-pointer flex flex-row gap-5 py-5 border-b border-slate-100 hover:bg-blue-50/40 transition-colors"
@@ -329,9 +357,9 @@ export function LatestStoriesSection({
                       {formatDate(article.createdAt)}
                     </span>
                   </div>
-                </ArticleLink>
+                </StoryLink>
               ) : isSkyBluePrime ? (
-                <ArticleLink
+                <StoryLink externalUrl={article.externalUrl}
                   articleIdentifier={article.slug ?? article.id}
                   href={`/article/${article.slug ?? article.id}`}
                   className="group cursor-pointer flex flex-row gap-4 pb-6 border-b border-sky-100 hover:bg-sky-50/50 transition-colors p-2 sm:p-3"
@@ -362,9 +390,9 @@ export function LatestStoriesSection({
                       {formatDate(article.createdAt)}
                     </span>
                   </div>
-                </ArticleLink>
+                </StoryLink>
               ) : isVoiceJeju ? (
-                <ArticleLink
+                <StoryLink externalUrl={article.externalUrl}
                   articleIdentifier={article.slug ?? article.id}
                   href={`/article/${article.slug ?? article.id}`}
                   className="group cursor-pointer flex flex-row gap-5 py-5 border-b border-gray-100 border-l-2 border-l-transparent hover:border-l-black transition-colors"
@@ -395,9 +423,9 @@ export function LatestStoriesSection({
                       {formatDate(article.createdAt)} · {Math.max(1, Math.ceil((article.content ?? "").trim().split(/\s+/).filter(Boolean).length / 200))} min read
                     </span>
                   </div>
-                </ArticleLink>
+                </StoryLink>
               ) : isJejuJapan ? (
-                <ArticleLink
+                <StoryLink externalUrl={article.externalUrl}
                   articleIdentifier={article.slug ?? article.id}
                   href={`/article/${article.slug ?? article.id}`}
                   className="group cursor-pointer flex flex-row gap-4 py-5 border-b border-gray-100 hover:bg-red-50/20 transition-colors"
@@ -428,9 +456,9 @@ export function LatestStoriesSection({
                       {formatDate(article.createdAt)} · {Math.max(1, Math.ceil((article.content ?? "").trim().split(/\s+/).filter(Boolean).length / 200))} min read
                     </span>
                   </div>
-                </ArticleLink>
+                </StoryLink>
               ) : isJejuQQ ? (
-                <ArticleLink
+                <StoryLink externalUrl={article.externalUrl}
                   articleIdentifier={article.slug ?? article.id}
                   href={`/article/${article.slug ?? article.id}`}
                   className="group cursor-pointer flex flex-row gap-4 py-5 border-b border-gray-200 hover:bg-[#fdf2f2]/50 transition-colors"
@@ -464,9 +492,9 @@ export function LatestStoriesSection({
                       {formatDate(article.createdAt)} · {Math.max(1, Math.ceil((article.content ?? "").trim().split(/\s+/).filter(Boolean).length / 200))} min read
                     </span>
                   </div>
-                </ArticleLink>
+                </StoryLink>
               ) : (
-                <ArticleLink
+                <StoryLink externalUrl={article.externalUrl}
                   articleIdentifier={article.slug ?? article.id}
                   href={`/article/${article.slug ?? article.id}`}
                   className="group cursor-pointer flex flex-row gap-4 pb-6 border-b border-gray-200 hover:bg-gray-50 transition-colors rounded-lg p-2 sm:p-3"
@@ -510,7 +538,7 @@ export function LatestStoriesSection({
                       </span>
                     </div>
                   </div>
-                </ArticleLink>
+                </StoryLink>
               )}
               {index === 2 && domain.toLowerCase().includes("jejujapan") && (
                 <div className="my-6 py-4 border-y border-gray-100 flex justify-center w-full overflow-hidden">

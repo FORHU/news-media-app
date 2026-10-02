@@ -22,8 +22,11 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
         disallow: ["/admin", "/admin/*", "/api/*"],
       },
       {
+        // Named crawlers only follow their own group and ignore the `*` group,
+        // so the disallow list must be repeated here.
         userAgent: ["facebookexternalhit", "Facebot", "Twitterbot", "LinkedInBot", "Slackbot", "WhatsApp", "TelegramBot", "Googlebot", "Bingbot"],
         allow: "/",
+        disallow: ["/admin", "/admin/*", "/api/*"],
       },
       {
         // AI search / answer engines — explicitly allowed so the sites are
