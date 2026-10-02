@@ -1,4 +1,5 @@
 import { env } from "@/lib/env";
+import { normalizeCategoryKey } from "@/config/categories";
 
 export interface MediaStackArticle {
   id: string;
@@ -58,6 +59,29 @@ export function filterMediaStackWithinHours(
 ): MediaStackArticle[] {
   const cutoff = Date.now() - hours * 60 * 60 * 1000;
   return articles.filter((a) => new Date(a.publishedAt).getTime() >= cutoff);
+}
+
+/**
+ * Narrows an already-fetched feed to a search. Filtering locally rather than
+ * querying MediaStack keeps search free of extra API quota and og:image
+ * scrapes; the trade-off is it only searches the stories already in the feed.
+ * Every whitespace-separated term must appear in the title, description or
+ * source. `category` only matches MediaStack's own label (e.g. "technology").
+ */
+export function filterMediaStackBySearch(
+  articles: MediaStackArticle[],
+  search?: string,
+  category?: string,
+): MediaStackArticle[] {
+  const terms = (search ?? "").toLowerCase().split(/\s+/).filter(Boolean);
+  const categoryKey = category ? normalizeCategoryKey(category) : null;
+
+  return articles.filter((a) => {
+    if (categoryKey && normalizeCategoryKey(a.category) !== categoryKey) return false;
+    if (terms.length === 0) return true;
+    const haystack = `${a.title} ${a.description ?? ""} ${a.source} ${a.sourceDomain}`.toLowerCase();
+    return terms.every((t) => haystack.includes(t));
+  });
 }
 
 /** MediaStack occasionally puts a non-image URL (an article page, a redirect

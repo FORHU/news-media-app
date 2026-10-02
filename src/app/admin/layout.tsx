@@ -12,6 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const siteName = getSiteNameFromDomain(domain);
 
   return {
+    robots: { index: false, follow: false },
     title: {
       default: `Admin | ${siteName}`,
       template: `%s | ${siteName} Admin`,

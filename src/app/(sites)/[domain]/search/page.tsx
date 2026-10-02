@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { FilterStatusBar } from "@/components/home/filter-status-bar";
 import { LatestStoriesSection } from "@/components/home/latest-stories-section";
+import { mediaStackToStory, type StoryItem } from "@/components/home/story-item";
 import { articlesService } from "@/services/articles.service";
 import { bannersService } from "@/services/banners.service";
 import { TrendingSidebar } from "@/components/home/trending-sidebar";
@@ -16,7 +17,16 @@ import { ADSTERRA_CONFIG } from "@/config/adsterra";
 import { TENANT_CATEGORIES } from "@/config/categories";
 import { LegalHyperSearch } from "@/components/sites/legalhyper/LegalHyperSearch";
 import { mapMediaStackToLegalHyperArticles } from "@/components/sites/legalhyper/mockArticles";
-import { fetchMediaStackNews } from "@/lib/mediastack";
+import { fetchMediaStackNews, filterMediaStackBySearch } from "@/lib/mediastack";
+import { fetchDomainMediaStackFeed } from "@/lib/mediastack-feeds";
+import { isTechNewsDomain } from "@/components/sites/technews-shared/theme";
+import { TechNewsSearchResults } from "@/components/sites/technews-shared/TechNewsSearchResults";
+
+// MediaStack rows matching the search; empty for domains that don't use MediaStack.
+async function getMediaStackMatches(domain: string, search?: string, category?: string) {
+  const feed = await fetchDomainMediaStackFeed(domain);
+  return feed ? filterMediaStackBySearch(feed, search, category) : [];
+}
 
 export async function generateMetadata({
   params,
@@ -48,6 +58,10 @@ export async function generateMetadata({
         )
       : [];
     hasResults = results.length > 0;
+    // Domains that blend in MediaStack aren't thin when the feed has matches.
+    if (!hasResults) {
+      hasResults = (await getMediaStackMatches(domain, searchQuery, categoryParam)).length > 0;
+    }
   }
 
   return {
@@ -134,7 +148,9 @@ async function SearchContent({
   categoryParam?: string;
   tenantId: string | null;
 }) {
-  const [articles, trendingArticles, sidebarBanners] = await Promise.all([
+  const isTechNews = isTechNewsDomain(domain);
+
+  const [dbArticles, mediastackMatches, trendingArticles, sidebarBanners] = await Promise.all([
     tenantId
       ? articlesService.getArticles(
         {
@@ -147,15 +163,40 @@ async function SearchContent({
         tenantId
       )
       : Promise.resolve([]),
-    tenantId
+    getMediaStackMatches(domain, searchQuery, categoryParam),
+    // The technews list below has no sidebar, so skip its queries.
+    tenantId && !isTechNews
       ? articlesService.getArticles({ limit: 10, status: "published", requireImage: true }, tenantId)
       : Promise.resolve([]),
-    tenantId
+    tenantId && !isTechNews
       ? bannersService
         .getBanners({ position: "HOME_SIDEBAR", isActive: true, tenantId })
         .catch(() => [])
       : Promise.resolve([]),
   ]);
+
+  // Technews family: its own themed list, DB articles blended with MediaStack.
+  if (isTechNews) {
+    return (
+      <TechNewsSearchResults
+        domain={domain}
+        articles={dbArticles}
+        mediastackArticles={mediastackMatches}
+        searchQuery={searchQuery}
+        categoryName={categoryParam ? decodeURIComponent(categoryParam) : null}
+      />
+    );
+  }
+
+  // Other MediaStack domains (NewsIcons, LavagueTech, SkyBluePrime): mix the
+  // matches into the same list, newest first. Domains without MediaStack keep
+  // the DB service's own ordering.
+  const articles: StoryItem[] =
+    mediastackMatches.length === 0
+      ? dbArticles
+      : [...dbArticles, ...mediastackMatches.map(mediaStackToStory)].sort(
+          (x, y) => new Date(y.createdAt).getTime() - new Date(x.createdAt).getTime(),
+        );
 
   // Dynamic Tenant Resolution for Adsterra Config
   const tenantKey = domain.toLowerCase().includes("voicejeju")
