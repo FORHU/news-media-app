@@ -38,6 +38,13 @@ const nextConfig: NextConfig = {
   // that webpack's experimental async-WASM caused with src/generated/prisma/.
   turbopack: {},
 
+  // proxy.ts matches /api/admin/*, so Next buffers those request bodies and
+  // truncates them at 10MB by default. A truncated multipart body fails with
+  // "Failed to parse body as FormData" (e.g. large article image uploads).
+  experimental: {
+    proxyClientMaxBodySize: "50mb",
+  },
+
   async headers() {
     return [
       {

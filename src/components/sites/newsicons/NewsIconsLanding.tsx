@@ -6,6 +6,7 @@ import { StoryImage } from "@/components/StoryImage";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { getCoreCategories, normalizeCategoryKey } from "@/config/categories";
+import { classifyNewsIconsCategory } from "./categorize";
 import type { MediaStackArticle } from "@/lib/mediastack";
 import type { Banner } from "@/components/AdBanner";
 import type { Article } from "@/lib/types";
@@ -47,6 +48,77 @@ const CANONICAL_MAP = new Map(
 );
 
 
+/**
+ * One shape for both our own articles and MediaStack wire items, so Latest News
+ * and the category blocks can render and sort them together. Wire items open
+ * the publisher's site in a new tab; own articles stay on-site.
+ */
+interface FeedItem {
+  key: string;
+  href: string;
+  external: boolean;
+  title: string;
+  summary: string;
+  image: string;
+  label: string;
+  category: string | null;
+  dateMs: number;
+}
+
+function ownToFeedItem(a: ArticleRow, summaryLen: number): FeedItem {
+  const raw = a.category?.categoryName ?? null;
+  return {
+    key: `own-${a.id}`,
+    href: articleHref(a),
+    external: false,
+    title: a.title,
+    summary: excerpt(a.content, summaryLen),
+    image: a.imageUrl as string,
+    label: raw ?? "News",
+    category: raw ? CANONICAL_MAP.get(normalizeCategoryKey(raw)) ?? raw : null,
+    dateMs: new Date(a.createdAt).getTime(),
+  };
+}
+
+function wireToFeedItem(m: MediaStackArticle, summaryLen: number): FeedItem {
+  return {
+    key: `ms-${m.id}`,
+    href: m.url,
+    external: true,
+    title: m.title,
+    summary: excerpt(m.description, summaryLen),
+    image: m.image as string,
+    label: m.source,
+    category: classifyNewsIconsCategory(m.title, m.description),
+    dateMs: new Date(m.publishedAt).getTime() || 0,
+  };
+}
+
+function FeedLink({ item, className, children }: { item: FeedItem; className: string; children: React.ReactNode }) {
+  return item.external ? (
+    <a href={item.href} target="_blank" rel="noopener noreferrer" className={className}>
+      {children}
+    </a>
+  ) : (
+    <Link href={item.href} className={className}>
+      {children}
+    </Link>
+  );
+}
+
+function FeedImage({ item, sizes, className }: { item: FeedItem; sizes: string; className: string }) {
+  return item.external ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={item.image} alt={item.title} className={`absolute inset-0 w-full h-full ${className}`} />
+  ) : (
+    <StoryImage src={item.image} alt={item.title} fill className={className} sizes={sizes} />
+  );
+}
+
+function formatDate(ms: number, opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric" }) {
+  return ms ? new Date(ms).toLocaleDateString("en-US", opts) : "";
+}
+
 export default function NewsIconsLanding({ articles, banners, mediastackArticles = [] }: Props) {
   // Only use articles and MediaStack items that have a real image
   const articlesWithImages = articles.filter((a) => hasValidImage(a.imageUrl));
@@ -61,21 +133,60 @@ export default function NewsIconsLanding({ articles, banners, mediastackArticles
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
-  const heroIds = new Set(sorted[0] ? [sorted[0].id] : []);
-  // Headline article — exclude from category blocks
-  const latestNewsIds = heroIds;
+  // Headline article (sorted[0]) stays our own; everything below it is own + wire, newest first.
+  const mixed: FeedItem[] = [
+    ...sorted.slice(1).map((a) => ownToFeedItem(a, 200)),
+    ...msWithImages.map((m) => wireToFeedItem(m, 200)),
+  ].sort((a, b) => b.dateMs - a.dateMs);
 
-  const groupedMap = new Map<string, ArticleRow[]>();
-  for (const a of sorted) {
-    if (latestNewsIds.has(a.id)) continue;
-    const raw = a.category?.categoryName || "Uncategorized";
-    const cat = CANONICAL_MAP.get(normalizeCategoryKey(raw)) ?? raw;
-    if (!groupedMap.has(cat)) groupedMap.set(cat, []);
-    groupedMap.get(cat)!.push(a);
+  // Latest News: newest 12 across both sources.
+  const latestItems = mixed.slice(0, 12);
+  const used = new Set(latestItems.map((i) => i.key));
+
+  // Category blocks: own articles + keyword-classified wire items, newest first.
+  const BLOCK_SIZE = 4;
+  const ownByCat = new Map<string, FeedItem[]>();
+  const wireByCat = new Map<string, FeedItem[]>();
+  const wireUnmatched: FeedItem[] = [];
+  for (const item of mixed) {
+    if (used.has(item.key)) continue;
+    if (item.external) {
+      if (item.category) {
+        if (!wireByCat.has(item.category)) wireByCat.set(item.category, []);
+        wireByCat.get(item.category)!.push(item);
+      } else {
+        wireUnmatched.push(item);
+      }
+    } else {
+      const cat = item.category ?? "Uncategorized";
+      if (!ownByCat.has(cat)) ownByCat.set(cat, []);
+      ownByCat.get(cat)!.push(item);
+    }
   }
-  const categoryBlocks = Array.from(groupedMap.entries())
-    .map(([name, items]) => ({ name, items }))
+
+  // Alternate own/wire so published articles never fill a block on their own,
+  // then top up thin blocks from unmatched wire items (the feed is all tech news).
+  const categoryBlocks = Array.from(new Set([...ownByCat.keys(), ...wireByCat.keys()]))
+    .map((name) => {
+      const own = [...(ownByCat.get(name) ?? [])];
+      const wire = [...(wireByCat.get(name) ?? [])];
+      const items: FeedItem[] = [];
+      let preferWire = (wire[0]?.dateMs ?? 0) > (own[0]?.dateMs ?? 0);
+      while (items.length < BLOCK_SIZE && (own.length || wire.length)) {
+        const next = (preferWire ? wire.shift() ?? own.shift() : own.shift() ?? wire.shift())!;
+        items.push(next);
+        preferWire = !preferWire;
+      }
+      return { name, items };
+    })
     .filter((g) => g.items.length >= 1);
+  for (const g of categoryBlocks) {
+    while (g.items.length < BLOCK_SIZE && wireUnmatched.length) g.items.push(wireUnmatched.shift()!);
+    for (const i of g.items) used.add(i.key);
+  }
+
+  // Wire-only sections (sidebar, Trending, Headlines, From the Wire) get what's left.
+  const wireLeft = msWithImages.filter((m) => !used.has(`ms-${m.id}`));
 
   if (articles.length === 0) {
     return (
@@ -153,9 +264,8 @@ export default function NewsIconsLanding({ articles, banners, mediastackArticles
 
             <div className="flex flex-col divide-y divide-slate-200">
               {(() => {
-                const allItems = sorted.slice(1, 13);
-                const items = allItems.slice(0, allItems.length - 1);
-                const lastItem = allItems[allItems.length - 1];
+                const items = latestItems.slice(0, latestItems.length - 1);
+                const lastItem = latestItems[latestItems.length - 1];
                 const blocks: React.ReactNode[] = [];
                 let i = 0;
 
@@ -165,35 +275,23 @@ export default function NewsIconsLanding({ articles, banners, mediastackArticles
                   if (isFeatured && items[i]) {
                     const a = items[i];
                     blocks.push(
-                      <Link
-                        key={a.id}
-                        href={articleHref(a)}
+                      <FeedLink
+                        key={a.key}
+                        item={a}
                         className="group flex flex-col sm:flex-row gap-4 sm:gap-5 items-start py-6 first:pt-0"
                       >
                         <div className="relative w-full sm:w-[300px] h-[200px] shrink-0 bg-slate-100 overflow-hidden">
-                          <StoryImage
-                            src={a.imageUrl}
-                            alt={a.title}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-500"
-                            sizes="300px"
-                          />
+                          <FeedImage item={a} sizes="300px" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                         </div>
                         <div className="flex flex-col gap-2 flex-1 min-w-0">
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-orange-500">
-                            {a.category?.categoryName ?? "News"}
-                          </span>
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-orange-500">{a.label}</span>
                           <h3 className="text-[20px] font-serif font-bold text-slate-900 leading-snug group-hover:text-orange-500 transition-colors line-clamp-3">
                             {a.title}
                           </h3>
-                          <p className="text-[13px] text-slate-500 leading-relaxed line-clamp-3">
-                            {excerpt(a.content, 160)}
-                          </p>
-                          <span className="text-[11px] text-slate-400 font-medium mt-auto">
-                            {new Date(a.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                          </span>
+                          <p className="text-[13px] text-slate-500 leading-relaxed line-clamp-3">{a.summary}</p>
+                          <span className="text-[11px] text-slate-400 font-medium mt-auto">{formatDate(a.dateMs)}</span>
                         </div>
-                      </Link>
+                      </FeedLink>
                     );
                     i += 1;
                   } else {
@@ -201,26 +299,16 @@ export default function NewsIconsLanding({ articles, banners, mediastackArticles
                     blocks.push(
                       <div key={`pair-${i}`} className="grid grid-cols-2 gap-4 py-6">
                         {pair.map((a) => (
-                          <Link key={a.id} href={articleHref(a)} className="group flex flex-col gap-2">
+                          <FeedLink key={a.key} item={a} className="group flex flex-col gap-2">
                             <div className="relative w-full aspect-[4/3] bg-slate-100 overflow-hidden">
-                              <StoryImage
-                                src={a.imageUrl}
-                                alt={a.title}
-                                fill
-                                className="object-cover group-hover:scale-105 transition-transform duration-500"
-                                sizes="(max-width: 640px) 50vw, 33vw"
-                              />
+                              <FeedImage item={a} sizes="(max-width: 640px) 50vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                             </div>
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-orange-500">
-                              {a.category?.categoryName ?? "News"}
-                            </span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-orange-500">{a.label}</span>
                             <h4 className="text-[15px] font-serif font-bold text-slate-900 leading-snug group-hover:text-orange-500 transition-colors line-clamp-3">
                               {a.title}
                             </h4>
-                            <span className="text-[11px] text-slate-400 font-medium">
-                              {new Date(a.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                            </span>
-                          </Link>
+                            <span className="text-[11px] text-slate-400 font-medium">{formatDate(a.dateMs)}</span>
+                          </FeedLink>
                         ))}
                       </div>
                     );
@@ -231,35 +319,23 @@ export default function NewsIconsLanding({ articles, banners, mediastackArticles
                 {/* Last article — full-width lengthwise */}
                 if (lastItem) {
                   blocks.push(
-                    <Link
-                      key={lastItem.id}
-                      href={articleHref(lastItem)}
+                    <FeedLink
+                      key={lastItem.key}
+                      item={lastItem}
                       className="group flex flex-col sm:flex-row gap-0 items-stretch py-6 border-t border-slate-200"
                     >
                       <div className="relative w-full sm:w-1/2 min-h-[180px] shrink-0 bg-slate-100 overflow-hidden">
-                        <StoryImage
-                          src={lastItem.imageUrl}
-                          alt={lastItem.title}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-500"
-                          sizes="50vw"
-                        />
+                        <FeedImage item={lastItem} sizes="50vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                       </div>
                       <div className="flex flex-col justify-center gap-2 flex-1 min-w-0 pt-4 sm:pt-0 sm:pl-6">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-orange-500">
-                          {lastItem.category?.categoryName ?? "News"}
-                        </span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-orange-500">{lastItem.label}</span>
                         <h3 className="text-[22px] font-serif font-bold text-slate-900 leading-snug group-hover:text-orange-500 transition-colors line-clamp-3">
                           {lastItem.title}
                         </h3>
-                        <p className="text-[13px] text-slate-500 leading-relaxed line-clamp-3">
-                          {excerpt(lastItem.content, 200)}
-                        </p>
-                        <span className="text-[11px] text-slate-400 font-medium mt-auto">
-                          {new Date(lastItem.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                        </span>
+                        <p className="text-[13px] text-slate-500 leading-relaxed line-clamp-3">{lastItem.summary}</p>
+                        <span className="text-[11px] text-slate-400 font-medium mt-auto">{formatDate(lastItem.dateMs)}</span>
                       </div>
-                    </Link>
+                    </FeedLink>
                   );
                 }
 
@@ -269,14 +345,14 @@ export default function NewsIconsLanding({ articles, banners, mediastackArticles
           </div>
 
           {/* News Wire — right sidebar */}
-          {msWithImages.length > 0 && (
+          {wireLeft.length > 0 && (
             <aside className="lg:col-span-4 flex flex-col h-full">
               <div className="flex items-center gap-3 mb-5 border-b-2 border-orange-500 pb-3">
                 <h2 className="text-xl font-serif font-black text-slate-900 uppercase tracking-wide">News Wire</h2>
                 <div className="flex-1 h-px bg-slate-200" />
               </div>
               <div className="flex flex-col divide-y divide-slate-200 bg-white border border-slate-200 shadow-sm flex-1 overflow-y-auto">
-                {msWithImages.slice(0, 10).map((item) => (
+                {wireLeft.slice(0, 10).map((item) => (
                   <a
                     key={item.id}
                     href={item.url}
@@ -327,14 +403,14 @@ export default function NewsIconsLanding({ articles, banners, mediastackArticles
         </div>
 
         {/* Trending Now — API articles 10–13 */}
-        {msWithImages.length > 10 && (
+        {wireLeft.length > 10 && (
           <section>
             <div className="flex items-center gap-3 mb-6 border-b-2 border-slate-900 pb-3">
               <h2 className="text-xl font-serif font-black text-slate-900 uppercase tracking-wide">Trending Now</h2>
               <div className="flex-1 h-px bg-slate-200" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {msWithImages.slice(10, 14).map((item) => (
+              {wireLeft.slice(10, 14).map((item) => (
                 <a
                   key={item.id}
                   href={item.url}
@@ -368,14 +444,14 @@ export default function NewsIconsLanding({ articles, banners, mediastackArticles
         )}
 
         {/* In the Headlines — API articles 14–19 */}
-        {msWithImages.length > 14 && (
+        {wireLeft.length > 14 && (
           <section>
             <div className="flex items-center gap-3 mb-6 border-b-2 border-slate-900 pb-3">
               <h2 className="text-xl font-serif font-black text-slate-900 uppercase tracking-wide">In the Headlines</h2>
               <div className="flex-1 h-px bg-slate-200" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {msWithImages.slice(14, 20).map((item) => (
+              {wireLeft.slice(14, 20).map((item) => (
                 <a
                   key={item.id}
                   href={item.url}
@@ -409,14 +485,14 @@ export default function NewsIconsLanding({ articles, banners, mediastackArticles
         )}
 
         {/* From the Wire — API articles 20–29 */}
-        {msWithImages.length > 20 && (
+        {wireLeft.length > 20 && (
           <section>
             <div className="flex items-center gap-3 mb-6 border-b-2 border-orange-500 pb-3">
               <h2 className="text-xl font-serif font-black text-slate-900 uppercase tracking-wide">From the Wire</h2>
               <div className="flex-1 h-px bg-slate-200" />
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 bg-white border border-slate-200 shadow-sm divide-y divide-slate-200">
-              {msWithImages.slice(20, 30).map((item) => (
+              {wireLeft.slice(20, 30).map((item) => (
                 <a
                   key={item.id}
                   href={item.url}
@@ -451,7 +527,7 @@ export default function NewsIconsLanding({ articles, banners, mediastackArticles
           </section>
         )}
 
-        {/* Category Blocks */}
+        {/* Category Blocks: own articles + wire items mixed */}
         {categoryBlocks.map((group) => {
           const lead = group.items[0];
           const rest = group.items.slice(1, 4);
@@ -469,55 +545,35 @@ export default function NewsIconsLanding({ articles, banners, mediastackArticles
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 {/* Lead */}
-                <Link href={articleHref(lead)} className="lg:col-span-5 group block bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                <FeedLink item={lead} className="lg:col-span-5 group block bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
                   <div className="relative aspect-[16/9] bg-slate-100 overflow-hidden">
-                    <StoryImage
-                      src={lead.imageUrl}
-                      alt={lead.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-700"
-                      sizes="(max-width: 1024px) 100vw, 42vw"
-                    />
+                    <FeedImage item={lead} sizes="(max-width: 1024px) 100vw, 42vw" className="object-cover group-hover:scale-105 transition-transform duration-700" />
                   </div>
                   <div className="p-5">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-orange-500 block mb-2">
-                      {lead.category?.categoryName ?? group.name}
-                    </span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-orange-500 block mb-2">{lead.label}</span>
                     <h3 className="text-xl font-serif font-bold text-slate-900 leading-snug group-hover:text-orange-500 transition-colors mb-3">
                       {lead.title}
                     </h3>
-                    <p className="text-sm text-slate-600 leading-relaxed line-clamp-3">
-                      {excerpt(lead.content, 160)}
-                    </p>
+                    <p className="text-sm text-slate-600 leading-relaxed line-clamp-3">{lead.summary}</p>
                   </div>
-                </Link>
+                </FeedLink>
 
                 {/* Side articles */}
                 {rest.length > 0 && (
                   <div className="lg:col-span-7 flex flex-col divide-y divide-slate-200 bg-white border border-slate-200 shadow-sm">
-                    {rest.map((article) => (
-                      <Link key={article.id} href={articleHref(article)} className="group flex gap-4 items-start p-4 hover:bg-slate-50 transition-colors">
+                    {rest.map((item) => (
+                      <FeedLink key={item.key} item={item} className="group flex gap-4 items-start p-4 hover:bg-slate-50 transition-colors">
                         <div className="relative w-[110px] h-[78px] shrink-0 bg-slate-100 overflow-hidden">
-                          <StoryImage
-                            src={article.imageUrl}
-                            alt={article.title}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-500"
-                            sizes="110px"
-                          />
+                          <FeedImage item={item} sizes="110px" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                         </div>
                         <div className="min-w-0 flex flex-col gap-1">
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-orange-500">
-                            {article.category?.categoryName ?? group.name}
-                          </span>
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-orange-500">{item.label}</span>
                           <h4 className="text-[15px] font-serif font-bold text-slate-900 leading-snug group-hover:text-orange-500 transition-colors line-clamp-2">
-                            {article.title}
+                            {item.title}
                           </h4>
-                          <p className="text-[12px] text-slate-500 line-clamp-2 leading-relaxed">
-                            {excerpt(article.content, 80)}
-                          </p>
+                          <p className="text-[12px] text-slate-500 line-clamp-2 leading-relaxed">{item.summary}</p>
                         </div>
-                      </Link>
+                      </FeedLink>
                     ))}
                   </div>
                 )}

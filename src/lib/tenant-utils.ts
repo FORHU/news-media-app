@@ -28,7 +28,10 @@ export function getSiteNameFromDomain(domain: string | null): string {
   return "NewsIcons";
 }
 
-export function getSiteIconFromDomain(domain: string | null): string {
+/** Bump when any /icons/*.ico changes so browsers and search engines refetch it. */
+const SITE_ICON_VERSION = 3;
+
+function getSiteIconPath(domain: string | null): string {
   if (!domain) return "/icons/newsicons.ico";
   const d = domain.toLowerCase();
   if (d.includes('lavaguetech')) return "/icons/lavaguetech.ico";
@@ -48,6 +51,10 @@ export function getSiteIconFromDomain(domain: string | null): string {
   if (d.includes('techoggi')) return "/icons/techoggi.ico";
   if (d.includes('techhoy')) return "/icons/techhoy.ico";
   return "/icons/newsicons.ico";
+}
+
+export function getSiteIconFromDomain(domain: string | null): string {
+  return `${getSiteIconPath(domain)}?v=${SITE_ICON_VERSION}`;
 }
 
 export function getSiteLogoFromDomain(domain: string | null): string {
