@@ -153,7 +153,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const siteDescription = getSiteDescriptionFromDomain(domain);
   
   const iconPath = getSiteIconFromDomain(domain);
-  const icoUrl = `${iconPath}?v=2`;
+  const icoUrl = iconPath;
 
   const protocol = host?.includes("localhost") || host?.includes("127.0.0.1") ? "http" : "https";
   const baseUrl = host ? `${protocol}://${host}` : SITE_URL;
