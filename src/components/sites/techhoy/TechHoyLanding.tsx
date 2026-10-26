@@ -90,7 +90,7 @@ export default function TechHoyLanding({ domain, articles, banners, mediastackAr
   // Unified pool: DB articles (when editors have published) always rank first,
   // then the MediaStack "technology" feed fills every remaining slot — so the
   // page never collapses to an empty homepage before DB content exists.
-  const rows = toFeedRows(articles, mediastackArticles);
+  const rows = toFeedRows(articles, mediastackArticles, { domain });
   const pool = rows.filter((r) => r.imageUrl !== null || !r.external);
 
   // Fixed slot boundaries into `pool` — hero, then each section in turn, with

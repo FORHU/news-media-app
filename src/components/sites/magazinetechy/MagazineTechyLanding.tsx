@@ -85,7 +85,7 @@ function LinkBody({
 
 export default function MagazineTechyLanding({ domain, articles, banners, mediastackArticles = [] }: Props) {
   const theme = getTechNewsTheme(domain);
-  const rows = toFeedRows(articles, mediastackArticles);
+  const rows = toFeedRows(articles, mediastackArticles, { domain });
 
   const byline = theme?.byline ?? "MAGAZINE TECHY";
 

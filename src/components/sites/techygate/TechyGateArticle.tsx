@@ -124,7 +124,7 @@ export default function TechyGateArticle({
         <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <button
             onClick={() => (window.history.length > 1 ? router.back() : router.push("/"))}
-            className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--tn-bg)]/70 hover:text-[var(--tn-bg)] transition-colors mb-6"
+            className="flex w-fit items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--tn-bg)]/70 hover:text-[var(--tn-bg)] transition-colors mb-6"
           >
             <ArrowLeft className="w-4 h-4" /> Back
           </button>

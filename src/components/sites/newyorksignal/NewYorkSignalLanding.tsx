@@ -30,7 +30,7 @@ interface Props {
 
 export default function NewYorkSignalLanding({ domain, articles, banners, mediastackArticles = [] }: Props) {
   const theme = getTechNewsTheme(domain);
-  const rows = toFeedRows(articles, mediastackArticles);
+  const rows = toFeedRows(articles, mediastackArticles, { domain });
 
   const sorted = rows;
   const heroArticles = sorted.slice(0, 5);

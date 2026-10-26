@@ -1,4 +1,5 @@
 import type { MediaStackArticle } from "@/lib/mediastack";
+import { classifyWireCategory } from "./categorize";
 
 /**
  * Unified row type for the technews family layouts.
@@ -67,7 +68,7 @@ function fromDb(a: DbArticleish): FeedRow {
   };
 }
 
-function fromMediaStack(a: MediaStackArticle): FeedRow {
+function fromMediaStack(a: MediaStackArticle, domain?: string): FeedRow {
   const host = (a.sourceDomain || a.source || "").replace(/^www\./, "");
   return {
     id: a.id,
@@ -79,7 +80,7 @@ function fromMediaStack(a: MediaStackArticle): FeedRow {
     trendingScore: null,
     isHeadline: null,
     status: "published",
-    category: { categoryName: a.category || host || "Tech" },
+    category: { categoryName: classifyWireCategory(domain, a.title, a.description) || a.category || host || "Tech" },
     href: a.url,
     external: true,
     source: host || null,
@@ -111,10 +112,10 @@ function sortRows(rows: FeedRow[]): FeedRow[] {
 export function toFeedRows(
   articles: DbArticleish[],
   mediastack: MediaStackArticle[] = [],
-  opts: { requireImage?: boolean } = {},
+  opts: { requireImage?: boolean; domain?: string } = {},
 ): FeedRow[] {
   const db = articles.map(fromDb);
-  let ms = mediastack.map(fromMediaStack);
+  let ms = mediastack.map((m) => fromMediaStack(m, opts.domain));
   if (opts.requireImage) ms = ms.filter((r) => r.imageUrl !== null);
   return sortRows([...db, ...ms]);
 }

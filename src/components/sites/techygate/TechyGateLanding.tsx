@@ -55,7 +55,7 @@ export default function TechyGateLanding({ domain, articles, banners, mediastack
   const categories = getCoreCategories(domain);
   const canonical = new Map(categories.map((c) => [normalizeCategoryKey(c), c.trim()]));
 
-  const rows = toFeedRows(articles, mediastackArticles);
+  const rows = toFeedRows(articles, mediastackArticles, { domain });
   const dbRows = rows.filter((r) => !r.external);
   const extRows = rows.filter((r) => r.external && r.imageUrl);
   const feedRows = dbRows.length > 0 ? rows : extRows;
@@ -102,24 +102,19 @@ export default function TechyGateLanding({ domain, articles, banners, mediastack
         {lead && (
           <FeedLink
             row={lead}
-            className="group border-4 border-[var(--tn-ink)]"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-              alignItems: "center",
-            }}
+            className="group border-4 border-[var(--tn-ink)] grid grid-cols-1 lg:grid-cols-[3fr_2fr] items-stretch"
           >
             <div
               aria-hidden
               style={{
                 position: "relative",
                 width: "100%",
-                height: "clamp(200px, 34vw, 400px)",
+                minHeight: "clamp(200px, 34vw, 400px)",
                 overflow: "hidden",
                 backgroundColor: "var(--tn-accent-soft)",
                 backgroundImage: lead.imageUrl ? `url("${lead.imageUrl}")` : undefined,
                 backgroundSize: "cover",
-                backgroundPosition: "center",
+                backgroundPosition: "left center",
               }}
             />
             <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-10">

@@ -11,7 +11,7 @@ import { articlesService } from "@/services/articles.service";
 import { bannersService } from "@/services/banners.service";
 import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain, getSiteDescriptionFromDomain, getSiteLocaleFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
-import { fetchRssFeed } from "@/lib/rss";
+import { fetchLavagueTechRss } from "@/lib/rss";
 import { fetchMediaStackNews, filterMediaStackWithinHours } from "@/lib/mediastack";
 
 // Domain-specific designs
@@ -202,19 +202,10 @@ export default async function Page({
   }
 
   if (domain === "lavaguetech.com") {
-    const [ltRssFeeds, ltMediastack] = await Promise.all([
-      Promise.all([
-        fetchRssFeed("https://www.frandroid.com/feed", "Frandroid", 12),
-        fetchRssFeed("https://www.01net.com/feed/", "01net", 12),
-        fetchRssFeed("https://www.numerama.com/feed/", "Numerama", 12),
-        fetchRssFeed("https://www.phonandroid.com/feed", "PhonAndroid", 12),
-        fetchRssFeed("https://www.clubic.com/feed/rss/", "Clubic", 10),
-      ]),
+    const [ltRssArticles, ltMediastack] = await Promise.all([
+      fetchLavagueTechRss(),
       fetchDomainMediaStackFeed(domain).then((feed) => feed ?? []),
     ]);
-    const ltRssArticles = ltRssFeeds
-      .flat()
-      .sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
     return (
       <LavagueTechLanding
         tenantId={tenantId}

@@ -66,18 +66,25 @@ export function filterMediaStackWithinHours(
  * querying MediaStack keeps search free of extra API quota and og:image
  * scrapes; the trade-off is it only searches the stories already in the feed.
  * Every whitespace-separated term must appear in the title, description or
- * source. `category` only matches MediaStack's own label (e.g. "technology").
+ * source. `category` matches MediaStack's own label (e.g. "technology") or,
+ * when `categoryOf` is given, the topic that function assigns the story —
+ * MediaStack's own tag is too coarse to place a story under a site's
+ * categories, so callers pass a keyword classifier.
  */
 export function filterMediaStackBySearch(
   articles: MediaStackArticle[],
   search?: string,
   category?: string,
+  categoryOf?: (article: MediaStackArticle) => string | null,
 ): MediaStackArticle[] {
   const terms = (search ?? "").toLowerCase().split(/\s+/).filter(Boolean);
   const categoryKey = category ? normalizeCategoryKey(category) : null;
 
   return articles.filter((a) => {
-    if (categoryKey && normalizeCategoryKey(a.category) !== categoryKey) return false;
+    if (categoryKey && normalizeCategoryKey(a.category) !== categoryKey) {
+      const topic = categoryOf?.(a);
+      if (!topic || normalizeCategoryKey(topic) !== categoryKey) return false;
+    }
     if (terms.length === 0) return true;
     const haystack = `${a.title} ${a.description ?? ""} ${a.source} ${a.sourceDomain}`.toLowerCase();
     return terms.every((t) => haystack.includes(t));

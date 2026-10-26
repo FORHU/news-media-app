@@ -30,7 +30,7 @@ export function TechNewsSearchResults({
 
   // Keep image-less rows: TechOggi's feed is mostly text-only, and StoryImage
   // falls back to a placeholder.
-  const rows = toFeedRows(articles, mediastackArticles).slice(0, MAX_ROWS);
+  const rows = toFeedRows(articles, mediastackArticles, { domain }).slice(0, MAX_ROWS);
   const heading = categoryName ?? (searchQuery ? `“${searchQuery}”` : "Latest");
 
   return (
