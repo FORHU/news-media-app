@@ -17,15 +17,48 @@ import { ADSTERRA_CONFIG } from "@/config/adsterra";
 import { TENANT_CATEGORIES } from "@/config/categories";
 import { LegalHyperSearch } from "@/components/sites/legalhyper/LegalHyperSearch";
 import { mapMediaStackToLegalHyperArticles } from "@/components/sites/legalhyper/mockArticles";
-import { fetchMediaStackNews, filterMediaStackBySearch } from "@/lib/mediastack";
+import { fetchMediaStackNews, filterMediaStackBySearch, type MediaStackArticle } from "@/lib/mediastack";
 import { fetchDomainMediaStackFeed } from "@/lib/mediastack-feeds";
+import { fetchLavagueTechRss } from "@/lib/rss";
 import { isTechNewsDomain } from "@/components/sites/technews-shared/theme";
+import { classifyWireCategory } from "@/components/sites/technews-shared/categorize";
+import { classifyTechOggiCategory } from "@/components/sites/techoggi/categorize";
 import { TechNewsSearchResults } from "@/components/sites/technews-shared/TechNewsSearchResults";
+
+// MediaStack's own tag is just "technology" (or "general" for non-English), so a
+// category filter has to match on the topic the keyword classifier assigns.
+function wireCategoryOf(domain: string) {
+  if (domain === "techoggi.com") {
+    return (a: MediaStackArticle) => classifyTechOggiCategory(a.title, a.description ?? "");
+  }
+  return (a: MediaStackArticle) => classifyWireCategory(domain, a.title, a.description);
+}
+
+// lavaguetech.com is a French site: its wire stories are the French MediaStack
+// feed plus the same French tech RSS feeds as the home page (shaped like
+// MediaStack rows so the existing filter and list code can reuse them), newest first.
+async function getLavagueTechWire(): Promise<MediaStackArticle[]> {
+  const [mediastack, rss] = await Promise.all([fetchDomainMediaStackFeed("lavaguetech.com"), fetchLavagueTechRss()]);
+  const fromRss = rss.map((a) => ({
+    id: a.id,
+    title: a.title,
+    description: a.excerpt || null,
+    url: a.link,
+    source: a.source,
+    sourceDomain: a.sourceDomain,
+    image: a.imageUrl,
+    category: a.category || "technologie",
+    publishedAt: a.pubDate,
+  }));
+  return [...(mediastack ?? []), ...fromRss].sort(
+    (x, y) => new Date(y.publishedAt).getTime() - new Date(x.publishedAt).getTime(),
+  );
+}
 
 // MediaStack rows matching the search; empty for domains that don't use MediaStack.
 async function getMediaStackMatches(domain: string, search?: string, category?: string) {
-  const feed = await fetchDomainMediaStackFeed(domain);
-  return feed ? filterMediaStackBySearch(feed, search, category) : [];
+  const feed = domain === "lavaguetech.com" ? await getLavagueTechWire() : await fetchDomainMediaStackFeed(domain);
+  return feed ? filterMediaStackBySearch(feed, search, category, wireCategoryOf(domain)) : [];
 }
 
 export async function generateMetadata({

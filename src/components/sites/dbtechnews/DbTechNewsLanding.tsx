@@ -43,7 +43,7 @@ function Marker({ children, accent = false }: { children: React.ReactNode; accen
 
 export default function DbTechNewsLanding({ domain, articles, banners, mediastackArticles = [] }: Props) {
   const theme = getTechNewsTheme(domain);
-  const rows = toFeedRows(articles, mediastackArticles, { requireImage: false });
+  const rows = toFeedRows(articles, mediastackArticles, { requireImage: false, domain });
   const pool = rows.filter((r) => r.imageUrl !== null || !r.external);
 
   const hero = pool[0] ?? null;

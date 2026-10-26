@@ -29,7 +29,7 @@ export function getSiteNameFromDomain(domain: string | null): string {
 }
 
 /** Bump when any /icons/*.ico changes so browsers and search engines refetch it. */
-const SITE_ICON_VERSION = 4;
+const SITE_ICON_VERSION = 5;
 
 function getSiteIconPath(domain: string | null): string {
   if (!domain) return "/icons/newsicons.ico";

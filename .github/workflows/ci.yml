@@ -62,7 +62,7 @@ jobs:
       # recompiled from scratch. `next build` also type-checks the project, so
       # there is no separate `tsc --noEmit` step.
       #
-      # cache-v2: a run cancelled mid-build (this workflow cancels in-progress
+      # cache-v3 (was v2): a run cancelled mid-build (this workflow cancels in-progress
       # runs on a new push to the same ref) can be killed while Turbopack is
       # writing to .next/cache, leaving a corrupted font-module cache entry
       # ("next/font/google queries have exactly one entry" build failures).
@@ -74,12 +74,21 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .next/cache
-          key: ${{ runner.os }}-nextjs-v2-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          key: ${{ runner.os }}-nextjs-v3-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-nextjs-v2-${{ hashFiles('package-lock.json') }}-
+            ${{ runner.os }}-nextjs-v3-${{ hashFiles('package-lock.json') }}-
 
+      # If the build dies on the Turbopack font error again, wipe the compiler
+      # cache and retry once from scratch instead of failing the run. That covers
+      # both a poisoned restored cache and a one-off failure fetching Google Fonts
+      # (the root layout loads ~20 families), so neither needs a manual cache bump.
       - name: Build
-        run: npm run build
+        run: |
+          npm run build || {
+            echo "::warning::Build failed; retrying once with a clean .next cache."
+            rm -rf .next
+            npm run build
+          }
 
   deploy:
     name: Trigger Coolify deploy

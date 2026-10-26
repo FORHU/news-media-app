@@ -28,7 +28,7 @@ interface Props {
 
 export default function MagazineAirLanding({ domain, articles, banners, mediastackArticles = [] }: Props) {
   const theme = getTechNewsTheme(domain);
-  const rows = toFeedRows(articles, mediastackArticles);
+  const rows = toFeedRows(articles, mediastackArticles, { domain });
   const categories = getCoreCategories(domain);
 
   const heroArticles = rows.slice(0, 3);

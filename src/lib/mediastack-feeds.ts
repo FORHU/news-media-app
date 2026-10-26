@@ -39,6 +39,13 @@ async function fetchTechNewsFeed(domain: string): Promise<MediaStackArticle[]> {
   if (domain === "techhoy.com") {
     return fetchMediaStackNews({ keywords: "tecnologia", languages: "es", limit: 100 });
   }
+  if (domain === "technikpost.de") {
+    // German tech stories (computerbild, Focus, RP Online ...). The category also
+    // carries a "Google News Technology DE" aggregator whose rows have no usable
+    // image or direct link, so drop it.
+    const feed = await fetchMediaStackNews({ categories: "technology", languages: "de", limit: 100 });
+    return feed.filter((a) => !/google news/i.test(a.source));
+  }
   return fetchMediaStackNews({ categories: "technology", languages: "en", limit: 100 });
 }
 
@@ -55,7 +62,12 @@ export async function fetchDomainMediaStackFeed(domain: string): Promise<MediaSt
     return fetchMediaStackNews({ categories: "technology", languages: "en", limit: 100 });
   }
   if (domain === "lavaguetech.com") {
-    return fetchMediaStackNews({ categories: "technology", limit: 50 });
+    // French site, so French stories. MediaStack's French "technology" category
+    // is stale untagged aggregator output, and a generic keyword returns mostly
+    // general news; "intelligence artificielle" is the query that comes back
+    // recent, on-topic and with images. The home and search pages add the
+    // French tech RSS feeds on top for the rest of the topics.
+    return fetchMediaStackNews({ keywords: "intelligence artificielle", languages: "fr", limit: 100 });
   }
   return null;
 }

@@ -119,7 +119,7 @@ export default function TechOggiLanding({ domain, articles, banners, mediastackA
 
   // Same clean data plumbing every technews sibling shares: DB articles rank
   // first, MediaStack fills the rest, image-bearing rows only for card slots.
-  const rows = toFeedRows(articles, mediastackArticles);
+  const rows = toFeedRows(articles, mediastackArticles, { domain });
   const pool = rows.filter((r) => (r.imageUrl !== null || !r.external) && !brokenImageIds.has(r.id));
 
   const HERO_END = 1;

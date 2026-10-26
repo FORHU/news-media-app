@@ -129,3 +129,24 @@ export async function fetchRssFeed(
     return [];
   }
 }
+
+const LAVAGUETECH_RSS_FEEDS: Array<[url: string, source: string, limit: number]> = [
+  ["https://www.frandroid.com/feed", "Frandroid", 12],
+  ["https://www.01net.com/feed/", "01net", 12],
+  ["https://www.numerama.com/feed/", "Numerama", 12],
+  ["https://www.phonandroid.com/feed", "PhonAndroid", 12],
+  ["https://www.clubic.com/feed/rss/", "Clubic", 10],
+];
+
+/** The French tech RSS feeds behind lavaguetech.com, newest first. Shared by the
+ *  home and search pages; search isn't statically cached, so the result is held
+ *  in memory for a few minutes instead of re-parsing five feeds per request. */
+let lavagueCache: { at: number; items: RssArticle[] } | null = null;
+export async function fetchLavagueTechRss(): Promise<RssArticle[]> {
+  if (lavagueCache && Date.now() - lavagueCache.at < 5 * 60 * 1000) return lavagueCache.items;
+  const items = (await Promise.all(LAVAGUETECH_RSS_FEEDS.map(([url, source, limit]) => fetchRssFeed(url, source, limit))))
+    .flat()
+    .sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
+  if (items.length > 0) lavagueCache = { at: Date.now(), items };
+  return items;
+}
