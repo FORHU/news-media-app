@@ -133,8 +133,7 @@ export default function NewsIconsLanding({ articles, banners, mediastackArticles
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
-  // Headline article stays our own; everything below it is own + wire, newest first.
-  const hero = sorted[0];
+  // Headline article (sorted[0]) stays our own; everything below it is own + wire, newest first.
   const mixed: FeedItem[] = [
     ...sorted.slice(1).map((a) => ownToFeedItem(a, 200)),
     ...msWithImages.map((m) => wireToFeedItem(m, 200)),
