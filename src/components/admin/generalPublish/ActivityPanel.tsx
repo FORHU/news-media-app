@@ -90,6 +90,14 @@ export default function ActivityPanel() {
                         Try again
                     </button>
                 </div>
+            ) : data?.setupPending ? (
+                <div className="py-10 px-5 text-center">
+                    <p className="text-sm font-bold text-gray-900">Activity tracking isn&apos;t switched on yet.</p>
+                    <p className="mt-1 text-xs font-medium text-gray-500 max-w-sm mx-auto leading-relaxed">
+                        It starts recording once the database update has been applied. Publishing and editing
+                        keep working in the meantime.
+                    </p>
+                </div>
             ) : entries.length === 0 ? (
                 <p className="py-10 px-5 text-center text-sm font-medium text-gray-500">
                     Nothing yet. Publishes, edits and deletes will be listed here.

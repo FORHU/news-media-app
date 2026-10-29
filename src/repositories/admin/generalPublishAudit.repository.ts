@@ -35,6 +35,23 @@ export type AuditEntry = {
   createdAt: string;
 };
 
+/** True when the audit table hasn't been created yet (migration not applied). */
+export function isMissingAuditTable(err: unknown): boolean {
+  type ErrLike = { code?: string; message?: string; meta?: unknown; cause?: ErrLike } | null | undefined;
+  // Driver adapters wrap the Postgres error, so read the whole cause chain.
+  const parts: string[] = [];
+  for (let e = err as ErrLike, depth = 0; e && depth < 4; e = e.cause, depth++) {
+    parts.push(e.code ?? "", e.message ?? "");
+    try {
+      parts.push(JSON.stringify(e.meta ?? ""));
+    } catch {
+      // unserializable meta: ignore
+    }
+  }
+  const text = parts.join(" ");
+  return /P2021|42P01|TableDoesNotExist|does not exist/i.test(text) && /general_?publish_?audit/i.test(text);
+}
+
 export const generalPublishAuditRepository = {
   /**
    * Never throws: a failed audit write must not fail (or hide the result of)

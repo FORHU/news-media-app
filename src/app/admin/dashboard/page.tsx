@@ -1,19 +1,35 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import {
-    Activity,
-    ArrowUpRight,
-    Loader2
-} from 'lucide-react';
+import Link from 'next/link';
+import { RefreshCw } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 import DashboardStatsGrid from '@/components/admin/dashboard/DashboardStatsGrid';
 import ActivityFeed from '@/components/admin/dashboard/ActivityFeed';
 import QueueStatusCard from '@/components/admin/dashboard/HealthMetricsCard';
+import NeedsAttention from '@/components/admin/dashboard/NeedsAttention';
 import { useQuery } from '@tanstack/react-query';
 import { getSiteNameFromDomain, getSiteIconFromDomain } from '@/lib/tenant-utils';
 
+/** "Updated 2 minutes ago", re-rendered every 30s so the age doesn't freeze. */
+function UpdatedAgo({ at, failed }: { at: number; failed: boolean }) {
+    const [, tick] = React.useReducer((n: number) => n + 1, 0);
+    useEffect(() => {
+        const id = setInterval(tick, 30_000);
+        return () => clearInterval(id);
+    }, []);
+
+    if (!at) return null;
+    const age = formatDistanceToNow(new Date(at), { addSuffix: true });
+    return (
+        <span className={`text-xs font-semibold ${failed ? 'text-red-800' : 'text-gray-600'}`}>
+            {failed ? `Couldn't refresh. Showing data from ${age}` : `Updated ${age}`}
+        </span>
+    );
+}
+
 export default function DashboardPage() {
-    const { data, isFetching, isLoading } = useQuery({
+    const { data, isFetching, isLoading, isError, refetch, dataUpdatedAt } = useQuery({
         queryKey: ['adminDashboard'],
         queryFn: async () => {
             const res = await fetch('/api/admin/dashboard');
@@ -26,15 +42,15 @@ export default function DashboardPage() {
         refetchOnMount: false,
         refetchInterval: process.env.NODE_ENV !== "production" ? 30_000 : false,
     });
-    
+
     // Set domain-specific title and favicon
     useEffect(() => {
         const hostname = window.location.hostname.toLowerCase();
         const siteName = getSiteNameFromDomain(hostname);
         const iconPath = getSiteIconFromDomain(hostname);
-        
+
         document.title = `Admin Dashboard | ${siteName}`;
-        
+
         // Dynamic Favicon update
         const favicon = document.querySelector('link[rel="icon"]') as HTMLLinkElement || document.createElement('link');
         favicon.rel = 'icon';
@@ -45,82 +61,82 @@ export default function DashboardPage() {
     }, []);
 
     const loading = isLoading && !data;
+    // Failed with nothing cached: show dashes, not zeros that look like real counts.
+    const unavailable = isError && !data;
 
     return (
         <div className="space-y-10 animate-in fade-in duration-700">
-            {/* Header section */}
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2 text-[#ff4500] font-bold text-[10px] md:text-xs uppercase tracking-widest mb-1">
-                        <div className="relative">
-                            <Activity className="w-3.5 h-3.5 md:w-4 h-4" />
-                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full border-2 border-white animate-pulse"></span>
-                        </div>
-                        System Overview
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <h1 className="text-2xl md:text-4xl font-black text-gray-900 tracking-tight">Admin Dashboard</h1>
-                        {isFetching && !loading && (
-                            <span className="flex items-center gap-1.5 text-[11px] font-bold text-gray-400 uppercase tracking-widest">
-                                <Loader2 className="w-3 h-3 animate-spin" />
-                                Syncing…
-                            </span>
-                        )}
-                    </div>
-                    <p className="text-sm md:text-base text-gray-500 font-medium">Monitoring real-time intelligence & crawler health.</p>
+                    <h1 className="text-2xl md:text-4xl font-black text-gray-900 tracking-tight">Dashboard</h1>
+                    <p className="text-sm md:text-base text-gray-600 font-medium">
+                        What needs attention now, and what was produced recently.
+                    </p>
                 </div>
-                
-                <div className="flex items-center gap-3">
-                    <div className="hidden sm:flex flex-col items-end">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Network Status</span>
-                        <span className="text-xs font-bold text-green-600">Stable (24ms)</span>
-                    </div>
-                    <button className="flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-xl text-xs font-bold hover:bg-gray-800 transition-all shadow-md active:scale-95 group">
-                        Export Report
-                        <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+
+                <div className="flex items-center gap-3" aria-live="polite">
+                    <UpdatedAgo at={dataUpdatedAt} failed={isError && !!data} />
+                    <button
+                        type="button"
+                        onClick={() => refetch()}
+                        disabled={isFetching}
+                        aria-label={isFetching ? 'Refreshing' : 'Refresh dashboard'}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-xl text-xs font-bold hover:bg-gray-800 transition-colors disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500"
+                    >
+                        <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'motion-safe:animate-spin' : ''}`} aria-hidden />
+                        Refresh
                     </button>
                 </div>
             </div>
 
-            {/* Real-time Polling Stats Grid Component */}
-            <DashboardStatsGrid stats={data} loading={loading} />
+            {unavailable ? (
+                <div role="alert" className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-2xl bg-red-50 border border-red-200 px-5 py-4">
+                    <div className="flex-1">
+                        <p className="text-sm font-bold text-red-900">Couldn&apos;t load the dashboard figures.</p>
+                        <p className="text-xs font-medium text-red-800 mt-0.5">
+                            The counts below are hidden rather than shown as zero. Check your connection and try again.
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => refetch()}
+                        className="shrink-0 rounded-xl bg-red-800 text-white hover:bg-red-900 px-4 py-2 text-xs font-black uppercase tracking-wider transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-800"
+                    >
+                        Retry
+                    </button>
+                </div>
+            ) : null}
 
-            {/* Lower Section: Activity Feed & Health Metrics */}
+            <NeedsAttention />
+
+            <DashboardStatsGrid stats={data} loading={loading} unavailable={unavailable} />
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Recent Activity Card */}
-                <div className="lg:col-span-2 bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all duration-500">
-                    <div className="flex justify-between items-center mb-8 relative z-10">
+                <section aria-labelledby="recent-activity-heading" className="lg:col-span-2 bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm">
+                    <div className="flex justify-between items-center gap-4 mb-8">
                         <div>
-                            <h2 className="text-xl md:text-2xl font-black text-gray-900">Recent Activity</h2>
-                            <p className="text-xs md:text-sm text-gray-500 font-medium mt-1">Live updates from crawlers and AI generators.</p>
+                            <h2 id="recent-activity-heading" className="text-xl md:text-2xl font-black text-gray-900">Recent activity</h2>
+                            <p className="text-xs md:text-sm text-gray-600 font-medium mt-1">Latest generated and crawled articles.</p>
                         </div>
-                        <button className="px-4 py-2 text-xs font-bold text-gray-400 hover:text-[#ff4500] border border-gray-100 hover:border-orange-100 rounded-xl transition-all">
-                            View Archive
-                        </button>
+                        <Link
+                            href="/admin/dashboard/generated"
+                            className="shrink-0 px-4 py-2 text-xs font-bold text-gray-700 hover:text-orange-800 border border-gray-200 hover:border-orange-200 rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500"
+                        >
+                            View all articles
+                        </Link>
                     </div>
 
-                    <div className="relative z-10">
-                        <ActivityFeed 
-                            activities={data?.recentActivity || []} 
-                            loading={loading} 
-                        />
-                    </div>
+                    <ActivityFeed
+                        activities={data?.recentActivity || []}
+                        loading={loading}
+                        unavailable={unavailable}
+                    />
+                </section>
 
-                    {/* Background Decorative Element */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-gray-50 rounded-full blur-[100px] -mr-32 -mt-32 opacity-50"></div>
-                </div>
-
-                {/* System Status Card */}
-                <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden flex flex-col group hover:shadow-md transition-all duration-500">
-                   <QueueStatusCard data={data} />
-                   
-                   {/* Decorative background pulse */}
-                   <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-orange-100 rounded-full blur-[80px] opacity-30 group-hover:opacity-50 transition-all duration-700"></div>
-                </div>
+                <section aria-label="Queue status" className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm flex flex-col">
+                    <QueueStatusCard data={data} unavailable={unavailable} />
+                </section>
             </div>
         </div>
     );
 }
-
-
-

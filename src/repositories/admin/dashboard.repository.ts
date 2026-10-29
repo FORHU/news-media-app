@@ -18,6 +18,7 @@ export const dashboardRepository = {
       pendingArticles,
       recentGen,
       recentCrawl,
+      todayGenerated,
     ] = await prisma.$transaction([
       prisma.contentArticle.count({ where: { tenantId } }),
       prisma.contentArticle.count({ where: { tenantId, createdAt: { gte: oneWeekAgo } } }),
@@ -40,11 +41,13 @@ export const dashboardRepository = {
         orderBy: { createdAt: "desc" },
         include: { category: true },
       }),
+      prisma.contentArticle.count({ where: { tenantId, createdAt: { gte: todayStart } } }),
     ]);
 
     return {
       totalGenerated,
       lastWeekGenerated,
+      todayGenerated,
       totalCrawled,
       todayCrawled,
       totalUrls,

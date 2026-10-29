@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generalPublishService } from "@/services/admin/generalPublish.service";
+import { isMissingAuditTable } from "@/repositories/admin/generalPublishAudit.repository";
 
 // Recent General Publish history, newest first. proxy.ts gates /api/admin/*.
 export const dynamic = "force-dynamic";
@@ -14,6 +15,11 @@ export async function GET(req: NextRequest) {
     const entries = await generalPublishService.getAuditLog({ broadcastId, limit });
     return NextResponse.json({ entries }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
+    // Table not created yet: report "not set up" rather than a failure, so the
+    // panel can say so instead of showing a generic error.
+    if (isMissingAuditTable(error)) {
+      return NextResponse.json({ entries: [], setupPending: true }, { headers: { "Cache-Control": "no-store" } });
+    }
     console.error("Error fetching general publish audit log:", error);
     return NextResponse.json({ error: "Failed to load activity" }, { status: 500 });
   }

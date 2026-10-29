@@ -43,7 +43,9 @@ const subscribe = (listener: () => void) => {
   };
 };
 const getSnapshot = () => items;
-const getServerSnapshot = (): ToastItem[] => [];
+// Must be a stable reference: a fresh [] per call makes React loop forever.
+const EMPTY_TOASTS: ToastItem[] = [];
+const getServerSnapshot = () => EMPTY_TOASTS;
 
 const VARIANT_ICON = {
   success: <CheckCircle2 className="w-5 h-5 text-emerald-400" aria-hidden />,

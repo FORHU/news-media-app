@@ -13,7 +13,7 @@ export const dashboardService = {
       queueStatus: {
         pendingAI: d.pendingArticles,
         activeCrawls: d.activeJobs,
-        totalToday: d.todayCrawled + d.lastWeekGenerated,
+        totalToday: d.todayCrawled + d.todayGenerated,
       },
       recentActivity: [
         ...d.recentGen.map((a) => ({

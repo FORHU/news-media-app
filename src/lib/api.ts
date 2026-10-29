@@ -589,7 +589,7 @@ export const articlesApi = {
     }
   },
 
-  async getGeneralPublishAudit(limit = 40): Promise<{ entries: GeneralPublishAuditEntry[] }> {
+  async getGeneralPublishAudit(limit = 40): Promise<{ entries: GeneralPublishAuditEntry[]; setupPending?: boolean }> {
     const res = await fetch(`/api/admin/generalPublish/audit?limit=${limit}`, { cache: "no-store" });
     if (!res.ok) throw new Error("Failed to load activity");
     return res.json();
