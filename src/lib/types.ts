@@ -87,6 +87,7 @@ export type Tenant = Prisma.TenantGetPayload<object>;
 
 export interface GeneralPublishTarget {
   contentArticleId: string;
+  slug: string | null;
   tenantId: string;
   domain: string;
   siteName: string;
@@ -107,7 +108,34 @@ export interface GeneralPublishBroadcast {
   /** Sites created after this broadcast that it hasn't reached yet. */
   newTenantCount: number;
   publishedCount: number;
+  /** Sites this broadcast failed to reach (no copy was created); each can be retried. */
+  failedTargets: { tenantId: string; domain: string; error: string }[];
   targets: GeneralPublishTarget[];
+}
+
+export interface GeneralPublishAuditEntry {
+  id: string;
+  broadcastId: string;
+  broadcastTitle: string;
+  action:
+    | "create"
+    | "edit"
+    | "publish"
+    | "unpublish"
+    | "site_publish"
+    | "site_unpublish"
+    | "sync"
+    | "retry"
+    | "delete";
+  actorEmail: string | null;
+  details: {
+    reached?: number;
+    failures?: { tenantId: string; domain: string; error: string }[];
+    domain?: string;
+    fields?: string[];
+    sites?: number;
+  } | null;
+  createdAt: string;
 }
 
 export interface GeneralPublishesResponse {

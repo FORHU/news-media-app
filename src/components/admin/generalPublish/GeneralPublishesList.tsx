@@ -11,6 +11,9 @@ import {
     Trash2,
     Globe2,
     RefreshCw,
+    RotateCcw,
+    ExternalLink,
+    History,
 } from 'lucide-react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import Pagination from '@/components/admin/pagination';
@@ -27,9 +30,20 @@ import { StoryImage } from '@/components/StoryImage';
 import ConfirmationModal from '@/components/admin/shared/ConfirmationModal';
 import { GENERAL_CATEGORIES } from '@/config/generalCategories';
 import { useArticleStream } from '@/hooks/useArticleStream';
+import { toast } from '@/components/ui/toaster';
+import { SiteChip, FailedSiteChip, liveUrl } from '@/components/admin/generalPublish/SiteChips';
+import ActivityPanel from '@/components/admin/generalPublish/ActivityPanel';
+import {
+    DELETE_UNDO_WINDOW_MS,
+    cancelDelete,
+    scheduleDelete,
+    usePendingDeleteIds,
+} from '@/lib/pendingGeneralPublishDeletes';
 
 const ALL_CATEGORIES_VALUE = '__all_categories__';
 const ALL_STATUS_VALUE = '__all_status__';
+
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
 interface GeneralPublishCardProps {
     broadcast: GeneralPublishBroadcast;
@@ -41,27 +55,67 @@ export function GeneralPublishCard({ broadcast, variants }: GeneralPublishCardPr
     // Only sites created AFTER this broadcast count as "new". A site the
     // broadcast simply wasn't sent to (targeted publish) is not offered.
     const missingTenantCount = broadcast.newTenantCount;
+    const firstLiveTarget = broadcast.targets.find((t) => t.status === 'published');
 
     const [isEditorModalOpen, setIsEditorModalOpen] = React.useState(false);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = React.useState(false);
     const [isUnpublishing, setIsUnpublishing] = React.useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
-    const [isDeleting, setIsDeleting] = React.useState(false);
-    const [isDeletedLocally, setIsDeletedLocally] = React.useState(false);
     const [isSyncing, setIsSyncing] = React.useState(false);
+    const [isRetrying, setIsRetrying] = React.useState(false);
     const queryClient = useQueryClient();
+
+    const refreshLists = async () => {
+        await queryClient.invalidateQueries({ queryKey: ['generalPublishes'] });
+        await queryClient.invalidateQueries({ queryKey: ['generalPublishAudit'] });
+    };
 
     const handleSyncNewTenants = async (e: React.MouseEvent) => {
         e.stopPropagation();
         setIsSyncing(true);
         try {
-            await articlesApi.syncGeneralPublishNewTenants(broadcast.id);
-            queryClient.invalidateQueries({ queryKey: ['generalPublishes'] });
+            const { addedCount } = await articlesApi.syncGeneralPublishNewTenants(broadcast.id);
+            await refreshLists();
+            toast({ variant: 'success', title: `Added to ${plural(addedCount, 'new site', 'new sites')}` });
         } catch (error) {
             console.error('Failed to update new tenants:', error);
-            alert('Failed to publish to the new sites. Please try again.');
+            toast({
+                variant: 'error',
+                title: "Couldn't publish to the new sites",
+                description: error instanceof Error ? error.message : 'Please try again.',
+            });
         } finally {
             setIsSyncing(false);
+        }
+    };
+
+    const handleRetryFailed = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsRetrying(true);
+        try {
+            const { outcomes } = await articlesApi.retryGeneralPublishTenants(
+                broadcast.id,
+                broadcast.failedTargets.map((f) => f.tenantId)
+            );
+            await refreshLists();
+            const stillFailing = outcomes.filter((o) => !o.success).length;
+            const delivered = outcomes.length - stillFailing;
+            toast({
+                variant: stillFailing ? 'error' : 'success',
+                title: stillFailing
+                    ? `${plural(delivered, 'site', 'sites')} delivered, ${stillFailing} still failing`
+                    : `Delivered to ${plural(delivered, 'site', 'sites')}`,
+                description: stillFailing ? 'Open a red site chip to see why.' : undefined,
+            });
+        } catch (error) {
+            console.error('Failed to retry sites:', error);
+            toast({
+                variant: 'error',
+                title: "Couldn't retry the failed sites",
+                description: error instanceof Error ? error.message : 'Please try again.',
+            });
+        } finally {
+            setIsRetrying(false);
         }
     };
 
@@ -74,11 +128,16 @@ export function GeneralPublishCard({ broadcast, variants }: GeneralPublishCardPr
         setIsUnpublishing(true);
         try {
             await articlesApi.unpublishGeneralPublish(broadcast.id);
-            queryClient.invalidateQueries({ queryKey: ['generalPublishes'] });
+            await refreshLists();
             setIsConfirmModalOpen(false);
+            toast({ variant: 'success', title: `Unpublished from ${plural(broadcast.publishedCount, 'site', 'sites')}` });
         } catch (error) {
             console.error('Failed to unpublish broadcast:', error);
-            alert('Failed to unpublish broadcast. Please try again.');
+            toast({
+                variant: 'error',
+                title: "Couldn't unpublish this article",
+                description: error instanceof Error ? error.message : 'Please try again.',
+            });
         } finally {
             setIsUnpublishing(false);
         }
@@ -89,26 +148,45 @@ export function GeneralPublishCard({ broadcast, variants }: GeneralPublishCardPr
         setIsDeleteModalOpen(true);
     };
 
-    const handleDeleteConfirm = async () => {
-        setIsDeleting(true);
-        try {
-            await articlesApi.deleteGeneralPublish(broadcast.id);
-            setIsDeletedLocally(true);
-            queryClient.invalidateQueries({ queryKey: ['generalPublishes'] });
-            setIsDeleteModalOpen(false);
-        } catch (error) {
-            console.error('Failed to delete broadcast:', error);
-            alert('Failed to delete broadcast. Please try again.');
-        } finally {
-            setIsDeleting(false);
-        }
+    // The DELETE is held back for an undo window (see pendingGeneralPublishDeletes).
+    const handleDeleteConfirm = () => {
+        setIsDeleteModalOpen(false);
+        const { id, title } = broadcast;
+        const siteCount = broadcast.targets.length;
+
+        scheduleDelete(id, {
+            run: async () => {
+                await articlesApi.deleteGeneralPublish(id);
+                await refreshLists();
+            },
+            onError: (error) => {
+                console.error('Failed to delete broadcast:', error);
+                toast({
+                    variant: 'error',
+                    title: `Couldn't delete "${title}"`,
+                    description: `It's back in the list. ${error instanceof Error ? error.message : 'Please try again.'}`,
+                });
+            },
+        });
+
+        toast({
+            title: `Deleting "${title}"`,
+            description: `Removing it from ${plural(siteCount, 'site', 'sites')} in ${DELETE_UNDO_WINDOW_MS / 1000} seconds.`,
+            durationMs: DELETE_UNDO_WINDOW_MS,
+            action: {
+                label: 'Undo',
+                onClick: () => {
+                    if (cancelDelete(id)) toast({ variant: 'success', title: 'Delete cancelled', description: `"${title}" is untouched.` });
+                },
+            },
+        });
     };
 
     return (
         <motion.div
             variants={variants}
             whileHover={{ y: -4, scale: 1.002 }}
-            className={`group relative bg-white rounded-[1.5rem] p-3.5 shadow-sm hover:shadow-xl hover:shadow-gray-200/40 border border-gray-100 transition-all duration-300 flex flex-col md:flex-row gap-5 items-start md:items-center ${isDeletedLocally ? 'hidden' : ''}`}
+            className={`group relative bg-white rounded-[1.5rem] p-3.5 shadow-sm hover:shadow-xl hover:shadow-gray-200/40 border border-gray-100 transition-all duration-300 flex flex-col md:flex-row gap-5 items-start md:items-center`}
         >
             <div className="relative w-full md:w-56 h-36 md:h-32 rounded-[1.2rem] overflow-hidden shadow-inner bg-gray-50 flex-shrink-0">
                 <StoryImage
@@ -169,17 +247,11 @@ export function GeneralPublishCard({ broadcast, variants }: GeneralPublishCardPr
                 </div>
 
                 <div className="flex flex-wrap items-center gap-1.5">
+                    {broadcast.failedTargets.map((f) => (
+                        <FailedSiteChip key={`failed-${f.tenantId}`} broadcastId={broadcast.id} failure={f} />
+                    ))}
                     {broadcast.targets.map((t) => (
-                        <span
-                            key={t.tenantId}
-                            className={`text-[10px] font-bold px-2 py-1 rounded-lg border ${
-                                t.status === 'published'
-                                    ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                                    : 'bg-gray-50 text-gray-400 border-gray-100'
-                            }`}
-                        >
-                            {t.domain}
-                        </span>
+                        <SiteChip key={t.tenantId} broadcastId={broadcast.id} target={t} />
                     ))}
                 </div>
             </div>
@@ -197,6 +269,30 @@ export function GeneralPublishCard({ broadcast, variants }: GeneralPublishCardPr
                     <Rss className={`w-4 h-4 transition-colors ${isPublished ? 'text-gray-400 group-hover/review:text-gray-900' : ''}`} />
                     {isPublished ? 'Edit' : 'Review'}
                 </button>
+
+                {firstLiveTarget ? (
+                    <a
+                        href={liveUrl(firstLiveTarget)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-all group/view"
+                    >
+                        <ExternalLink className="w-4 h-4 text-emerald-400 group-hover/view:text-emerald-600 transition-colors" />
+                        View Live
+                    </a>
+                ) : null}
+
+                {broadcast.failedTargets.length > 0 ? (
+                    <button
+                        type="button"
+                        onClick={handleRetryFailed}
+                        disabled={isRetrying}
+                        className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-red-50 text-red-700 hover:bg-red-100 transition-all disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-red-600"
+                    >
+                        {isRetrying ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                        Retry {broadcast.failedTargets.length} failed {broadcast.failedTargets.length === 1 ? 'site' : 'sites'}
+                    </button>
+                ) : null}
 
                 {missingTenantCount > 0 ? (
                     <button
@@ -233,14 +329,9 @@ export function GeneralPublishCard({ broadcast, variants }: GeneralPublishCardPr
                 <button
                     type="button"
                     onClick={handleDeleteClick}
-                    disabled={isDeleting}
-                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-gray-50 text-red-600 hover:bg-red-50 transition-all group/delete disabled:opacity-50"
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-gray-50 text-red-700 hover:bg-red-50 transition-all group/delete"
                 >
-                    {isDeleting ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                        <Trash2 className="w-4 h-4 text-red-400 group-hover/delete:text-red-600 transition-colors" />
-                    )}
+                    <Trash2 className="w-4 h-4 text-red-500 group-hover/delete:text-red-700 transition-colors" />
                     Delete All
                 </button>
 
@@ -266,10 +357,9 @@ export function GeneralPublishCard({ broadcast, variants }: GeneralPublishCardPr
                     onOpenChange={setIsDeleteModalOpen}
                     onConfirm={handleDeleteConfirm}
                     title="Delete Broadcast?"
-                    description="This permanently deletes this article from every site it was published to. This action cannot be undone."
+                    description={`This deletes the article from every site it was published to. You'll have ${DELETE_UNDO_WINDOW_MS / 1000} seconds to undo before it's permanent.`}
                     confirmText="Yes, Delete All"
                     variant="destructive"
-                    isLoading={isDeleting}
                 />
             </div>
         </motion.div>
@@ -304,8 +394,11 @@ export default function GeneralPublishesList({ searchParams }: {
         refetchInterval: process.env.NODE_ENV !== "production" ? 30_000 : false,
     });
 
-    const broadcasts = data?.broadcasts || [];
+    // Broadcasts waiting out their delete-undo window are hidden, not removed.
+    const pendingDeleteIds = usePendingDeleteIds();
+    const broadcasts = (data?.broadcasts || []).filter((b) => !pendingDeleteIds.has(b.id));
     const pagination = data?.pagination || { totalPages: 0 };
+    const [showActivity, setShowActivity] = React.useState(false);
 
     const setPage = React.useCallback((page: number) => {
         const totalPagesVal = pagination?.totalPages || 0;
@@ -385,11 +478,22 @@ export default function GeneralPublishesList({ searchParams }: {
                         General <span className="text-orange-600">Publish</span>
                     </h1>
                     {isFetching && !isLoading && (
-                        <span className="flex items-center gap-1.5 text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                        <span className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-widest">
                             <Loader2 className="w-3 h-3 animate-spin" />
                             Updating…
                         </span>
                     )}
+                    <button
+                        type="button"
+                        onClick={() => setShowActivity((v) => !v)}
+                        aria-expanded={showActivity}
+                        className={`ml-auto flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 ${
+                            showActivity ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+                        }`}
+                    >
+                        <History className="w-4 h-4" />
+                        Activity
+                    </button>
                 </div>
                 <p className="text-gray-500 font-medium text-lg">
                     Publish one article to every site at once, aside from the Jeju sites.
@@ -470,6 +574,8 @@ export default function GeneralPublishesList({ searchParams }: {
                     )}
                 </div>
             </div>
+
+            {showActivity ? <ActivityPanel /> : null}
 
             {isLoading ? (
                 <div className="py-32 flex flex-col items-center justify-center">

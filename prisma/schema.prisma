@@ -378,3 +378,22 @@ model GeneralPublish {
 
   @@map("general_publishes")
 }
+
+// Append-only history of General Publish actions (create, edit, publish,
+// unpublish, per-site changes, retry, delete). broadcastId is deliberately NOT
+// a foreign key: the trail must outlive the broadcast it describes, including
+// the delete itself. `details` carries per-site failures for create/sync/retry,
+// which the list uses to show "failed sites" with a retry.
+model GeneralPublishAudit {
+  id             String   @id @default(cuid())
+  broadcastId    String   @map("broadcast_id")
+  broadcastTitle String   @map("broadcast_title")
+  action         String
+  actorEmail     String?  @map("actor_email")
+  details        Json?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([broadcastId, createdAt])
+  @@index([createdAt])
+  @@map("general_publish_audit")
+}

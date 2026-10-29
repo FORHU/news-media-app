@@ -3,6 +3,8 @@ import { revalidatePath } from "next/cache";
 import { generalPublishService } from "@/services/admin/generalPublish.service";
 import { generalPublishRepository } from "@/repositories/admin/generalPublish.repository";
 import { updateGeneralPublishSchema } from "@/lib/validation/generalPublish";
+import { getAdminEmail } from "@/lib/auth";
+import { detectStrayNotes, strayNotesMessage } from "@/lib/generalPublishRules";
 import { sseBroadcaster } from "@/lib/sse";
 import { deleteObjects } from "@/lib/s3";
 import { notifySearchEngines, articlePingUrls } from "@/lib/searchPing";
@@ -48,10 +50,28 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       );
     }
 
+    // Publishing is blocked while the text to be published still carries
+    // pasted SEO notes (the new text, or the stored text for a status-only change).
+    if (result.data.publish === true) {
+      const notes = detectStrayNotes(result.data.content ?? existing.content);
+      if (notes.found.length > 0) {
+        return NextResponse.json({ error: strayNotesMessage(notes.found) }, { status: 422 });
+      }
+    }
+
     const outcomes = await generalPublishService.updateBroadcast(id, result.data);
 
     revalidateForOutcomes(outcomes);
     sseBroadcaster.broadcast("articles:updated");
+
+    const { publish, ...edited } = result.data;
+    const fields = Object.keys(edited).filter((k) => edited[k as keyof typeof edited] !== undefined);
+    await generalPublishService.audit(
+      await getAdminEmail(req),
+      { id, title: result.data.title ?? existing.title },
+      publish === true ? "publish" : publish === false ? "unpublish" : "edit",
+      { sites: outcomes.filter((o) => o.success).length, ...(fields.length ? { fields } : {}) }
+    );
 
     // Nudge external indexers for every copy that is live after this edit —
     // not only when the edit itself published — so text-only edits are pinged.
@@ -94,6 +114,12 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     }
 
     sseBroadcaster.broadcast("articles:updated");
+    await generalPublishService.audit(
+      await getAdminEmail(req),
+      { id, title: existing.title },
+      "delete",
+      { sites: domains.length }
+    );
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
     console.error("[DELETE generalPublish] Error:", error);

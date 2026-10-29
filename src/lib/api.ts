@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Article, CrawledArticlesResponse, CrawlJobsResponse, GeneralPublishesResponse } from "./types";
+import type { Article, CrawledArticlesResponse, CrawlJobsResponse, GeneralPublishesResponse, GeneralPublishAuditEntry } from "./types";
 import type { Banner } from "@/repositories/banners.repository";
 
 const articlesParamsSchema = z.object({
@@ -562,7 +562,42 @@ export const articlesApi = {
     return res.json();
   },
 
+  /** Retries specific sites a broadcast failed to reach. */
+  async retryGeneralPublishTenants(id: string, tenantIds: string[]): Promise<{ outcomes: BroadcastOutcomeLite[]; addedCount: number }> {
+    const res = await fetch(`/api/admin/generalPublish/${id}/sync-new-tenants`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tenantIds }),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to retry those sites");
+    }
+    return res.json();
+  },
+
+  /** Publishes or unpublishes one site's copy of a broadcast. */
+  async setGeneralPublishTargetStatus(id: string, articleId: string, publish: boolean): Promise<void> {
+    const res = await fetch(`/api/admin/generalPublish/${id}/targets/${articleId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ publish }),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || `Failed to ${publish ? "publish" : "unpublish"} this site`);
+    }
+  },
+
+  async getGeneralPublishAudit(limit = 40): Promise<{ entries: GeneralPublishAuditEntry[] }> {
+    const res = await fetch(`/api/admin/generalPublish/audit?limit=${limit}`, { cache: "no-store" });
+    if (!res.ok) throw new Error("Failed to load activity");
+    return res.json();
+  },
+
 };
+
+type BroadcastOutcomeLite = { tenantId: string; domain: string; success: boolean; error?: string };
 
 export const bannersApi = {
   async getBanners(): Promise<Banner[]> {

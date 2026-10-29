@@ -37,6 +37,9 @@ import {
     ManualArticleImage
 } from "@/components/admin/generatedContent/CreateArticleModal/ManualGenerationTab";
 import GeneralCategorySelect from "@/components/admin/generalPublish/GeneralCategorySelect";
+import StrayNotesNotice from "@/components/admin/generalPublish/StrayNotesNotice";
+import { toast } from "@/components/ui/toaster";
+import { detectStrayNotes, strayNotesMessage } from "@/lib/generalPublishRules";
 import { ManualArticleImages } from "@/components/admin/generalPublish/ManualArticleImages";
 import FeaturedImageChoiceSection from "@/components/admin/shared/FeaturedImageChoiceSection";
 import TargetSitesSelect from "@/components/admin/generalPublish/TargetSitesSelect";
@@ -321,6 +324,14 @@ export default function CreateGeneralArticleModal({
             return;
         }
 
+        if (publish) {
+            const notes = detectStrayNotes(manualContent);
+            if (notes.found.length > 0) {
+                setManualError(strayNotesMessage(notes.found));
+                return;
+            }
+        }
+
         setIsSubmittingManual(true);
         try {
             const uploadedImageUrls = manualImageFiles.length > 0
@@ -338,7 +349,9 @@ export default function CreateGeneralArticleModal({
             });
 
             queryClient.invalidateQueries({ queryKey: ['generalPublishes'] });
+            queryClient.invalidateQueries({ queryKey: ['generalPublishAudit'] });
             onOpenChange(false);
+            toast({ variant: 'success', title: publish ? 'Published to the selected sites' : 'Saved as a draft on the selected sites' });
         } catch (err: unknown) {
             console.error("General Manual Article Creation Error:", err);
             setManualError(err instanceof Error ? err.message : "Failed to create article.");
@@ -587,6 +600,7 @@ export default function CreateGeneralArticleModal({
                                         {manualFieldErrors.content && (
                                             <p className="text-[10px] font-black text-red-500 uppercase tracking-widest ml-1 animate-in fade-in slide-in-from-top-1">{manualFieldErrors.content}</p>
                                         )}
+                                        <StrayNotesNotice content={manualContent} onClean={setManualContent} />
                                     </div>
 
                                     <div className="space-y-6 pt-4 border-t border-gray-100">

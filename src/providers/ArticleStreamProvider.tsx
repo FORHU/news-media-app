@@ -35,6 +35,8 @@ export function ArticleStreamProvider({ children }: { children: React.ReactNode 
 
       es.addEventListener("articles:updated", () => {
         queryClient.invalidateQueries({ queryKey: ["generatedArticles"] });
+        queryClient.invalidateQueries({ queryKey: ["generalPublishes"] });
+        queryClient.invalidateQueries({ queryKey: ["generalPublishAudit"] });
         queryClient.invalidateQueries({ queryKey: ["adminDashboard"] });
       });
 
