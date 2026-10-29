@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generalPublishService } from "@/services/admin/generalPublish.service";
+import { generalPublishService, summarizeOutcomes } from "@/services/admin/generalPublish.service";
+import { getAdminEmail } from "@/lib/auth";
+import { detectStrayNotes, strayNotesMessage } from "@/lib/generalPublishRules";
 import { generalPublishesQuerySchema, createManualGeneralPublishSchema } from "@/lib/validation/generalPublish";
 import { sseBroadcaster } from "@/lib/sse";
 import { notifySearchEngines, articlePingUrls } from "@/lib/searchPing";
@@ -50,8 +52,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (parsed.data.publish) {
+      const notes = detectStrayNotes(parsed.data.content);
+      if (notes.found.length > 0) {
+        return NextResponse.json({ error: strayNotesMessage(notes.found) }, { status: 422 });
+      }
+    }
+
     const created = await generalPublishService.createManualBroadcast(parsed.data);
     sseBroadcaster.broadcast("articles:updated");
+
+    await generalPublishService.audit(
+      await getAdminEmail(req),
+      { id: created.generalPublishId, title: parsed.data.title.trim() },
+      "create",
+      summarizeOutcomes(created.outcomes)
+    );
 
     // Nudge external indexers when this broadcast went out published.
     if (parsed.data.publish) {

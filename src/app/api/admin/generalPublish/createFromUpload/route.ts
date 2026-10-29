@@ -3,6 +3,8 @@ import { uploadToS3 } from "@/lib/s3";
 import { sseBroadcaster } from "@/lib/sse";
 import { env } from "@/lib/env";
 import { generalPublishRepository } from "@/repositories/admin/generalPublish.repository";
+import { generalPublishService, summarizeOutcomes } from "@/services/admin/generalPublish.service";
+import { getAdminEmail } from "@/lib/auth";
 import { createGeneralPublishFromUploadSchema } from "@/lib/validation/generalPublish";
 import { approveChatSession } from "@/lib/generateContentApi";
 
@@ -238,6 +240,12 @@ FINAL MANDATE: The entire response (Headline and Content) MUST be written in ${l
       });
 
       sseBroadcaster.broadcast("articles:updated");
+      await generalPublishService.audit(
+        await getAdminEmail(req),
+        { id: generalPublishId, title },
+        "create",
+        summarizeOutcomes(outcomes)
+      );
       return NextResponse.json({ generalPublishId, outcomes, title, content });
     } catch (error: unknown) {
       clearTimeout(timeout);

@@ -15,6 +15,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
 import type { GeneralPublishBroadcast } from "@/lib/types";
 import GeneralCategorySelect from "@/components/admin/generalPublish/GeneralCategorySelect";
+import StrayNotesNotice from "@/components/admin/generalPublish/StrayNotesNotice";
+import { toast } from "@/components/ui/toaster";
+import { detectStrayNotes, strayNotesMessage } from "@/lib/generalPublishRules";
 
 async function uploadImageToS3(file: File): Promise<string> {
     const formData = new FormData();
@@ -91,6 +94,15 @@ export default function GeneralPublishEditorModal({
             return;
         }
 
+        // Same rule the server enforces — fail fast with the fix in view.
+        if (publish === true) {
+            const notes = detectStrayNotes(content);
+            if (notes.found.length > 0) {
+                setError(strayNotesMessage(notes.found));
+                return;
+            }
+        }
+
         setIsSaving(true);
         try {
             let imageUrl = savedImageUrl;
@@ -108,7 +120,15 @@ export default function GeneralPublishEditorModal({
             });
 
             queryClient.invalidateQueries({ queryKey: ['generalPublishes'] });
+            queryClient.invalidateQueries({ queryKey: ['generalPublishAudit'] });
             onOpenChange(false);
+            toast({
+                variant: 'success',
+                title:
+                    publish === true ? 'Saved and published to all sites'
+                    : publish === false ? 'Saved and unpublished from all sites'
+                    : 'Changes saved to all sites',
+            });
         } catch (err: unknown) {
             console.error("General Publish Editor Error:", err);
             setError(err instanceof Error ? err.message : "Failed to save changes.");
@@ -215,6 +235,7 @@ export default function GeneralPublishEditorModal({
                         {fieldErrors.content && (
                             <p className="text-[10px] font-black text-red-500 uppercase tracking-widest ml-1">{fieldErrors.content}</p>
                         )}
+                        <StrayNotesNotice content={content} onClean={setContent} />
                     </div>
 
                     <div className="space-y-6 pt-4 border-t border-gray-100">

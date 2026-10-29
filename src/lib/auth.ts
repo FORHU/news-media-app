@@ -37,3 +37,12 @@ export async function verifyAdminJwt(token: string): Promise<AdminJwtPayload | n
 
 export const ADMIN_JWT_COOKIE = "admin_token";
 export const ADMIN_ROLE_COOKIE = "admin_verified";
+
+/** Email of the signed-in admin/moderator on this request, for audit trails. proxy.ts has already gated the route. */
+export async function getAdminEmail(req: {
+  cookies: { get(name: string): { value: string } | undefined };
+}): Promise<string | null> {
+  const token = req.cookies.get(ADMIN_JWT_COOKIE)?.value;
+  const payload = token ? await verifyAdminJwt(token) : null;
+  return payload?.email ?? null;
+}

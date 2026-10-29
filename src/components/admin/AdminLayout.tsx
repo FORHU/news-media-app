@@ -4,6 +4,7 @@ import React from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import ActiveCrawlIndicator from '@/components/admin/ActiveCrawlIndicator';
 import { ArticleStreamProvider } from '@/providers/ArticleStreamProvider';
+import { Toaster } from '@/components/ui/toaster';
 import { Menu } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -55,6 +56,7 @@ export default function AdminLayout({
                 </div>
             </main>
             <ActiveCrawlIndicator />
+            <Toaster />
         </div>
         </ArticleStreamProvider>
     );

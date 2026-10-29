@@ -5,6 +5,7 @@ import { categoriesRepository } from "@/repositories/categories.repository";
 import { env } from "@/lib/env";
 import { getAiSessionId, paraphraseArticle } from "@/lib/generateContentApi";
 import { getTenantBeat } from "@/lib/tenantBeats";
+import { shouldReslugCopy } from "@/lib/generalPublishRules";
 
 // Every active tenant except these 4 is a broadcast target — computed fresh on
 // every call so a newly added tenant is automatically included.
@@ -143,6 +144,7 @@ export const generalPublishRepository = {
           articles: {
             select: {
               id: true,
+              slug: true,
               status: true,
               tenantId: true,
               tenant: { select: { domain: true, siteName: true } },
@@ -358,7 +360,10 @@ export const generalPublishRepository = {
    * inherit the broadcast's current overall publish state: live if it's
    * published anywhere already, pending otherwise.
    */
-  async syncNewTenants(id: string): Promise<{ outcomes: BroadcastOutcome[]; addedCount: number; publish: boolean }> {
+  async syncNewTenants(
+    id: string,
+    opts: { tenantIds?: string[] } = {}
+  ): Promise<{ outcomes: BroadcastOutcome[]; addedCount: number; publish: boolean; title: string }> {
     const existing = await prisma.generalPublish.findUnique({
       where: { id },
       include: { articles: { select: { tenantId: true, status: true } } },
@@ -367,14 +372,18 @@ export const generalPublishRepository = {
       throw new Error("Broadcast not found");
     }
 
-    const targets = await this.getTargetTenants();
+    const targets = await this.getTargetTenants(opts.tenantIds);
     const existingTenantIds = new Set(existing.articles.map((a) => a.tenantId));
-    const missingTenants = this.newTenantsSince(targets, existing, existingTenantIds);
+    // Retrying explicit sites skips the "created after the broadcast" heuristic:
+    // the admin named them, and they only need to lack a copy.
+    const missingTenants = opts.tenantIds
+      ? targets.filter((t) => !existingTenantIds.has(t.id))
+      : this.newTenantsSince(targets, existing, existingTenantIds);
 
     const publish = existing.articles.some((a) => a.status === "published");
 
     if (missingTenants.length === 0) {
-      return { outcomes: [], addedCount: 0, publish };
+      return { outcomes: [], addedCount: 0, publish, title: existing.title };
     }
 
     const outcomes = await this.fanOutToTenants(existing, missingTenants, {
@@ -382,7 +391,40 @@ export const generalPublishRepository = {
       publish,
     });
 
-    return { outcomes, addedCount: missingTenants.length, publish };
+    return { outcomes, addedCount: missingTenants.length, publish, title: existing.title };
+  },
+
+  /** Publishes or unpublishes ONE site's copy of a broadcast. Returns null if that copy isn't part of the broadcast. */
+  async setTargetStatus(
+    broadcastId: string,
+    articleId: string,
+    publish: boolean
+  ): Promise<{ broadcastTitle: string; outcome: BroadcastOutcome } | null> {
+    const copy = await prisma.contentArticle.findFirst({
+      where: { id: articleId, generalPublishId: broadcastId },
+      include: { tenant: { select: { domain: true } }, generalPublish: { select: { title: true } } },
+    });
+    if (!copy || !copy.generalPublish) return null;
+
+    const updated = await prisma.contentArticle.update({
+      where: { id: copy.id },
+      data: publish
+        ? { status: "published", publishDate: copy.publishDate ?? new Date() }
+        : { status: "pending" },
+      select: { id: true, slug: true, status: true },
+    });
+
+    return {
+      broadcastTitle: copy.generalPublish.title,
+      outcome: {
+        tenantId: copy.tenantId,
+        domain: copy.tenant.domain,
+        success: true,
+        contentArticleId: updated.id,
+        slug: updated.slug,
+        status: updated.status,
+      },
+    };
   },
 
   async updateBroadcast(id: string, params: UpdateBroadcastParams): Promise<BroadcastOutcome[]> {
@@ -420,10 +462,9 @@ export const generalPublishRepository = {
           updateData.categoryId = categoryRow.id;
         }
 
-        // Only re-slug copies that aren't live yet. A published copy's slug is
-        // its indexed URL; changing it would 404 the old URL (no slug history)
-        // and drop its ranking, so live copies keep their URL when retitled.
-        if (title !== undefined && title !== child.title && child.status !== "published") {
+        // Only re-slug copies that aren't live yet — live copies keep their
+        // indexed URL when retitled (see shouldReslugCopy).
+        if (title !== undefined && shouldReslugCopy(title, child)) {
           updateData.slug = await generateUniqueArticleSlug(prisma, title, child.publishDate ?? new Date());
         }
 
