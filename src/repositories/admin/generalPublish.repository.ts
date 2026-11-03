@@ -67,6 +67,8 @@ export type UpdateBroadcastParams = {
   content?: string;
   category?: string;
   imageUrl?: string | null;
+  /** Full ordered list; [0] becomes the featured imageUrl. Wins over imageUrl. */
+  imageUrls?: string[];
   isHeadline?: boolean;
   publish?: boolean;
 };
@@ -428,13 +430,15 @@ export const generalPublishRepository = {
   },
 
   async updateBroadcast(id: string, params: UpdateBroadcastParams): Promise<BroadcastOutcome[]> {
-    const { title, content, category, imageUrl, isHeadline, publish } = params;
+    const { title, content, category, imageUrls, isHeadline, publish } = params;
+    const imageUrl = imageUrls !== undefined ? (imageUrls[0] ?? null) : params.imageUrl;
 
     const parentUpdate: Record<string, unknown> = {};
     if (title !== undefined) parentUpdate.title = title;
     if (content !== undefined) parentUpdate.content = content;
     if (category !== undefined) parentUpdate.category = category;
     if (imageUrl !== undefined) parentUpdate.imageUrl = imageUrl || null;
+    if (imageUrls !== undefined) parentUpdate.imageUrls = imageUrls;
     if (isHeadline !== undefined) parentUpdate.isHeadline = isHeadline;
 
     if (Object.keys(parentUpdate).length > 0) {
@@ -455,6 +459,7 @@ export const generalPublishRepository = {
         if (title !== undefined) updateData.title = title;
         if (content !== undefined) updateData.content = content;
         if (imageUrl !== undefined) updateData.imageUrl = imageUrl || null;
+        if (imageUrls !== undefined) updateData.imageUrls = imageUrls;
         if (isHeadline !== undefined) updateData.isHeadline = isHeadline;
 
         if (category !== undefined) {

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifyAdminJwt, ADMIN_JWT_COOKIE, ADMIN_ROLE_COOKIE } from "@/lib/auth";
+import { acceptsMarkdown } from "@/lib/htmlToMarkdown";
 import { TENANT_DOMAIN_COOKIE, getTenantDomainFromRequest, getSiteLogoFromDomain, getSiteIconFromDomain } from "@/lib/tenant";
 
 export async function proxy(request: NextRequest) {
@@ -41,7 +42,19 @@ export async function proxy(request: NextRequest) {
             return NextResponse.rewrite(url);
         }
 
-        const isInternalRewrite = pathname.startsWith(`/${tenantDomain}/`) || pathname === `/${tenantDomain}`;
+        // Markdown for Agents: serve markdown to clients that ask for it.
+        if (
+            request.method === "GET" &&
+            acceptsMarkdown(request.headers.get("accept")) &&
+            !isAdminPage && !isAdminApi && !pathname.startsWith("/api") && !pathname.includes(".")
+        ) {
+            const url = request.nextUrl.clone();
+            url.pathname = "/api/markdown";
+            url.search = `?path=${encodeURIComponent(pathname + request.nextUrl.search)}`;
+            return NextResponse.rewrite(url);
+        }
+
+        const isInternalRewrite =pathname.startsWith(`/${tenantDomain}/`) || pathname === `/${tenantDomain}`;
 
         if (!isAdminPage && !isAdminApi && !pathname.startsWith("/api") && !pathname.includes(".") && !isInternalRewrite) {
             const url = request.nextUrl.clone();

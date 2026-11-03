@@ -511,6 +511,7 @@ export const articlesApi = {
       content?: string;
       category?: string;
       imageUrl?: string | null;
+      imageUrls?: string[];
       isHeadline?: boolean;
       publish?: boolean;
     }
