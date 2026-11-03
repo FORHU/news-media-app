@@ -298,7 +298,7 @@ export default function LegalHyperArticle({
                 <ArticleImageGallery
                   images={article.imageUrls ?? []}
                   title={article.title}
-                  imageWrapperClassName="relative overflow-hidden bg-[#E3DECF]"
+                  imageWrapperClassName="relative overflow-hidden bg-[#E3DECF] aspect-video"
                 />
 
                 {secondHalf && (
