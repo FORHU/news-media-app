@@ -99,6 +99,8 @@ export interface GeneralPublishBroadcast {
   title: string;
   content: string;
   imageUrl: string | null;
+  /** All attached images; the first is the featured/headline image. */
+  imageUrls: string[];
   category: string;
   isHeadline: boolean;
   createdAt: string;

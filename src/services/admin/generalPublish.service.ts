@@ -72,6 +72,7 @@ export const generalPublishService = {
         title: row.title,
         content: row.content,
         imageUrl: row.imageUrl,
+        imageUrls: row.imageUrls,
         category: row.category,
         isHeadline: row.isHeadline,
         createdAt: row.createdAt.toISOString(),

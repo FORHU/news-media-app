@@ -55,6 +55,9 @@ export const updateGeneralPublishSchema = z.object({
   content: z.string().min(1, "Content is required").optional(),
   category: z.string().min(1, "Category is required").optional(),
   imageUrl: z.string().url().optional().nullable().or(z.literal("")),
+  // Full ordered image list; first entry is the featured image. When present
+  // it supersedes imageUrl and replaces the stored list on every copy.
+  imageUrls: z.array(z.string().url()).optional(),
   isHeadline: z.boolean().optional(),
   publish: z.boolean().optional(),
 });

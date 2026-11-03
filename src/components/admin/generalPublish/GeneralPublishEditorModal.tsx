@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { X, Loader2, Save, Send, Layout, Rss, ImageIcon } from "lucide-react";
+import { X, Loader2, Save, Send, Layout, Rss, ImageIcon, Plus } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -34,6 +34,12 @@ async function uploadImageToS3(file: File): Promise<string> {
     return publicUrl;
 }
 
+/** One attached image: already saved (url) or newly picked (file). */
+type EditorImage = { key: string; url?: string; file?: File; preview: string };
+
+let imageKeyCounter = 0;
+const nextImageKey = () => `img-${++imageKeyCounter}`;
+
 export interface GeneralPublishEditorModalProps {
     broadcast: GeneralPublishBroadcast | null;
     open: boolean;
@@ -51,8 +57,7 @@ export default function GeneralPublishEditorModal({
     const [content, setContent] = React.useState("");
     const [category, setCategory] = React.useState("");
     const [isHeadline, setIsHeadline] = React.useState(false);
-    const [imageFile, setImageFile] = React.useState<File | null>(null);
-    const [savedImageUrl, setSavedImageUrl] = React.useState<string | null>(null);
+    const [images, setImages] = React.useState<EditorImage[]>([]);
     const [error, setError] = React.useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
     const [isSaving, setIsSaving] = React.useState(false);
@@ -62,8 +67,9 @@ export default function GeneralPublishEditorModal({
         setContent(b.content ?? "");
         setCategory(b.category);
         setIsHeadline(b.isHeadline ?? false);
-        setSavedImageUrl(b.imageUrl ?? null);
-        setImageFile(null);
+        // Older broadcasts may only have imageUrl; newer ones carry the full list.
+        const saved = b.imageUrls?.length ? b.imageUrls : b.imageUrl ? [b.imageUrl] : [];
+        setImages(saved.map((url) => ({ key: nextImageKey(), url, preview: url })));
         setError(null);
         setFieldErrors({});
     }, []);
@@ -75,10 +81,29 @@ export default function GeneralPublishEditorModal({
         if (key && broadcast) syncFormFromBroadcast(broadcast);
     }
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            setImageFile(e.target.files[0]);
-        }
+    const handleImagesAdded = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files ?? []);
+        e.target.value = "";
+        if (files.length === 0) return;
+        setImages((prev) => [
+            ...prev,
+            ...files.map((file) => ({ key: nextImageKey(), file, preview: URL.createObjectURL(file) })),
+        ]);
+    };
+
+    const removeImage = (key: string) => {
+        setImages((prev) => {
+            const removed = prev.find((i) => i.key === key);
+            if (removed?.file) URL.revokeObjectURL(removed.preview);
+            return prev.filter((i) => i.key !== key);
+        });
+    };
+
+    const makeFeatured = (key: string) => {
+        setImages((prev) => {
+            const picked = prev.find((i) => i.key === key);
+            return picked ? [picked, ...prev.filter((i) => i.key !== key)] : prev;
+        });
     };
 
     const handleSave = async (publish?: boolean) => {
@@ -105,16 +130,16 @@ export default function GeneralPublishEditorModal({
 
         setIsSaving(true);
         try {
-            let imageUrl = savedImageUrl;
-            if (imageFile) {
-                imageUrl = await uploadImageToS3(imageFile);
-            }
+            // Upload new files, keeping the on-screen order (first = featured).
+            const imageUrls = await Promise.all(
+                images.map((img) => (img.file ? uploadImageToS3(img.file) : Promise.resolve(img.url as string)))
+            );
 
             await articlesApi.updateGeneralPublish(broadcast.id, {
                 title: title.trim(),
                 content: content.trim(),
                 category: category.trim(),
-                imageUrl,
+                imageUrls,
                 isHeadline,
                 ...(publish !== undefined ? { publish } : {}),
             });
@@ -140,7 +165,6 @@ export default function GeneralPublishEditorModal({
     if (!broadcast) return null;
 
     const isPublished = broadcast.publishedCount > 0;
-    const previewSrc = imageFile ? URL.createObjectURL(imageFile) : savedImageUrl;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -195,30 +219,66 @@ export default function GeneralPublishEditorModal({
                     </div>
 
                     <div className="space-y-4">
-                        <label className="text-sm font-black uppercase tracking-widest text-gray-900">Image</label>
-                        <div
-                            className="relative group border-2 border-dashed border-gray-200 rounded-3xl transition-all hover:bg-orange-50/50 hover:border-orange-200 flex flex-col items-center justify-center gap-3 cursor-pointer overflow-hidden shadow-sm min-h-[160px]"
-                            onClick={() => document.getElementById('general-editor-image-upload')?.click()}
-                        >
-                            <input
-                                id="general-editor-image-upload"
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={handleImageChange}
-                            />
-                            {previewSrc ? (
-                                <div className="absolute inset-0 w-full h-full">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={previewSrc} alt="Article Preview" className="w-full h-full object-cover" />
-                                </div>
-                            ) : (
-                                <div className="flex flex-col items-center justify-center p-8">
-                                    <ImageIcon className="w-6 h-6 text-gray-400" />
-                                    <p className="text-sm font-bold text-gray-900 mt-2">Upload Featured Image</p>
-                                </div>
+                        <div className="flex items-center gap-3">
+                            <label className="text-sm font-black uppercase tracking-widest text-gray-900">Images</label>
+                            {images.length > 0 && (
+                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                    {images.length} attached
+                                </span>
                             )}
                         </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            {images.map((img, idx) => (
+                                <div
+                                    key={img.key}
+                                    className="relative aspect-video rounded-2xl overflow-hidden border border-gray-200 group bg-gray-50"
+                                >
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={img.preview} alt={`Attachment ${idx + 1}`} className="w-full h-full object-cover" />
+                                    {idx === 0 ? (
+                                        <span className="absolute top-1.5 left-1.5 bg-orange-500 text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full shadow-sm">
+                                            Featured
+                                        </span>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            onClick={() => makeFeatured(img.key)}
+                                            className="absolute bottom-1.5 left-1.5 bg-black/60 hover:bg-orange-500 text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition"
+                                        >
+                                            Make featured
+                                        </button>
+                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={() => removeImage(img.key)}
+                                        aria-label={`Remove image ${idx + 1}`}
+                                        className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 hover:bg-red-500 text-white flex items-center justify-center transition-colors"
+                                    >
+                                        <X className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                            ))}
+
+                            <label className="relative aspect-video rounded-2xl border-2 border-dashed border-gray-200 hover:bg-orange-50/50 hover:border-orange-200 transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer">
+                                <input type="file" accept="image/*" multiple className="hidden" onChange={handleImagesAdded} />
+                                {images.length === 0 ? (
+                                    <>
+                                        <ImageIcon className="w-6 h-6 text-gray-400" />
+                                        <span className="text-xs font-bold text-gray-900 text-center px-2">Upload Images</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Plus className="w-5 h-5 text-gray-400" />
+                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Add More</span>
+                                    </>
+                                )}
+                            </label>
+                        </div>
+                        {images.length > 0 && (
+                            <p className="text-[11px] text-gray-400">
+                                The first image is the headline image. The others appear inside the article body while reading.
+                            </p>
+                        )}
                     </div>
 
                     <div className="space-y-4">
