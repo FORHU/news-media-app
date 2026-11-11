@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { RemoveScroll } from "react-remove-scroll";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { SearchDropdown } from "@/components/search/SearchDropdown";
+import { FacetLink } from "@/components/FacetLink";
 
 interface HeaderProps {
   onOpenNewsletter?: () => void;
@@ -154,9 +155,9 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
               iconSize={22}
               strokeWidth={2}
             />
-            <Link href="/admin/dashboard" className="text-[#dc2626] hover:text-black transition-colors flex items-center justify-center" title="Admin" aria-label="Admin dashboard">
+            <FacetLink href="/admin/dashboard" className="text-[#dc2626] hover:text-black transition-colors flex items-center justify-center" title="Admin" aria-label="Admin dashboard">
               <User size={22} strokeWidth={2} />
-            </Link>
+            </FacetLink>
           </div>
         </div>
 
@@ -195,7 +196,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                 <span className={`absolute bottom-0 left-0 h-0.5 bg-[#dc2626] transition-all duration-300 ${isHome ? "w-full" : "w-0 group-hover:w-full"}`} />
               </Link>
               {coreCategories.map((cat) => (
-                <Link
+                <FacetLink
                   key={cat}
                   href={`/search?category=${encodeURIComponent(cat)}`}
                   aria-current={isCatActive(cat) ? "page" : undefined}
@@ -203,7 +204,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                 >
                   {cat}
                   <span className={`absolute bottom-0 left-0 h-0.5 bg-[#dc2626] transition-all duration-300 ${isCatActive(cat) ? "w-full" : "w-0 group-hover:w-full"}`} />
-                </Link>
+                </FacetLink>
               ))}
             </nav>
           </div>
@@ -281,7 +282,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
 
                     {/* Numbered category links (01–N) */}
                     {coreCategories.map((categoryName, i) => (
-                      <Link
+                      <FacetLink
                         key={categoryName}
                         href={categoryHref(categoryName)}
                         onClick={() => setIsSidebarOpen(false)}
@@ -293,7 +294,7 @@ export default function JejuQQHeader({ onOpenNewsletter }: HeaderProps) {
                         <span className="inline-block text-[14px] font-bold font-serif text-gray-900 group-hover:text-[#dc2626] group-hover:translate-x-1 transition-all duration-200">
                           {categoryName}
                         </span>
-                      </Link>
+                      </FacetLink>
                     ))}
 
                   </nav>

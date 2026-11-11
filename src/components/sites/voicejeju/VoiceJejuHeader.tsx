@@ -10,6 +10,7 @@ import { getCoreCategories, getHomeCategoryLabel } from "@/config/categories";
 import dynamic from "next/dynamic";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { SearchDropdown } from "@/components/search/SearchDropdown";
+import { FacetLink } from "@/components/FacetLink";
 
 const VoiceJejuSidebar = dynamic<{
   isOpen: boolean;
@@ -217,9 +218,9 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
                     iconSize={20}
                     strokeWidth={1.5}
                   />
-                  <Link href="/admin/dashboard" className="p-2 hover:bg-gray-50 rounded-full transition-colors" aria-label="Admin Dashboard">
+                  <FacetLink href="/admin/dashboard" className="p-2 hover:bg-gray-50 rounded-full transition-colors" aria-label="Admin Dashboard">
                     <User size={20} strokeWidth={1.5} />
-                  </Link>
+                  </FacetLink>
                   <button
                     onClick={onOpenNewsletter}
                     className="hidden sm:block px-5 py-2 border border-black text-[10px] font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all rounded-sm"
@@ -251,9 +252,9 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
                   >
                     <Search size={20} strokeWidth={1.5} />
                   </button>
-                  <Link href="/admin/dashboard" className="p-2 hover:bg-gray-50 rounded-full transition-colors" aria-label="Admin Dashboard">
+                  <FacetLink href="/admin/dashboard" className="p-2 hover:bg-gray-50 rounded-full transition-colors" aria-label="Admin Dashboard">
                     <User size={20} strokeWidth={1.5} />
-                  </Link>
+                  </FacetLink>
                 </>
               )}
             </div>
@@ -302,14 +303,14 @@ export function VoiceJejuHeader({ onOpenNewsletter }: HeaderProps) {
                   {homeLabel}
                 </Link>
                 {coreCategories.map((cat) => (
-                  <Link
+                  <FacetLink
                     key={cat}
                     href={categoryHref(cat)}
                     aria-current={isCatActive(cat) ? "page" : undefined}
                     className={`transition-colors py-2 ${isCatActive(cat) ? "text-white underline underline-offset-4" : "hover:text-white"}`}
                   >
                     {cat}
-                  </Link>
+                  </FacetLink>
                 ))}
              </nav>
           </div>

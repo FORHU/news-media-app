@@ -8,6 +8,7 @@ import ContactEmailButton from "@/components/ContactEmailButton";
 import { getCoreCategories, getHomeCategoryLabel } from "@/config/categories";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { SearchDropdown } from "@/components/search/SearchDropdown";
+import { FacetLink } from "@/components/FacetLink";
 
 const BREAKING_HEADLINES = [
   "Legal AI's grounded-reasoning claims face first independent benchmark",
@@ -94,7 +95,7 @@ export function LegalHyperHeader({ onOpenNewsletter }: HeaderProps) {
               theme="legalhyper"
               inline
             />
-            <Link href="/admin/dashboard" className="opacity-80 hover:opacity-100 hover:text-[#C2A15A] transition-colors">Sign In</Link>
+            <FacetLink href="/admin/dashboard" className="opacity-80 hover:opacity-100 hover:text-[#C2A15A] transition-colors">Sign In</FacetLink>
           </div>
         </div>
       </div>
@@ -189,7 +190,7 @@ export function LegalHyperHeader({ onOpenNewsletter }: HeaderProps) {
             {homeLabel}
           </Link>
           {coreCategories.map((cat) => (
-            <Link
+            <FacetLink
               key={cat}
               href={categoryHref(cat)}
               className="py-3.5 text-[11px] uppercase tracking-[0.2em]"
@@ -200,7 +201,7 @@ export function LegalHyperHeader({ onOpenNewsletter }: HeaderProps) {
               }}
             >
               {cat}
-            </Link>
+            </FacetLink>
           ))}
         </div>
       </nav>

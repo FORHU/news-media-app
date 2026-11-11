@@ -93,12 +93,12 @@ export function getSiteDescriptionFromDomain(domain: string | null): string {
   if (d.includes('linktechnews')) return "The technology wire — every story worth the click, in one feed.";
   if (d.includes('dbtechnews')) return "Infrastructure, data, and the systems that run everything else.";
   if (d.includes('magazinetechy')) return "Long looks at the people and ideas shaping technology.";
-  if (d.includes('magazineair')) return "Technology, lightly held. Clear reporting with room to breathe.";
+  if (d.includes('magazineair')) return "Magazine Air: technology news and analysis in plain language, from AI and software to devices and the companies behind them.";
   if (d.includes('techygate')) return "Your gateway to the day in technology.";
   if (d.includes('newyorksignal')) return "Dispatches on technology from the city that never logs off.";
   if (d.includes('technikpost')) return "Technik, Netzpolitik und Wirtschaft — täglich aus Berlin, Brüssel und dem Silicon Valley.";
   if (d.includes('techoggi')) return "La tecnologia, oggi — le notizie essenziali della giornata, in sintesi.";
-  if (d.includes('techhoy')) return "La tecnología del día, en español.";
+  if (d.includes('techhoy')) return "TechHoy: noticias de tecnología en español, con inteligencia artificial, ciberseguridad, empresas y dispositivos, cada día.";
   return "Media & Content Hub for curated news, blogs, and insights.";
 }
 

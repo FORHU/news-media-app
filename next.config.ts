@@ -51,6 +51,14 @@ const nextConfig: NextConfig = {
         source: "/(.*)",
         headers: securityHeaders,
       },
+      {
+        // Font / media files under /_next/static/media are fetched for
+        // rendering but are never useful search results ("Crawled - currently
+        // not indexed" fills up with them). Google can still fetch them to
+        // render pages: robots.txt does NOT disallow /_next/static.
+        source: "/_next/static/media/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex" }],
+      },
     ];
   },
   images: {

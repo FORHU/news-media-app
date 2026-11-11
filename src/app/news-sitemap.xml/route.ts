@@ -1,80 +1,39 @@
 import { articlesService } from "@/services/articles.service";
 import { getSiteNameFromDomain, getSiteLanguageFromDomain } from "@/lib/tenant";
 import { resolveSiteFromRequest } from "@/lib/siteRequest";
+import { buildNewsSitemapXml } from "@/lib/newsSitemap";
 
 // Google News sitemap — only articles from the last 48h, per Google's spec.
 // Domain resolved from the DB, not the raw Host. Submit separately in GSC.
+//
+// This route NEVER 404s. With nothing inside the 48h window (or an unknown
+// Host, or a DB hiccup) it returns HTTP 200 with a valid, empty <urlset>, so
+// robots.txt can keep advertising the URL without Search Console flagging it
+// as unfetchable.
 export const dynamic = "force-dynamic";
 
-const NEWS_WINDOW_MS = 1000 * 60 * 60 * 48;
-
-const xmlEscape = (s: string) =>
-  s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+const XML_HEADERS = {
+  "content-type": "application/xml; charset=utf-8",
+  "cache-control": "public, max-age=0, s-maxage=300, stale-while-revalidate=600",
+};
 
 export async function GET() {
-  const { domain, baseUrl, tenantId, isLocal } = await resolveSiteFromRequest();
-
-  // Unknown Host — don't emit a news sitemap for a domain we don't control.
-  if (!tenantId && !isLocal) {
-    return new Response("Not found", { status: 404 });
-  }
+  const { domain, baseUrl, tenantId } = await resolveSiteFromRequest();
 
   const publicationName = getSiteNameFromDomain(domain);
   const language = getSiteLanguageFromDomain(domain);
 
-  const articles = tenantId
-    ? await articlesService.getArticles({ limit: 200, status: "published" }, tenantId)
-    : [];
-
-  const now = Date.now();
-  const recent = articles.filter((a) => {
-    const t = new Date(a.publishDate ?? a.createdAt ?? 0).getTime();
-    return Number.isFinite(t) && now - t <= NEWS_WINDOW_MS;
-  });
-
-  // The sitemap-news schema requires at least one <url> under <urlset> — an
-  // empty wrapper (no article published in the last 48h) is invalid XML per
-  // that schema and gets flagged in Search Console as "Missing XML tag".
-  // Serving 404 when there's nothing to report is the honest response, same
-  // as the unresolved-tenant case above.
-  if (recent.length === 0) {
-    return new Response("Not found", { status: 404 });
+  let articles: Awaited<ReturnType<typeof articlesService.getArticles>> = [];
+  if (tenantId) {
+    try {
+      articles = await articlesService.getArticles({ limit: 200, status: "published" }, tenantId);
+    } catch (error) {
+      console.error("[news-sitemap] article query failed, serving empty urlset:", error);
+    }
   }
 
-  const urls = recent
-    .map((a) => {
-      const slug = a.slug ?? a.id;
-      const loc = `${baseUrl}/article/${encodeURIComponent(slug)}`;
-      const pubDate = new Date(a.publishDate ?? a.createdAt ?? now).toISOString();
-      return `  <url>
-    <loc>${xmlEscape(loc)}</loc>
-    <news:news>
-      <news:publication>
-        <news:name>${xmlEscape(publicationName)}</news:name>
-        <news:language>${xmlEscape(language)}</news:language>
-      </news:publication>
-      <news:publication_date>${pubDate}</news:publication_date>
-      <news:title>${xmlEscape(a.title ?? "Untitled")}</news:title>
-    </news:news>
-  </url>`;
-    })
-    .join("\n");
-
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
-${urls}
-</urlset>`;
-
-  return new Response(xml, {
-    headers: {
-      "content-type": "application/xml; charset=utf-8",
-      "cache-control":
-        "public, max-age=0, s-maxage=300, stale-while-revalidate=600",
-    },
-  });
+  return new Response(
+    buildNewsSitemapXml({ baseUrl, publicationName, language, articles }),
+    { status: 200, headers: XML_HEADERS }
+  );
 }

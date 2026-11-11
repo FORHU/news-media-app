@@ -7,6 +7,7 @@ import { ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
+import { FacetLink } from "@/components/FacetLink";
 import {
   CORE_CATEGORIES,
   HOME_CATEGORY_LABEL,
@@ -79,7 +80,7 @@ export function NavBar() {
               selectedCategoryKey === normalizeCategoryKey(categoryName);
             return (
               <li key={categoryName} className="relative flex items-center">
-                <Link
+                <FacetLink
                   href={categoryHref(categoryName)}
                   className={`flex items-center gap-1 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${isActive
                     ? "text-[#ff4500] border-[#ff4500]"
@@ -87,7 +88,7 @@ export function NavBar() {
                     }`}
                 >
                   {categoryName}
-                </Link>
+                </FacetLink>
               </li>
             );
           })}
@@ -122,12 +123,12 @@ export function NavBar() {
                     <ul className="grid grid-cols-2 lg:grid-cols-3 gap-1 max-h-80 overflow-y-auto">
                       {overflowCategories.map((categoryName) => (
                         <li key={categoryName}>
-                          <Link
+                          <FacetLink
                             href={categoryHref(categoryName)}
                             className="block px-3 py-2 text-sm text-gray-700 rounded-md hover:bg-[#ff4500]/5 hover:text-[#ff4500] transition-colors"
                           >
                             {categoryName}
-                          </Link>
+                          </FacetLink>
                         </li>
                       ))}
                     </ul>

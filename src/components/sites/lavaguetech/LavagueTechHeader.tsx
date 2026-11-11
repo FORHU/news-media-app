@@ -11,6 +11,7 @@ import { getCoreCategories, HOME_CATEGORY_LABEL } from "@/config/categories";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { SearchDropdown } from "@/components/search/SearchDropdown";
 import dynamic from "next/dynamic";
+import { FacetLink } from "@/components/FacetLink";
 
 const LavagueTechSidebar = dynamic(() => import("./LavagueTechSidebar"), { ssr: false });
 
@@ -168,9 +169,9 @@ export default function LavagueTechHeader({ onOpenNewsletter }: HeaderProps) {
               >
                 Subscribe
               </button>
-              <Link href="/admin/dashboard" className="text-gray-500 hover:text-teal-700 transition-colors" title="Admin">
+              <FacetLink href="/admin/dashboard" className="text-gray-500 hover:text-teal-700 transition-colors" title="Admin">
                 <User size={17} />
-              </Link>
+              </FacetLink>
             </div>
           </div>
         </div>
@@ -195,14 +196,14 @@ export default function LavagueTechHeader({ onOpenNewsletter }: HeaderProps) {
                 Latest News
               </Link>
               {coreCategories.map((cat) => (
-                <Link
+                <FacetLink
                   key={cat}
                   href={categoryHref(cat)}
                   aria-current={isCatActive(cat) ? "page" : undefined}
                   className={`transition-colors whitespace-nowrap border-b-2 pb-0.5 ${isCatActive(cat) ? "text-teal-700 border-teal-700" : "border-transparent hover:text-teal-600 hover:border-teal-300"}`}
                 >
                   {cat}
-                </Link>
+                </FacetLink>
               ))}
             </nav>
 

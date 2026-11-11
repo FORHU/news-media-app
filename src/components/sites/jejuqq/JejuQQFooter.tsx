@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { AdBanner } from "@/components/AdBanner";
+import { FacetLink } from "@/components/FacetLink";
 
 interface JejuQQFooterProps {
   onOpenNewsletter?: () => void;
@@ -50,18 +51,18 @@ export default function JejuQQFooter(_props: JejuQQFooterProps) {
           <div>
              <h4 className="font-bold font-serif text-[11px] uppercase tracking-[0.2em] text-[#b91c1c] mb-8">Browse</h4>
              <ul className="space-y-4 text-xs font-bold text-gray-600 uppercase tracking-tight">
-                <li><Link href="/search?category=%E6%B5%8E%E5%B7%9E%E4%BB%8A%E6%97%A5" className="hover:text-[#b91c1c] transition-colors">济州今日</Link></li>
-                <li><Link href="/search?category=%E6%97%85%E6%B8%B8%E8%B5%84%E8%AE%AF" className="hover:text-[#b91c1c] transition-colors">旅游资讯</Link></li>
-                <li><Link href="/search?category=%E7%BE%8E%E9%A3%9F%E9%A4%90%E5%8E%85" className="hover:text-[#b91c1c] transition-colors">美食餐厅</Link></li>
+                <li><FacetLink href="/search?category=%E6%B5%8E%E5%B7%9E%E4%BB%8A%E6%97%A5" className="hover:text-[#b91c1c] transition-colors">济州今日</FacetLink></li>
+                <li><FacetLink href="/search?category=%E6%97%85%E6%B8%B8%E8%B5%84%E8%AE%AF" className="hover:text-[#b91c1c] transition-colors">旅游资讯</FacetLink></li>
+                <li><FacetLink href="/search?category=%E7%BE%8E%E9%A3%9F%E9%A4%90%E5%8E%85" className="hover:text-[#b91c1c] transition-colors">美食餐厅</FacetLink></li>
              </ul>
           </div>
 
           <div>
              <h4 className="font-bold font-serif text-[11px] uppercase tracking-[0.2em] text-[#b91c1c] mb-8">Explore</h4>
              <ul className="space-y-4 text-xs font-bold text-gray-600 uppercase tracking-tight">
-                <li><Link href="/search?category=%E8%B4%AD%E7%89%A9%E5%B8%82%E5%9C%BA" className="hover:text-[#b91c1c] transition-colors">购物市场</Link></li>
-                <li><Link href="/search?category=%E6%B4%BB%E5%8A%A8%E8%8A%82%E5%BA%86" className="hover:text-[#b91c1c] transition-colors">活动节庆</Link></li>
-                <li><Link href="/search?category=%E8%87%AA%E7%84%B6%E6%88%B7%E5%A4%96" className="hover:text-[#b91c1c] transition-colors">自然户外</Link></li>
+                <li><FacetLink href="/search?category=%E8%B4%AD%E7%89%A9%E5%B8%82%E5%9C%BA" className="hover:text-[#b91c1c] transition-colors">购物市场</FacetLink></li>
+                <li><FacetLink href="/search?category=%E6%B4%BB%E5%8A%A8%E8%8A%82%E5%BA%86" className="hover:text-[#b91c1c] transition-colors">活动节庆</FacetLink></li>
+                <li><FacetLink href="/search?category=%E8%87%AA%E7%84%B6%E6%88%B7%E5%A4%96" className="hover:text-[#b91c1c] transition-colors">自然户外</FacetLink></li>
              </ul>
           </div>
 
@@ -72,7 +73,6 @@ export default function JejuQQFooter(_props: JejuQQFooterProps) {
                 <li><Link href="#" className="hover:text-[#b91c1c] transition-colors">About Us</Link></li>
                 <li><Link href="#" className="hover:text-[#b91c1c] transition-colors">Contact</Link></li>
                 <li><Link href="/privacy-policy" className="hover:text-[#b91c1c] transition-colors">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="hover:text-[#b91c1c] transition-colors">Terms of Service</Link></li>
              </ul>
           </div>
         </div>
@@ -81,7 +81,6 @@ export default function JejuQQFooter(_props: JejuQQFooterProps) {
           <p>© {currentYear} Jeju QQ Daily. All rights reserved.</p>
           <div className="flex space-x-8">
              <Link href="/privacy-policy" className="hover:text-[#b91c1c] transition-colors">Privacy Policy</Link>
-             <Link href="/terms" className="hover:text-[#b91c1c] transition-colors">Terms</Link>
              <Link href="/search" className="hover:text-[#b91c1c] transition-colors">All Articles</Link>
           </div>
         </div>

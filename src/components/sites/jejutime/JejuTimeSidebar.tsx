@@ -2,10 +2,10 @@
 
 import { X, Mail, User } from "lucide-react";
 import ContactEmailButton from "@/components/ContactEmailButton";
-import Link from "next/link";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { RemoveScroll } from "react-remove-scroll";
+import { FacetLink } from "@/components/FacetLink";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -72,7 +72,7 @@ export default function JejuTimeSidebar({
                 </div>
                 <nav>
                   {categoryLinks.map((cat) => (
-                    <Link
+                    <FacetLink
                       key={cat.name}
                       href={cat.link}
                       onClick={onClose}
@@ -82,7 +82,7 @@ export default function JejuTimeSidebar({
                       <span className="flex-1 pl-5 pr-4 py-3 text-[15px] font-mono font-bold text-slate-800 group-hover:text-blue-600 transition-colors">
                         {cat.name}
                       </span>
-                    </Link>
+                    </FacetLink>
                   ))}
                 </nav>
               </div>
@@ -110,14 +110,14 @@ export default function JejuTimeSidebar({
                   inline
                   theme="jejutime"
                 />
-                <Link
+                <FacetLink
                   href="/admin/dashboard"
                   onClick={onClose}
                   className="w-full flex items-center justify-center gap-3 py-3 bg-white text-slate-600 text-xs font-bold border border-blue-100 uppercase tracking-widest hover:bg-blue-50 hover:border-blue-200 transition-all mb-5"
                 >
                   <User className="w-4 h-4" />
                   Admin Panel
-                </Link>
+                </FacetLink>
                 <div className="text-center">
                   <p className="text-[10px] text-blue-400 font-black uppercase tracking-[0.2em] mb-3">Follow Us</p>
                   <div className="flex items-center justify-center gap-5">

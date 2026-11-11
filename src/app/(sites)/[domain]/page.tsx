@@ -34,6 +34,7 @@ import TechnikPostLanding from "@/components/sites/technikpost/TechnikPostLandin
 import TechOggiLanding from "@/components/sites/techoggi/TechOggiLanding";
 import TechHoyLanding from "@/components/sites/techhoy/TechHoyLanding";
 import { fetchDomainMediaStackFeed } from "@/lib/mediastack-feeds";
+import { RecentArticlesIndex } from "@/components/RecentArticlesIndex";
 
 type TechNewsLandingComponent = typeof LinkTechNewsLanding;
 
@@ -89,7 +90,10 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
   return {
     metadataBase: new URL(baseUrl),
     title: {
-      absolute: `${siteName} | ${getSiteDescriptionFromDomain(domain)}`,
+      // Don't repeat the brand when the description already leads with it.
+      absolute: getSiteDescriptionFromDomain(domain).toLowerCase().startsWith(siteName.toLowerCase())
+        ? getSiteDescriptionFromDomain(domain)
+        : `${siteName} | ${getSiteDescriptionFromDomain(domain)}`,
     },
     description: getSiteDescriptionFromDomain(domain),
     icons: {
@@ -128,7 +132,7 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
   };
 }
 
-export default async function Page({
+async function HomeLanding({
   params,
 }: {
   params: Promise<{ domain: string }>;
@@ -264,4 +268,21 @@ export default async function Page({
   );
 }
 
-
+/**
+ * Homepage = the themed landing design for the tenant + a plain list of every
+ * recent published article, so new articles are linked from the homepage HTML
+ * and not only from sitemap.xml / feed.xml (see RecentArticlesIndex).
+ */
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ domain: string }>;
+}) {
+  const { domain } = await params;
+  return (
+    <>
+      <HomeLanding params={params} />
+      <RecentArticlesIndex domain={domain} />
+    </>
+  );
+}

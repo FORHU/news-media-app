@@ -15,6 +15,7 @@ import { ChevronRight, ChevronLeft } from "lucide-react";
 import { useState, useEffect, useRef, useMemo, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { TENANT_CATEGORIES } from "@/config/categories";
+import { FacetLink } from "@/components/FacetLink";
 
 /** Narrow shape for home feed rows (server passes Prisma-shaped articles). */
 interface LandingArticle {
@@ -471,12 +472,12 @@ function WireCategoryDeskSection({ blocks }: { blocks: { name: string; previews:
             {blocks.map(({ name, previews }, blockIdx) => {
                const v = blockIdx % 4;
                const browse = (
-                  <Link
+                  <FacetLink
                      href={`/search?category=${encodeURIComponent(name)}`}
                      className="shrink-0 text-[10px] font-black uppercase tracking-[0.25em] text-gray-700 underline-offset-2 transition-colors hover:text-black hover:underline"
                   >
                      View all
-                  </Link>
+                  </FacetLink>
                );
 
                /* 0 — Rail: thick left rule, numbered rows + thumb */
@@ -581,12 +582,12 @@ function WireCategoryDeskSection({ blocks }: { blocks: { name: string; previews:
                            <h4 id={`wire-cat-${blockIdx}`} className="font-voltaire text-xs font-normal tracking-[0.2em]">
                               {name}
                            </h4>
-                           <Link
+                           <FacetLink
                               href={`/search?category=${encodeURIComponent(name)}`}
                               className="text-[10px] font-black uppercase tracking-[0.2em] text-white hover:text-white"
                            >
                               View all
-                           </Link>
+                           </FacetLink>
                         </div>
                         <ul className="space-y-1">
                            {previews.map((a) => (

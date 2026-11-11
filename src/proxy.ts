@@ -3,8 +3,62 @@ import type { NextRequest } from "next/server";
 import { verifyAdminJwt, ADMIN_JWT_COOKIE, ADMIN_ROLE_COOKIE } from "@/lib/auth";
 import { acceptsMarkdown } from "@/lib/htmlToMarkdown";
 import { TENANT_DOMAIN_COOKIE, getTenantDomainFromRequest, getSiteLogoFromDomain, getSiteIconFromDomain } from "@/lib/tenant";
+import { resolveRetiredArticle, goneResponseHtml } from "@/lib/retiredArticles";
+import { canonicalHostRedirect, visitorScheme, legacyCategoryRedirect, isAdminPath } from "@/lib/edgeRedirects";
 
+const ADMIN_ROBOTS_TAG = "noindex, nofollow";
+
+/**
+ * Entry point. Order matters:
+ *  1. http:// and www. -> https apex (301, path + query preserved)
+ *  2. retired article slugs -> 301 to a live replacement, else 410
+ *  3. legacy /?cat= and /?category= -> the search facet (301)
+ *  4. everything else (tenant rewrite, admin auth) in handleRequest()
+ * Every /admin/* response (pages, redirects, API) gets X-Robots-Tag noindex.
+ */
 export async function proxy(request: NextRequest) {
+    const { pathname, search, searchParams } = request.nextUrl;
+    const isReadOnlyMethod = request.method === "GET" || request.method === "HEAD";
+
+    if (isReadOnlyMethod) {
+        const hostRedirect = canonicalHostRedirect({
+            host: request.headers.get("host"),
+            proto: visitorScheme(request.headers),
+            pathname,
+            search,
+        });
+        if (hostRedirect) return NextResponse.redirect(hostRedirect, 301);
+
+        if (!isAdminPath(pathname)) {
+            const tenantDomain = getTenantDomainFromRequest(request);
+            const retired = resolveRetiredArticle(tenantDomain, pathname);
+            if (retired?.status === 301) {
+                return NextResponse.redirect(new URL(retired.location, request.url), 301);
+            }
+            if (retired?.status === 410) {
+                return new NextResponse(request.method === "HEAD" ? null : goneResponseHtml(), {
+                    status: 410,
+                    headers: {
+                        "content-type": "text/html; charset=utf-8",
+                        "x-robots-tag": "noindex",
+                        "cache-control": "public, max-age=0, s-maxage=3600",
+                    },
+                });
+            }
+
+            const facet = legacyCategoryRedirect(pathname, searchParams);
+            if (facet) return NextResponse.redirect(new URL(facet, request.url), 301);
+        }
+    }
+
+    const response = await handleRequest(request);
+    if (isAdminPath(pathname) || pathname.startsWith("/api/admin")) {
+        response.headers.set("X-Robots-Tag", ADMIN_ROBOTS_TAG);
+    }
+    return response;
+}
+
+async function handleRequest(request: NextRequest): Promise<NextResponse> {
     try {
         const { pathname } = request.nextUrl;
         const isAdminPage = pathname.startsWith("/admin");

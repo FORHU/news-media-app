@@ -10,6 +10,7 @@ import { articlesApi } from "@/lib/api";
 import type { Article } from "@/lib/types";
 import { AnimatePresence, motion } from "framer-motion";
 import { normalizeCategoryName } from "@/lib/categoryDisplay";
+import { FacetLink } from "@/components/FacetLink";
 
 interface HeaderProps {
   onOpenNewsletter?: () => void;
@@ -191,13 +192,13 @@ function HeaderContent({ onOpenNewsletter }: HeaderProps) {
               buttonClassName="p-2 text-gray-600 hover:text-[#ff4500] transition-colors shrink-0"
               iconClassName="w-6 h-6"
             />
-            <Link
+            <FacetLink
               href="/admin/dashboard"
               className="p-2 text-gray-600 hover:text-[#ff4500] transition-colors shrink-0"
               aria-label="Profile"
             >
               <User className="w-6 h-6" />
-            </Link>
+            </FacetLink>
           </div>
         </div>
 

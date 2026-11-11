@@ -67,8 +67,11 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
       shortcut: icoUrl,
       apple: icoUrl,
     },
+    // No canonical here: this metadata is inherited by every route under the
+    // site, including the not-found template. A layout-level canonical made
+    // 404s (and /$, /&) declare the homepage as their canonical. Each page that
+    // wants one (home, article) sets its own.
     alternates: {
-      canonical: "/",
       types: {
         "application/rss+xml": [
           { url: `${baseUrl}/feed.xml`, title: `${siteName} — RSS` },
