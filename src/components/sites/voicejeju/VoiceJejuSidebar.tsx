@@ -2,9 +2,9 @@
 
 import { X, Mail, User } from "lucide-react";
 import ContactEmailButton from "@/components/ContactEmailButton";
-import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { RemoveScroll } from "react-remove-scroll";
+import { FacetLink } from "@/components/FacetLink";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -58,14 +58,14 @@ export function VoiceJejuSidebar({
               <div className="flex-1 overflow-y-auto">
                 <nav className="py-2">
                   {categoryLinks.map((cat) => (
-                    <Link
+                    <FacetLink
                       key={cat.name}
                       href={cat.link}
                       onClick={onClose}
                       className="block px-7 py-3 text-[13px] font-inter font-bold uppercase tracking-wider text-zinc-300 hover:text-white hover:bg-white/5 border-b border-white/5 border-l-2 border-l-transparent hover:border-l-white transition-all"
                     >
                       {cat.name}
-                    </Link>
+                    </FacetLink>
                   ))}
                 </nav>
               </div>
@@ -93,14 +93,14 @@ export function VoiceJejuSidebar({
                   inline
                   theme="voicejeju"
                 />
-                <Link
+                <FacetLink
                   href="/admin/dashboard"
                   onClick={onClose}
                   className="w-full flex items-center justify-center gap-3 py-3 bg-transparent text-zinc-400 text-xs font-inter font-bold border border-zinc-700 uppercase tracking-widest hover:bg-white/5 hover:text-zinc-200 transition-all mb-6 rounded-none"
                 >
                   <User className="w-4 h-4" />
                   Admin Panel
-                </Link>
+                </FacetLink>
                 <div className="text-center">
                   <p className="text-[10px] text-zinc-600 font-black uppercase tracking-[0.2em] mb-3">Follow Us</p>
                   <div className="flex items-center justify-center gap-5">

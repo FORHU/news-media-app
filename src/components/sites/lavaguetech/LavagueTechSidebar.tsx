@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import Link from "next/link";
 import { X, ChevronRight } from "lucide-react";
+import { FacetLink } from "@/components/FacetLink";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -49,7 +49,7 @@ export default function LavagueTechSidebar({ isOpen, onClose, onOpenNewsletter, 
             const isHomeLink = link === "/";
             const isActive = isHomeLink ? isHome : activeCategory?.toLowerCase() === name.toLowerCase();
             return (
-              <Link
+              <FacetLink
                 key={name}
                 href={link}
                 onClick={onClose}
@@ -61,7 +61,7 @@ export default function LavagueTechSidebar({ isOpen, onClose, onOpenNewsletter, 
               >
                 {name}
                 <ChevronRight size={14} className={`transition-colors ${isActive ? "text-teal-500" : "text-gray-400 group-hover:text-teal-600"}`} />
-              </Link>
+              </FacetLink>
             );
           })}
         </nav>
@@ -74,13 +74,13 @@ export default function LavagueTechSidebar({ isOpen, onClose, onOpenNewsletter, 
           >
             Subscribe to Newsletter
           </button>
-          <Link
+          <FacetLink
             href="/admin/dashboard"
             onClick={onClose}
             className="block w-full text-center text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-teal-700 py-2 transition-colors"
           >
             Admin
-          </Link>
+          </FacetLink>
         </div>
       </div>
     </>

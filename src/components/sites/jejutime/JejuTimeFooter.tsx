@@ -79,7 +79,6 @@ export default function JejuTimeFooter({ onOpenNewsletter, footerBanners }: Foot
           <p>© {new Date().getFullYear()} JejuTime. All rights reserved.</p>
           <div className="flex space-x-8">
             <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
             <Link href="/search" className="hover:text-white transition-colors">All Articles</Link>
           </div>
         </div>

@@ -6,6 +6,7 @@ import { AdBanner } from "@/components/AdBanner";
 import { getCoreCategories } from "@/config/categories";
 import { getTechNewsTheme, techNewsVars } from "../technews-shared/theme";
 import { Wordmark, SectionLabel } from "../technews-shared/parts";
+import { FacetLink } from "@/components/FacetLink";
 
 export default function TechOggiFooter({
   domain,
@@ -77,12 +78,12 @@ export default function TechOggiFooter({
               <ul className="space-y-3 text-sm text-white/70">
                 {categories.slice(0, 5).map((cat) => (
                   <li key={cat}>
-                    <Link
+                    <FacetLink
                       href={`/search?category=${encodeURIComponent(cat)}`}
                       className="hover:text-white transition-colors"
                     >
                       {cat}
-                    </Link>
+                    </FacetLink>
                   </li>
                 ))}
               </ul>

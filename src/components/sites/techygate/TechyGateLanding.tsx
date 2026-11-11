@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { FacetLink } from "@/components/FacetLink";
 import dynamic from "next/dynamic";
 import { AdsterraBanner } from "@/components/ads/AdsterraBanner";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
@@ -42,9 +42,9 @@ function GateHead({ children, href }: { children: React.ReactNode; href?: string
       </h2>
       <span className="flex-1 border-b-2 border-[var(--tn-ink)] self-end" aria-hidden />
       {href && (
-        <Link href={href} className="self-center ml-3 text-[11px] font-bold uppercase tracking-widest text-[var(--tn-accent)] shrink-0">
+        <FacetLink href={href} className="self-center ml-3 text-[11px] font-bold uppercase tracking-widest text-[var(--tn-accent)] shrink-0">
           All →
-        </Link>
+        </FacetLink>
       )}
     </div>
   );

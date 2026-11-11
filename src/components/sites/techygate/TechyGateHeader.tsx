@@ -10,6 +10,7 @@ import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { SearchDropdown } from "@/components/search/SearchDropdown";
 import { getTechNewsTheme, techNewsVars } from "../technews-shared/theme";
 import { Wordmark } from "../technews-shared/parts";
+import { FacetLink } from "@/components/FacetLink";
 
 function categoryHref(categoryName: string) {
   return `/search?category=${encodeURIComponent(categoryName)}`;
@@ -104,13 +105,13 @@ export default function TechyGateHeader({
               buttonClassName="p-1 text-[var(--tn-ink)] hover:text-[var(--tn-accent)] transition-colors"
               iconSize={20}
             />
-            <Link
+            <FacetLink
               href="/admin/dashboard"
               className="p-1 text-[var(--tn-ink)] hover:text-[var(--tn-accent)] transition-colors hidden sm:block"
               aria-label="Admin Portal"
             >
               <User size={20} />
-            </Link>
+            </FacetLink>
 
             {onOpenNewsletter && (
               <button
@@ -140,7 +141,7 @@ export default function TechyGateHeader({
             {HOME_CATEGORY_LABEL}
           </Link>
           {categories.map((cat) => (
-            <Link
+            <FacetLink
               key={cat}
               href={categoryHref(cat)}
               aria-current={isCatActive(cat) ? "page" : undefined}
@@ -151,7 +152,7 @@ export default function TechyGateHeader({
               }`}
             >
               {cat}
-            </Link>
+            </FacetLink>
           ))}
         </nav>
       </div>
@@ -231,7 +232,7 @@ export default function TechyGateHeader({
             {HOME_CATEGORY_LABEL}
           </Link>
           {categories.map((cat) => (
-            <Link
+            <FacetLink
               key={cat}
               href={categoryHref(cat)}
               onClick={() => setIsMenuOpen(false)}
@@ -241,7 +242,7 @@ export default function TechyGateHeader({
               }`}
             >
               {cat}
-            </Link>
+            </FacetLink>
           ))}
           <div className="pt-6 mt-6 border-t border-white/15 flex flex-col gap-5">
             {onOpenNewsletter && (
@@ -264,13 +265,13 @@ export default function TechyGateHeader({
               labelText="Contact Us"
               inline
             />
-            <Link
+            <FacetLink
               href="/admin/dashboard"
               onClick={() => setIsMenuOpen(false)}
               className="block font-mono text-sm font-bold uppercase tracking-[0.14em] text-[var(--tn-accent)] hover:text-white transition-colors sm:hidden"
             >
               Admin Portal
-            </Link>
+            </FacetLink>
           </div>
         </div>
       </div>

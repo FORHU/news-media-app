@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AdBanner } from "@/components/AdBanner";
 import { Mail, Globe } from "lucide-react";
 import { getCoreCategories } from "@/config/categories";
+import { FacetLink } from "@/components/FacetLink";
 
 interface SkyBluePrimeFooterProps {
   onOpenNewsletter?: () => void;
@@ -69,12 +70,12 @@ export default function SkyBluePrimeFooter({ onOpenNewsletter }: SkyBluePrimeFoo
               <ul className="space-y-3 text-sm text-sky-100/70">
                 {categories.slice(0, SECTIONS_LIMIT).map((cat) => (
                   <li key={cat}>
-                    <Link
+                    <FacetLink
                       href={`/search?category=${encodeURIComponent(cat)}`}
                       className="hover:text-white transition-colors"
                     >
                       {cat}
-                    </Link>
+                    </FacetLink>
                   </li>
                 ))}
               </ul>

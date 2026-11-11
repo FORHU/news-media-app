@@ -5,6 +5,7 @@ import { StoryImage } from "@/components/StoryImage";
 import { TENANT_CATEGORIES } from "@/config/categories";
 import { ArticleLink } from "./LegalHyperLanding";
 import type { MockArticle } from "./mockArticles";
+import { FacetLink } from "@/components/FacetLink";
 
 const INK = "#0E1A2F";
 const GOLD = "#8A6A22";
@@ -81,7 +82,7 @@ export function LegalHyperSearch({
             All
           </Link>
           {categories.map((cat) => (
-            <Link
+            <FacetLink
               key={cat}
               href={`/search?category=${encodeURIComponent(cat)}`}
               className="px-3.5 py-1.5 text-[10.5px] uppercase transition-colors"
@@ -93,7 +94,7 @@ export function LegalHyperSearch({
               }}
             >
               {cat}
-            </Link>
+            </FacetLink>
           ))}
           {(activeCategory || searchQuery) && (
             <Link

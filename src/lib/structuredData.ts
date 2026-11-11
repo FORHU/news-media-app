@@ -193,15 +193,12 @@ export function buildBreadcrumbLd(params: {
     },
   ];
 
-  const trimmedSection = section?.trim();
-  if (trimmedSection) {
-    items.push({
-      "@type": "ListItem",
-      position: 2,
-      name: trimmedSection,
-      item: `${base}/search?category=${encodeURIComponent(trimmedSection)}`,
-    });
-  }
+  // The section is intentionally NOT a breadcrumb step: the only URL it could
+  // point at is a /search?category=... facet, which is noindex and has no
+  // canonical. A breadcrumb item must resolve to an indexable page, so the
+  // trail is Home > Headline. (`section` stays in the signature; articleSection
+  // on the NewsArticle entity still carries the category.)
+  void section;
 
   items.push({
     "@type": "ListItem",

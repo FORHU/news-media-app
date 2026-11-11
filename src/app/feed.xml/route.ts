@@ -2,6 +2,7 @@ import { articlesService } from "@/services/articles.service";
 import {
   getSiteNameFromDomain,
   getSiteDescriptionFromDomain,
+  getSiteLanguageFromDomain,
 } from "@/lib/tenant";
 import { cleanOgDescription } from "@/lib/metadata";
 import { resolveSiteFromRequest } from "@/lib/siteRequest";
@@ -61,7 +62,7 @@ export async function GET() {
     <title>${xmlEscape(siteName)}</title>
     <link>${xmlEscape(baseUrl)}</link>
     <description>${xmlEscape(siteDesc)}</description>
-    <language>en</language>
+    <language>${xmlEscape(getSiteLanguageFromDomain(domain))}</language>
     <lastBuildDate>${lastBuild}</lastBuildDate>
     <atom:link href="${xmlEscape(`${baseUrl}/feed.xml`)}" rel="self" type="application/rss+xml"/>
     <atom:link href="https://pubsubhubbub.appspot.com/" rel="hub"/>

@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { RemoveScroll } from "react-remove-scroll";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { SearchDropdown } from "@/components/search/SearchDropdown";
+import { FacetLink } from "@/components/FacetLink";
 
 interface HeaderProps {
   onOpenNewsletter?: () => void;
@@ -115,9 +116,9 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
                 buttonClassName="hover:text-white/80 transition-colors"
                 iconSize={18}
               />
-              <Link href="/admin/dashboard" className="hover:text-white/80 transition-colors" title="Admin" aria-label="Admin dashboard">
+              <FacetLink href="/admin/dashboard" className="hover:text-white/80 transition-colors" title="Admin" aria-label="Admin dashboard">
                 <User size={18} />
-              </Link>
+              </FacetLink>
             </div>
           </div>
         </div>
@@ -159,14 +160,14 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
               {homeLabel}
             </Link>
             {coreCategories.map((cat) => (
-              <Link
+              <FacetLink
                 key={cat}
                 href={`/search?category=${encodeURIComponent(cat)}`}
                 aria-current={isCatActive(cat) ? "page" : undefined}
                 className={`whitespace-nowrap transition-colors ${isCatActive(cat) ? "text-[#bc002d]" : "hover:text-[#bc002d]"}`}
               >
                 {cat}
-              </Link>
+              </FacetLink>
             ))}
           </nav>
         </div>
@@ -176,14 +177,14 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
           <div className="lg:hidden border-t border-gray-50 bg-white overflow-hidden">
             <div className="flex overflow-x-auto scrollbar-hide py-3 px-4 sm:px-6 space-x-6 text-[10px] font-bold uppercase tracking-widest text-gray-500">
               {coreCategories.map((cat) => (
-                <Link
+                <FacetLink
                   key={cat}
                   href={categoryHref(cat)}
                   aria-current={isCatActive(cat) ? "page" : undefined}
                   className={`whitespace-nowrap transition-colors ${isCatActive(cat) ? "text-[#bc002d]" : "hover:text-[#bc002d]"}`}
                 >
                   {cat}
-                </Link>
+                </FacetLink>
               ))}
             </div>
           </div>
@@ -283,7 +284,7 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
                   </div>
                   <nav>
                     {categoryLinks.map((cat) => (
-                      <Link
+                      <FacetLink
                         key={cat.name}
                         href={cat.link}
                         onClick={() => setIsSidebarOpen(false)}
@@ -293,7 +294,7 @@ export default function JejuJapanHeader({ onOpenNewsletter }: HeaderProps) {
                         <span className="flex-1 pl-5 pr-4 py-3.5 text-[14px] font-bold text-zinc-400 group-hover:text-white transition-colors tracking-wide">
                           {cat.name}
                         </span>
-                      </Link>
+                      </FacetLink>
                     ))}
                   </nav>
                 </div>

@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { FacetLink } from "@/components/FacetLink";
 
 interface CategoryFilterSidebarProps {
   categories: string[];
@@ -22,7 +22,7 @@ export function CategoryFilterSidebar({ categories }: CategoryFilterSidebarProps
       </p>
       <div className="flex flex-col gap-1">
         {categories.map((cat) => (
-          <Link
+          <FacetLink
             key={cat}
             href={`/search?category=${encodeURIComponent(cat)}`}
             className={`px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] border transition-all whitespace-nowrap ${
@@ -32,7 +32,7 @@ export function CategoryFilterSidebar({ categories }: CategoryFilterSidebarProps
             }`}
           >
             {cat}
-          </Link>
+          </FacetLink>
         ))}
       </div>
     </div>

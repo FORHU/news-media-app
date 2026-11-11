@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { AdBanner, Banner } from "@/components/AdBanner";
 import { getCoreCategories } from "@/config/categories";
+import { FacetLink } from "@/components/FacetLink";
 
 interface FooterProps {
   onOpenNewsletter?: () => void;
@@ -53,9 +54,9 @@ export default function LavagueTechFooter({ onOpenNewsletter, footerBanners }: F
               <ul className="space-y-3 text-sm text-teal-200/75">
                 {categories.map((cat) => (
                   <li key={cat}>
-                    <Link href={`/search?category=${encodeURIComponent(cat)}`} className="hover:text-white transition-colors">
+                    <FacetLink href={`/search?category=${encodeURIComponent(cat)}`} className="hover:text-white transition-colors">
                       {cat}
-                    </Link>
+                    </FacetLink>
                   </li>
                 ))}
               </ul>
@@ -85,7 +86,7 @@ export default function LavagueTechFooter({ onOpenNewsletter, footerBanners }: F
             <div className="flex items-center gap-6 text-[11px] text-teal-300/50">
               <Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link>
               <Link href="#" className="hover:text-white transition-colors">Terms of Service</Link>
-              <Link href="/admin/dashboard" className="hover:text-white transition-colors">Admin</Link>
+              <FacetLink href="/admin/dashboard" className="hover:text-white transition-colors">Admin</FacetLink>
             </div>
           </div>
 

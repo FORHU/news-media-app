@@ -8,6 +8,7 @@ import ContactEmailButton from "@/components/ContactEmailButton";
 import { getCoreCategories, HOME_CATEGORY_LABEL } from "@/config/categories";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { SearchDropdown } from "@/components/search/SearchDropdown";
+import { FacetLink } from "@/components/FacetLink";
 
 interface SkyBluePrimeHeaderProps {
   onOpenNewsletter?: () => void;
@@ -101,13 +102,13 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
               buttonClassName="p-1 text-sky-950 hover:text-sky-600 transition-colors"
               iconSize={20}
             />
-            <Link
+            <FacetLink
               href="/admin/dashboard"
               className="p-1 text-sky-950 hover:text-sky-600 transition-colors hidden sm:block"
               aria-label="Admin Portal"
             >
               <User size={20} />
-            </Link>
+            </FacetLink>
 
             {onOpenNewsletter && (
               <button
@@ -133,14 +134,14 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
             {HOME_CATEGORY_LABEL}
           </Link>
           {categories.map((cat) => (
-            <Link
+            <FacetLink
               key={cat}
               href={categoryHref(cat)}
               className={`whitespace-nowrap shrink-0 transition-colors ${isCatActive(cat) ? "text-sky-600 underline underline-offset-4" : "text-sky-950 hover:text-sky-600"}`}
               aria-current={isCatActive(cat) ? "page" : undefined}
             >
               {cat}
-            </Link>
+            </FacetLink>
           ))}
         </div>
       </div>
@@ -207,7 +208,7 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
             {HOME_CATEGORY_LABEL}
           </Link>
           {categories.map((cat) => (
-            <Link
+            <FacetLink
               key={cat}
               href={categoryHref(cat)}
               onClick={() => setIsMenuOpen(false)}
@@ -215,7 +216,7 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
               className={`block text-sm font-bold uppercase tracking-widest transition-colors ${isCatActive(cat) ? "text-sky-400" : "hover:text-sky-400"}`}
             >
               {cat}
-            </Link>
+            </FacetLink>
           ))}
           
           <div className="pt-6 mt-6 border-t border-sky-800 flex flex-col gap-6">
@@ -240,13 +241,13 @@ export default function SkyBluePrimeHeader({ onOpenNewsletter }: SkyBluePrimeHea
               inline
               theme="skyblueprime"
             />
-            <Link
+            <FacetLink
               href="/admin/dashboard"
               onClick={() => setIsMenuOpen(false)}
               className="block text-sm font-bold uppercase tracking-widest text-sky-400 hover:text-white transition-colors sm:hidden"
             >
               Admin Portal
-            </Link>
+            </FacetLink>
           </div>
         </div>
       </div>

@@ -10,6 +10,7 @@ import { classifyNewsIconsCategory } from "./categorize";
 import type { MediaStackArticle } from "@/lib/mediastack";
 import type { Banner } from "@/components/AdBanner";
 import type { Article } from "@/lib/types";
+import { FacetLink } from "@/components/FacetLink";
 
 const TrendingProductsSection = dynamic(() => import("@/components/home/trending-products-section").then(m => m.TrendingProductsSection), { ssr: true });
 
@@ -536,12 +537,12 @@ export default function NewsIconsLanding({ articles, banners, mediastackArticles
               <div className="flex items-center gap-3 mb-6 border-b-2 border-orange-500 pb-3">
                 <h2 className="text-xl font-serif font-black text-slate-900 uppercase tracking-wide">{group.name}</h2>
                 <div className="flex-1 h-px bg-slate-200" />
-                <Link
+                <FacetLink
                   href={`/search?category=${encodeURIComponent(group.name)}`}
                   className="text-[11px] font-bold uppercase tracking-widest text-orange-500 hover:text-orange-600 transition-colors shrink-0"
                 >
                   See All →
-                </Link>
+                </FacetLink>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 {/* Lead */}

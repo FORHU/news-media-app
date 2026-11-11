@@ -11,6 +11,7 @@ import { getCoreCategories, HOME_CATEGORY_LABEL } from "@/config/categories";
 import dynamic from "next/dynamic";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { SearchDropdown } from "@/components/search/SearchDropdown";
+import { FacetLink } from "@/components/FacetLink";
 
 const JejuTimeSidebar = dynamic(() => import("./JejuTimeSidebar"), { ssr: false });
 
@@ -196,9 +197,9 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
                 buttonClassName="text-slate-600 hover:text-blue-600 transition-colors"
                 iconSize={18}
               />
-              <Link href="/admin/dashboard" className="text-slate-600 hover:text-blue-600 transition-colors" title="Admin">
+              <FacetLink href="/admin/dashboard" className="text-slate-600 hover:text-blue-600 transition-colors" title="Admin">
                 <User size={18} />
-              </Link>
+              </FacetLink>
             </div>
           </div>
         </div>
@@ -231,14 +232,14 @@ export default function JejuTimeHeader({ onOpenNewsletter }: HeaderProps) {
                   {HOME_CATEGORY_LABEL}
                 </Link>
                {coreCategories.map((cat) => (
-                  <Link
+                  <FacetLink
                     key={cat}
                     href={`/search?category=${encodeURIComponent(cat)}`}
                     className={`transition-colors whitespace-nowrap ${isCatActive(cat) ? "text-blue-400 font-extrabold" : "hover:text-blue-400"}`}
                     aria-current={isCatActive(cat) ? "page" : undefined}
                   >
                     {cat}
-                  </Link>
+                  </FacetLink>
                 ))}
              </nav>
 

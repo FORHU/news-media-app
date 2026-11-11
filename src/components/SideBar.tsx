@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { X, Mail, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RemoveScroll } from "react-remove-scroll";
 import { useQuery } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
+import { FacetLink } from "@/components/FacetLink";
 import {
     CORE_CATEGORIES,
     HOME_CATEGORY_LABEL,
@@ -98,13 +98,13 @@ export function SideBar({ isOpen, onClose, onOpenNewsletter }: SideBarProps) {
                                 <nav className="pb-8">
                                     {categoryLinks.map((category) => (
                                         <div key={category.name}>
-                                            <Link
+                                            <FacetLink
                                                 href={category.link}
                                                 onClick={onClose}
                                                 className="block px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg text-gray-900 hover:bg-[#ff4500]/5 hover:text-[#ff4500] transition-all font-semibold"
                                             >
                                                 {category.name}
-                                            </Link>
+                                            </FacetLink>
                                         </div>
                                     ))}
                                     
@@ -116,14 +116,14 @@ export function SideBar({ isOpen, onClose, onOpenNewsletter }: SideBarProps) {
                                             </summary>
                                             <div className="bg-gray-50/50 pb-2">
                                                 {overflowCategories.map((categoryName) => (
-                                                    <Link
+                                                    <FacetLink
                                                         key={categoryName}
                                                         href={categoryHref(categoryName)}
                                                         onClick={onClose}
                                                         className="block px-10 sm:px-12 py-2 sm:py-3 text-sm sm:text-base text-gray-700 hover:bg-[#ff4500]/5 hover:text-[#ff4500] transition-all font-medium"
                                                     >
                                                         {categoryName}
-                                                    </Link>
+                                                    </FacetLink>
                                                 ))}
                                             </div>
                                         </details>

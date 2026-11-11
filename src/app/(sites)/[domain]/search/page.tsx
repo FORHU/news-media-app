@@ -24,6 +24,7 @@ import { isTechNewsDomain } from "@/components/sites/technews-shared/theme";
 import { classifyWireCategory } from "@/components/sites/technews-shared/categorize";
 import { classifyTechOggiCategory } from "@/components/sites/techoggi/categorize";
 import { TechNewsSearchResults } from "@/components/sites/technews-shared/TechNewsSearchResults";
+import { FacetLink } from "@/components/FacetLink";
 
 // MediaStack's own tag is just "technology" (or "general" for non-English), so a
 // category filter has to match on the topic the keyword classifier assigns.
@@ -63,47 +64,30 @@ async function getMediaStackMatches(domain: string, search?: string, category?: 
 
 export async function generateMetadata({
   params,
-  searchParams,
 }: {
   params: Promise<{ domain: string }>;
-  searchParams: Promise<{ search?: string; category?: string }>;
 }): Promise<Metadata> {
   const { domain } = await params;
-  const { search: searchQuery, category: categoryParam } = await searchParams;
   const siteName = getSiteNameFromDomain(domain);
   const baseUrl = await getRequestBaseUrl(domain);
   const logoPath = `/Logo/${getSiteLogoFromDomain(domain)}`;
   const logoUrl = `${baseUrl}${logoPath}`;
   const { absolute: ogImageAbsolute } = buildOgImageUrl(logoUrl, baseUrl);
 
-  // Empty result pages (e.g. a category with no published articles yet) are
-  // thin, crawlable via nav links, and get flagged as soft 404s in Search
-  // Console. Keep them out of the index while still letting Google follow
-  // the links on the page. LegalHyper sources live from MediaStack, not this
-  // DB, so it's never thin in the same way — skip the check for it.
-  let hasResults = true;
-  if (domain !== "legalhyper.com") {
-    const tenantId = await resolveTenantIdFromDomain(domain);
-    const results = tenantId
-      ? await articlesService.getArticles(
-          { limit: 1, search: searchQuery, category: categoryParam, status: "published", requireImage: true },
-          tenantId
-        )
-      : [];
-    hasResults = results.length > 0;
-    // Domains that blend in MediaStack aren't thin when the feed has matches.
-    if (!hasResults) {
-      hasResults = (await getMediaStackMatches(domain, searchQuery, categoryParam)).length > 0;
-    }
-  }
-
+  // Search results and category facets (/search, /search?category=...,
+  // /search?search=...) are never indexable: they are filtered views of
+  // content that already has its own URLs. Always noindex,follow so Google can
+  // still follow the article links on them, and NO canonical — a canonical to
+  // /search made every facet an "alternate page with proper canonical" and the
+  // empty ones soft 404s. (The in-page category controls are also not <a href>
+  // any more; see components/FacetLink.tsx.)
   return {
     title: "Search",
     description: `Search results for ${siteName}`,
     icons: {
       icon: getSiteIconFromDomain(domain),
     },
-    ...(hasResults ? {} : { robots: { index: false, follow: true } }),
+    robots: { index: false, follow: true },
     openGraph: {
       title: "Search",
       description: `Search results for ${siteName}`,
@@ -125,9 +109,6 @@ export async function generateMetadata({
       title: "Search",
       description: `Search results for ${siteName}`,
       images: [ogImageAbsolute],
-    },
-    alternates: {
-      canonical: "/search",
     },
   };
 }
@@ -326,7 +307,7 @@ async function SearchContent({
               All
             </Link>
             {jejutimeCategories.map((cat) => (
-              <Link
+              <FacetLink
                 key={cat}
                 href={activeCategory === cat ? "/search" : `/search?category=${encodeURIComponent(cat)}`}
                 className={`px-4 pb-3 pt-1 text-[11px] font-bold font-baskerville uppercase tracking-wider transition-all border-b-2 -mb-px ${
@@ -336,7 +317,7 @@ async function SearchContent({
                 }`}
               >
                 {cat}
-              </Link>
+              </FacetLink>
             ))}
           </div>
         )}
@@ -396,7 +377,7 @@ async function SearchContent({
               全記事
             </Link>
             {jejuJapanCategories.map((cat) => (
-              <Link
+              <FacetLink
                 key={cat}
                 href={activeCategory === cat ? "/search" : `/search?category=${encodeURIComponent(cat)}`}
                 className={`flex-shrink-0 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest border transition-all whitespace-nowrap ${
@@ -406,7 +387,7 @@ async function SearchContent({
                 }`}
               >
                 {cat}
-              </Link>
+              </FacetLink>
             ))}
           </div>
         )}
@@ -476,7 +457,7 @@ async function SearchContent({
                     )}
                   </Link>
                   {jejuJapanCategories.map((cat) => (
-                    <Link
+                    <FacetLink
                       key={cat}
                       href={activeCategory === cat ? "/search" : `/search?category=${encodeURIComponent(cat)}`}
                       className={`px-4 py-2.5 text-[11px] font-bold border-b border-gray-100 last:border-0 transition-colors flex items-center justify-between group ${
@@ -489,7 +470,7 @@ async function SearchContent({
                       {activeCategory === cat && (
                         <span className="w-1.5 h-1.5 rounded-full bg-[#bc002d] flex-shrink-0" />
                       )}
-                    </Link>
+                    </FacetLink>
                   ))}
                 </div>
               </div>
@@ -539,7 +520,7 @@ async function SearchContent({
         {voicejejuCategories.length > 0 && (
           <div className="lg:hidden flex flex-wrap gap-1.5 mb-6 pb-4 border-b border-gray-100">
             {voicejejuCategories.map((cat) => (
-              <Link
+              <FacetLink
                 key={cat}
                 href={`/search?category=${encodeURIComponent(cat)}`}
                 className={`px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.3em] border transition-all whitespace-nowrap ${activeCategory === cat
@@ -548,7 +529,7 @@ async function SearchContent({
                   }`}
               >
                 {cat}
-              </Link>
+              </FacetLink>
             ))}
           </div>
         )}
@@ -643,7 +624,7 @@ async function SearchContent({
               All
             </Link>
             {jejuqqCategories.map((cat) => (
-              <Link
+              <FacetLink
                 key={cat}
                 href={activeCategory === cat ? "/search" : `/search?category=${encodeURIComponent(cat)}`}
                 className={`flex-shrink-0 pb-3 text-[11px] font-serif font-bold uppercase tracking-wider transition-all whitespace-nowrap border-b-2 -mb-px ${
@@ -653,7 +634,7 @@ async function SearchContent({
                 }`}
               >
                 {cat}
-              </Link>
+              </FacetLink>
             ))}
           </div>
         )}
@@ -715,7 +696,7 @@ async function SearchContent({
                     {!activeCategory && <span className="w-1.5 h-1.5 bg-[#dc2626] flex-shrink-0" />}
                   </Link>
                   {jejuqqCategories.map((cat, i) => (
-                    <Link
+                    <FacetLink
                       key={cat}
                       href={activeCategory === cat ? "/search" : `/search?category=${encodeURIComponent(cat)}`}
                       className={`flex items-center gap-3 py-2 border-b border-gray-200 last:border-0 text-[12px] font-bold transition-colors group ${
@@ -729,7 +710,7 @@ async function SearchContent({
                       </span>
                       <span className="flex-1">{cat}</span>
                       {activeCategory === cat && <span className="w-1.5 h-1.5 bg-[#dc2626] flex-shrink-0" />}
-                    </Link>
+                    </FacetLink>
                   ))}
                 </div>
               </div>
@@ -804,7 +785,7 @@ async function SearchContent({
               All
             </Link>
             {lavaguetechCategories.map((cat) => (
-              <Link
+              <FacetLink
                 key={cat}
                 href={activeCategory === cat ? "/search" : `/search?category=${encodeURIComponent(cat)}`}
                 className={`flex-shrink-0 px-4 pb-3 pt-1 text-[11px] font-bold uppercase tracking-wider transition-all whitespace-nowrap border-b-2 -mb-px ${
@@ -814,7 +795,7 @@ async function SearchContent({
                 }`}
               >
                 {cat}
-              </Link>
+              </FacetLink>
             ))}
           </div>
         )}
@@ -879,7 +860,7 @@ async function SearchContent({
                     )}
                   </Link>
                   {lavaguetechCategories.map((cat) => (
-                    <Link
+                    <FacetLink
                       key={cat}
                       href={activeCategory === cat ? "/search" : `/search?category=${encodeURIComponent(cat)}`}
                       className={`flex items-center justify-between px-4 py-2.5 text-[11px] font-bold transition-colors group ${
@@ -892,7 +873,7 @@ async function SearchContent({
                       {activeCategory === cat && (
                         <span className="w-1.5 h-1.5 rounded-full bg-teal-700 flex-shrink-0" />
                       )}
-                    </Link>
+                    </FacetLink>
                   ))}
                 </div>
               </div>
