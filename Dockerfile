@@ -31,7 +31,8 @@ ENV DATABASE_URL=${DATABASE_URL:-postgresql://dummy:dummy@localhost:5432/dummy}
 # that throws if JWT_SECRET is unset, so a build-time-only dummy is required.
 ARG JWT_SECRET
 ENV JWT_SECRET=${JWT_SECRET:-dummy-build-time-secret-not-for-production-use}
-
+ARG NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
+ENV NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY}
 # Generate Prisma client
 RUN npx prisma generate
 
