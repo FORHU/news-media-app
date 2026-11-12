@@ -1,76 +1,59 @@
-networks:
-  news-media-network:
-    name: news-media-network
-    driver: bridge
+# Production compose for the newsicon EC2 box (newsicon-production-ec2 / i-09971b56ae34dbcd4).
+#
+# Deliberately NOT docker-compose.yml. That file is for local development and cannot be used
+# in production, for three reasons:
+#
+#   1. It declares `build:` with no `image:`, so `docker compose pull` fetches nothing and
+#      `up -d` tries to build from source that is not on the box.
+#   2. It runs its own pgvector Postgres and hardcodes DATABASE_URL to it. Using it in
+#      production would point the app at an empty local database instead of RDS, and the app
+#      would come up looking healthy with no data.
+#   3. It publishes Postgres on 0.0.0.0:5432 with the password `password`.
+#
+# Here the database is the external RDS instance (forhu-staging-newsicons-postgres), supplied
+# through DATABASE_URL in .env. There is no database service on this box.
+#
+# The image's CMD runs `prisma migrate deploy` before starting the server, so every deploy
+# migrates RDS. That is the same behaviour Coolify had. It also means a rollback to an older
+# image does NOT roll back the schema.
+#
+# The image lives in ECR, not GHCR: the box's instance role (ec2-use-case) already carries
+# AmazonEC2ContainerRegistryReadOnly, so it authenticates to the registry as itself and no
+# registry credential has to be shipped to it or stored on it.
 
 services:
-  postgres:
-    image: pgvector/pgvector:pg16
-    container_name: news-media-crawler-postgres
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: news-media
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - news-media-network
-    restart: always
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d news-media"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   news-media-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        - DATABASE_URL=${DATABASE_URL}
+    # IMAGE_TAG comes from the .env this box is deployed with, so a hand-run
+    # `docker compose up` reproduces the same image the pipeline deployed rather than
+    # silently picking up a newer :latest.
+    image: 617163942417.dkr.ecr.ap-southeast-1.amazonaws.com/news-media-app:${IMAGE_TAG:-latest}
     container_name: news-media-app
     restart: always
+    # Loopback only. Caddy on this box terminates TLS and reverse-proxies to 127.0.0.1:3000,
+    # so the port must not be reachable from outside — the security group has had 3000 open
+    # to 0.0.0.0/0, and binding to 0.0.0.0 here is what would make that exploitable.
     ports:
-      - "3000:3000"
-    environment:
-      - DATABASE_URL=postgresql://postgres:password@postgres:5432/news-media?sslmode=disable
-      - NODE_ENV=production
-      - COOKIE_SECURE=false
-      - CRAWL_API_URL=${CRAWL_API_URL}
-      - CRAWL_STOP_API_URL=${CRAWL_STOP_API_URL}
-      - JWT_SECRET=${JWT_SECRET}
-      - XPOZ_API_KEY=${XPOZ_API_KEY}
-      - GENERATE_CONTENT_API=${GENERATE_CONTENT_API}
-      - SITE_URL=${SITE_URL}
-      - NEXT_PUBLIC_TRANSCRIPT_API_URL=${NEXT_PUBLIC_TRANSCRIPT_API_URL}
-      - YOUTUBE_API_V3_KEY=${YOUTUBE_API_V3_KEY}
-      - RESEND_API_KEY=${RESEND_API_KEY}
-      - SUPADATA_API_KEY=${SUPADATA_API_KEY}
-      - APP_AWS_ACCESS_KEY=${APP_AWS_ACCESS_KEY}
-      - APP_AWS_SECRET_ACCESS_KEY=${APP_AWS_SECRET_ACCESS_KEY}
-      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
-      - AWS_REGION=${AWS_REGION}
-      - APIFY_API_TOKEN=${APIFY_API_TOKEN}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - OPENAI_IMAGE_QUALITY=${OPENAI_IMAGE_QUALITY}
-      - FACEBOOK_APP_ID=${FACEBOOK_APP_ID}
-      - FACEBOOK_APP_SECRET=${FACEBOOK_APP_SECRET}
-      - FACEBOOK_PAGE_ID=${FACEBOOK_PAGE_ID}
-      - FACEBOOK_PAGE_ACCESS_TOKEN=${FACEBOOK_PAGE_ACCESS_TOKEN}
-      - FACEBOOK_GRAPH_API_VERSION=${FACEBOOK_GRAPH_API_VERSION}
-    networks:
-      - news-media-network
-    depends_on:
-      postgres:
-        condition: service_healthy
+      - "127.0.0.1:3000:3000"
+    # Fetched from SSM Parameter Store by the deploy, mode 600, never committed.
+    env_file:
+      - .env
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000/api/health",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
-
-volumes:
-  postgres_data:
+      # The container runs `prisma migrate deploy` before serving, so first response is slow.
+      start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
