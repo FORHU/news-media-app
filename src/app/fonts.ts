@@ -177,3 +177,29 @@ export const ptSerif = localFont({
   variable: "--font-pt-serif",
   display: "swap",
 });
+
+// PressBig (pressbig.com): torn-poster lettering. preload is off so the other tenants'
+// pages never preload these; the files are only fetched where the faces are used.
+export const pressAnton = localFont({
+  src: "./fonts/anton-400.woff2",
+  weight: "400",
+  variable: "--font-press-display",
+  display: "swap",
+  preload: false,
+});
+
+export const pressGloock = localFont({
+  src: "./fonts/gloock-400.woff2",
+  weight: "400",
+  variable: "--font-press-serif",
+  display: "swap",
+  preload: false,
+});
+
+export const pressMono = localFont({
+  src: "./fonts/spline-sans-mono-400-700.woff2",
+  weight: "400 700",
+  variable: "--font-press-mono",
+  display: "swap",
+  preload: false,
+});

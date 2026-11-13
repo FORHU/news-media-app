@@ -155,6 +155,13 @@ export const TENANT_CATEGORIES: Record<string, string[]> = {
     "Legal Geek Coverage",
     "Industry Analysis",
   ],
+  // pressbig.com: lifestyle and pop culture, not hard news. Also the MediaStack pool topics.
+  "pressbig.com": [
+    "Entertainment",
+    "Fashion & Style",
+    "Gadgets",
+    "Celebrity & Culture",
+  ],
   // technews tenant family — shared standard tech category set
   "linktechnews.com": TECH_CATEGORIES,
   "dbtechnews.com": TECH_CATEGORIES,

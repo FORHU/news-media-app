@@ -15,6 +15,7 @@ const TENANT_BEATS: Record<string, string> = {
   "technikpost.de": "technology, digital policy, and business, reported daily with a European (Berlin and Brussels) and Silicon Valley perspective",
   "techoggi.com": "the day's essential technology news in brief: concise, clear summaries of what matters today",
   "techhoy.com": "the day's technology news for a Spanish-speaking audience: clear, accessible, and relevant to readers today",
+  "pressbig.com": "entertainment, fashion, new gadgets and pop culture, not hard news: light, enthusiastic and curious, written for a broad mainstream reader, with a point of view on what is worth their attention today",
 };
 
 export function getTenantBeat(domain: string): string | undefined {

@@ -49,7 +49,7 @@ export function InterestsStep({
               key={category.id}
               type="button"
               onClick={() => onToggleInterest(category.id)}
-              className={`p-3 sm:p-4 rounded-xl transition-all text-left relative group border-2 ${
+              className={`pb-nl-chip ${isSelected ? "pb-nl-chip--on" : ""} p-3 sm:p-4 rounded-xl transition-all text-left relative group border-2 ${
                 isSelected
                   ? `bg-white ${theme.border} shadow-md`
                   : "bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm"
@@ -112,7 +112,7 @@ export function InterestsStep({
             categoriesLoading ||
             categories.length === 0
           }
-          className={`flex-1 px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg transition-colors font-medium text-sm sm:text-base ${theme.font} ${
+          className={`pb-nl-btn flex-1 px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg transition-colors font-medium text-sm sm:text-base ${theme.font} ${
             selectedInterests.length === 0 ||
             isSendingOtp ||
             categoriesLoading ||
@@ -126,7 +126,7 @@ export function InterestsStep({
         <button
           type="button"
           onClick={onCancel}
-          className={`px-6 sm:px-8 py-3 sm:py-3.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm sm:text-base ${theme.font}`}
+          className={`pb-nl-btn pb-nl-btn--ghost px-6 sm:px-8 py-3 sm:py-3.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm sm:text-base ${theme.font}`}
         >
           Cancel
         </button>

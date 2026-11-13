@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { geistSans, geistMono, playfair, roboto, notoSerifJP, ebGaramond, libreBaskerville, spaceMono, plusJakartaSans, arima, mulish, voltaire, inter, montserrat, lora, oswald, chivo, bodoniModa, cormorantGaramond, archivo, sourceSerif4, ibmPlexMono, ptSerif } from "./fonts";
+import { geistSans, geistMono, playfair, roboto, notoSerifJP, ebGaramond, libreBaskerville, spaceMono, plusJakartaSans, arima, mulish, voltaire, inter, montserrat, lora, oswald, chivo, bodoniModa, cormorantGaramond, archivo, sourceSerif4, ibmPlexMono, ptSerif, pressAnton, pressGloock, pressMono } from "./fonts";
 import "./globals.css";
 import { Providers } from "./providers";
 import { DEFAULT_OG_IMAGE, SITE_URL } from "@/config/site";
@@ -74,7 +74,7 @@ export default async function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: `(function(){var _o=window.open.bind(window);window.open=function(u,n,s){if(typeof u==='string'&&u.indexOf('facebook.com')!==-1){return _o(u,n,s);}return null;};})();` }} />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${roboto.variable} ${notoSerifJP.variable} ${ebGaramond.variable} ${libreBaskerville.variable} ${spaceMono.variable} ${plusJakartaSans.variable} ${arima.variable} ${mulish.variable} ${voltaire.variable} ${inter.variable} ${montserrat.variable} ${lora.variable} ${oswald.variable} ${chivo.variable} ${bodoniModa.variable} ${cormorantGaramond.variable} ${archivo.variable} ${sourceSerif4.variable} ${ibmPlexMono.variable} ${ptSerif.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${roboto.variable} ${notoSerifJP.variable} ${ebGaramond.variable} ${libreBaskerville.variable} ${spaceMono.variable} ${plusJakartaSans.variable} ${arima.variable} ${mulish.variable} ${voltaire.variable} ${inter.variable} ${montserrat.variable} ${lora.variable} ${oswald.variable} ${chivo.variable} ${bodoniModa.variable} ${cormorantGaramond.variable} ${archivo.variable} ${sourceSerif4.variable} ${ibmPlexMono.variable} ${ptSerif.variable} ${pressAnton.variable} ${pressGloock.variable} ${pressMono.variable} antialiased`}
       >
         <Providers>{children}</Providers>
       </body>

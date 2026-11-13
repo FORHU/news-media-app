@@ -63,6 +63,19 @@ const schema = z.object({
   APIFY_API_TOKEN: optionalStr(),
   SUPADATA_API_KEY: optionalStr(),
   MEDIASTACK_API_KEY: optionalStr(),
+  /**
+   * How long a MediaStack response is cached, in seconds (min 60). Every
+   * distinct feed costs one API call per window, so this is the plan-quota
+   * dial: ~37 feeds x (86400 / value) x 30 days. Default 14400 (4h) in
+   * production, 86400 in `next dev` so hot reloads don't burn calls.
+   */
+  MEDIASTACK_REVALIDATE_SECONDS: z
+    .string()
+    .optional()
+    .transform((v) => {
+      const n = Number(v?.trim());
+      return Number.isFinite(n) && n >= 60 ? Math.floor(n) : undefined;
+    }),
   CRAWL_API_URL: optionalUrl(),
   CRAWL_STOP_API_URL: optionalUrl(),
   /** HMAC shared secret for the inbound external-article webhook. */

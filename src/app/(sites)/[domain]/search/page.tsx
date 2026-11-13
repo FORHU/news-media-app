@@ -17,13 +17,14 @@ import { ADSTERRA_CONFIG } from "@/config/adsterra";
 import { TENANT_CATEGORIES } from "@/config/categories";
 import { LegalHyperSearch } from "@/components/sites/legalhyper/LegalHyperSearch";
 import { mapMediaStackToLegalHyperArticles } from "@/components/sites/legalhyper/mockArticles";
-import { fetchMediaStackNews, filterMediaStackBySearch, type MediaStackArticle } from "@/lib/mediastack";
-import { fetchDomainMediaStackFeed } from "@/lib/mediastack-feeds";
+import { filterMediaStackBySearch, type MediaStackArticle } from "@/lib/mediastack";
+import { fetchDomainMediaStackFeed, fetchLegalHyperFeed } from "@/lib/mediastack-feeds";
 import { fetchLavagueTechRss } from "@/lib/rss";
 import { isTechNewsDomain } from "@/components/sites/technews-shared/theme";
 import { classifyWireCategory } from "@/components/sites/technews-shared/categorize";
 import { classifyTechOggiCategory } from "@/components/sites/techoggi/categorize";
 import { TechNewsSearchResults } from "@/components/sites/technews-shared/TechNewsSearchResults";
+import { PressBigSearchResults } from "@/components/sites/pressbig/PressBigSearchResults";
 import { FacetLink } from "@/components/FacetLink";
 
 // MediaStack's own tag is just "technology" (or "general" for non-English), so a
@@ -126,7 +127,7 @@ export default async function SearchPage({
   // LegalHyper's content is sourced live from MediaStack (see the home page),
   // not the DB-backed article pipeline used by every other domain.
   if (domain === "legalhyper.com") {
-    const legalhyperMediastack = await fetchMediaStackNews({ keywords: "legal", languages: "en", limit: 100 });
+    const legalhyperMediastack = await fetchLegalHyperFeed();
     const legalhyperArticles = mapMediaStackToLegalHyperArticles(legalhyperMediastack);
     return <LegalHyperSearch articles={legalhyperArticles} searchQuery={searchQuery} categoryParam={categoryParam} />;
   }
@@ -163,6 +164,7 @@ async function SearchContent({
   tenantId: string | null;
 }) {
   const isTechNews = isTechNewsDomain(domain);
+  const isPressBig = domain === "pressbig.com";
 
   const [dbArticles, mediastackMatches, trendingArticles, sidebarBanners] = await Promise.all([
     tenantId
@@ -179,15 +181,28 @@ async function SearchContent({
       : Promise.resolve([]),
     getMediaStackMatches(domain, searchQuery, categoryParam),
     // The technews list below has no sidebar, so skip its queries.
-    tenantId && !isTechNews
+    tenantId && !isTechNews && !isPressBig
       ? articlesService.getArticles({ limit: 10, status: "published", requireImage: true }, tenantId)
       : Promise.resolve([]),
-    tenantId && !isTechNews
+    tenantId && !isTechNews && !isPressBig
       ? bannersService
         .getBanners({ position: "HOME_SIDEBAR", isActive: true, tenantId })
         .catch(() => [])
       : Promise.resolve([]),
   ]);
+
+  // pressbig.com: a wall of torn-paper scraps, DB articles blended with MediaStack.
+  if (isPressBig) {
+    return (
+      <PressBigSearchResults
+        domain={domain}
+        articles={dbArticles}
+        mediastackArticles={mediastackMatches}
+        searchQuery={searchQuery}
+        categoryName={categoryParam ? decodeURIComponent(categoryParam) : null}
+      />
+    );
+  }
 
   // Technews family: its own themed list, DB articles blended with MediaStack.
   if (isTechNews) {

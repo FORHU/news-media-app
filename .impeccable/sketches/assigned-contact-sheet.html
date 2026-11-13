@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=1440">
+<title>PressBig / The Contact Sheet (sketch)</title>
+<style>
+:root{--table:#eef1f4;--film:#101113;--pencil:#e5322b;--amber:#f2a900;--ink:#101113}
+*{box-sizing:border-box;margin:0}
+html,body{width:1440px;height:900px;overflow:hidden;background:var(--table);font-family:"Arial Narrow",Arial,sans-serif;color:var(--ink)}
+.rebate{background:var(--film);color:var(--amber);height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 40px;font:600 13px/1 monospace;letter-spacing:.18em}
+.rebate b{font:900 30px/1 Impact,"Arial Narrow",sans-serif;letter-spacing:.04em;color:#fff}
+.nav{display:flex;gap:28px}.nav span{font:700 14px/1 Arial;letter-spacing:.14em}
+.wrap{display:grid;grid-template-columns:560px 1fr;gap:48px;padding:40px 40px 0}
+.kicker{font:700 15px/1 monospace;letter-spacing:.2em;color:var(--pencil)}
+h1{font:900 138px/.86 Impact,"Arial Narrow",sans-serif;text-transform:uppercase;margin:18px 0 26px;letter-spacing:-.01em}
+h1 em{font-style:normal;color:var(--pencil)}
+p.lede{font:400 24px/1.35 Arial;max-width:480px}
+.cta{display:inline-block;margin-top:30px;background:var(--pencil);color:#fff;font:800 22px/1 Arial;padding:20px 30px;letter-spacing:.04em}
+.sheet{position:relative}
+.strip{background:var(--film);padding:26px 18px;position:relative}
+.strip:before,.strip:after{content:"";position:absolute;left:0;right:0;height:10px;background:repeating-linear-gradient(90deg,#eef1f4 0 12px,transparent 12px 28px);opacity:.9}
+.strip:before{top:7px}.strip:after{bottom:7px}
+.frames{display:grid;gap:14px}
+.lead{grid-template-columns:1fr}
+.frame{position:relative;background:linear-gradient(135deg,#8d99a6,#3b4651 60%,#1c242c);aspect-ratio:3/2}
+.frame .no{position:absolute;left:8px;bottom:-22px;color:var(--amber);font:700 12px monospace}
+.circle{position:absolute;inset:-26px -30px -30px -24px;border:7px solid var(--pencil);border-radius:48% 52% 50% 50%/55% 45% 55% 45%;transform:rotate(-2deg)}
+.note{position:absolute;right:-6px;top:-62px;font:italic 700 30px/1 "Brush Script MT",cursive;color:var(--pencil);transform:rotate(-6deg)}
+.row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:22px}
+.row .frame{aspect-ratio:3/2}
+.row .frame:nth-child(2n){background:linear-gradient(135deg,#a8a29a,#4a463f 70%)}
+.row .frame:nth-child(3n){background:linear-gradient(135deg,#7b8a85,#2a3a36)}
+.tabs{display:flex;gap:10px;margin-top:34px}
+.tabs span{border:3px solid var(--film);padding:11px 18px;font:800 16px/1 Arial;letter-spacing:.12em}
+.tabs span:first-child{background:var(--film);color:var(--amber)}
+</style></head><body>
+<div class="rebate"><b>PRESSBIG</b><div class="nav"><span>ENTERTAINMENT</span><span>FASHION &amp; STYLE</span><span>GADGETS</span><span>CELEBRITY &amp; CULTURE</span></div><span>ROLL 318 &#9656; FRI 13 NOV</span></div>
+<div class="wrap">
+  <div>
+    <div class="kicker">TODAY'S EDIT &#9656; 12 FRAMES</div>
+    <h1>Picked,<br><em>not</em> piled.</h1>
+    <p class="lede">The day's entertainment, fashion, gadgets and culture, circled for you.</p>
+    <a class="cta">Read today's pick &#8594;</a>
+    <div class="tabs"><span>ALL 12</span><span>FILM &amp; TV</span><span>STYLE</span><span>TECH</span></div>
+  </div>
+  <div class="sheet">
+    <div class="strip"><div class="frames lead"><div class="frame" style="aspect-ratio:16/8"><div class="circle"></div><div class="note">this one!</div><span class="no">&#9656;07 07A</span></div></div></div>
+    <div class="strip" style="margin-top:18px;padding:26px 18px 30px"><div class="row" style="margin-top:0"><div class="frame"><span class="no">08</span></div><div class="frame"><span class="no">09</span></div><div class="frame"><span class="no">10</span></div><div class="frame"><span class="no">11</span></div><div class="frame"><span class="no">12</span></div></div></div>
+  </div>
+</div>
+</body></html>

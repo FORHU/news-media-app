@@ -90,7 +90,11 @@ function wireToFeedItem(m: MediaStackArticle, summaryLen: number): FeedItem {
     summary: excerpt(m.description, summaryLen),
     image: m.image as string,
     label: m.source,
-    category: classifyNewsIconsCategory(m.title, m.description),
+    // The feed pool the story came from names its category; keyword
+    // classification is only the fallback for untagged stories.
+    category:
+      (m.topic ? CANONICAL_MAP.get(normalizeCategoryKey(m.topic)) : undefined) ??
+      classifyNewsIconsCategory(m.title, m.description),
     dateMs: new Date(m.publishedAt).getTime() || 0,
   };
 }
@@ -148,16 +152,14 @@ export default function NewsIconsLanding({ articles, banners, mediastackArticles
   const BLOCK_SIZE = 4;
   const ownByCat = new Map<string, FeedItem[]>();
   const wireByCat = new Map<string, FeedItem[]>();
-  const wireUnmatched: FeedItem[] = [];
   for (const item of mixed) {
     if (used.has(item.key)) continue;
     if (item.external) {
       if (item.category) {
         if (!wireByCat.has(item.category)) wireByCat.set(item.category, []);
         wireByCat.get(item.category)!.push(item);
-      } else {
-        wireUnmatched.push(item);
       }
+      // Wire items with no category stay in `mixed` and are picked up as spare below.
     } else {
       const cat = item.category ?? "Uncategorized";
       if (!ownByCat.has(cat)) ownByCat.set(cat, []);
@@ -181,9 +183,20 @@ export default function NewsIconsLanding({ articles, banners, mediastackArticles
       return { name, items };
     })
     .filter((g) => g.items.length >= 1);
+  for (const g of categoryBlocks) for (const i of g.items) used.add(i.key);
+
+  // Top up thin blocks from every wire story not yet placed (newest first):
+  // untagged ones, and each category's overflow beyond its own block. Blocks
+  // named after a site's own DB categories ("Technology", "Business", ...) are
+  // never a wire category, so without this they would only ever hold our own
+  // articles.
+  const wireSpare = mixed.filter((i) => i.external && !used.has(i.key));
   for (const g of categoryBlocks) {
-    while (g.items.length < BLOCK_SIZE && wireUnmatched.length) g.items.push(wireUnmatched.shift()!);
-    for (const i of g.items) used.add(i.key);
+    while (g.items.length < BLOCK_SIZE && wireSpare.length) {
+      const next = wireSpare.shift()!;
+      g.items.push(next);
+      used.add(next.key);
+    }
   }
 
   // Wire-only sections (sidebar, Trending, Headlines, From the Wire) get what's left.

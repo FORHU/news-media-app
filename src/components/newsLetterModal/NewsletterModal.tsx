@@ -108,6 +108,20 @@ const getDomainTheme = (domain: string): ThemeClasses => {
       gradient: "from-red-600/5",
     };
   }
+  if (domain.includes("pressbig")) {
+    return {
+      bg: "bg-[#445c7a]",
+      text: "text-[#445c7a]",
+      border: "border-[#1a1a1a]",
+      borderFocus: "focus:border-[#b34a4a]",
+      hoverBg: "hover:bg-[#1a1a1a]",
+      hoverText: "hover:text-[#b34a4a]",
+      bgLight: "bg-[#f2efe6]",
+      bgLight10: "bg-[#dbc26b]/40",
+      font: "pb-nl-font",
+      gradient: "from-[#dbc26b]/30",
+    };
+  }
   // Default / NewsIcons
   return {
     bg: "bg-[#ff4500]",
@@ -163,6 +177,7 @@ export function NewsletterModal({ isOpen, onClose, domain = "" }: NewsletterModa
   }, [domain]);
 
   const theme = getDomainTheme(localDomain.toLowerCase());
+  const isPressBig = localDomain.toLowerCase().includes("pressbig");
 
   // Load available newsletter categories when the modal is open
   const {
@@ -401,16 +416,16 @@ export function NewsletterModal({ isOpen, onClose, domain = "" }: NewsletterModa
       <RemoveScroll enabled={isOpen}>
         {/* Backdrop */}
         <div
-          className="fixed inset-0 bg-black/60 z-[100] backdrop-blur-sm transition-opacity flex items-center justify-center p-4"
+          className={`fixed inset-0 bg-black/60 z-[100] backdrop-blur-sm transition-opacity flex items-center justify-center p-4 ${isPressBig ? "pb-nl" : ""}`}
           onClick={onClose}
         >
           {/* Modal Panel */}
           <div
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl relative overflow-hidden flex flex-col max-h-[90dvh]"
+            className={isPressBig ? "pb-nl-card pb-paper w-full max-w-2xl relative flex flex-col max-h-[90dvh]" : "bg-white rounded-2xl shadow-2xl w-full max-w-2xl relative overflow-hidden flex flex-col max-h-[90dvh]"}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className={`flex items-center justify-between p-4 sm:p-5 ${theme.bg} rounded-t-2xl shrink-0`}>
+            <div className={isPressBig ? "pb-nl-head pb-paper pb-paper--black flex items-center justify-between shrink-0" : `flex items-center justify-between p-4 sm:p-5 ${theme.bg} rounded-t-2xl shrink-0`}>
               <h2 className={`text-xl sm:text-2xl font-bold text-white ${theme.font}`}>
                 {step === "email" && "Subscribe to Newsletter"}
                 {step === "verification" && "Verify Your Email"}
@@ -462,14 +477,14 @@ export function NewsletterModal({ isOpen, onClose, domain = "" }: NewsletterModa
                       <div className="flex gap-2 sm:gap-3 mb-4 sm:mb-6">
                         <button
                           type="submit"
-                          className={`flex-1 ${theme.bg} text-white px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg ${theme.hoverBg} transition-colors font-medium text-sm sm:text-base ${theme.font}`}
+                          className={`pb-nl-btn flex-1 ${theme.bg} text-white px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg ${theme.hoverBg} transition-colors font-medium text-sm sm:text-base ${theme.font}`}
                         >
                           Next
                         </button>
                         <button
                           type="button"
                           onClick={onClose}
-                          className={`px-6 sm:px-8 py-3 sm:py-3.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm sm:text-base ${theme.font}`}
+                          className={`pb-nl-btn pb-nl-btn--ghost px-6 sm:px-8 py-3 sm:py-3.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm sm:text-base ${theme.font}`}
                         >
                           Cancel
                         </button>
@@ -481,17 +496,24 @@ export function NewsletterModal({ isOpen, onClose, domain = "" }: NewsletterModa
                         What you&apos;ll get
                       </h3>
                       <ul className="space-y-2 sm:space-y-3">
-                        {[
-                          "Daily curated news and trending products",
-                          "AI-powered insights and analysis",
-                          "Exclusive content across 8+ categories",
-                        ].map((benefit) => (
+                        {(isPressBig
+                          ? [
+                              "The newest picks from all four sections",
+                              "Choose the sections you want to hear about",
+                              "Every story links to its original publisher",
+                            ]
+                          : [
+                              "Daily curated news and trending products",
+                              "AI-powered insights and analysis",
+                              "Exclusive content across 8+ categories",
+                            ]
+                        ).map((benefit) => (
                           <li
                             key={benefit}
                             className="flex items-start gap-2 sm:gap-3"
                           >
                             <span className={`${theme.text} mt-0.5 flex-shrink-0 text-xs sm:text-sm`}>
-                              ✓
+                              {isPressBig ? <span className="pb-nl-dot" aria-hidden="true" /> : "✓"}
                             </span>
                             <span className={`text-xs sm:text-sm text-gray-700 ${theme.font}`}>
                               {benefit}
@@ -573,7 +595,7 @@ export function NewsletterModal({ isOpen, onClose, domain = "" }: NewsletterModa
                     <button
                       type="button"
                       onClick={handleFinalClose}
-                      className={`w-full px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg font-bold text-base sm:text-lg ${theme.bg} text-white ${theme.hoverBg} transition-all active:scale-[0.98] ${theme.font}`}
+                      className={`pb-nl-btn w-full px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg font-bold text-base sm:text-lg ${theme.bg} text-white ${theme.hoverBg} transition-all active:scale-[0.98] ${theme.font}`}
                     >
                       Close
                     </button>
