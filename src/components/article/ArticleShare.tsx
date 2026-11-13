@@ -66,7 +66,8 @@ type SiteTheme =
   | "newyorksignal"
   | "technikpost"
   | "techoggi"
-  | "techhoy";
+  | "techhoy"
+  | "pressbig";
 
 function normalizeShareUrl(input: string) {
   try {
@@ -527,6 +528,15 @@ export function ArticleShare({
           header: "text-[#1A1613] font-serif text-2xl font-black tracking-tight",
           item: "rounded-none border-[#E0D7C5] hover:border-[#7C231E] transition-all",
           copyBtn: "bg-[#1A1613] text-white hover:opacity-90 rounded-none border-none",
+        };
+      case "pressbig":
+        return {
+          trigger:
+            "pb-nl-btn px-8 py-2.5 h-auto rounded-none text-[12px]",
+          modal: "pb-share sm:max-w-lg",
+          header: "pb-share-title",
+          item: "pb-share-item",
+          copyBtn: "bg-[#1A1A1A] text-[#F2EFE6] hover:opacity-90 rounded-none border-none",
         };
       case "technikpost":
         return {

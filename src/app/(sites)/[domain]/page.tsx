@@ -12,7 +12,7 @@ import { bannersService } from "@/services/banners.service";
 import { resolveTenantIdFromDomain, getSiteNameFromDomain, getSiteIconFromDomain, getSiteLogoFromDomain, getSiteDescriptionFromDomain, getSiteLocaleFromDomain } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
 import { fetchLavagueTechRss } from "@/lib/rss";
-import { fetchMediaStackNews, filterMediaStackWithinHours } from "@/lib/mediastack";
+import { filterMediaStackWithinHours } from "@/lib/mediastack";
 
 // Domain-specific designs
 import NewsIconsLanding from "@/components/sites/newsicons/NewsIconsLanding";
@@ -30,10 +30,11 @@ import MagazineTechyLanding from "@/components/sites/magazinetechy/MagazineTechy
 import MagazineAirLanding from "@/components/sites/magazineair/MagazineAirLanding";
 import TechyGateLanding from "@/components/sites/techygate/TechyGateLanding";
 import NewYorkSignalLanding from "@/components/sites/newyorksignal/NewYorkSignalLanding";
+import PressBigLanding from "@/components/sites/pressbig/PressBigLanding";
 import TechnikPostLanding from "@/components/sites/technikpost/TechnikPostLanding";
 import TechOggiLanding from "@/components/sites/techoggi/TechOggiLanding";
 import TechHoyLanding from "@/components/sites/techhoy/TechHoyLanding";
-import { fetchDomainMediaStackFeed } from "@/lib/mediastack-feeds";
+import { fetchDomainMediaStackFeed, fetchLegalHyperFeed } from "@/lib/mediastack-feeds";
 import { RecentArticlesIndex } from "@/components/RecentArticlesIndex";
 
 type TechNewsLandingComponent = typeof LinkTechNewsLanding;
@@ -186,9 +187,22 @@ async function HomeLanding({
   }
 
   if (domain === "legalhyper.com") {
-    const legalhyperMediastack = await fetchMediaStackNews({ keywords: "legal", languages: "en", limit: 100 });
+    const legalhyperMediastack = await fetchLegalHyperFeed();
     const legalhyperArticles = mapMediaStackToLegalHyperArticles(legalhyperMediastack);
     return <LegalHyperLanding tenantId={tenantId} articles={legalhyperArticles} banners={banners} />;
+  }
+
+  if (domain === "pressbig.com") {
+    const pressbigMediastack = (await fetchDomainMediaStackFeed(domain)) ?? [];
+    return (
+      <PressBigLanding
+        domain={domain}
+        tenantId={tenantId}
+        articles={articles}
+        banners={banners}
+        mediastackArticles={pressbigMediastack}
+      />
+    );
   }
 
   const TechNewsLanding = TECHNEWS_LANDINGS[domain];

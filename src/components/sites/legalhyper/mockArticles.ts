@@ -22,8 +22,9 @@ export interface MockArticle {
   url?: string | null;
 }
 
-// MediaStack has no legal-specific taxonomy, so incoming articles are rotated
-// across these desks to keep the "Featured Desks" section populated.
+// MediaStack has no legal-specific taxonomy: each desk is its own keyword pool
+// (see LEGALHYPER_POOLS in lib/mediastack-feeds.ts), and untagged stories are
+// rotated across these desks to keep the "Featured Desks" section populated.
 const LEGALHYPER_DESKS = [
   "Legal AI",
   "LegalTech News",
@@ -59,7 +60,9 @@ export function mapMediaStackToLegalHyperArticles(items: MediaStackArticle[]): M
       trendingScore: Math.max(0, items.length - i),
       status: "published",
       author: item.source,
-      category: { categoryName: LEGALHYPER_DESKS[i % LEGALHYPER_DESKS.length] },
+      // The feed pool a story came from already names its desk; rotate only as
+      // a fallback for untagged stories.
+      category: { categoryName: item.topic ?? LEGALHYPER_DESKS[i % LEGALHYPER_DESKS.length] },
       url: item.url,
     }));
 }

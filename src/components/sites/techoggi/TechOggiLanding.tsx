@@ -11,6 +11,7 @@ import { SectionLabel } from "../technews-shared/parts";
 import { toFeedRows, excerpt, type FeedRow } from "../technews-shared/feed";
 import { FeedLink } from "../technews-shared/FeedLink";
 import { classifyTechOggiCategory } from "./categorize";
+import { TECH_CATEGORIES_IT } from "@/config/categories";
 
 /**
  * MediaStack tags every Italian result "general", so a row's own
@@ -22,6 +23,9 @@ import { classifyTechOggiCategory } from "./categorize";
  */
 function rowCategory(row: FeedRow): string {
   if (!row.external && row.category?.categoryName) return row.category.categoryName;
+  // Stories from a per-category MediaStack pool already carry a real label.
+  const tagged = row.category?.categoryName;
+  if (tagged && TECH_CATEGORIES_IT.includes(tagged)) return tagged;
   return classifyTechOggiCategory(row.title, row.content) ?? "Tecnologia";
 }
 

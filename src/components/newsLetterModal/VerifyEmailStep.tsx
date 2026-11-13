@@ -100,7 +100,7 @@ export function VerifyEmailStep({
         <button
           type="submit"
           disabled={otp.some((d) => !d) || isVerifying}
-          className={`w-full px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg font-medium text-sm sm:text-base mb-3 sm:mb-4 transition-colors ${theme.font} ${
+          className={`pb-nl-btn w-full px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg font-medium text-sm sm:text-base mb-3 sm:mb-4 transition-colors ${theme.font} ${
             otp.some((d) => !d) || isVerifying
               ? "bg-gray-200 text-gray-400 cursor-not-allowed"
               : `${theme.bg} text-white ${theme.hoverBg}`

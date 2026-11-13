@@ -136,6 +136,14 @@ export const DOMAIN_COLORS: Record<string, DomainColor> = {
     hoverBgClass: "hover:bg-[#8f1e18]",
     ringClass: "focus:ring-[#B3261E]/20",
   },
+  "pressbig.com": {
+    hex: "#B34A4A",
+    bgClass: "bg-[#B34A4A]",
+    textClass: "text-[#B34A4A]",
+    borderClass: "border-[#B34A4A]",
+    hoverBgClass: "hover:bg-[#8f3b3b]",
+    ringClass: "focus:ring-[#B34A4A]/20",
+  },
 };
 
 export function getDomainColor(domain: string = ""): DomainColor {
@@ -156,6 +164,7 @@ export function getDomainColor(domain: string = ""): DomainColor {
   if (normalized.includes("technikpost")) return DOMAIN_COLORS["technikpost.de"];
   if (normalized.includes("techoggi")) return DOMAIN_COLORS["techoggi.com"];
   if (normalized.includes("techhoy")) return DOMAIN_COLORS["techhoy.com"];
+  if (normalized.includes("pressbig")) return DOMAIN_COLORS["pressbig.com"];
 
   // Default to NewsIcons
   return DOMAIN_COLORS["newsicons.com"];

@@ -25,11 +25,12 @@ export function getSiteNameFromDomain(domain: string | null): string {
   if (d.includes('technikpost')) return "TechnikPost";
   if (d.includes('techoggi')) return "Tech Oggi";
   if (d.includes('techhoy')) return "TechHoy";
+  if (d.includes('pressbig')) return "PressBig";
   return "NewsIcons";
 }
 
 /** Bump when any /icons/*.ico changes so browsers and search engines refetch it. */
-const SITE_ICON_VERSION = 5;
+const SITE_ICON_VERSION = 6;
 
 function getSiteIconPath(domain: string | null): string {
   if (!domain) return "/icons/newsicons.ico";
@@ -50,6 +51,7 @@ function getSiteIconPath(domain: string | null): string {
   if (d.includes('technikpost')) return "/icons/technikpost.ico";
   if (d.includes('techoggi')) return "/icons/techoggi.ico";
   if (d.includes('techhoy')) return "/icons/techhoy.ico";
+  if (d.includes('pressbig')) return "/icons/pressbig.ico";
   return "/icons/newsicons.ico";
 }
 
@@ -77,6 +79,7 @@ export function getSiteLogoFromDomain(domain: string | null): string {
   if (d.includes('technikpost')) return "TECHNIKPOST.png";
   if (d.includes('techoggi')) return "TECHOGGI.png";
   if (d.includes('techhoy')) return "TECHHOY.png";
+  if (d.includes('pressbig')) return "PRESSBIG.png";
   return "NEWSICONSLOGO.png";
 }
 
@@ -99,6 +102,7 @@ export function getSiteDescriptionFromDomain(domain: string | null): string {
   if (d.includes('technikpost')) return "Technik, Netzpolitik und Wirtschaft — täglich aus Berlin, Brüssel und dem Silicon Valley.";
   if (d.includes('techoggi')) return "La tecnologia, oggi — le notizie essenziali della giornata, in sintesi.";
   if (d.includes('techhoy')) return "TechHoy: noticias de tecnología en español, con inteligencia artificial, ciberseguridad, empresas y dispositivos, cada día.";
+  if (d.includes('pressbig')) return "PressBig: the day's edit of entertainment, fashion, gadgets and culture. Picked, not piled.";
   return "Media & Content Hub for curated news, blogs, and insights.";
 }
 
@@ -166,6 +170,7 @@ const SITE_SAME_AS: Record<string, string[]> = {
   technikpost: [],
   techoggi: [],
   techhoy: [],
+  pressbig: [],
 };
 
 export function getSiteSameAsFromDomain(domain: string | null): string[] {

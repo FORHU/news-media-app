@@ -27,6 +27,7 @@ import NewYorkSignalArticle from "@/components/sites/newyorksignal/NewYorkSignal
 import TechnikPostArticle from "@/components/sites/technikpost/TechnikPostArticle";
 import TechOggiArticle from "@/components/sites/techoggi/TechOggiArticle";
 import TechHoyArticle from "@/components/sites/techhoy/TechHoyArticle";
+import PressBigArticle from "@/components/sites/pressbig/PressBigArticle";
 
 const TECHNEWS_ARTICLES: Record<string, typeof LinkTechNewsArticle> = {
   "linktechnews.com": LinkTechNewsArticle,
@@ -386,6 +387,8 @@ export default async function ArticlePage({
           <NewsIconsArticle articleId={canonicalSlug} initialOtherArticles={allArticles} />
         ) : domain === "legalhyper.com" ? (
           <LegalHyperArticle articleId={canonicalSlug} initialOtherArticles={allArticles} />
+        ) : domain === "pressbig.com" ? (
+          <PressBigArticle domain={domain} articleId={canonicalSlug} initialOtherArticles={allArticles} />
         ) : TechNewsArticle ? (
           <TechNewsArticle domain={domain} articleId={canonicalSlug} initialOtherArticles={allArticles} />
         ) : (

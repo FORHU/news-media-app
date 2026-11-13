@@ -11,6 +11,28 @@ export interface MediaStackArticle {
   image: string | null;
   category: string;
   publishedAt: string;
+  /** The site category this story was fetched for (set by the per-category
+   *  feed pools in mediastack-feeds.ts). MediaStack's own `category` tag is
+   *  too coarse to place a story, so when present this beats the keyword
+   *  classifier. */
+  topic?: string;
+}
+
+/** Cache window for MediaStack responses; see MEDIASTACK_REVALIDATE_SECONDS. */
+function defaultRevalidateSeconds(): number {
+  if (env.MEDIASTACK_REVALIDATE_SECONDS) return env.MEDIASTACK_REVALIDATE_SECONDS;
+  return process.env.NODE_ENV === "development" ? 86400 : 14400;
+}
+
+/** Stable short hash (FNV-1a) so a story keeps the same id across renders and
+ *  across the several feed pools it can appear in. */
+export function stableHash(value: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < value.length; i++) {
+    h ^= value.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
 }
 
 interface MediaStackResponse {
@@ -81,9 +103,16 @@ export function filterMediaStackBySearch(
   const categoryKey = category ? normalizeCategoryKey(category) : null;
 
   return articles.filter((a) => {
-    if (categoryKey && normalizeCategoryKey(a.category) !== categoryKey) {
-      const topic = categoryOf?.(a);
-      if (!topic || normalizeCategoryKey(topic) !== categoryKey) return false;
+    if (categoryKey) {
+      // The pool's own category tag is authoritative; fall back to
+      // MediaStack's label, then the keyword classifier.
+      const matchesOwn =
+        (!!a.topic && normalizeCategoryKey(a.topic) === categoryKey) ||
+        normalizeCategoryKey(a.category) === categoryKey;
+      if (!matchesOwn) {
+        const topic = a.topic ? null : categoryOf?.(a);
+        if (!topic || normalizeCategoryKey(topic) !== categoryKey) return false;
+      }
     }
     if (terms.length === 0) return true;
     const haystack = `${a.title} ${a.description ?? ""} ${a.source} ${a.sourceDomain}`.toLowerCase();
@@ -191,6 +220,60 @@ async function fetchOgImage(
   return null;
 }
 
+/**
+ * Upgrade images: MediaStack's `image` is only the publisher's feed thumbnail
+ * — often a tiny (~150px) crop, sometimes not even an image URL. Enrich when
+ * the article has no image, a generic placeholder, a non-image URL, or an
+ * obvious low-res thumbnail, pulling the article's real og:image instead
+ * (usually 1200×630+). The free direct scrape runs for every candidate; the
+ * rate-limited Microlink fallback only for the first `microlinkLimit` (default
+ * 6), which get the largest on-page slots.
+ *
+ * Runs at most `concurrency` scrapes at once (default 20). Unbounded, a cold
+ * cache fired ~1,000 simultaneous requests and a single page render took over
+ * two minutes. Each scrape is cached per URL for 24h, so repeat renders are fast.
+ *
+ * Unless `requireImage` is false, articles that still have no usable image are
+ * dropped: they can't be shown as a card without a placeholder box.
+ */
+export async function enrichImages(
+  articles: MediaStackArticle[],
+  opts: { microlinkLimit?: number; requireImage?: boolean; label?: string; concurrency?: number } = {},
+): Promise<MediaStackArticle[]> {
+  const enriched: MediaStackArticle[] = new Array(articles.length);
+  let nextIndex = 0;
+
+  const enrichOne = async (article: MediaStackArticle, i: number): Promise<MediaStackArticle> => {
+    const img = article.image;
+    const usable =
+      !!img &&
+      !isGenericPlaceholder(img) &&
+      looksLikeImageUrl(img) &&
+      !isLikelyLowResThumb(img);
+    if (usable) return article;
+
+    const better = await fetchOgImage(article.url, { allowMicrolink: i < (opts.microlinkLimit ?? 6) });
+    if (better) return { ...article, image: better };
+    // No upgrade found: keep a real (if small) thumbnail, but drop a
+    // non-image URL so Next's optimizer doesn't choke on it.
+    return img && looksLikeImageUrl(img) ? article : { ...article, image: null };
+  };
+
+  const worker = async () => {
+    for (;;) {
+      const i = nextIndex++;
+      if (i >= articles.length) return;
+      enriched[i] = await enrichOne(articles[i], i);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(opts.concurrency ?? 20, articles.length) }, worker));
+
+  const withImage = enriched.filter((article) => article.image !== null).length;
+  console.log(`[MediaStack] ${opts.label ?? "enrich"}: ${withImage}/${enriched.length} articles got a usable image`);
+
+  return opts.requireImage === false ? enriched : enriched.filter((article) => article.image !== null);
+}
+
 export async function fetchMediaStackNews(params: {
   categories?: string;
   languages?: string;
@@ -209,6 +292,11 @@ export async function fetchMediaStackNews(params: {
    *  Italian results never carry a direct `image`, so every article depends
    *  entirely on scraping succeeding). */
   microlinkLimit?: number;
+  /** Cache window in seconds. Defaults to MEDIASTACK_REVALIDATE_SECONDS (4h). */
+  revalidate?: number;
+  /** Set false to skip image enrichment and return the raw stories; the caller
+   *  then runs enrichImages() on whatever it keeps. Defaults to true. */
+  enrich?: boolean;
 }): Promise<MediaStackArticle[]> {
   const apiKey = env.MEDIASTACK_API_KEY;
   if (!apiKey) {
@@ -238,10 +326,10 @@ export async function fetchMediaStackNews(params: {
   };
 
   // A transient MediaStack failure (rate limit, hiccup, etc.) must not get
-  // cached for 24h — that would blank out a tenant's whole feed for a full
-  // day. Try the normal 24h-cached request first; if it comes back empty or
+  // cached for a whole window — that would blank out a tenant's feed until it
+  // expires. Try the normal cached request first; if it comes back empty or
   // errored, retry once bypassing the cache so a bad response can't stick.
-  let result = await attempt({ next: { revalidate: 86400 } });
+  let result = await attempt({ next: { revalidate: params.revalidate ?? defaultRevalidateSeconds() } });
   if (!result || result.json.error || (result.json.data?.length ?? 0) === 0) {
     console.error(
       !result
@@ -265,8 +353,8 @@ export async function fetchMediaStackNews(params: {
       return [];
     }
 
-    const raw = (json.data ?? []).map((item, i) => ({
-      id: `ms-${i}-${Date.now()}`,
+    const raw = (json.data ?? []).map((item) => ({
+      id: `ms-${stableHash(item.url).toString(36)}`,
       title: item.title,
       description: item.description,
       url: item.url,
@@ -293,44 +381,16 @@ export async function fetchMediaStackNews(params: {
       image: a.image && (imageFreq.get(a.image) ?? 0) > 1 ? null : a.image,
     }));
 
-    // Upgrade images: MediaStack's `image` is only the publisher's feed thumbnail
-    // — often a tiny (~150px) crop, sometimes not even an image URL. Enrich when
-    // the article has no image, a generic placeholder, a non-image URL, or an
-    // obvious low-res thumbnail, pulling the article's real og:image instead
-    // (usually 1200×630+). The free direct scrape runs for every candidate; the
-    // rate-limited Microlink fallback only for the first handful (which get the
-    // largest on-page slots).
-    const enriched = await Promise.all(
-      deduped.map(async (article, i) => {
-        const img = article.image;
-        const usable =
-          !!img &&
-          !isGenericPlaceholder(img) &&
-          looksLikeImageUrl(img) &&
-          !isLikelyLowResThumb(img);
-        if (usable) return article;
+    // Callers that filter / de-duplicate / slice the results first (the
+    // per-category feed pools) skip enrichment here and call enrichImages()
+    // themselves on the stories they actually keep.
+    if (params.enrich === false) return deduped;
 
-        const better = await fetchOgImage(article.url, { allowMicrolink: i < (params.microlinkLimit ?? 6) });
-        if (better) return { ...article, image: better };
-        // No upgrade found: keep a real (if small) thumbnail, but drop a
-        // non-image URL so Next's optimizer doesn't choke on it.
-        return img && looksLikeImageUrl(img) ? article : { ...article, image: null };
-      })
-    );
-
-    // Articles that still have no usable image after enrichment aren't
-    // displayable as a card without falling back to a placeholder box — drop
-    // them here so every caller gets image-guaranteed articles by default,
-    // unless the caller opted out (e.g. a text-only ticker).
-    const withImage = enriched.filter((article) => article.image !== null).length;
-    console.log(
-      `[MediaStack] ${params.languages ?? "en"}/${params.keywords ?? params.categories}: ` +
-        `${withImage}/${enriched.length} articles got a usable image`,
-    );
-
-    return params.requireImage === false
-      ? enriched
-      : enriched.filter((article) => article.image !== null);
+    return enrichImages(deduped, {
+      microlinkLimit: params.microlinkLimit,
+      requireImage: params.requireImage,
+      label: `${params.languages ?? "en"}/${params.keywords ?? params.categories}`,
+    });
   } catch (err) {
     console.error("[MediaStack] Fetch failed:", err);
     return [];

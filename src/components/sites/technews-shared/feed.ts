@@ -80,7 +80,7 @@ function fromMediaStack(a: MediaStackArticle, domain?: string): FeedRow {
     trendingScore: null,
     isHeadline: null,
     status: "published",
-    category: { categoryName: classifyWireCategory(domain, a.title, a.description) || a.category || host || "Tech" },
+    category: { categoryName: a.topic || classifyWireCategory(domain, a.title, a.description) || a.category || host || "Tech" },
     href: a.url,
     external: true,
     source: host || null,

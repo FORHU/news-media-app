@@ -1,0 +1,352 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-13T09:01:23.712Z",
+  "title": "Design System: PressBig",
+  "extensions": {
+    "colorMeta": {
+      "chalk": {
+        "role": "neutral",
+        "displayName": "Chalk",
+        "canonical": "#f2efe6",
+        "tonalRamp": [
+          "#61605c",
+          "#918f8a",
+          "#c2bfb8",
+          "#f2efe6",
+          "#f5f2eb",
+          "#f7f5f0",
+          "#faf9f5",
+          "#fcfcfa"
+        ]
+      },
+      "poster-black": {
+        "role": "primary",
+        "displayName": "Poster Black",
+        "canonical": "#1a1a1a",
+        "tonalRamp": [
+          "#0a0a0a",
+          "#101010",
+          "#151515",
+          "#1a1a1a",
+          "#484848",
+          "#767676",
+          "#a3a3a3",
+          "#d1d1d1"
+        ]
+      },
+      "faded-indigo": {
+        "role": "primary",
+        "displayName": "Faded Indigo",
+        "canonical": "#445c7a",
+        "tonalRamp": [
+          "#1b2531",
+          "#293749",
+          "#364a62",
+          "#445c7a",
+          "#697d95",
+          "#8f9daf",
+          "#b4beca",
+          "#dadee4"
+        ]
+      },
+      "paper-red": {
+        "role": "secondary",
+        "displayName": "Paper Red",
+        "canonical": "#b34a4a",
+        "tonalRamp": [
+          "#481e1e",
+          "#6b2c2c",
+          "#8f3b3b",
+          "#b34a4a",
+          "#c26e6e",
+          "#d19292",
+          "#e1b7b7",
+          "#f0dbdb"
+        ]
+      },
+      "wheat-paste": {
+        "role": "tertiary",
+        "displayName": "Wheat Paste",
+        "canonical": "#dbc26b",
+        "tonalRamp": [
+          "#584e2b",
+          "#837440",
+          "#af9b56",
+          "#dbc26b",
+          "#e2ce89",
+          "#e9daa6",
+          "#f1e7c4",
+          "#f8f3e1"
+        ]
+      },
+      "paste-gray": {
+        "role": "neutral",
+        "displayName": "Paste Gray",
+        "canonical": "#b8b6ad",
+        "tonalRamp": [
+          "#4a4945",
+          "#6e6d68",
+          "#93928a",
+          "#b8b6ad",
+          "#c6c5bd",
+          "#d4d3ce",
+          "#e3e2de",
+          "#f1f0ef"
+        ]
+      },
+      "red-ink-text": {
+        "role": "neutral",
+        "displayName": "Red Ink Text",
+        "canonical": "#8f3636",
+        "tonalRamp": [
+          "#391616",
+          "#562020",
+          "#722b2b",
+          "#8f3636",
+          "#a55e5e",
+          "#bc8686",
+          "#d2afaf",
+          "#e9d7d7"
+        ]
+      },
+      "soft-ink": {
+        "role": "neutral",
+        "displayName": "Soft Ink",
+        "canonical": "#3b3b38",
+        "tonalRamp": [
+          "#181816",
+          "#232322",
+          "#2f2f2d",
+          "#3b3b38",
+          "#626260",
+          "#898988",
+          "#b1b1af",
+          "#d8d8d7"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display (Anton)",
+        "purpose": "Home hero headline, stacked black, indigo, red."
+      },
+      "headline": {
+        "displayName": "Headline (Anton)",
+        "purpose": "Section band names, page titles, layer names."
+      },
+      "title": {
+        "displayName": "Title (Gloock)",
+        "purpose": "Story headlines on scraps and article dek."
+      },
+      "body": {
+        "displayName": "Body (Spline Sans Mono)",
+        "purpose": "Base text, lede, descriptions, inputs."
+      },
+      "reading": {
+        "displayName": "Reading (Source Serif 4)",
+        "purpose": "Article prose only, max 42rem."
+      },
+      "label": {
+        "displayName": "Label (Spline Sans Mono)",
+        "purpose": "Strips, nav, tags, meta, counts; uppercase and tracked."
+      }
+    },
+    "shadows": [
+      {
+        "name": "paper-lift",
+        "value": "drop-shadow(0 6px 9px rgba(26,26,26,0.3))",
+        "purpose": "Hero scraps and ad cut-outs; follows the torn edge."
+      },
+      {
+        "name": "paper-lift-deep",
+        "value": "drop-shadow(0 16px 24px rgba(26,26,26,0.5))",
+        "purpose": "Portaled newsletter modal and share dialog."
+      },
+      {
+        "name": "focus-halo",
+        "value": "outline: 3px solid #1a1a1a; outline-offset: 3px; box-shadow: 0 0 0 3px #f2efe6",
+        "purpose": "Visible keyboard focus on every interactive element."
+      }
+    ],
+    "motion": [
+      {
+        "name": "pb-ease",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Single easing for all transitions (250 to 500ms)."
+      },
+      {
+        "name": "pb-pull",
+        "value": "0.9s pb-ease backwards, delay i*110ms + 150ms",
+        "purpose": "Hero layer strips pulled out from behind the tear on load."
+      },
+      {
+        "name": "pb-paste",
+        "value": "0.8s pb-ease backwards, delay i*120ms + 600ms",
+        "purpose": "Hero scraps pasted over the tear on load."
+      },
+      {
+        "name": "halftone-resolve",
+        "value": "filter and overlay opacity 0.4s pb-ease",
+        "purpose": "Scrap picture goes from grayscale tint to color on hover or focus."
+      },
+      {
+        "name": "drawer-slide",
+        "value": "transform 0.5s pb-ease",
+        "purpose": "Mobile menu drawer sliding down."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "tablet",
+        "value": "768px"
+      },
+      {
+        "name": "desktop",
+        "value": "900px"
+      },
+      {
+        "name": "wide",
+        "value": "1280px"
+      },
+      {
+        "name": "rails",
+        "value": "1380px"
+      }
+    ],
+    "tornPaper": {
+      "tearFilter": "feTurbulence fractalNoise baseFrequency 0.012 0.022, 4 octaves, seed 4, feDisplacementMap scale 15 (id pb-tear)",
+      "fiberFilter": "feTurbulence fractalNoise baseFrequency 0.03 0.06, 5 octaves, seed 11, feDisplacementMap scale 24 (id pb-fiber)",
+      "grain": "feTurbulence fractalNoise baseFrequency .85, 2 octaves, 180px tile; alpha .3 on backing, .13 on sheets"
+    }
+  },
+  "components": [
+    {
+      "name": "Torn Strip Button",
+      "kind": "button",
+      "refersTo": "strip-primary",
+      "description": "Default indigo torn paper strip; swap the ink for red, black or wheat. The build tears edges with SVG displacement; clip-path approximates that here.",
+      "html": "<a class=\"ds-strip\" href=\"#\">Read the lead pick</a>",
+      "css": ".ds-strip{display:inline-flex;align-items:center;min-height:3rem;padding:0.9rem 1.5rem;border:0;cursor:pointer;background:#445c7a;color:#f2efe6;font:700 0.875rem/1 'Spline Sans Mono',ui-monospace,monospace;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;border-radius:0;clip-path:polygon(0 8%,3% 0,12% 6%,30% 0,55% 5%,78% 0,100% 7%,98% 50%,100% 92%,70% 100%,45% 94%,20% 100%,2% 93%,0 60%);transition:transform .25s cubic-bezier(.16,1,.3,1)}.ds-strip:hover{transform:translateY(-2px) rotate(-0.7deg)}.ds-strip:focus-visible{outline:3px solid #1a1a1a;outline-offset:3px}.ds-strip:active{background:#1a1a1a;color:#f2efe6;transform:none}"
+    },
+    {
+      "name": "Ghost Strip Button",
+      "kind": "button",
+      "refersTo": "strip-ghost",
+      "description": "Chalk strip for section links (wheat on the chalk hero sheet).",
+      "html": "<a class=\"ds-strip\" href=\"#\">See all Gadgets &rarr;</a>",
+      "css": ".ds-strip{display:inline-flex;align-items:center;min-height:3rem;padding:0.9rem 1.5rem;border:0;cursor:pointer;background:#f2efe6;color:#1a1a1a;font:700 0.875rem/1 'Spline Sans Mono',ui-monospace,monospace;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;border-radius:0;clip-path:polygon(0 8%,3% 0,12% 6%,30% 0,55% 5%,78% 0,100% 7%,98% 50%,100% 92%,70% 100%,45% 94%,20% 100%,2% 93%,0 60%);transition:transform .25s cubic-bezier(.16,1,.3,1)}.ds-strip:hover{transform:translateY(-2px) rotate(-0.7deg)}.ds-strip:focus-visible{outline:3px solid #1a1a1a;outline-offset:3px}.ds-strip:active{background:#1a1a1a;color:#f2efe6;transform:none}"
+    },
+    {
+      "name": "Red Call-to-Action Strip",
+      "kind": "button",
+      "refersTo": "strip-red",
+      "description": "Newsletter call to action in the header and drawer.",
+      "html": "<button class=\"ds-strip\" type=\"button\">Get the edit</button>",
+      "css": ".ds-strip{display:inline-flex;align-items:center;min-height:3rem;padding:0.9rem 1.5rem;border:0;cursor:pointer;background:#b34a4a;color:#f2efe6;font:700 0.875rem/1 'Spline Sans Mono',ui-monospace,monospace;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;border-radius:0;clip-path:polygon(0 8%,3% 0,12% 6%,30% 0,55% 5%,78% 0,100% 7%,98% 50%,100% 92%,70% 100%,45% 94%,20% 100%,2% 93%,0 60%);transition:transform .25s cubic-bezier(.16,1,.3,1)}.ds-strip:hover{transform:translateY(-2px) rotate(-0.7deg)}.ds-strip:focus-visible{outline:3px solid #1a1a1a;outline-offset:3px}.ds-strip:active{background:#1a1a1a;color:#f2efe6;transform:none}"
+    },
+    {
+      "name": "Tag",
+      "kind": "chip",
+      "refersTo": "tag",
+      "description": "Black chip label; used for the Advertisement label on ad cut-outs.",
+      "html": "<span class=\"ds-tag\">Advertisement</span>",
+      "css": ".ds-tag{display:inline-block;padding:0.25rem 0.55rem;background:#1a1a1a;color:#f2efe6;font:700 0.6875rem/1 'Spline Sans Mono',ui-monospace,monospace;letter-spacing:0.14em;text-transform:uppercase}"
+    },
+    {
+      "name": "Story Scrap",
+      "kind": "card",
+      "refersTo": "scrap",
+      "description": "Chalk torn story card with a halftoned, section-tinted picture that resolves to color on hover.",
+      "html": "<a class=\"ds-scrap\" href=\"#\"><div class=\"ds-half\"></div><h3 class=\"ds-title\">The headline sits on the wall in a bookish serif</h3><p class=\"ds-meta\"><b>Source</b> <span>Nov 13</span></p></a>",
+      "css": ".ds-scrap{display:flex;flex-direction:column;gap:0.7rem;max-width:20rem;padding:0.75rem 0.75rem 1rem;background:#f2efe6;color:#1a1a1a;text-decoration:none;transform:rotate(-0.9deg);filter:drop-shadow(0 6px 9px rgba(26,26,26,.3));clip-path:polygon(0 1%,40% 0,100% 1.5%,99% 50%,100% 99%,55% 100%,0 98.5%,1% 50%);transition:transform .35s cubic-bezier(.16,1,.3,1)}.ds-scrap:hover{transform:translateY(-5px) rotate(0)}.ds-scrap:focus-visible{outline:3px solid #1a1a1a;outline-offset:3px}.ds-half{aspect-ratio:3/2;background:#b8b6ad;position:relative;overflow:hidden}.ds-half::before{content:'';position:absolute;inset:0;background:#445c7a;mix-blend-mode:multiply;opacity:.6}.ds-half::after{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(242,239,230,.9) 0 .9px,transparent 1.4px);background-size:4px 4px;opacity:.5}.ds-scrap:hover .ds-half::before,.ds-scrap:hover .ds-half::after{opacity:0}.ds-title{margin:0;font:400 1.25rem/1.18 Gloock,Georgia,serif;text-wrap:balance}.ds-meta{margin:0;display:flex;gap:0.75rem;font:700 0.6875rem/1.3 'Spline Sans Mono',ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:#445c7a}.ds-meta b{color:#8f3636}"
+    },
+    {
+      "name": "Section Layer Strip",
+      "kind": "custom",
+      "refersTo": "band-sheet",
+      "description": "Hero layer strip: torn sheet in the section ink with a giant Anton name and a mono count.",
+      "html": "<a class=\"ds-layer\" href=\"#\"><span class=\"ds-layer-name\">Gadgets</span><span class=\"ds-layer-count\">5 picks, see them all</span></a>",
+      "css": ".ds-layer{display:flex;flex-direction:column;gap:0.35rem;min-height:7.5rem;padding:1.1rem 1.5rem;background:#b34a4a;color:#f2efe6;text-decoration:none;transform:rotate(0.7deg);clip-path:polygon(0 4%,25% 0,60% 5%,100% 1%,99% 50%,100% 96%,70% 100%,30% 95%,0 99%,1% 50%);transition:transform .35s cubic-bezier(.16,1,.3,1)}.ds-layer:hover{transform:translateX(-0.75rem)}.ds-layer:focus-visible{outline:3px solid #1a1a1a;outline-offset:3px}.ds-layer-name{font:400 clamp(2.4rem,11vw,4.2rem)/0.88 Anton,'Arial Narrow',sans-serif;text-transform:uppercase}.ds-layer-count{font:700 0.8125rem/1.2 'Spline Sans Mono',ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase}"
+    },
+    {
+      "name": "Wordmark and Nav",
+      "kind": "nav",
+      "refersTo": "strip-red",
+      "description": "Chalk header: PRESS in black, BIG on a red strip; mono nav with a 3px underline.",
+      "html": "<header class=\"ds-nav\"><span class=\"ds-wm\">PRESS<span class=\"ds-big\">BIG</span></span><nav><a href=\"#\">Entertainment</a><a href=\"#\" aria-current=\"page\">Gadgets</a></nav></header>",
+      "css": ".ds-nav{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;padding:0 1.5rem;height:4.5rem;background:#f2efe6;color:#1a1a1a}.ds-wm{font:400 2rem/1 Anton,'Arial Narrow',sans-serif;text-transform:uppercase}.ds-big{margin-left:0.2rem;padding:0.1rem 0.45rem 0;background:#b34a4a;color:#f2efe6}.ds-nav nav{display:flex;gap:1.25rem}.ds-nav a{padding:0.6rem 0.8rem;font:700 0.75rem/1 'Spline Sans Mono',ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;text-decoration:none;color:inherit;border-bottom:3px solid transparent}.ds-nav a:hover{border-bottom-color:#b34a4a}.ds-nav a[aria-current]{border-bottom-color:#445c7a}.ds-nav a:focus-visible{outline:3px solid #1a1a1a;outline-offset:3px}"
+    },
+    {
+      "name": "Underline Input",
+      "kind": "input",
+      "refersTo": "body",
+      "description": "Search field: transparent, mono, 3px black underline that turns red on focus.",
+      "html": "<input class=\"ds-input\" type=\"search\" placeholder=\"Search movies, style, gadgets, culture\">",
+      "css": ".ds-input{width:100%;max-width:28rem;padding:0.9rem 0.25rem;background:transparent;border:0;border-bottom:3px solid #1a1a1a;font:400 1.25rem/1.2 'Spline Sans Mono',ui-monospace,monospace;color:#1a1a1a;border-radius:0}.ds-input::placeholder{color:#445c7a;opacity:1}.ds-input:focus{outline:none;border-bottom-color:#b34a4a}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Torn Hoarding",
+    "overview": "PressBig is the day's edit drawn as a poster hoarding that someone has torn back by hand. Today's picks sit on the top layer of chalk paper; the tear exposes the four section layers pasted up beneath, each in its own ink. Four inks (black, indigo, red, wheat) on chalk over paste-gray backing; Anton for names, Gloock for story headlines, mono for labels and body. Depth is paper lift, not UI shadow.",
+    "keyCharacteristics": [
+      "Torn edges on every container, button and band via SVG turbulence displacement, never border-radius.",
+      "Four inks on chalk; each section owns one ink.",
+      "Halftone, grayscale-and-tint pictures that resolve to color on hover or focus.",
+      "Small deliberate rotations so the wall reads as hand-pasted.",
+      "Zero radius everywhere.",
+      "One authored motion moment: strips pulled out from behind the tear on load."
+    ],
+    "rules": [
+      {
+        "name": "The Four Inks Rule",
+        "body": "Every filled surface is chalk, gray, or one of black, indigo, red, wheat. No gradients, no off-palette brand colors (share-icon brand colors are flattened to one-ink silhouettes).",
+        "section": "colors"
+      },
+      {
+        "name": "The Section Ink Rule",
+        "body": "Entertainment is black, Fashion & Style is indigo, Gadgets is red, Celebrity & Culture is wheat, everywhere that section appears (hero strips, bands, picture tint).",
+        "section": "colors"
+      },
+      {
+        "name": "The Chalk Text Rule",
+        "body": "Text on black, indigo and red paper is chalk; text on wheat and chalk is black.",
+        "section": "colors"
+      },
+      {
+        "name": "The Anton Is Loud Rule",
+        "body": "Display is Anton, uppercase, line-height 0.88, letter-spacing 0, and only for names of things (sections, page titles, the headline). Never for sentences of running copy.",
+        "section": "typography"
+      },
+      {
+        "name": "The Mono Is Small Rule",
+        "body": "Mono carries labels and body; it is always uppercase and tracked when 0.875rem or smaller and bold.",
+        "section": "typography"
+      },
+      {
+        "name": "The Paper Lift Rule",
+        "body": "The only shadow is a drop-shadow filter on a torn sheet. Never put box-shadow on a torn element, because it would draw a straight rectangle under a ragged edge.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do build every container, button and band as a .pb-paper sheet with --paper set to one of the six inks; put the filters on the pseudo-elements only.",
+      "Do keep radius at zero and let the torn edge be the shape.",
+      "Do tie each section to its ink (black, indigo, red, wheat) and tint its pictures with it.",
+      "Do use Anton uppercase for names, Gloock for story headlines, mono for labels and body, Source Serif 4 for article prose.",
+      "Do use cubic-bezier(0.16, 1, 0.3, 1) for all transitions, 250 to 500ms, and honor prefers-reduced-motion.",
+      "Do use red ink text (#8f3636) for small red text on chalk.",
+      "Do keep a visible focus ring: 3px black outline, 3px offset, 3px chalk halo."
+    ],
+    "donts": [
+      "Don't use gradients, rounded corners, glassmorphism or box-shadow on torn elements.",
+      "Don't add colors beyond the four inks, chalk and gray (the two derived text tones excepted); flatten third-party brand colors to one ink.",
+      "Don't apply the SVG filter to the element itself; it would distort its text.",
+      "Don't build the hero plus three-column equal-card grid; vary lead size, rotation and stagger.",
+      "Don't animate layout or content on scroll; the pull-out on load is the only authored motion, and content stays visible by default."
+    ]
+  }
+}

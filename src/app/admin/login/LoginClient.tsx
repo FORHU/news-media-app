@@ -8,6 +8,7 @@ import { Mail, Lock, Eye, EyeOff, AlertCircle, ChevronRight, ArrowLeft } from 'l
 import { adminLoginSchema } from '@/lib/validation/login';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getSiteIconFromDomain } from '@/lib/tenant-utils';
+import { PaperDefs, Wordmark } from '@/components/sites/pressbig/paper';
 
 /* ─── Domain theme config ─── */
 type Theme = {
@@ -53,6 +54,7 @@ function getTheme(domain: string): Theme {
   if (domain.includes('technikpost')) return technikPostTheme;
   if (domain.includes('techoggi')) return techOggiTheme;
   if (domain.includes('techhoy')) return techHoyTheme;
+  if (domain.includes('pressbig')) return pressBigTheme;
   return newsIconsTheme;
 }
 
@@ -649,6 +651,40 @@ const techHoyTheme: Theme = {
   tagline: 'Acceso a Redacción',
   footerText: '© TechHoy',
   siteName: 'TechHoy',
+};
+
+/* ── PressBig ──
+   The torn-hoarding world (see components/sites/pressbig/pressbig.css, `.pb-login*`):
+   a chalk torn sheet on the paste-gray wall, underlined fields, torn-strip button.
+   Most styling is in that stylesheet; the strings below only attach its classes. */
+const pressBigTheme: Theme = {
+  bg: 'pb pb-login min-h-screen flex items-center justify-center px-4 py-12 relative overflow-y-auto',
+  card: 'pb-login-card pb-paper relative p-8 md:p-10',
+  topBar: '',
+  logo: (
+    <div className="mb-8 flex justify-center">
+      <PaperDefs />
+      <Wordmark className="pb-login-wordmark" />
+    </div>
+  ),
+  accent: '#445c7a',
+  accentCls: 'bg-[#445c7a]',
+  accentHover: 'hover:bg-[#1a1a1a]',
+  inputFocus: 'focus:border-[#b34a4a]',
+  inputBorder: 'border-[#1a1a1a]',
+  inputBgCls: 'bg-transparent',
+  inputRounded: 'rounded-none',
+  labelCls: 'pb-login-label',
+  btnCls: 'pb-nl-btn pb-login-submit w-full py-4 text-sm flex items-center justify-center gap-3 relative group',
+  errorCls: 'pb-login-error flex items-center gap-2',
+  backCls: 'pb-login-back fixed top-5 left-5 sm:top-8 sm:left-8 flex items-center gap-3 group z-10',
+  backIconCls: 'transition-transform group-hover:-translate-x-1',
+  headingCls: 'pb-login-title mb-2',
+  subtextCls: 'pb-login-sub',
+  footerCls: 'pb-login-foot text-center mt-8',
+  tagline: 'Staff entrance',
+  footerText: '© PressBig',
+  siteName: 'PressBig',
 };
 
 /* ─── Shared form logic ─── */
