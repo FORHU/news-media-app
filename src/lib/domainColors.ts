@@ -144,6 +144,15 @@ export const DOMAIN_COLORS: Record<string, DomainColor> = {
     hoverBgClass: "hover:bg-[#8f3b3b]",
     ringClass: "focus:ring-[#B34A4A]/20",
   },
+  // golfcarrier.com "Fairway" green (5.9:1 on white). Full palette in components/sites/golfcarrier/brand.ts.
+  "golfcarrier.com": {
+    hex: "#11724C",
+    bgClass: "bg-[#11724C]",
+    textClass: "text-[#11724C]",
+    borderClass: "border-[#11724C]",
+    hoverBgClass: "hover:bg-[#0C5A3B]",
+    ringClass: "focus:ring-[#11724C]/20",
+  },
 };
 
 export function getDomainColor(domain: string = ""): DomainColor {
@@ -165,6 +174,7 @@ export function getDomainColor(domain: string = ""): DomainColor {
   if (normalized.includes("techoggi")) return DOMAIN_COLORS["techoggi.com"];
   if (normalized.includes("techhoy")) return DOMAIN_COLORS["techhoy.com"];
   if (normalized.includes("pressbig")) return DOMAIN_COLORS["pressbig.com"];
+  if (normalized.includes("golfcarrier")) return DOMAIN_COLORS["golfcarrier.com"];
 
   // Default to NewsIcons
   return DOMAIN_COLORS["newsicons.com"];

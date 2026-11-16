@@ -56,8 +56,8 @@ const PRESSBIG_FEED_LIMIT = 160;
  * own ~100 candidates.
  *
  * Quota: each pool is one API call per cache window (MEDIASTACK_REVALIDATE_SECONDS,
- * default 4h => 6/day). 37 pools x 6 x 30 = ~6,700 calls/month, about two thirds
- * of the 10,000/month Standard plan (29 pools before pressbig.com's 8). Adding or removing a pool moves that by ~180/month,
+ * default 4h => 6/day). 43 pools x 6 x 30 = ~7,700 calls/month, about three quarters
+ * of the 10,000/month Standard plan (29 pools before pressbig.com's 8, then golfcarrier.com's 6). Adding or removing a pool moves that by ~180/month,
  * so keep this list and that number in step.
  *
  * Keyword choice was probed against the live API, and it matters: MediaStack's
@@ -81,6 +81,8 @@ interface Pool {
   avoid?: RegExp;
   /** Drop stories that are not written in English (MediaStack's language tag is unreliable). */
   englishOnly?: boolean;
+  /** Keep only stories whose title or description match this (e.g. "is it really about golf"). */
+  require?: RegExp;
 }
 
 /** English tech taxonomy (same labels as TECH_CATEGORIES in config/categories.ts). */
@@ -233,6 +235,48 @@ const PRESSBIG_POOLS: Pool[] = [
   { keywords: "viral", topic: "Celebrity & Culture", avoid: PRESSBIG_AVOID, englishOnly: true },
 ];
 
+/** How many of GolfCarrier's newest stories are kept (and image-scraped). */
+const GOLFCARRIER_FEED_LIMIT = 160;
+
+/** "Is this story really about golf": the player-name pools also return other
+ *  sports and celebrity stories. */
+const GOLF_TERMS =
+  /\b(?:golf(?:er|ers|ing)?|PGA|LPGA|LIV|DP World|Ryder Cup|Solheim Cup|Presidents Cup|Masters|Open Championship|birdies?|bogeys?|fairways?|putts?|putter|caddies?|tee shot|green jacket|par[- ]?\d)\b/i;
+
+/**
+ * golfcarrier.com: six pools, probed against the live API on 2026-11-16. Only
+ * single words work: MediaStack's search for a phrase ("PGA Tour", "Ryder Cup",
+ * "golf course") returns stories that don't contain the phrase, so the keyword
+ * re-check below empties them. Golf volume is thin (100 stories reach back 3-6
+ * months), so the pools are broad and the sections are assigned from the
+ * headline afterwards (golfSection). Order matters: the first pool to find a
+ * story names its fallback section.
+ */
+const GOLFCARRIER_POOLS: Pool[] = [
+  { keywords: "golfer", topic: "Players", englishOnly: true, require: GOLF_TERMS },
+  { keywords: "McIlroy", topic: "Players", englishOnly: true, require: GOLF_TERMS },
+  { keywords: "LPGA", topic: "Tours & Tournaments", englishOnly: true },
+  { keywords: "birdie", topic: "Tours & Tournaments", englishOnly: true, require: GOLF_TERMS },
+  { keywords: "PGA", topic: "Tours & Tournaments", englishOnly: true },
+  { keywords: "golf", topic: "Tours & Tournaments", englishOnly: true },
+];
+
+/** Headline rules that move a story into a more specific section than its
+ *  pool's. First match wins; no match keeps the pool's section. */
+const GOLF_SECTION_RULES: Array<[RegExp, string]> = [
+  [/\b(?:the Masters|Augusta National|green jacket|Open Championship|British Open|U\.?S\.? (?:Women'?s )?Open|PGA Championship|Women'?s PGA|Chevron Championship|Evian Championship|AIG Women'?s Open|major (?:title|championship|champion|winner)s?)\b/i, "Majors"],
+  [/\b(?:drivers?|irons?|wedges?|putters?|golf balls?|equipment|gear|launch monitors?|shafts?|grips?)\b|\b(?:TaylorMade|Titleist|Callaway|PING|Cobra|Mizuno|Srixon|Bridgestone|Odyssey|Scotty Cameron)\b/i, "Equipment & Gear"],
+  [/\b(?:tips?|drills?|how to|lessons?|instruction|swing (?:tips?|thoughts?|changes?|coach)|short game|fix your)\b/i, "Instruction & Tips"],
+  [/\b(?:golf (?:course|resort|trip|travel|destination|club)s?|course (?:design|architect|redesign|renovation)|clubhouse|tee times?|green fees?)\b/i, "Courses & Travel"],
+  [/\bLIV\b|\bPIF\b|\b(?:merger|sponsor(?:s|ship)?|media rights|TV rights|broadcast (?:deal|rights)|revenue|earnings|net sales|investment|acquisition|lawsuit|TGL)\b/i, "Golf Business"],
+];
+
+function golfSection(a: MediaStackArticle): MediaStackArticle {
+  const text = `${a.title} ${a.description ?? ""}`;
+  const match = GOLF_SECTION_RULES.find(([re]) => re.test(text));
+  return match ? { ...a, topic: match[1] } : a;
+}
+
 /** Runs every pool in parallel (each its own cached request), tags the stories
  *  with the pool's category, drops stories that don't really mention the pool's
  *  keyword, drops duplicate URLs and duplicate headlines (the same story from
@@ -263,6 +307,10 @@ async function fetchPools(
       if (pool.avoid) {
         const avoid = pool.avoid;
         feed = feed.filter((a) => !avoid.test(a.title));
+      }
+      if (pool.require) {
+        const mustMatch = pool.require;
+        feed = feed.filter((a) => mustMatch.test(`${a.title} ${a.description ?? ""}`));
       }
       if (pool.topic && pool.keywords) {
         const keyword = pool.keywords;
@@ -321,6 +369,11 @@ export async function fetchDomainMediaStackFeed(domain: string): Promise<MediaSt
     // through the rest, and every story kept costs an article-image scrape, so 470 -> 160 is the
     // difference between minutes and seconds on a cold build.
     return memoFeed(domain, () => fetchPools("en", PRESSBIG_POOLS, (feed) => feed.slice(0, PRESSBIG_FEED_LIMIT)));
+  }
+  if (domain === "golfcarrier.com") {
+    return memoFeed(domain, () =>
+      fetchPools("en", GOLFCARRIER_POOLS, (feed) => feed.slice(0, GOLFCARRIER_FEED_LIMIT).map(golfSection)),
+    );
   }
   return null;
 }

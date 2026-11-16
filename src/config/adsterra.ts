@@ -236,6 +236,7 @@ export const ADSTERRA_CONFIG: Record<string, AdsterraTenantConfig> = {
       "techoggi",
       "techhoy",
       "pressbig",
+      "golfcarrier",
     ].map((key) => [
       key,
       {

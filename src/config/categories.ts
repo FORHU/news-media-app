@@ -162,6 +162,16 @@ export const TENANT_CATEGORIES: Record<string, string[]> = {
     "Gadgets",
     "Celebrity & Culture",
   ],
+  // golfcarrier.com: golf news media. Also the MediaStack pool topics.
+  "golfcarrier.com": [
+    "Tours & Tournaments",
+    "Majors",
+    "Players",
+    "Equipment & Gear",
+    "Instruction & Tips",
+    "Courses & Travel",
+    "Golf Business",
+  ],
   // technews tenant family — shared standard tech category set
   "linktechnews.com": TECH_CATEGORIES,
   "dbtechnews.com": TECH_CATEGORIES,
