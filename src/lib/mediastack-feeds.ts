@@ -56,8 +56,8 @@ const PRESSBIG_FEED_LIMIT = 160;
  * own ~100 candidates.
  *
  * Quota: each pool is one API call per cache window (MEDIASTACK_REVALIDATE_SECONDS,
- * default 4h => 6/day). 37 pools x 6 x 30 = ~6,700 calls/month, about two thirds
- * of the 10,000/month Standard plan (29 pools before pressbig.com's 8). Adding or removing a pool moves that by ~180/month,
+ * default 4h => 6/day). 41 pools x 6 x 30 = ~7,400 calls/month, about three quarters
+ * of the 10,000/month Standard plan (29 pools before pressbig.com's 12). Adding or removing a pool moves that by ~180/month,
  * so keep this list and that number in step.
  *
  * Keyword choice was probed against the live API, and it matters: MediaStack's
@@ -223,14 +223,18 @@ function looksNonEnglish(text: string): boolean {
  *  freshness; the Gadgets pair is the weakest (few fresh stories per term), so
  *  "iPhone" leads. Order matters: the first pool to find a story names its section. */
 const PRESSBIG_POOLS: Pool[] = [
-  { keywords: "movie", topic: "Entertainment", avoid: PRESSBIG_AVOID, englishOnly: true },
-  { keywords: "album", topic: "Entertainment", avoid: PRESSBIG_AVOID, englishOnly: true },
-  { keywords: "fashion", topic: "Fashion & Style", avoid: PRESSBIG_AVOID, englishOnly: true },
-  { keywords: "beauty", topic: "Fashion & Style", avoid: PRESSBIG_AVOID, englishOnly: true },
-  { keywords: "iPhone", topic: "Gadgets", avoid: PRESSBIG_AVOID, englishOnly: true },
-  { keywords: "gadget", topic: "Gadgets", avoid: PRESSBIG_AVOID, englishOnly: true },
-  { keywords: "Hollywood", topic: "Celebrity & Culture", avoid: PRESSBIG_AVOID, englishOnly: true },
-  { keywords: "viral", topic: "Celebrity & Culture", avoid: PRESSBIG_AVOID, englishOnly: true },
+  { keywords: "movie", topic: "Movies & TV", avoid: PRESSBIG_AVOID, englishOnly: true },
+  { keywords: "Netflix", topic: "Movies & TV", avoid: PRESSBIG_AVOID, englishOnly: true },
+  { keywords: "album", topic: "Music & Celebrity", avoid: PRESSBIG_AVOID, englishOnly: true },
+  { keywords: "Hollywood", topic: "Music & Celebrity", avoid: PRESSBIG_AVOID, englishOnly: true },
+  { keywords: "esports", topic: "Gaming", avoid: PRESSBIG_AVOID, englishOnly: true },
+  { keywords: "Nintendo", topic: "Gaming", avoid: PRESSBIG_AVOID, englishOnly: true },
+  { keywords: "viral", topic: "Viral & Pop Culture", avoid: PRESSBIG_AVOID, englishOnly: true },
+  { keywords: "TikTok", topic: "Viral & Pop Culture", avoid: PRESSBIG_AVOID, englishOnly: true },
+  { keywords: "fashion", topic: "Style", avoid: PRESSBIG_AVOID, englishOnly: true },
+  { keywords: "beauty", topic: "Style", avoid: PRESSBIG_AVOID, englishOnly: true },
+  { keywords: "iPhone", topic: "Tech", avoid: PRESSBIG_AVOID, englishOnly: true },
+  { keywords: "gadget", topic: "Tech", avoid: PRESSBIG_AVOID, englishOnly: true },
 ];
 
 /** Runs every pool in parallel (each its own cached request), tags the stories

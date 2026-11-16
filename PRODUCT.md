@@ -28,7 +28,7 @@ A **curated daily edit**: fewer, picked stories each day with a clear point of v
 
 ## Capabilities and Constraints
 
-- Four sections (confirmed): **Entertainment, Fashion & Style, Gadgets, Celebrity & Culture**. These become the tenant's category list and the topics of its MediaStack feed pools.
+- Six sections (revised 2026-11-16, entertainment-led): **Movies & TV, Music & Celebrity, Gaming, Viral & Pop Culture, Style, Tech**. These become the tenant's category list and the topics of its MediaStack feed pools.
 - Tenant `pressbig` / `pressbig.com` / site name "PressBig" is seeded in the database; admin login admin@pressbig.com.
 - Wire stories carry a source name, headline, short description, image and date only; there is no price, rating or affiliate data.
 - Undecided: ad placements and ad network configuration for this tenant; logo and favicon assets; whether PressBig will carry any original article content at launch.

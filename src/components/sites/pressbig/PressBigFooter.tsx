@@ -24,7 +24,7 @@ export default function PressBigFooter({
               <Wordmark />
             </Link>
             <p style={{ marginTop: "1rem", maxWidth: "30ch" }}>
-              The day&apos;s edit of entertainment, fashion, gadgets and culture. Picked, not piled.
+              The day&apos;s edit of movies, TV, music, celebrity, style and tech. Picked, not piled.
             </p>
           </div>
 

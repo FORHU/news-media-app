@@ -130,7 +130,7 @@ A restrained poster palette: one warm paper, one near-black, two muted mid-tones
 
 ### Named Rules
 **The Four Inks Rule.** Every filled surface is chalk, gray, or one of black, indigo, red, wheat. No gradients, no off-palette brand colors (share-icon brand colors are flattened to one-ink silhouettes).
-**The Section Ink Rule.** Entertainment is black, Fashion & Style is indigo, Gadgets is red, Celebrity & Culture is wheat, everywhere that section appears (hero strips, bands, picture tint).
+**The Section Ink Rule.** Six sections, four inks (revised 2026-11-16, entertainment-led): Movies & TV is black, Music & Celebrity is red, Gaming is indigo, Viral & Pop Culture is wheat, then the quieter Style (black) and Tech (red) repeat the first two inks. A section keeps its ink everywhere it appears (hero strips, bands, picture tint, the header nav underline); no two neighbouring sections share an ink.
 **The Chalk Text Rule.** Text on black, indigo and red paper is chalk; text on wheat and chalk is black.
 
 ## Typography
@@ -158,7 +158,7 @@ A restrained poster palette: one warm paper, one near-black, two muted mid-tones
 
 A poster wall: full-bleed sheets stacked vertically with negative margins (bands overlap by 1.25rem) so layers read as pasted over each other. Content is capped at 1680px (`pb-band__inner`, header bar, footer grid) and article sheets at 62rem; reading text at 42rem. Page gutter is fluid (`clamp(1rem, 4vw, 3rem)`); section padding `clamp(3rem, 6vw, 5rem)`. Grid gaps are 1.5rem for scrap walls, 0.85 to 1rem for stacked strips.
 
-First viewport at 900px and up is a 52/48 split: chalk hero sheet left (overlapping the tear by 2.5rem), the four section strips right, three scraps absolutely placed across the tear. Below 900px it collapses to one column with the scraps in a horizontal snap scroller.
+First viewport at 900px and up is a 52/48 split: chalk hero sheet left (overlapping the tear by 2.5rem), the six section strips right, ranked by size (Movies & TV and Music & Celebrity tallest, Gaming and Viral & Pop Culture medium, Style and Tech as two small strips sharing one row), three scraps absolutely placed across the tear. Below 900px it collapses to one column with the scraps in a horizontal snap scroller.
 
 Band walls are 1 column, then 2 (640px), 3 (900px), 4 (1280px); the first scrap is a large lead spanning two columns. Bands are not one template: variant 2 mirrors the lead to the right, variant 3 makes the lead a wide landscape strip, variant 4 drops every other scrap by 2.5rem. Search and section pages use a dense 2/3/4 column wall with a double-width lead. Footer grid is 5fr 3fr 3fr 4fr from 900px.
 
@@ -195,7 +195,7 @@ Chalk torn sheet, 0.75rem padding, a halftone picture on top, Gloock headline, o
 Full-width torn sheets in a section ink (`pb-paper--black|indigo|red|wheat`) with an Anton section name, a mono note and a ghost "See all" strip; hero layer strips are the same paper with a giant Anton name, pulled out on load and nudged left 0.75rem on hover.
 
 ### Navigation
-Chalk torn header (sticky, 4.5rem) with a wordmark (PRESS in black, BIG on a torn red strip, Anton 2rem). Desktop nav: mono 700 0.75rem uppercase, 0.12em tracking, 3px bottom border that turns red on hover and indigo for the current page. Below 900px: a full-screen black drawer sliding down in 500ms with Anton links 3rem to 5.5rem in alternating chalk, wheat and gray. Search opens as a torn chalk bar below the header with a mono input and a 3px black underline that turns red on focus.
+Chalk torn header (sticky, 4.5rem) with a wordmark (PRESS in black, BIG on a torn red strip, Anton 2rem). Desktop nav: six short labels (Movies & TV, Music, Gaming, Viral, Style, Tech; full names in aria-label and the drawer), mono 700 0.75rem uppercase, 0.12em tracking, 3px bottom border that takes the section's own ink on hover and thickens to 5px for the current page. Below 900px: a full-screen black drawer sliding down in 500ms with Anton links 3rem to 5.5rem in alternating chalk, wheat and gray. Search opens as a torn chalk bar below the header with a mono input and a 3px black underline that turns red on focus.
 
 ### Inputs
 Transparent (or 7% black fill in dialogs), square, 3px black bottom border only, mono, indigo placeholder; focus swaps the underline to red, no outline.

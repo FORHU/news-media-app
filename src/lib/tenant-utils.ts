@@ -102,7 +102,7 @@ export function getSiteDescriptionFromDomain(domain: string | null): string {
   if (d.includes('technikpost')) return "Technik, Netzpolitik und Wirtschaft — täglich aus Berlin, Brüssel und dem Silicon Valley.";
   if (d.includes('techoggi')) return "La tecnologia, oggi — le notizie essenziali della giornata, in sintesi.";
   if (d.includes('techhoy')) return "TechHoy: noticias de tecnología en español, con inteligencia artificial, ciberseguridad, empresas y dispositivos, cada día.";
-  if (d.includes('pressbig')) return "PressBig: the day's edit of entertainment, fashion, gadgets and culture. Picked, not piled.";
+  if (d.includes('pressbig')) return "PressBig: the day's edit of movies, TV, music, celebrity, style and tech. Picked, not piled.";
   return "Media & Content Hub for curated news, blogs, and insights.";
 }
 
