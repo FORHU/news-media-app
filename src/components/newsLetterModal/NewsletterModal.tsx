@@ -122,6 +122,20 @@ const getDomainTheme = (domain: string): ThemeClasses => {
       gradient: "from-[#dbc26b]/30",
     };
   }
+  if (domain.includes("golfcarrier")) {
+    return {
+      bg: "bg-[#0B2A1F]",
+      text: "text-[#11724C]",
+      border: "border-[#11724C]",
+      borderFocus: "focus:border-[#11724C]",
+      hoverBg: "hover:bg-[#0C5A3B]",
+      hoverText: "hover:text-[#0C5A3B]",
+      bgLight: "bg-[#F4F1E8]",
+      bgLight10: "bg-[#11724C]/10",
+      font: "font-[family-name:var(--font-inter)]",
+      gradient: "from-[#11724C]/5",
+    };
+  }
   // Default / NewsIcons
   return {
     bg: "bg-[#ff4500]",
@@ -178,6 +192,7 @@ export function NewsletterModal({ isOpen, onClose, domain = "" }: NewsletterModa
 
   const theme = getDomainTheme(localDomain.toLowerCase());
   const isPressBig = localDomain.toLowerCase().includes("pressbig");
+  const isGolfCarrier = localDomain.toLowerCase().includes("golfcarrier");
 
   // Load available newsletter categories when the modal is open
   const {
@@ -500,6 +515,12 @@ export function NewsletterModal({ isOpen, onClose, domain = "" }: NewsletterModa
                           ? [
                               "The newest picks from all four sections",
                               "Choose the sections you want to hear about",
+                              "Every story links to its original publisher",
+                            ]
+                          : isGolfCarrier
+                          ? [
+                              "The week's golf news from every tour",
+                              "Pick the sections you follow: majors, players, gear and more",
                               "Every story links to its original publisher",
                             ]
                           : [

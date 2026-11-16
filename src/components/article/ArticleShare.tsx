@@ -67,7 +67,8 @@ type SiteTheme =
   | "technikpost"
   | "techoggi"
   | "techhoy"
-  | "pressbig";
+  | "pressbig"
+  | "golfcarrier";
 
 function normalizeShareUrl(input: string) {
   try {
@@ -537,6 +538,15 @@ export function ArticleShare({
           header: "pb-share-title",
           item: "pb-share-item",
           copyBtn: "bg-[#1A1A1A] text-[#F2EFE6] hover:opacity-90 rounded-none border-none",
+        };
+      case "golfcarrier":
+        return {
+          trigger:
+            "bg-[#11724C] hover:bg-[#0C5A3B] text-white rounded-full px-8 py-2.5 transition-colors text-sm font-semibold border border-[#11724C]",
+          modal: "gc-share sm:max-w-lg bg-white border border-[#DCD6C6] rounded-2xl shadow-2xl",
+          header: "gc-share-title",
+          item: "rounded-xl border-[#DCD6C6] hover:border-[#11724C] transition-all",
+          copyBtn: "bg-[#0B2A1F] text-white hover:bg-[#11724C] rounded-full border-none",
         };
       case "technikpost":
         return {

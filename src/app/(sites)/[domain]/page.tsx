@@ -31,6 +31,7 @@ import MagazineAirLanding from "@/components/sites/magazineair/MagazineAirLandin
 import TechyGateLanding from "@/components/sites/techygate/TechyGateLanding";
 import NewYorkSignalLanding from "@/components/sites/newyorksignal/NewYorkSignalLanding";
 import PressBigLanding from "@/components/sites/pressbig/PressBigLanding";
+import GolfCarrierLanding from "@/components/sites/golfcarrier/GolfCarrierLanding";
 import TechnikPostLanding from "@/components/sites/technikpost/TechnikPostLanding";
 import TechOggiLanding from "@/components/sites/techoggi/TechOggiLanding";
 import TechHoyLanding from "@/components/sites/techhoy/TechHoyLanding";
@@ -201,6 +202,19 @@ async function HomeLanding({
         articles={articles}
         banners={banners}
         mediastackArticles={pressbigMediastack}
+      />
+    );
+  }
+
+  if (domain === "golfcarrier.com") {
+    const golfMediastack = (await fetchDomainMediaStackFeed(domain)) ?? [];
+    return (
+      <GolfCarrierLanding
+        domain={domain}
+        tenantId={tenantId}
+        articles={articles}
+        banners={banners}
+        mediastackArticles={golfMediastack}
       />
     );
   }

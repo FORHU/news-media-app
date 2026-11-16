@@ -25,6 +25,7 @@ import { classifyWireCategory } from "@/components/sites/technews-shared/categor
 import { classifyTechOggiCategory } from "@/components/sites/techoggi/categorize";
 import { TechNewsSearchResults } from "@/components/sites/technews-shared/TechNewsSearchResults";
 import { PressBigSearchResults } from "@/components/sites/pressbig/PressBigSearchResults";
+import { GolfCarrierSearchResults } from "@/components/sites/golfcarrier/GolfCarrierSearchResults";
 import { FacetLink } from "@/components/FacetLink";
 
 // MediaStack's own tag is just "technology" (or "general" for non-English), so a
@@ -165,6 +166,9 @@ async function SearchContent({
 }) {
   const isTechNews = isTechNewsDomain(domain);
   const isPressBig = domain === "pressbig.com";
+  const isGolfCarrier = domain === "golfcarrier.com";
+  // These designs render their own full page with no sidebar, so skip the sidebar queries.
+  const ownsLayout = isTechNews || isPressBig || isGolfCarrier;
 
   const [dbArticles, mediastackMatches, trendingArticles, sidebarBanners] = await Promise.all([
     tenantId
@@ -180,16 +184,28 @@ async function SearchContent({
       )
       : Promise.resolve([]),
     getMediaStackMatches(domain, searchQuery, categoryParam),
-    // The technews list below has no sidebar, so skip its queries.
-    tenantId && !isTechNews && !isPressBig
+    tenantId && !ownsLayout
       ? articlesService.getArticles({ limit: 10, status: "published", requireImage: true }, tenantId)
       : Promise.resolve([]),
-    tenantId && !isTechNews && !isPressBig
+    tenantId && !ownsLayout
       ? bannersService
         .getBanners({ position: "HOME_SIDEBAR", isActive: true, tenantId })
         .catch(() => [])
       : Promise.resolve([]),
   ]);
+
+  // golfcarrier.com: DB articles blended with the golf MediaStack feed, as a card grid.
+  if (isGolfCarrier) {
+    return (
+      <GolfCarrierSearchResults
+        domain={domain}
+        articles={dbArticles}
+        mediastackArticles={mediastackMatches}
+        searchQuery={searchQuery}
+        categoryName={categoryParam ? decodeURIComponent(categoryParam) : null}
+      />
+    );
+  }
 
   // pressbig.com: a wall of torn-paper scraps, DB articles blended with MediaStack.
   if (isPressBig) {
