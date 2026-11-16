@@ -155,12 +155,15 @@ export const TENANT_CATEGORIES: Record<string, string[]> = {
     "Legal Geek Coverage",
     "Industry Analysis",
   ],
-  // pressbig.com: lifestyle and pop culture, not hard news. Also the MediaStack pool topics.
+  // pressbig.com: entertainment-led, with style and tech alongside; not hard news.
+  // Also the MediaStack pool topics (keep in step with PB_SECTIONS in pressbig/edit.ts).
   "pressbig.com": [
-    "Entertainment",
-    "Fashion & Style",
-    "Gadgets",
-    "Celebrity & Culture",
+    "Movies & TV",
+    "Music & Celebrity",
+    "Gaming",
+    "Viral & Pop Culture",
+    "Style",
+    "Tech",
   ],
   // golfcarrier.com: golf news media. Also the MediaStack pool topics.
   "golfcarrier.com": [

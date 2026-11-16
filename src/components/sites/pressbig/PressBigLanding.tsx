@@ -1,9 +1,11 @@
+import { Fragment } from "react";
 import Link from "next/link";
 import { FacetLink } from "@/components/FacetLink";
+import { PressBigAdStrip } from "./PressBigAds";
 import type { MediaStackArticle } from "@/lib/mediastack";
 import { toFeedRows, type FeedRow } from "../technews-shared/feed";
 import { Scrap } from "./paper";
-import { buildEdit, sectionHref, type EditSection } from "./edit";
+import { buildEdit, sectionHref, toneForRow, type EditSection } from "./edit";
 import "./pressbig.css";
 
 interface Props {
@@ -32,9 +34,13 @@ function LeadAction({ row }: { row: FeedRow }) {
 }
 
 function Band({ section, index }: { section: EditSection; index: number }) {
-  if (section.picks.length === 0) return null;
+  const count = section.picks.length;
+  if (count === 0) return null;
+  // A band of one or two picks always uses the plain layout: the special ones (mirrored lead,
+  // wide strip, stagger) need three or more cards to fill their rows.
+  const variant = count <= 2 ? 1 : (index % 4) + 1;
   return (
-    <section id={section.id} className={`pb-band pb-band--tone-${section.tone} pb-band--v${(index % 4) + 1}`} aria-labelledby={`${section.id}-h`}>
+    <section id={section.id} className={`pb-band pb-band--tone-${section.tone} pb-band--v${variant}`} aria-labelledby={`${section.id}-h`}>
       <div className={`pb-band__sheet pb-paper pb-paper--${section.tone}`}>
         <div className="pb-band__inner">
           <header className="pb-band__head">
@@ -42,13 +48,13 @@ function Band({ section, index }: { section: EditSection; index: number }) {
               {section.name}
             </h2>
             <div className="pb-band__tools">
-              <p className="pb-band__note">{section.picks.length} picks, newest first</p>
+              <p className="pb-band__note">Newest first</p>
               <FacetLink href={sectionHref(section.name)} className="pb-strip pb-paper pb-strip--ghost">
                 See all {section.name} &rarr;
               </FacetLink>
             </div>
           </header>
-          <ul className="pb-band__wall">
+          <ul className={`pb-band__wall${count <= 3 ? " pb-band__wall--short" : ""}${count <= 2 ? " pb-band__wall--pair" : ""}`}>
             {section.picks.map((row, i) => (
               <li key={row.id}>
                 <Scrap row={row} lead={i === 0} showDescription={i === 0} label={row.external ? row.source ?? undefined : undefined} />
@@ -63,7 +69,7 @@ function Band({ section, index }: { section: EditSection; index: number }) {
 
 /**
  * pressbig.com home: a poster hoarding torn back by hand. The first viewport is
- * a chalk sheet torn down the middle; behind the tear the four sections are
+ * a chalk sheet torn down the middle; behind the tear the six sections are
  * pasted-up strips, and the three newest stories are scraps stuck across the
  * tear. Below, each section is its own layer with a few picks. Every story is
  * placed once (see buildEdit).
@@ -83,7 +89,7 @@ export default function PressBigLanding({ domain, articles, mediastackArticles =
             <span>today.</span>
           </h1>
           <p className="pb-lede">
-            Entertainment, fashion, gadgets and culture. A few picks from each, pasted up fresh.
+            Movies, music, games and pop culture first, then style and tech. A few picks from each, pasted up fresh.
           </p>
           <div className="pb-actions">
             {lead && <LeadAction row={lead} />}
@@ -96,11 +102,11 @@ export default function PressBigLanding({ domain, articles, mediastackArticles =
         <div className="pb-hero__wall" id="sections">
           <ul className="pb-layers">
             {sections.map((s, i) => (
-              <li key={s.id} className="pb-layer" style={{ ["--i" as string]: i }}>
+              <li key={s.id} className={`pb-layer pb-layer--${s.rank}`} style={{ ["--i" as string]: i }}>
                 <FacetLink href={sectionHref(s.name)} className={`pb-layer__link pb-paper pb-paper--${s.tone}`}>
                   <span className="pb-display pb-layer__name">{s.name}</span>
                   <span className="pb-layer__count">
-                    {s.picks.length > 0 ? `${s.picks.length} picks, see them all` : "Nothing pasted up yet"}
+                    {s.available ? "See them all" : "Nothing pasted up yet"}
                   </span>
                 </FacetLink>
               </li>
@@ -112,7 +118,7 @@ export default function PressBigLanding({ domain, articles, mediastackArticles =
           <ul className="pb-hero__scraps" aria-label="The newest picks">
             {hero.map((row, i) => (
               <li key={row.id} style={{ display: "contents", ["--i" as string]: i }}>
-                <Scrap row={row} lead={i === 0} leadTag={i === 0} className="pb-lift" />
+                <Scrap row={row} lead={i === 0} leadTag={i === 0} className="pb-lift" tone={toneForRow(row)} />
               </li>
             ))}
           </ul>
@@ -131,7 +137,11 @@ export default function PressBigLanding({ domain, articles, mediastackArticles =
       )}
 
       {sections.map((s, i) => (
-        <Band key={s.id} section={s} index={i} />
+        <Fragment key={s.id}>
+          <Band section={s} index={i} />
+          {/* Two ads on the whole page, after the 2nd and 4th section, never inside a band. */}
+          {(i === 1 || i === 3) && s.picks.length > 0 && <PressBigAdStrip tilt={i === 1 ? "left" : "right"} />}
+        </Fragment>
       ))}
 
       {leftover.length > 0 && (
@@ -143,7 +153,7 @@ export default function PressBigLanding({ domain, articles, mediastackArticles =
             <ul className="pb-more__grid">
               {leftover.map((row) => (
                 <li key={row.id}>
-                  <Scrap row={row} />
+                  <Scrap row={row} tone={toneForRow(row)} />
                 </li>
               ))}
             </ul>

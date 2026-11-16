@@ -128,6 +128,13 @@ html:has(.pb) { scrollbar-color: var(--pb-black) var(--pb-gray); }
 }
 .pb-scrap:hover .pb-half img,
 .pb-scrap:focus-visible .pb-half img { filter: none; }
+/* Touch screens never hover, so the colour reveal would never happen and film stills and
+   artist photos would stay grey. Show them in colour with only a light ink wash and halftone. */
+@media (hover: none) {
+  .pb-half img { filter: none; }
+  .pb-half::before { opacity: 0.18; }
+  .pb-half::after { opacity: 0.25; }
+}
 .pb-scrap:hover .pb-half::before,
 .pb-scrap:hover .pb-half::after,
 .pb-scrap:focus-visible .pb-half::before,
@@ -207,17 +214,23 @@ html:has(.pb) { scrollbar-color: var(--pb-black) var(--pb-gray); }
   padding: 0.1rem 0.45rem 0;
   color: var(--pb-chalk);
 }
-.pb-nav { display: none; gap: 1.25rem; align-items: center; }
+.pb-nav { display: none; gap: 0.25rem; align-items: center; }
 .pb-nav > * {
-  padding: 0.6rem 0.8rem;
+  padding: 0.6rem 0.6rem;
   font: 700 0.75rem/1 var(--pb-mono);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   text-decoration: none;
   border-bottom: 3px solid transparent;
 }
-.pb-nav > *:hover { border-bottom-color: var(--pb-red); }
-.pb-nav > [aria-current="page"] { border-bottom-color: var(--pb-indigo); }
+/* Each section's underline is its own ink (the Section Ink Rule); wheat is faint on chalk, so it is thicker. */
+.pb-nav > *:hover { border-bottom-color: var(--ink, var(--pb-red)); }
+.pb-nav > [aria-current="page"] { border-bottom-color: var(--ink, var(--pb-indigo)); border-bottom-width: 5px; padding-bottom: calc(0.6rem - 2px); }
+@media (min-width: 1200px) {
+  .pb-nav { gap: 0.75rem; }
+  .pb-nav > * { padding: 0.6rem 0.8rem; }
+  .pb-nav > [aria-current="page"] { padding-bottom: calc(0.6rem - 2px); }
+}
 .pb-header__tools { display: flex; align-items: center; gap: 0.5rem; }
 .pb-iconbtn {
   display: inline-grid;
@@ -269,16 +282,19 @@ html:has(.pb) { scrollbar-color: var(--pb-black) var(--pb-gray); }
 .pb-drawer nav { display: grid; gap: 0.25rem; margin-top: 2.5rem; }
 .pb-drawer nav > * {
   font-family: var(--pb-display);
-  font-size: clamp(3rem, 14vw, 5.5rem);
+  font-size: clamp(2.5rem, 11vw, 4.5rem);
   line-height: 1;
   text-transform: uppercase;
   text-decoration: none;
 }
 .pb-drawer nav > * { cursor: pointer; }
+/* Today is red; the six sections cycle chalk, wheat, gray (black ink would vanish on the black drawer). */
 .pb-drawer nav > :nth-child(2) { color: var(--pb-chalk); }
 .pb-drawer nav > :nth-child(3) { color: var(--pb-wheat); }
 .pb-drawer nav > :nth-child(4) { color: var(--pb-gray); }
 .pb-drawer nav > :nth-child(5) { color: var(--pb-chalk); }
+.pb-drawer nav > :nth-child(6) { color: var(--pb-wheat); }
+.pb-drawer nav > :nth-child(7) { color: var(--pb-gray); }
 
 /* ───────────── Hero ───────────── */
 .pb-hero {
@@ -316,12 +332,17 @@ html:has(.pb) { scrollbar-color: var(--pb-black) var(--pb-gray); }
   margin-top: -1rem;
   padding: 2.5rem 0 2rem;
 }
-.pb-layers { display: grid; gap: 0.85rem; }
-.pb-layer { position: relative; }
+/* Six strips, ranked: Movies & TV and Music & Celebrity are the loud ones, Gaming and Viral
+   are medium, Style and Tech share a row as the two small strips (the entertainment-led order). */
+.pb-layers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.85rem; }
+.pb-layer { position: relative; grid-column: 1 / -1; }
+.pb-layer--half { grid-column: auto; }
 .pb-layer:nth-child(1) { transform: rotate(-0.8deg); }
 .pb-layer:nth-child(2) { transform: rotate(0.7deg) translateX(0.6rem); }
 .pb-layer:nth-child(3) { transform: rotate(-0.5deg); }
 .pb-layer:nth-child(4) { transform: rotate(0.9deg) translateX(0.4rem); }
+.pb-layer:nth-child(5) { transform: rotate(-0.7deg); }
+.pb-layer:nth-child(6) { transform: rotate(0.6deg); }
 .pb-layer__link {
   display: flex;
   flex-direction: column;
@@ -335,6 +356,23 @@ html:has(.pb) { scrollbar-color: var(--pb-black) var(--pb-gray); }
 .pb-layer__link:hover { transform: translateX(-0.75rem); }
 .pb-layer__name { font-size: clamp(2.4rem, 11vw, 4.2rem); text-wrap: balance; }
 .pb-layer__count { font: 700 0.8125rem/1.2 var(--pb-mono); letter-spacing: 0.14em; text-transform: uppercase; }
+.pb-layer--lead .pb-layer__link { min-height: 8.5rem; }
+.pb-layer--mid .pb-layer__link { min-height: 6.5rem; }
+.pb-layer--mid .pb-layer__name { font-size: clamp(2rem, 8.5vw, 3.25rem); }
+.pb-layer--half .pb-layer__link { min-height: 5.5rem; padding: 0.9rem 1rem; }
+.pb-layer--half .pb-layer__name { font-size: clamp(1.9rem, 8vw, 2.75rem); }
+.pb-layer--half .pb-layer__count { font-size: 0.75rem; }
+
+/* Phones: the newest picks come straight after the headline sheet, so a story is on screen
+   before the six section strips; the strips are also shorter so they do not eat the scroll. */
+@media (max-width: 899.98px) {
+  .pb-hero__sheet { order: 0; }
+  /* .pb-hero prefix: the base .pb-hero__scraps rule further down has the same specificity and would win. */
+  .pb-hero .pb-hero__scraps { order: 1; margin-top: 1.25rem; }
+  .pb-hero__wall { order: 2; margin-top: 0; padding-top: 0.5rem; }
+  .pb-layer--lead .pb-layer__link { min-height: 6.5rem; }
+  .pb-layer--mid .pb-layer__link { min-height: 5rem; }
+}
 
 /* Scraps pasted over the tear */
 .pb-hero__scraps {
@@ -399,11 +437,23 @@ html:has(.pb) { scrollbar-color: var(--pb-black) var(--pb-gray); }
 .pb-band__head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1.25rem 2rem; }
 .pb-band__tools { display: grid; gap: 0.85rem; justify-items: start; }
 .pb-band__name { font-size: clamp(3.25rem, 13vw, 7.5rem); text-wrap: balance; overflow-wrap: anywhere; }
-.pb-band__note { font: 700 0.75rem/1.4 var(--pb-mono); letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.9; }
+.pb-band__note { font: 700 0.75rem/1.4 var(--pb-mono); letter-spacing: 0.14em; text-transform: uppercase; }
 .pb-band__wall { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; align-items: start; }
 .pb-band__wall > li { min-width: 0; }
 .pb-band__wall > li:nth-child(odd) > .pb-scrap { transform: rotate(-0.9deg); }
 .pb-band__wall > li:nth-child(even) > .pb-scrap { transform: rotate(0.8deg); }
+
+/* Cards in a row share its height. The small cards' pictures grow to fill what a taller lead
+   leaves, instead of leaving a hole of bare band colour under them. */
+@media (min-width: 640px) {
+  .pb-band__wall { align-items: stretch; }
+  .pb-band__wall > li > .pb-scrap { height: 100%; }
+  .pb-band__wall > li:not(:first-child) .pb-half { flex: 1 1 auto; aspect-ratio: auto; min-height: 9rem; }
+}
+/* Two columns on tablets: the lead takes a full row so the cards below pair up evenly. */
+@media (min-width: 640px) and (max-width: 899.98px) {
+  .pb-band__wall > li:first-child { grid-column: 1 / -1; }
+}
 .pb-band--tone-black  { --tint: var(--pb-black); }
 .pb-band--tone-indigo { --tint: var(--pb-indigo); }
 .pb-band--tone-red    { --tint: var(--pb-red); }
@@ -520,8 +570,14 @@ html:has(.pb) { scrollbar-color: var(--pb-black) var(--pb-gray); }
     align-items: center;
   }
   .pb-layers { width: 100%; gap: 1rem; }
-  .pb-layer__link { min-height: 9.5rem; align-items: flex-end; text-align: right; padding-left: 2rem; padding-right: var(--pb-gutter); }
-  .pb-layer__name { font-size: clamp(2.4rem, 3.7vw, 4.25rem); }
+  .pb-layer__link { align-items: flex-end; text-align: right; padding-left: 2rem; padding-right: var(--pb-gutter); }
+  .pb-layer--half .pb-layer__link { padding-left: 1rem; padding-right: 1.25rem; }
+  .pb-layer--lead .pb-layer__link { min-height: 8.5rem; }
+  .pb-layer--mid .pb-layer__link { min-height: 6.5rem; }
+  .pb-layer--half .pb-layer__link { min-height: 5.5rem; }
+  .pb-layer--lead .pb-layer__name { font-size: clamp(2.4rem, 3.7vw, 4.25rem); }
+  .pb-layer--mid .pb-layer__name { font-size: clamp(2rem, 2.9vw, 3.25rem); }
+  .pb-layer--half .pb-layer__name { font-size: clamp(1.9rem, 2.4vw, 2.75rem); }
   .pb-hero__scraps {
     position: absolute;
     inset: 0;
@@ -538,6 +594,10 @@ html:has(.pb) { scrollbar-color: var(--pb-black) var(--pb-gray); }
   .pb-band__wall { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .pb-band__wall > li:first-child { grid-column: span 2; grid-row: span 2; }
   .pb-band__wall > li:first-child .pb-scrap__title { font-size: 2rem; }
+  /* One or two picks: two equal columns, no spanning lead (see the pair class in the landing). */
+  .pb-band .pb-band__wall--pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pb-band .pb-band__wall--pair > li:first-child { grid-column: auto; grid-row: auto; }
+  .pb-band .pb-band__wall--pair > li:only-child { grid-column: 1 / -1; justify-self: center; width: min(100%, 56rem); }
   .pb-more__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .pb-results__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .pb-footer__grid { grid-template-columns: 5fr 3fr 3fr 4fr; }
@@ -546,6 +606,11 @@ html:has(.pb) { scrollbar-color: var(--pb-black) var(--pb-gray); }
 @media (min-width: 1280px) {
   .pb-band__wall { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .pb-band__wall > li:first-child { grid-column: span 2; }
+  /* Three picks fit one row of four columns (lead over two), so the lead must not claim a second row. */
+  .pb-band__wall--short > li:first-child { grid-row: auto; }
+  /* (v2's four-column placement lives in the block after the variants, so it wins the cascade.) */
+  /* v3 with only three picks: the wide lead strip, then the two small cards half a row each. */
+  .pb-band--v3 .pb-band__wall--short { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .pb-results__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
@@ -581,28 +646,78 @@ html:has(.pb) { scrollbar-color: var(--pb-black) var(--pb-gray); }
 
 /* Band variants: the four layers are not one template. */
 @media (min-width: 900px) {
-  /* Fashion: the lead sits on the right, the small scraps on the left. */
-  .pb-band--v2 .pb-band__wall > li:first-child { order: 5; }
+  /* v2 (2nd, 6th section): the lead sits on the right, the small scraps on the left. The lead is
+     placed in its columns explicitly: `order` alone dropped it onto a row of its own below the
+     small cards, with two empty columns beside it. */
+  .pb-band--v2 .pb-band__wall > li:first-child { grid-column: 2 / span 2; grid-row: 1 / span 2; }
   .pb-band--v2 .pb-band__head { flex-direction: row-reverse; }
   .pb-band--v2 .pb-band__name { text-align: right; }
-  /* Gadgets: the lead is a wide landscape strip across the whole layer. */
+  /* v3 on three columns with three picks: same two-column split as on four. */
+  .pb-band--v3 .pb-band__wall--short { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* v3 (3rd section): the lead is a wide landscape strip across the whole layer. */
   .pb-band--v3 .pb-band__wall > li:first-child { grid-column: 1 / -1; grid-row: auto; }
   .pb-band--v3 .pb-band__wall > li:first-child .pb-scrap { flex-direction: row; align-items: center; gap: 1.5rem; padding: 1rem 1.5rem 1rem 1rem; }
   .pb-band--v3 .pb-band__wall > li:first-child .pb-half { flex: 0 0 52%; }
-  .pb-band--v3 .pb-band__wall > li:first-child .pb-scrap__text { display: grid; gap: 0.7rem; }
-  /* Celebrity: a staggered wall, every other scrap dropped. */
+  .pb-band--v3 .pb-band__wall > li:first-child .pb-scrap__text { display: grid; gap: 0.7rem; min-width: 0; }
+  /* v4 (4th section): a staggered wall, every other scrap dropped. */
   .pb-band--v4 .pb-band__wall > li:nth-child(even) { margin-top: 2.5rem; }
 }
 
-/* Section pages: a lead scrap and a varied wall, not equal cards. */
-.pb-results__grid { align-items: start; }
-.pb-results__grid > li > .pb-scrap { height: auto; }
-@media (min-width: 900px) {
-  .pb-results__grid { grid-auto-flow: dense; }
-  .pb-results__grid > li:first-child,
-  .pb-results__grid > li:nth-child(7n + 5) { grid-column: span 2; }
-  .pb-results__grid > li:first-child .pb-scrap__title { font-size: 1.9rem; }
+/* These come after the variants on purpose: same specificity, so the later rule wins. */
+/* Two columns: a band with an even number of picks ends on a lone card; it takes the full row. */
+@media (min-width: 640px) and (max-width: 899.98px) {
+  .pb-band__wall > li:last-child:nth-child(even) { grid-column: 1 / -1; }
 }
+/* Three columns: the last card of a 4- or 5-pick band fills the rest of the final row. */
+@media (min-width: 900px) and (max-width: 1279.98px) {
+  .pb-band:not(.pb-band--v3) .pb-band__wall > li:nth-child(5):last-child { grid-column: span 2; }
+  .pb-band:not(.pb-band--v3) .pb-band__wall > li:nth-child(4):last-child { grid-column: 1 / -1; }
+  .pb-band--v3 .pb-band__wall > li:nth-child(5):last-child { grid-column: 1 / -1; }
+}
+@media (min-width: 1280px) {
+  /* v2 on four columns: the small cards fill columns 1-2, the lead takes 3-4 (a v2 band with
+     three picks puts the lead on row one only, beside two smalls). */
+  .pb-band--v2 .pb-band__wall > li:first-child { grid-column: 3 / span 2; }
+  .pb-band--v2 .pb-band__wall--short > li:first-child { grid-row: 1; }
+  /* Four picks leave one cell of row two empty; the last card takes two. */
+  .pb-band__wall > li:nth-child(4):last-child { grid-column: span 2; }
+  /* Three picks sit in one row, so the small cards stretch to the lead's height: a 16:9 lead
+     picture keeps that height (and the small pictures) from turning into tall portraits. */
+  .pb-band__wall--short > li:first-child .pb-half { aspect-ratio: 16 / 9; }
+}
+
+/* Section and search pages: a wall of whole blocks, never a ragged one. A block is a lead card
+   spanning two columns and two rows beside smaller cards, so every row is filled; the lead
+   alternates sides. Cards in a row share its height and their pictures grow to fill it, so no
+   card floats at the top of a gap. The page size (15) is a whole number of blocks at three and
+   four columns; the component trims the very last page to whole blocks (see tidyCount). */
+.pb-results__grid { grid-auto-flow: dense; align-items: stretch; }
+.pb-results__grid > li { min-width: 0; }
+.pb-results__grid > li > .pb-scrap { height: 100%; }
+
+/* Two columns: the lead is a full row, the rest pair up. */
+@media (min-width: 640px) and (max-width: 899.98px) {
+  .pb-results__grid > li:first-child { grid-column: 1 / -1; }
+  .pb-results__grid > li:first-child .pb-scrap__title { font-size: 1.9rem; }
+  .pb-results__grid > li:not(:first-child) .pb-half { flex: 1 1 auto; aspect-ratio: auto; min-height: 9rem; }
+}
+/* Three columns: block of 3 (lead 2x2 + two stacked); every second lead sits in columns 2-3. */
+@media (min-width: 900px) and (max-width: 1279.98px) {
+  .pb-results__grid > li:nth-child(3n + 1) { grid-column: span 2; grid-row: span 2; }
+  .pb-results__grid > li:nth-child(6n + 4) { grid-column: 2 / span 2; }
+  .pb-results__grid > li:nth-child(3n + 1) .pb-scrap__title { font-size: 1.9rem; }
+  .pb-results__grid > li:not(:nth-child(3n + 1)) .pb-half { flex: 1 1 auto; aspect-ratio: auto; min-height: 7rem; }
+}
+/* Four columns: block of 5 (lead 2x2 + four singles in a 2x2); every second lead sits right. */
+@media (min-width: 1280px) {
+  .pb-results__grid > li:nth-child(5n + 1) { grid-column: span 2; grid-row: span 2; }
+  .pb-results__grid > li:nth-child(10n + 6) { grid-column: 3 / span 2; }
+  .pb-results__grid > li:nth-child(5n + 1) .pb-scrap__title { font-size: 1.9rem; }
+  .pb-results__grid > li:not(:nth-child(5n + 1)) .pb-half { flex: 1 1 auto; aspect-ratio: auto; min-height: 7rem; }
+}
+/* Four stories or fewer: no lead block (it would leave empty cells), just one even row. */
+.pb-results__grid.pb-results__grid--few > li:nth-child(n) { grid-column: auto; grid-row: auto; }
+.pb-results__grid.pb-results__grid--few > li:nth-child(n) .pb-half { flex: 1 1 auto; aspect-ratio: auto; min-height: 9rem; }
 
 /* Title lockup and phone filters. */
 .pb-results__count { margin-top: 1.5rem; }
@@ -756,6 +871,10 @@ html:has(.pb) { scrollbar-color: var(--pb-black) var(--pb-gray); }
 .pb-ad::before { inset: -5px; }
 .pb-ad__label { justify-self: start; }
 .pb-ad iframe { max-width: 100%; }
+/* Horizontal cut-out between sections (home and section pages). */
+.pb-adstrip { position: relative; z-index: 3; display: flex; justify-content: center; padding: 2.5rem var(--pb-gutter); }
+.pb-adstrip--left .pb-ad { transform: rotate(-0.6deg); }
+.pb-adstrip--right .pb-ad { transform: rotate(0.5deg); }
 @media (min-width: 1380px) {
   .pb-article__layout {
     display: grid;

@@ -196,6 +196,25 @@ export const ADSTERRA_CONFIG: Record<string, AdsterraTenantConfig> = {
       height: 250,
     },
   },
+  // pressbig.com reuses NewsIcons' existing zones (the only set with every banner size)
+  // until PressBig has dedicated zones. Swap the keys here when it does.
+  pressbig: {
+    socialBar: "", // no pop ups
+    native: {
+      containerId: "container-a1f442b3c1c6f4884e945ce6943d9592",
+      src: "https://pl29635876.effectivecpmnetwork.com/a1f442b3c1c6f4884e945ce6943d9592/invoke.js",
+    },
+    banners: {
+      "300x250": "4f9542538a51a6a78a44d2adbd421aba",
+      "728x90": "94250b076539ed0b9dcd58f165dd3025",
+      "468x60": "603c44961b8019fd5a624765debe12f3",
+      "320x50": "dd0e7786a644f40208798a12ab5f9d69",
+      "160x600": "615d4c292020f1ed98e5d7177ea0d623",
+      "160x300": "19bf3dd4b01f2176cacbd0a9e8bb33b1",
+    },
+    midArticle: { key: "4f9542538a51a6a78a44d2adbd421aba", width: 300, height: 250 },
+    midFeed: { key: "4f9542538a51a6a78a44d2adbd421aba", width: 300, height: 250 },
+  },
   lavaguetech: {
     socialBar: "", // no pop ups
     native: {
@@ -235,7 +254,6 @@ export const ADSTERRA_CONFIG: Record<string, AdsterraTenantConfig> = {
       "technikpost",
       "techoggi",
       "techhoy",
-      "pressbig",
       "golfcarrier",
     ].map((key) => [
       key,
@@ -263,8 +281,9 @@ export const ADSTERRA_CONFIG: Record<string, AdsterraTenantConfig> = {
 /**
  * Resolves the tenant key based on domain or hostname
  */
-export function getAdsterraTenant(domain: string): "jejujapan" | "voicejeju" | "jejutime" | "jejuqq" | "skyblueprime" | "newsicons" | "lavaguetech" {
+export function getAdsterraTenant(domain: string): "jejujapan" | "voicejeju" | "jejutime" | "jejuqq" | "skyblueprime" | "newsicons" | "lavaguetech" | "pressbig" {
   const normalized = domain.toLowerCase();
+  if (normalized.includes("pressbig")) return "pressbig";
   if (normalized.includes("jejujapan")) return "jejujapan";
   if (normalized.includes("voicejeju")) return "voicejeju";
   if (normalized.includes("jejuqq")) return "jejuqq";
