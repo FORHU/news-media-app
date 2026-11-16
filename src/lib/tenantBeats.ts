@@ -16,6 +16,7 @@ const TENANT_BEATS: Record<string, string> = {
   "techoggi.com": "the day's essential technology news in brief: concise, clear summaries of what matters today",
   "techhoy.com": "the day's technology news for a Spanish-speaking audience: clear, accessible, and relevant to readers today",
   "pressbig.com": "entertainment, fashion, new gadgets and pop culture, not hard news: light, enthusiastic and curious, written for a broad mainstream reader, with a point of view on what is worth their attention today",
+  "golfcarrier.com": "golf news for players and fans: tournaments, majors, players, equipment, instruction and golf travel; lead with what it means for golfers and the game, and when a story has no golf connection, report it plainly without inventing one",
 };
 
 export function getTenantBeat(domain: string): string | undefined {
