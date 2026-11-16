@@ -16,9 +16,9 @@ export default async function SearchLayout({
 }) {
   const { domain } = await params;
 
-  // LegalHyperSearch and PressBigSearchResults own their full page layout (no Tenant row/DB content exists yet
-  // for this domain), so skip the DB-driven chrome below entirely.
-  if (domain === "legalhyper.com" || domain === "pressbig.com") {
+  // LegalHyperSearch, PressBigSearchResults and GolfCarrierSearchResults own their full page layout,
+  // so skip the DB-driven chrome (sidebar, gutter ads) below entirely.
+  if (domain === "legalhyper.com" || domain === "pressbig.com" || domain === "golfcarrier.com") {
     return <>{children}</>;
   }
 

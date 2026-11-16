@@ -26,6 +26,7 @@ export function getSiteNameFromDomain(domain: string | null): string {
   if (d.includes('techoggi')) return "Tech Oggi";
   if (d.includes('techhoy')) return "TechHoy";
   if (d.includes('pressbig')) return "PressBig";
+  if (d.includes('golfcarrier')) return "GolfCarrier";
   return "NewsIcons";
 }
 
@@ -52,6 +53,7 @@ function getSiteIconPath(domain: string | null): string {
   if (d.includes('techoggi')) return "/icons/techoggi.ico";
   if (d.includes('techhoy')) return "/icons/techhoy.ico";
   if (d.includes('pressbig')) return "/icons/pressbig.ico";
+  if (d.includes('golfcarrier')) return "/icons/golfcarrier.ico";
   return "/icons/newsicons.ico";
 }
 
@@ -80,6 +82,7 @@ export function getSiteLogoFromDomain(domain: string | null): string {
   if (d.includes('techoggi')) return "TECHOGGI.png";
   if (d.includes('techhoy')) return "TECHHOY.png";
   if (d.includes('pressbig')) return "PRESSBIG.png";
+  if (d.includes('golfcarrier')) return "GOLFCARRIER.png";
   return "NEWSICONSLOGO.png";
 }
 
@@ -103,6 +106,7 @@ export function getSiteDescriptionFromDomain(domain: string | null): string {
   if (d.includes('techoggi')) return "La tecnologia, oggi — le notizie essenziali della giornata, in sintesi.";
   if (d.includes('techhoy')) return "TechHoy: noticias de tecnología en español, con inteligencia artificial, ciberseguridad, empresas y dispositivos, cada día.";
   if (d.includes('pressbig')) return "PressBig: the day's edit of movies, TV, music, celebrity, style and tech. Picked, not piled.";
+  if (d.includes('golfcarrier')) return "GolfCarrier: golf news from every tour — tournaments, majors, players, equipment, instruction and the courses worth the trip.";
   return "Media & Content Hub for curated news, blogs, and insights.";
 }
 
@@ -171,6 +175,7 @@ const SITE_SAME_AS: Record<string, string[]> = {
   techoggi: [],
   techhoy: [],
   pressbig: [],
+  golfcarrier: [],
 };
 
 export function getSiteSameAsFromDomain(domain: string | null): string[] {

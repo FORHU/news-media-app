@@ -1,6 +1,7 @@
 import { enrichImages, fetchMediaStackNews, stableHash, type MediaStackArticle } from "@/lib/mediastack";
 import { isTechNewsDomain } from "@/components/sites/technews-shared/theme";
 import { env } from "@/lib/env";
+import { golfSectionOf, isAboutGolf } from "@/lib/golfFeed";
 
 /**
  * Finished feeds are remembered in memory for the cache window (MEDIASTACK_REVALIDATE_SECONDS,
@@ -56,8 +57,8 @@ const PRESSBIG_FEED_LIMIT = 160;
  * own ~100 candidates.
  *
  * Quota: each pool is one API call per cache window (MEDIASTACK_REVALIDATE_SECONDS,
- * default 4h => 6/day). 41 pools x 6 x 30 = ~7,400 calls/month, about three quarters
- * of the 10,000/month Standard plan (29 pools before pressbig.com's 12). Adding or removing a pool moves that by ~180/month,
+ * default 4h => 6/day). 47 pools x 6 x 30 = ~8,500 calls/month, about 85%
+ * of the 10,000/month Standard plan (29 pools before pressbig.com's 12, then golfcarrier.com's 6). Adding or removing a pool moves that by ~180/month,
  * so keep this list and that number in step.
  *
  * Keyword choice was probed against the live API, and it matters: MediaStack's
@@ -237,6 +238,33 @@ const PRESSBIG_POOLS: Pool[] = [
   { keywords: "gadget", topic: "Tech", avoid: PRESSBIG_AVOID, englishOnly: true },
 ];
 
+/** How many of GolfCarrier's newest stories are kept (and image-scraped). */
+const GOLFCARRIER_FEED_LIMIT = 160;
+
+/**
+ * golfcarrier.com: six pools, probed against the live API on 2026-11-16. Only
+ * single words work: MediaStack's search for a phrase ("PGA Tour", "Ryder Cup",
+ * "golf course") returns stories that don't contain the phrase, so the keyword
+ * re-check below empties them. Golf volume is thin (100 stories reach back 3-6
+ * months), so the pools are broad; isAboutGolf() then drops stories that
+ * only mention golf in passing, and golfSectionOf() assigns the more specific
+ * sections from the headline (both in golfFeed.ts, with tests). Order
+ * matters: the first pool to find a story names its fallback section.
+ */
+const GOLFCARRIER_POOLS: Pool[] = [
+  { keywords: "golfer", topic: "Players", englishOnly: true },
+  { keywords: "McIlroy", topic: "Players", englishOnly: true },
+  { keywords: "LPGA", topic: "Tours & Tournaments", englishOnly: true },
+  { keywords: "birdie", topic: "Tours & Tournaments", englishOnly: true },
+  { keywords: "PGA", topic: "Tours & Tournaments", englishOnly: true },
+  { keywords: "golf", topic: "Tours & Tournaments", englishOnly: true },
+];
+
+function golfSection(a: MediaStackArticle): MediaStackArticle {
+  const section = golfSectionOf(a);
+  return section ? { ...a, topic: section } : a;
+}
+
 /** Runs every pool in parallel (each its own cached request), tags the stories
  *  with the pool's category, drops stories that don't really mention the pool's
  *  keyword, drops duplicate URLs and duplicate headlines (the same story from
@@ -325,6 +353,13 @@ export async function fetchDomainMediaStackFeed(domain: string): Promise<MediaSt
     // through the rest, and every story kept costs an article-image scrape, so 470 -> 160 is the
     // difference between minutes and seconds on a cold build.
     return memoFeed(domain, () => fetchPools("en", PRESSBIG_POOLS, (feed) => feed.slice(0, PRESSBIG_FEED_LIMIT)));
+  }
+  if (domain === "golfcarrier.com") {
+    return memoFeed(domain, () =>
+      fetchPools("en", GOLFCARRIER_POOLS, (feed) =>
+        feed.filter(isAboutGolf).slice(0, GOLFCARRIER_FEED_LIMIT).map(golfSection),
+      ),
+    );
   }
   return null;
 }

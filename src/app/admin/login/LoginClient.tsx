@@ -9,6 +9,8 @@ import { adminLoginSchema } from '@/lib/validation/login';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getSiteIconFromDomain } from '@/lib/tenant-utils';
 import { PaperDefs, Wordmark } from '@/components/sites/pressbig/paper';
+import { GolfWordmark } from '@/components/sites/golfcarrier/mark';
+import '@/components/sites/golfcarrier/golfcarrier.css';
 
 /* ─── Domain theme config ─── */
 type Theme = {
@@ -55,6 +57,7 @@ function getTheme(domain: string): Theme {
   if (domain.includes('techoggi')) return techOggiTheme;
   if (domain.includes('techhoy')) return techHoyTheme;
   if (domain.includes('pressbig')) return pressBigTheme;
+  if (domain.includes('golfcarrier')) return golfCarrierTheme;
   return newsIconsTheme;
 }
 
@@ -685,6 +688,39 @@ const pressBigTheme: Theme = {
   tagline: 'Staff entrance',
   footerText: '© PressBig',
   siteName: 'PressBig',
+};
+
+/* ── GolfCarrier ──
+   Sand page with a mowed-fairway band along the bottom (`.gc-login` in
+   components/sites/golfcarrier/golfcarrier.css), white card, fairway button. */
+const golfCarrierTheme: Theme = {
+  bg: 'gc-login min-h-screen flex items-center justify-center px-4 py-12 relative overflow-y-auto',
+  card: 'bg-white border border-[#DCD6C6] shadow-2xl shadow-[#0B2A1F]/20 p-8 md:p-12 relative overflow-hidden rounded-2xl',
+  topBar: 'absolute top-0 left-0 w-full h-1.5 bg-[#11724C]',
+  logo: (
+    <div className="text-center mb-10 flex flex-col items-center">
+      <GolfWordmark size={40} />
+      <p className="text-[10px] font-mono font-semibold uppercase tracking-[0.24em] text-[#4A5A52] mt-4">Newsroom login</p>
+    </div>
+  ),
+  accent: '#11724C',
+  accentCls: 'bg-[#11724C]',
+  accentHover: 'hover:bg-[#0C5A3B]',
+  inputFocus: 'focus:border-[#11724C]',
+  inputBorder: 'border-[#DCD6C6] hover:border-[#c9c2ae]',
+  inputBgCls: 'bg-[#F4F1E8]',
+  inputRounded: 'rounded-xl',
+  labelCls: 'text-[10px] font-mono font-semibold text-[#0B2A1F] uppercase tracking-[0.22em]',
+  btnCls: 'w-full bg-[#11724C] text-white py-4 rounded-full font-semibold text-sm hover:bg-[#0C5A3B] disabled:opacity-60 transition-colors flex items-center justify-center gap-2 group relative overflow-hidden',
+  errorCls: 'text-xs text-red-700 bg-red-50 p-4 rounded-xl border border-red-100 font-semibold flex items-center gap-3',
+  backCls: 'fixed top-6 left-6 sm:top-10 sm:left-10 flex items-center gap-3 text-[#4A5A52] hover:text-[#11724C] transition-all group z-10 font-mono font-semibold uppercase tracking-[0.2em] text-[10px]',
+  backIconCls: 'transition-transform group-hover:-translate-x-1',
+  headingCls: 'text-2xl font-black text-[#0B2A1F] tracking-tight mb-1',
+  subtextCls: 'text-sm text-[#4A5A52]',
+  footerCls: 'text-center mt-8 text-[#4A5A52] font-mono font-semibold text-[10px] uppercase tracking-[0.22em]',
+  tagline: 'Welcome back',
+  footerText: '© GolfCarrier',
+  siteName: 'GolfCarrier',
 };
 
 /* ─── Shared form logic ─── */

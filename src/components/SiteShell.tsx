@@ -27,6 +27,8 @@ const LegalHyperHeader = dynamic<{ onOpenNewsletter?: () => void }>(() => import
 const LegalHyperFooter = dynamic<{ onOpenNewsletter?: () => void }>(() => import("@/components/sites/legalhyper/LegalHyperFooter").then(m => m.LegalHyperFooter), { ssr: true });
 const PressBigHeader = dynamic<{ domain: string; onOpenNewsletter?: () => void }>(() => import("@/components/sites/pressbig/PressBigHeader"), { ssr: true });
 const PressBigFooter = dynamic<{ domain: string; onOpenNewsletter?: () => void }>(() => import("@/components/sites/pressbig/PressBigFooter"), { ssr: true });
+const GolfCarrierHeader = dynamic<{ domain: string; onOpenNewsletter?: () => void }>(() => import("@/components/sites/golfcarrier/GolfCarrierHeader"), { ssr: true });
+const GolfCarrierFooter = dynamic<{ domain: string; onOpenNewsletter?: () => void }>(() => import("@/components/sites/golfcarrier/GolfCarrierFooter"), { ssr: true });
 // technews tenant family — one per-domain component set each
 type TechNewsChromeProps = { domain: string; onOpenNewsletter?: () => void; categories?: string[] };
 const LinkTechNewsHeader = dynamic<TechNewsChromeProps>(() => import("@/components/sites/linktechnews/LinkTechNewsHeader"), { ssr: true });
@@ -104,6 +106,7 @@ export function SiteShell({ children, domain, categories }: SiteShellProps) {
     if (d.includes("lavaguetech")) return "lavaguetech";
     if (d.includes("legalhyper")) return "legalhyper";
     if (d.includes("pressbig")) return "pressbig";
+    if (d.includes("golfcarrier")) return "golfcarrier";
     if (isTechNewsDomain(d)) return "technews";
     return "default";
   }, [domain]);
@@ -119,6 +122,7 @@ export function SiteShell({ children, domain, categories }: SiteShellProps) {
       case "lavaguetech": return <LavagueTechHeader onOpenNewsletter={openNewsletter} />;
       case "legalhyper": return <LegalHyperHeader onOpenNewsletter={openNewsletter} />;
       case "pressbig": return <PressBigHeader domain={domain} onOpenNewsletter={openNewsletter} />;
+      case "golfcarrier": return <GolfCarrierHeader domain={domain} onOpenNewsletter={openNewsletter} />;
       case "technews": {
         const H = TECHNEWS_HEADERS[technewsKey(domain)];
         return <H domain={domain} onOpenNewsletter={openNewsletter} categories={categories} />;
@@ -138,6 +142,7 @@ export function SiteShell({ children, domain, categories }: SiteShellProps) {
       case "lavaguetech": return <LavagueTechFooter onOpenNewsletter={openNewsletter} />;
       case "legalhyper": return <LegalHyperFooter onOpenNewsletter={openNewsletter} />;
       case "pressbig": return <PressBigFooter domain={domain} onOpenNewsletter={openNewsletter} />;
+      case "golfcarrier": return <GolfCarrierFooter domain={domain} onOpenNewsletter={openNewsletter} />;
       case "technews": {
         const F = TECHNEWS_FOOTERS[technewsKey(domain)];
         return <F domain={domain} onOpenNewsletter={openNewsletter} categories={categories} />;
